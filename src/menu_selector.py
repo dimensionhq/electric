@@ -2,7 +2,7 @@
 import keyboard
 import click
 from colorama import Back
-from sys import exit
+import sys
 import subprocess
 from subprocess import PIPE
 
@@ -43,6 +43,9 @@ def show_menu_selector(executable_list, file_path):
             trigger()
 
     def enter():
+        if executable_list[index] == 'Exit':
+            click.echo('Press Control + C To Confirm Quitting...')
+            sys.exit()
         path = file_path + "\\" + executable_list[index]
         click.echo(click.style(f'Running {executable_list[index]}. Hit Control + C to Quit', fg='magenta'))
         subprocess.call(path, stdout=PIPE, stdin=PIPE, stderr=PIPE)

@@ -102,8 +102,8 @@ def install_package(package_name, switches, download_type):
             for name in os.listdir(zip_directory):
                 if name.endswith('.exe'):
                     executable_list.append(name)
+            executable_list.append('Exit')
             show_menu_selector(executable_list, fR'C:\Users\roopa\Downloads\\{package_name}')
-
 
     if plat == 'darwin':
         mount_dmg = f'hdiutil attach -nobrowse {file_name}'

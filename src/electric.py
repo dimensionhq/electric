@@ -5,7 +5,7 @@ import json as js
 from sys import exit
 from helpers import get_architecture, get_download_url, parse_json_response, download, install_package, cleanup
 from timeit import default_timer as timer
-from Server.main import files
+from files import files
 import difflib
 
 
