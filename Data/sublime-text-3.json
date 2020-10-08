@@ -1,0 +1,9 @@
+{
+	"package-name": "Sublime Text 3",
+	"win32": "https://download.sublimetext.com/Sublime%20Text%20Build%203211%20Setup.exe",
+	"win64": "https://download.sublimetext.com/Sublime%20Text%20Build%203211%20x64%20Setup.exe",
+	"darwin": "https://download.sublimetext.com/Sublime%20Text%20Build%203211.dmg",
+	"debian": "https://download.sublimetext.com/sublime_text_3_build_3211_x64.tar.bz2",
+	"source": "https://www.google.com",
+	"type": ".exe"
+}

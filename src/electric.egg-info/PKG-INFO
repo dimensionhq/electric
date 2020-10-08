@@ -1,0 +1,12 @@
+Metadata-Version: 1.1
+Name: electric
+Version: 1.0.0
+Summary: The Official Package Manager For Windows, MacOS and Linux!
+Home-page: https://github.com/TheBossProSniper/Electric
+Author: TheBossProSniper
+Author-email: thebossprosniper@gmail.com
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: Apache License 2.0
+Classifier: Operating System :: OS Independent

@@ -1,0 +1,9 @@
+setup.py
+C:/Users/roopa/Desktop/Electric-master/src/electric.py
+src/electric.py
+src/electric.egg-info/PKG-INFO
+src/electric.egg-info/SOURCES.txt
+src/electric.egg-info/dependency_links.txt
+src/electric.egg-info/entry_points.txt
+src/electric.egg-info/requires.txt
+src/electric.egg-info/top_level.txt
