@@ -1,9 +1,8 @@
 import click
-# from urllib.request import urlretrieve, urlopen
 import requests
 import json as js
 from sys import exit
-from helpers import get_architecture, get_download_url, install_package, cleanup, parse_json_response, download, repair_package, run_uninstall
+from helpers import get_architecture, get_download_url, install_package, cleanup, parse_json_response, download, run_uninstall
 from timeit import default_timer as timer, timeit
 from files import files
 import difflib
