@@ -1,8 +1,10 @@
 import platform
-from sys import platform as plat
+from subprocess import PIPE
+from sys import platform as plat, stdin
 from getpass import getuser
 import subprocess
 import sys
+from click.decorators import command
 import requests
 import zipfile
 import click
@@ -118,3 +120,6 @@ def cleanup(download_type, package_name):
     setup_name = get_setup_name(download_type, package_name)
     command = 'del ' + setup_name
     subprocess.call(command, shell=True)
+
+def run_uninstall(command : str):
+    subprocess.call(command, stdout=PIPE, stdin=PIPE, stderr=PIPE)

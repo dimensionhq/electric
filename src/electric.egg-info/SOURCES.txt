@@ -1,5 +1,5 @@
 setup.py
-C:/Users/roopa/Desktop/Electric-master/src/electric.py
+C:/Users/roopa/Desktop/electric/src/electric.py
 src/electric.py
 src/electric.egg-info/PKG-INFO
 src/electric.egg-info/SOURCES.txt

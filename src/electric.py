@@ -3,10 +3,11 @@ import click
 import requests
 import json as js
 from sys import exit
-from helpers import get_architecture, get_download_url, parse_json_response, download, install_package, cleanup
-from timeit import default_timer as timer
+from helpers import get_architecture, get_download_url, install_package, cleanup, parse_json_response, download, run_uninstall
+from timeit import default_timer as timer, timeit
 from files import files
 import difflib
+from registry import get_uninstall_key
 
 
 @click.group()
@@ -63,3 +64,25 @@ def install(package_name):
 
     click.echo(click.style(f'Successfully Installed {package_name}!', fg='bright_magenta'))
 
+@cli.command()
+@click.argument('package_name', required=True)
+def uninstall(package_name):
+    start = timer()
+    key = get_uninstall_key(package_name)
+    end = timer()
+    if len(key) == 0:
+        name = package_name.split('-')
+        final_name = []
+        for obj in name:
+            final_name.append(obj.capitalize())
+        package_name = ' '.join(final_name)
+        click.echo(click.style(f'Could Not Find Any Existing Installations Of {package_name}', fg='yellow'))
+        return
+    click.echo(click.style(f'Successfully Got Uninstall Key In {round(end - start, 4)}s', fg='cyan'))
+    command = None
+    if 'QuietUninstallString' in key[0]:
+        command = key[0]['QuietUninstallString']
+        run_uninstall(command)
+    if 'UninstallString' in key[0] and 'QuietUninstallString' not in key[0]:
+        command = key[0]['UninstallString']
+        run_uninstall(command)

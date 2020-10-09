@@ -85,7 +85,7 @@ files = {
 		"win64": "https://az764295.vo.msecnd.net/stable/2af051012b66169dde0c4dfae3f5ef48f787ff69/VSCode-win32-x64-1.49.3.zip",
 		"source": "test.org",
 		"type": ".zip",
-		"switches": [""]
+		"switches": [""],
 	}
 }
 

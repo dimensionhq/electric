@@ -30,6 +30,8 @@ setup(
         'Click',
         'progress',
         'requests',
+        'keyboard',
+        'colorama',
     ],
     package_dir={'': 'src'},
     entry_points =
