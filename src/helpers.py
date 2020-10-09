@@ -1,6 +1,6 @@
 import platform
 from subprocess import PIPE
-from sys import platform as plat, stdin
+from sys import platform as plat, stderr, stdin
 from getpass import getuser
 import subprocess
 import sys
@@ -122,4 +122,4 @@ def cleanup(download_type, package_name):
     subprocess.call(command, shell=True)
 
 def run_uninstall(command : str):
-    subprocess.call(command, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+    subprocess.call(command, stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
