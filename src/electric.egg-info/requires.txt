@@ -1,5 +1,0 @@
-Click
-progress
-requests
-keyboard
-colorama

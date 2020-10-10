@@ -1,4 +1,0 @@
-
-        [console_scripts]
-        electric=electric:cli
-    

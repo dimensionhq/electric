@@ -20,7 +20,7 @@ files = {
             "debian": "https://github.com/atom/atom/releases/download/v1.51.0/atom-amd64.deb",
             "source": "https://atom.io/",
             "type": ".exe",
-            "switches-win": ["--silent"]
+            "switches": ["--silent"]
         },
     "vscode.json":
         {

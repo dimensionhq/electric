@@ -5,7 +5,6 @@ import difflib
 keys : list = []
 
 def get_uninstall_key(package_name : str):
-    
     def get_registry_info():
         proc_arch = os.environ['PROCESSOR_ARCHITECTURE'].lower()
         proc_arch64 = None if 'PROCESSOR_ARCHITEW6432' not in os.environ.keys() else os.environ['PROCESSOR_ARCHITEW6432'].lower()
