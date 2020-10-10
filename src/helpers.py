@@ -111,11 +111,6 @@ def install_package(package_name, switches, download_type):
         mount_dmg = f'hdiutil attach -nobrowse {file_name}'
 
 
-def download_x32(url : str, download_type : str, package_name : str):
-    download(url, download_type, package_name)
-    # TODO Check For Download Type And Complete Installation Of x32
-
-
 def cleanup(download_type, package_name):
     setup_name = get_setup_name(download_type, package_name)
     command = 'del ' + setup_name

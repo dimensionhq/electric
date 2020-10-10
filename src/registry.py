@@ -131,23 +131,20 @@ def get_uninstall_key(package_name : str):
 
                 if name is not None:
                     if string.lower() in name or string.upper() in name or string.capitalize() in name:
-                        print(f'{name} is increased by 10')
                         confidence += 10
                 if loc is not None:
                     if string.lower() in loc or string.upper() in loc or string.capitalize() in loc:
-                        print(f'{name} is increased by 5')
+                        
                         confidence += 5
                 if uninstall_string is not None:
                     if string.lower() in uninstall_string or string.upper() in uninstall_string or string.capitalize() in uninstall_string:
-                        print(f'{name} is increased by 5')
+                        
                         confidence += 5
                 if quiet_uninstall_string is not None:
                     if string.lower() in quiet_uninstall_string or string.upper() in quiet_uninstall_string or string.capitalize() in quiet_uninstall_string:
-                        print(f'{name} is increased by 5')
                         confidence += 5
                 if url is not None:
                     if string.lower() in url or string.upper() in url or string.capitalize() in url:
-                        print(f'{name} is increased by 10')
                         confidence += 10
                 if final_confidence == confidence:
                     # Unjoin words
