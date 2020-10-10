@@ -79,9 +79,11 @@ def uninstall(package_name):
         return
     click.echo(click.style(f'Successfully Got Uninstall Key In {round(end - start, 4)}s', fg='cyan'))
     command = None
-    if 'QuietUninstallString' in key[0]:
-        command = key[0]['QuietUninstallString']
+    if isinstance(key, list):
+        key = key[0]
+    if 'QuietUninstallString' in key:
+        command = key['QuietUninstallString']
         run_uninstall(command)
-    if 'UninstallString' in key[0] and 'QuietUninstallString' not in key[0]:
-        command = key[0]['UninstallString']
+    if 'UninstallString' in key and 'QuietUninstallString' not in key:
+        command = key['UninstallString']
         run_uninstall(command)

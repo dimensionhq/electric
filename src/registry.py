@@ -14,6 +14,7 @@ def get_uninstall_key(package_name : str):
             arch_keys = {winreg.KEY_WOW64_32KEY, winreg.KEY_WOW64_64KEY}
         else:
             raise OSError("Unhandled arch: %s" % proc_arch)
+        
         for arch_key in arch_keys:
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, R"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", 0, winreg.KEY_READ | arch_key)
             for i in range(0, winreg.QueryInfoKey(key)[0]):
@@ -22,7 +23,7 @@ def get_uninstall_key(package_name : str):
                 try:
                     name = winreg.QueryValueEx(skey, 'DisplayName')[0]
                     stro = winreg.QueryValueEx(skey, 'UninstallString')[0]
-                    
+                
                     url, loc, pub = None, None, None
                     try:
                         url = winreg.QueryValueEx(skey, 'URLInfoAbout')[0]
@@ -55,6 +56,7 @@ def get_uninstall_key(package_name : str):
                             "InstallLocation": loc,
                             "Publisher": pub,
                         }
+
                         keys.append(gen_dict)
                     else:
                         gen_dict : dict = {
@@ -74,7 +76,9 @@ def get_uninstall_key(package_name : str):
     final_array = []
     total = []
     def get_uninstall_string(package_name : str):
+        nonlocal final_array
         string_gen(package_name)
+
         for key in keys:
             display_name = key['DisplayName']
             url = None if 'URLInfoAbout' not in key else key['URLInfoAbout']
@@ -85,6 +89,7 @@ def get_uninstall_key(package_name : str):
             index = 0
             matches = None
             refined_list = []
+            
             for object in final_list:
                 if object is None:
                     final_list.pop(index)
@@ -127,7 +132,6 @@ def get_uninstall_key(package_name : str):
             quiet_uninstall_string = None if 'QuietUninstallString' not in key else key['QuietUninstallString']
             url = None if 'URLInfoAbout' not in key else key['URLInfoAbout']
             for string in strings:
-
                 if name is not None:
                     if string.lower() in name or string.upper() in name or string.capitalize() in name:
                         confidence += 10
@@ -137,7 +141,6 @@ def get_uninstall_key(package_name : str):
                         confidence += 5
                 if uninstall_string is not None:
                     if string.lower() in uninstall_string or string.upper() in uninstall_string or string.capitalize() in uninstall_string:
-                        
                         confidence += 5
                 if quiet_uninstall_string is not None:
                     if string.lower() in quiet_uninstall_string or string.upper() in quiet_uninstall_string or string.capitalize() in quiet_uninstall_string:
@@ -153,11 +156,13 @@ def get_uninstall_key(package_name : str):
                             if word in name:
                                 confidence += 5
                         if word is not None:
-                            if word in uninstall_string:
-                                    confidence += 5
+                            if uninstall_string is not None:
+                                if word in uninstall_string: # Uninstall_string here is None
+                                        confidence += 5
                         if quiet_uninstall_string is not None:
-                            if word in quiet_uninstall_string:
-                                confidence += 5
+                            if quiet_uninstall_string is not None:
+                                if word in quiet_uninstall_string:
+                                    confidence += 5
                         if loc is not None:
                             if word in loc:
                                 confidence += 5
@@ -176,7 +181,9 @@ def get_uninstall_key(package_name : str):
 
     get_registry_info()
     get_uninstall_string(package_name)
-    if final_array != []:
+    if not final_array:
+        return []
+    if final_array:
         if len(final_array) > 1:
             return get_more_accurate_matches(final_array)
         return final_array
