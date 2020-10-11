@@ -92,7 +92,6 @@ files = {
 class FileQuery(Resource):
 	def get(self, file_name : str):
 		# return send_file(f"C:\\Users\\roopa\\Desktop\\Coding\\electric\\Data\\{file_name}.exe", as_attachment=True)
-	# def get(self, file_name : str):
 		return jsonify(files[file_name + '.json'])
 
 
