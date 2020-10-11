@@ -8,6 +8,7 @@ def get_uninstall_key(package_name : str):
     def get_registry_info():
         proc_arch = os.environ['PROCESSOR_ARCHITECTURE'].lower()
         proc_arch64 = None if 'PROCESSOR_ARCHITEW6432' not in os.environ.keys() else os.environ['PROCESSOR_ARCHITEW6432'].lower()
+        
         if proc_arch == 'x86' and not proc_arch64:
             arch_keys = {0}
         elif proc_arch == 'x86' or proc_arch == 'amd64':
@@ -20,6 +21,7 @@ def get_uninstall_key(package_name : str):
             for i in range(0, winreg.QueryInfoKey(key)[0]):
                 skey_name = winreg.EnumKey(key, i)
                 skey = winreg.OpenKey(key, skey_name)
+                
                 try:
                     name = winreg.QueryValueEx(skey, 'DisplayName')[0]
                     stro = winreg.QueryValueEx(skey, 'UninstallString')[0]
@@ -75,17 +77,23 @@ def get_uninstall_key(package_name : str):
 
     final_array = []
     total = []
+    
     def get_uninstall_string(package_name : str):
         nonlocal final_array
+        
         string_gen(package_name)
 
         for key in keys:
             display_name = key['DisplayName']
             url = None if 'URLInfoAbout' not in key else key['URLInfoAbout']
+            
             uninstall_string = '' if 'UninstallString' not in key else key['UninstallString']
             quiet_uninstall_string = '' if 'QuietUninstallString' not in key else key['QuietUninstallString']
+            
             install_location = '' if 'InstallLocation' not in key else key['InstallLocation']
+            
             final_list = [display_name, url, uninstall_string, quiet_uninstall_string, install_location]
+            
             index = 0
             matches = None
             refined_list = []
@@ -93,21 +101,27 @@ def get_uninstall_key(package_name : str):
             for object in final_list:
                 if object is None:
                     final_list.pop(index)
+                
                 if object is not None:
                     name = object.lower()
-                refined_list.append(name)
+                    refined_list.append(name)
+                
                 index += 1
 
             for string in strings:
                 matches = difflib.get_close_matches(string, refined_list)
+                
                 if matches == []:
                     possibilities = []
+
                     for element in refined_list:
                         for string in strings:
                             if string in element:
                                 possibilities.append(key)
+
                     if possibilities != []:
                         total.append(possibilities)
+                    
                     else:
                         continue
                 else:
@@ -124,30 +138,38 @@ def get_uninstall_key(package_name : str):
         confidence = 50
         index : int = 0
         final_index = None
+        
         final_confidence = None 
+        
         for key in return_array:
             name = key['DisplayName']
             loc = key['InstallLocation']
             uninstall_string = None if 'UninstallString' not in key else key['UninstallString']
             quiet_uninstall_string = None if 'QuietUninstallString' not in key else key['QuietUninstallString']
             url = None if 'URLInfoAbout' not in key else key['URLInfoAbout']
+            
             for string in strings:
                 if name is not None:
                     if string.lower() in name or string.upper() in name or string.capitalize() in name:
                         confidence += 10
+                
                 if loc is not None:
                     if string.lower() in loc or string.upper() in loc or string.capitalize() in loc:
                         
                         confidence += 5
+                
                 if uninstall_string is not None:
                     if string.lower() in uninstall_string or string.upper() in uninstall_string or string.capitalize() in uninstall_string:
                         confidence += 5
+                
                 if quiet_uninstall_string is not None:
                     if string.lower() in quiet_uninstall_string or string.upper() in quiet_uninstall_string or string.capitalize() in quiet_uninstall_string:
                         confidence += 5
+                
                 if url is not None:
                     if string.lower() in url or string.upper() in url or string.capitalize() in url:
                         confidence += 10
+                
                 if final_confidence == confidence:
                     # Unjoin words
                     word_list = package_name.split('-')
@@ -172,25 +194,33 @@ def get_uninstall_key(package_name : str):
                 if final_index is None and final_confidence is None:
                     final_index = index
                     final_confidence = confidence
+                
                 if final_confidence < confidence:
                     final_index = index
                     final_confidence = confidence
             index += 1
+        
         return return_array[final_index]
 
 
     get_registry_info()
     get_uninstall_string(package_name)
+    
     if not final_array:
         return []
+    
     if final_array:
         if len(final_array) > 1:
             return get_more_accurate_matches(final_array)
         return final_array
+    
     return_array = []
+    
     for something in total:
         return_array.append(something[0])
+    
     if len(return_array) > 1:
         return get_more_accurate_matches(return_array)
+    
     else:
         return return_array
