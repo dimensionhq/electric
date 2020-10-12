@@ -1,8 +1,10 @@
-import errno, os, winreg
-from typing import final
 import difflib
+import winreg
+import errno
+import os
 
-keys : list = []
+
+keys = []
 
 def get_uninstall_key(package_name : str):
     def get_registry_info():
@@ -16,7 +18,7 @@ def get_uninstall_key(package_name : str):
             raise OSError("Unhandled arch: %s" % proc_arch)
         
         for arch_key in arch_keys:
-            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, R"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", 0, winreg.KEY_READ | arch_key)
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", 0, winreg.KEY_READ | arch_key)
             for i in range(0, winreg.QueryInfoKey(key)[0]):
                 skey_name = winreg.EnumKey(key, i)
                 skey = winreg.OpenKey(key, skey_name)
@@ -24,22 +26,15 @@ def get_uninstall_key(package_name : str):
                     name = winreg.QueryValueEx(skey, 'DisplayName')[0]
                     stro = winreg.QueryValueEx(skey, 'UninstallString')[0]
                 
-                    url, loc, pub = None, None, None
-                    try:
-                        url = winreg.QueryValueEx(skey, 'URLInfoAbout')[0]
-                    except OSError as e:
-                        if e.errno == errno.ENOENT:
-                            pass
-                    try:  
-                        loc = winreg.QueryValueEx(skey, 'InstallLocation')[0]
-                    except OSError as e:
-                        if e.errno == errno.ENOENT:
-                            pass
-                    try:
-                        pub = winreg.QueryValueEx(skey, 'Publisher')[0]
-                    except OSError as e:
-                        if e.errno == errno.ENOENT:
-                            pass
+                    url, loc, pub = (None, None, None)
+                    
+                    for key in ["URLInfoAbout", "InstallLocation", "Publisher"]:
+                        try:
+                            url = winreg.QueryValueEx(skey, 'URLInfoAbout')[0]
+                        except OSError as e:
+                            if e.errno == errno.ENOENT:
+                                pass
+                    
                     qstro = None
                     if 'MsiExec.exe' in stro:
                         qstro = stro + ' /quiet'
@@ -49,23 +44,23 @@ def get_uninstall_key(package_name : str):
                         if e.errno == errno.ENOENT:
                             pass
                     if qstro is not None:
-                        gen_dict : dict = {
-                            "DisplayName": name,
-                            "QuietUninstallString": qstro,
-                            "URLInfoAbout": url,
-                            "InstallLocation": loc,
-                            "Publisher": pub,
-                        }
+                        gen_dict = {
+                                    "DisplayName": name,
+                                    "QuietUninstallString": qstro,
+                                    "URLInfoAbout": url,
+                                    "InstallLocation": loc,
+                                    "Publisher": pub,
+                                   }
 
                         keys.append(gen_dict)
                     else:
-                        gen_dict : dict = {
-                            "DisplayName": name,
-                            "UninstallString": stro,
-                            "URLInfoAbout": url,
-                            "InstallLocation": loc,
-                            "Publisher": pub,
-                        }
+                        gen_dict = {
+                                    "DisplayName": name,
+                                    "UninstallString": stro,
+                                    "URLInfoAbout": url,
+                                    "InstallLocation": loc,
+                                    "Publisher": pub,
+                                   }
                         keys.append(gen_dict)
                 except OSError as e:
                     if e.errno == errno.ENOENT:
@@ -90,23 +85,27 @@ def get_uninstall_key(package_name : str):
             matches = None
             refined_list = []
 
-            for object in final_list:
-                if object is None:
+            for item in final_list:
+                if item is None:
                     final_list.pop(index)
-                if object is not None:
+                else:
                     name = object.lower()
+                    
                 refined_list.append(name)
                 index += 1
 
             for string in strings:
                 matches = difflib.get_close_matches(string, refined_list)
-                if matches == []:
+                
+                if not matches:
                     possibilities = []
+                    
                     for element in refined_list:
                         for string in strings:
                             if string in element:
                                 possibilities.append(key)
-                    if possibilities != []:
+                                
+                    if possibilities:
                         total.append(possibilities)
                     else:
                         continue
@@ -116,59 +115,51 @@ def get_uninstall_key(package_name : str):
 
     strings = []
     def string_gen(package_name : str):
-        # Split by `-`
-        split1 = package_name.split('-')
-        strings.append(''.join(split1))
+        package_name = package_name.split('-')
+        strings.append(''.join(package_name))
 
     def get_more_accurate_matches(return_array):
-        confidence = 50
-        index : int = 0
-        final_index = None
-        final_confidence = None 
+        index, confidence = 0, 50
+        final_index, final_confidence = (None, None)
+        
         for key in return_array:
             name = key['DisplayName']
             loc = key['InstallLocation']
             uninstall_string = None if 'UninstallString' not in key else key['UninstallString']
             quiet_uninstall_string = None if 'QuietUninstallString' not in key else key['QuietUninstallString']
             url = None if 'URLInfoAbout' not in key else key['URLInfoAbout']
+            
             for string in strings:
-                if name is not None:
-                    if string.lower() in name or string.upper() in name or string.capitalize() in name:
+                if name:
+                    if string.lower() in name.lower():
+                        confidence += 10                 
+                if loc:
+                    if string.lower() in loc.lower():               
+                        confidence += 5
+                if uninstall_string:
+                    if string.lower() in uninstall_string.lower():
+                        confidence += 5
+                if quiet_uninstall_string:
+                    if string.lower() in quiet_uninstall_string.lower():
+                        confidence += 5
+                if url:
+                    if string.lower() in url.lower():
                         confidence += 10
-                if loc is not None:
-                    if string.lower() in loc or string.upper() in loc or string.capitalize() in loc:
                         
-                        confidence += 5
-                if uninstall_string is not None:
-                    if string.lower() in uninstall_string or string.upper() in uninstall_string or string.capitalize() in uninstall_string:
-                        confidence += 5
-                if quiet_uninstall_string is not None:
-                    if string.lower() in quiet_uninstall_string or string.upper() in quiet_uninstall_string or string.capitalize() in quiet_uninstall_string:
-                        confidence += 5
-                if url is not None:
-                    if string.lower() in url or string.upper() in url or string.capitalize() in url:
-                        confidence += 10
                 if final_confidence == confidence:
-                    # Unjoin words
                     word_list = package_name.split('-')
+                    
                     for word in word_list:
-                        if name is not None:
-                            if word in name:
-                                confidence += 5
-                        if word is not None:
-                            if uninstall_string is not None:
-                                if word in uninstall_string: # Uninstall_string here is None
+                        for key in [name, quiet_uninstall_string, loc, url]:                      
+                            if key != None:
+                                if word in key:
+                                    confidence += 5
+                                
+                        if word != None:
+                            if uninstall_string:
+                                if word in uninstall_string:
                                         confidence += 5
-                        if quiet_uninstall_string is not None:
-                            if quiet_uninstall_string is not None:
-                                if word in quiet_uninstall_string:
-                                    confidence += 5
-                        if loc is not None:
-                            if word in loc:
-                                confidence += 5
-                        if url is not None:
-                            if word in  url:
-                                    confidence += 5
+                                    
                 if final_index is None and final_confidence is None:
                     final_index = index
                     final_confidence = confidence
