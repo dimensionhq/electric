@@ -1,11 +1,11 @@
 
-files : list = [
-"sublime-text-3",
-"atom",
-"vscode",
-"android-studio",
-"virtualbox",
-"blender",
-"git",
-"ziptest",
-]
+files = [
+        "sublime-text-3",
+        "atom",
+        "vscode",
+        "android-studio",
+        "virtualbox",
+        "blender",
+        "git",
+        "ziptest",
+        ]
