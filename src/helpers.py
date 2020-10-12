@@ -1,14 +1,66 @@
-from menu_selector import show_menu_selector
 from subprocess import PIPE
 from getpass import getuser
+from colorama import Back
+from sys import platform as plat
 
 import subprocess
+import keyboard
 import requests
 import platform
 import zipfile
 import click
 import sys
 import os
+
+index = 0
+final_value = None
+
+
+def show_menu_selector(executable_list, file_path):
+    def trigger():
+        click.clear()
+        for executable in executable_list:
+            if executable == executable_list[index]:
+                print(Back.CYAN + executable + Back.RESET)
+            else:
+                print(executable)
+
+    trigger()
+
+    def up():
+        global index
+        if len(executable_list) != 1:
+            index -= 1
+            if index >= len(executable_list):
+                index = 0
+                trigger()
+                return
+            trigger()
+
+    def down():
+        global index
+        if len(executable_list) != 1:
+            index += 1
+            if index >= len(executable_list):
+                index = 0
+                trigger()
+                return
+            trigger()
+
+    def enter():
+        if executable_list[index] == 'Exit':
+            click.echo('Press Control + C To Confirm Quitting...')
+            sys.exit()
+        else:
+            path = file_path + "\\" + executable_list[index]
+            click.echo(click.style(f'Running {executable_list[index]}. Hit Control + C to Quit', fg='magenta'))
+            subprocess.call(path, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+            quit()
+
+    keyboard.add_hotkey('up', up)
+    keyboard.add_hotkey('down', down)
+    keyboard.add_hotkey('enter', enter)
+    keyboard.wait()
 
 
 def get_architecture():
@@ -17,7 +69,7 @@ def get_architecture():
     if platform.machine().endswith('86'):
         return 'x32'
 
-
+#TODO: Change the name of this function...
 def get_download_url(architecture, json):
     if sys.platform == 'win32':
         if architecture == 'x64':
@@ -38,7 +90,7 @@ def parse_json_response(json):
 
 def get_setup_name(download_type, package_name):
     if plat == 'win32':
-        download_path = 'C:\\Users\\{0}\\Downloads\\'.format(get_user())
+        download_path = 'C:\\Users\\{0}\\Downloads\\'.format(getuser())
         architecture = get_architecture()
         package = package_name.split()
         package.insert(0, download_path)
@@ -81,7 +133,9 @@ def download(url, download_type: str, package_name):
             for data in response.iter_content(chunk_size=4096):
                 dl += len(data)
                 f.write(data)
-                complete = int(50 * dl / total_length)
+                # this code has an error while running. Needs to be parsed properly for output..
+
+                complete = int(50 * dl / full_length)
                 fill_c, unfill_c = chr(9608) * complete, chr(9617) * (50 - complete)
                 sys.stdout.write(f"\r|{fill_c}{unfill_c}| {round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
                 sys.stdout.flush()
@@ -113,8 +167,8 @@ def install_package(package_name, switches, download_type):
                 if name.endswith('.exe'):
                     executable_list.append(name)
             executable_list.append('Exit')
-            show_menu_selector(executable_list, 'C:\\Users\\{0}\\Downloads\\{1}'.format(get_user(), package_name))
-
+            show_menu_selector(executable_list, 'C:\\Users\\{0}\\Downloads\\{1}'.format(getuser(), package_name))
+    #TODO: Implement the macOS side.
     if plat == 'darwin':
         mount_dmg = f'hdiutil attach -nobrowse {file_name}'
 
