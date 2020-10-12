@@ -1,7 +1,6 @@
 from subprocess import PIPE
 from getpass import getuser
 from colorama import Back
-from sys import platform as plat
 
 import subprocess
 import keyboard
@@ -11,6 +10,7 @@ import zipfile
 import click
 import sys
 import os
+
 
 index = 0
 final_value = None
@@ -89,7 +89,7 @@ def parse_json_response(json):
 
 
 def get_setup_name(download_type, package_name):
-    if plat == 'win32':
+    if sys.platform == 'win32':
         download_path = 'C:\\Users\\{0}\\Downloads\\'.format(getuser())
         architecture = get_architecture()
         package = package_name.split()
@@ -99,7 +99,7 @@ def get_setup_name(download_type, package_name):
         package.append(download_type)
         return ''.join(package)
     
-    elif plat == 'darwin':
+    elif sys.platform == 'darwin':
         download_path = rf'/Users/{getuser()}/Downloads/'
         package = package_name.split()
         package.insert(0, download_path)
@@ -107,7 +107,7 @@ def get_setup_name(download_type, package_name):
         package.append(download_type)
         return ''.join(package)
     
-    elif plat == 'linux':
+    elif sys.platform == 'linux':
         download_path = rf'/home/{getuser()}/Downloads/'
         package = package_name.split()
         package.insert(0, download_path)
