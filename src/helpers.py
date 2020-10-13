@@ -1,12 +1,12 @@
 from subprocess import PIPE
 from getpass import getuser
 from colorama import Back
-
 import subprocess
 import keyboard
 import requests
 import platform
 import zipfile
+import ctypes
 import click
 import sys
 import os
@@ -14,53 +14,6 @@ import os
 
 index = 0
 final_value = None
-
-
-def show_menu_selector(executable_list, file_path):
-    def trigger():
-        click.clear()
-        for executable in executable_list:
-            if executable == executable_list[index]:
-                print(Back.CYAN + executable + Back.RESET)
-            else:
-                print(executable)
-
-    trigger()
-
-    def up():
-        global index
-        if len(executable_list) != 1:
-            index -= 1
-            if index >= len(executable_list):
-                index = 0
-                trigger()
-                return
-            trigger()
-
-    def down():
-        global index
-        if len(executable_list) != 1:
-            index += 1
-            if index >= len(executable_list):
-                index = 0
-                trigger()
-                return
-            trigger()
-
-    def enter():
-        if executable_list[index] == 'Exit':
-            click.echo('Press Control + C To Confirm Quitting...')
-            sys.exit()
-        else:
-            path = file_path + "\\" + executable_list[index]
-            click.echo(click.style(f'Running {executable_list[index]}. Hit Control + C to Quit', fg='magenta'))
-            subprocess.call(path, stdout=PIPE, stdin=PIPE, stderr=PIPE)
-            quit()
-
-    keyboard.add_hotkey('up', up)
-    keyboard.add_hotkey('down', down)
-    keyboard.add_hotkey('enter', enter)
-    keyboard.wait()
 
 
 def get_architecture():
@@ -144,7 +97,7 @@ def download(url, download_type: str, package_name):
 def install_package(package_name, switches, download_type):
     file_name = get_setup_name(download_type, package_name)
     
-    if plat == 'win32':
+    if sys.platform == 'win32':
         if download_type == '.exe':
             command = file_name + ' '
             for switch in switches:
@@ -167,9 +120,57 @@ def install_package(package_name, switches, download_type):
                 if name.endswith('.exe'):
                     executable_list.append(name)
             executable_list.append('Exit')
-            show_menu_selector(executable_list, 'C:\\Users\\{0}\\Downloads\\{1}'.format(getuser(), package_name))
+
+            file_path = 'C:\\Users\\{0}\\Downloads\\{1}'.format(getuser(), package_name)
+
+            def trigger():
+                click.clear()
+                for executable in executable_list:
+                    if executable == executable_list[index]:
+                        print(Back.CYAN + executable + Back.RESET)
+                    else:
+                        print(executable)
+
+            trigger()
+
+            def up():
+                global index
+                if len(executable_list) != 1:
+                    index -= 1
+                    if index >= len(executable_list):
+                        index = 0
+                        trigger()
+                        return
+                    trigger()
+
+            def down():
+                global index
+                if len(executable_list) != 1:
+                    index += 1
+                    if index >= len(executable_list):
+                        index = 0
+                        trigger()
+                        return
+                    trigger()
+
+            def enter():
+                if executable_list[index] == 'Exit':
+                    os._exit(0)
+                    return
+                    # sys.exit()
+                else:
+                    path = file_path + "\\" + executable_list[index]
+                    click.echo(click.style(f'Running {executable_list[index]}. Hit Control + C to Quit', fg='magenta'))
+                    subprocess.call(path, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+                    quit()
+
+            keyboard.add_hotkey('up', up)
+            keyboard.add_hotkey('down', down)
+            keyboard.add_hotkey('enter', enter)
+            keyboard.wait()
+
     #TODO: Implement the macOS side.
-    if plat == 'darwin':
+    if sys.platform == 'darwin':
         mount_dmg = f'hdiutil attach -nobrowse {file_name}'
 
 
@@ -180,3 +181,12 @@ def cleanup(download_type, package_name):
 
 def run_uninstall(command : str):
     subprocess.call(command, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+
+def is_admin():
+    try:
+     is_admin = os.getuid() == 0
+
+    except AttributeError:
+     is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+
+    return is_admin

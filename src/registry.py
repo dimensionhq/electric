@@ -1,6 +1,5 @@
 import difflib
 import winreg
-import errno
 import os
 
 
@@ -28,12 +27,18 @@ def get_uninstall_key(package_name : str):
                 
                     url, loc, pub = (None, None, None)
                     
-                    for key in ["URLInfoAbout", "InstallLocation", "Publisher"]:
-                        try:
-                            url = winreg.QueryValueEx(skey, 'URLInfoAbout')[0]
-                        except OSError as e:
-                            if e.errno == errno.ENOENT:
-                                pass
+                    try:
+                        url = winreg.QueryValueEx(skey, 'URLInfoAbout')[0]
+                    except OSError as e:
+                            pass
+                    try:  
+                        loc = winreg.QueryValueEx(skey, 'InstallLocation')[0]
+                    except OSError as e:
+                            pass
+                    try:
+                        pub = winreg.QueryValueEx(skey, 'Publisher')[0]
+                    except OSError as e:
+                            pass 
                     
                     qstro = None
                     if 'MsiExec.exe' in stro:
@@ -41,7 +46,6 @@ def get_uninstall_key(package_name : str):
                     try:
                         qstro = winreg.QueryValueEx(skey, 'QuietUninstallString')[0]
                     except OSError as e:
-                        if e.errno == errno.ENOENT:
                             pass
                     if qstro is not None:
                         gen_dict = {
@@ -63,7 +67,6 @@ def get_uninstall_key(package_name : str):
                                    }
                         keys.append(gen_dict)
                 except OSError as e:
-                    if e.errno == errno.ENOENT:
                         pass
                 finally:
                     skey.Close()
@@ -89,7 +92,7 @@ def get_uninstall_key(package_name : str):
                 if item is None:
                     final_list.pop(index)
                 else:
-                    name = object.lower()
+                    name = item.lower()
                     
                 refined_list.append(name)
                 index += 1
@@ -151,16 +154,16 @@ def get_uninstall_key(package_name : str):
                     
                     for word in word_list:
                         for key in [name, quiet_uninstall_string, loc, url]:                      
-                            if key != None:
+                            if key:
                                 if word in key:
                                     confidence += 5
                                 
-                        if word != None:
+                        if word:
                             if uninstall_string:
                                 if word in uninstall_string:
                                         confidence += 5
                                     
-                if final_index is None and final_confidence is None:
+                if not final_index and not final_confidence:
                     final_index = index
                     final_confidence = confidence
                 if final_confidence < confidence:
@@ -172,7 +175,6 @@ def get_uninstall_key(package_name : str):
 
     get_registry_info()
     get_uninstall_string(package_name)
-    print('This is the final array: ', final_array)
 
     if final_array:
         if len(final_array) > 1:
@@ -181,7 +183,6 @@ def get_uninstall_key(package_name : str):
     return_array = []
     for something in total:
         return_array.append(something[0])
-    print('This is the return array: ', return_array)
     if len(return_array) > 1:
         return get_more_accurate_matches(return_array)
     else:
