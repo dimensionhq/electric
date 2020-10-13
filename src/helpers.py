@@ -22,7 +22,7 @@ def get_architecture():
     if platform.machine().endswith('86'):
         return 'x32'
 
-#TODO: Change the name of this function...
+
 def get_download_url(architecture, json):
     if sys.platform == 'win32':
         if architecture == 'x64':
@@ -179,14 +179,14 @@ def cleanup(download_type, package_name):
     command = 'del ' + setup_name
     subprocess.call(command, shell=True)
 
-def run_uninstall(command : str):
-    subprocess.call(command, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+def run_uninstall(command : str, package_name):
+    subprocess.call(command, stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
+    click.echo(click.style(f"Successfully Uninstalled {package_name}", fg="bright_magenta"))
 
 def is_admin():
     try:
-     is_admin = os.getuid() == 0
-
+        is_admin = os.getuid() == 0
     except AttributeError:
-     is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+        is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
 
     return is_admin

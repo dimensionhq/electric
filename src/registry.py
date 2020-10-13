@@ -24,21 +24,16 @@ def get_uninstall_key(package_name : str):
                 try:
                     name = winreg.QueryValueEx(skey, 'DisplayName')[0]
                     stro = winreg.QueryValueEx(skey, 'UninstallString')[0]
-                
-                    url, loc, pub = (None, None, None)
-                    
-                    try:
-                        url = winreg.QueryValueEx(skey, 'URLInfoAbout')[0]
-                    except OSError as e:
-                            pass
-                    try:  
-                        loc = winreg.QueryValueEx(skey, 'InstallLocation')[0]
-                    except OSError as e:
-                            pass
-                    try:
-                        pub = winreg.QueryValueEx(skey, 'Publisher')[0]
-                    except OSError as e:
-                            pass 
+
+
+                    packs = []
+                    for regkey in ["URLInfoAbout", "InstallLocation", "Publisher"]:
+                        try:
+                           packs.append(winreg.QueryValueEx(skey, regkey)[0])
+                        except:
+                            packs.append(None)
+
+                    url, loc, pub = packs
                     
                     qstro = None
                     if 'MsiExec.exe' in stro:

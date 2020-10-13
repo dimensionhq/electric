@@ -8,7 +8,8 @@
 		"debian": "https://download.sublimetext.com/sublime_text_3_build_3211_x64.tar.bz2",
 		"source": "https://www.google.com",
 		"type": ".exe",
-		"switches": ["/VERYSILENT", "/NORESTART"]
+		"uninstall-switches": ["/VERYSILENT", "/SILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "TASKS=\"contextentry\""],
+		"switches": ["/VERYSILENT", "/NORESTART", "\/TASKS=\"contextentry\""]
 	},
 	"atom.json":
 	{
@@ -19,7 +20,8 @@
 		"debian": "https://github.com/atom/atom/releases/download/v1.51.0/atom-amd64.deb",
 		"source": "https://atom.io/",
 		"type": ".exe",
-		"switches": ["--silent"]
+		"switches": ["--silent"],
+		"uninstall-command": "\"%LocalAppData%\\atom\\Update.exe\" --uninstall -s"
 	},
 	"vscode.json":
 	{
@@ -74,7 +76,8 @@
 		"debian": "http://ftp.br.debian.org/debian/pool/main/g/git/git_2.28.0-1_amd64.deb",
 		"source": "https://git-scm.com/downloads",
 		"type": ".exe",
-		"switches": ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"]
+		"switches": ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"],
+		"uninstall-switches": ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"]
 	},
 	"ziptest.json":
 	{
@@ -86,3 +89,18 @@
 		"switches": [""]
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
