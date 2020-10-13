@@ -18,14 +18,13 @@ def cli():
 @cli.command()
 @click.argument('package_name', required=True)
 def install(package_name: str):
-    admin = is_admin()
     packages = package_name.split(',')
     for package in packages:
         package = package.strip()
         package_name = package
         BASE = 'http://127.0.0.1:5000/'
 
-        if not admin:
+        if not is_admin():
             click.echo(click.style(
                 'Electric Works Best On Admin Command Prompts. Some Installations May Fail If Not Run As Administrator.',
                 fg='yellow'))
@@ -47,7 +46,7 @@ def install(package_name: str):
         start = timer()
 
         # Converting to usable .json format.
-        pkg = js.loads(response.text)
+        pkg = json.loads(response.text)
 
         # Accessing Values Like A Normal JSON
         tem_architecture = get_architecture()
@@ -119,7 +118,7 @@ def uninstall(package_name: str):
             # Get Correct Package Name For Output Message
             package_name = ' '.join(final_name)
             
-            pkg = js.loads(response.text)
+            pkg = json.loads(response.text)
             if "uninstall-command" in pkg:
                 run_uninstall(pkg['uninstall-command'], pkg["package-name"])
                 
@@ -142,7 +141,7 @@ def uninstall(package_name: str):
             command = command.replace('/quiet', '/passive')
 
             additional_switches = []
-            pkg = js.loads(response.text)
+            pkg = json.loads(response.text)
             if "uninstall-switches" in pkg:
                 additional_switches = pkg['uninstall-switches']
 

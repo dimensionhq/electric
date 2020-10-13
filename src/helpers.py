@@ -23,22 +23,22 @@ def get_architecture():
         return 'x32'
 
 
-def get_download_url(architecture, json):
+def get_download_url(architecture, pkg):
     if sys.platform == 'win32':
         if architecture == 'x64':
-            return json['win64']
+            return pkg['win64']
         elif architecture == 'x32':
-            return json['win32']
+            return pkg['win32']
         
     elif sys.platform == 'darwin':
-        return json['darwin']
+        return pkg['darwin']
     
     elif sys.platform == 'linux':
-        return json['debian']
+        return pkg['debian']
 
 
-def parse_json_response(json):
-    return json['package-name'], json['source'], json['type'], json['switches']
+def parse_json_response(pkg):
+    return pkg['package-name'], pkg['source'], pkg['type'], pkg['switches']
 
 
 def get_setup_name(download_type, package_name):
