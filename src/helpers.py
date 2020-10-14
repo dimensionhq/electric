@@ -53,7 +53,7 @@ def get_setup_name(download_type, package_name):
         return ''.join(package)
     
     elif sys.platform == 'darwin':
-        download_path = rf'/Users/{getuser()}/Downloads/'
+        download_path = r'/Users/{0}/Downloads/'.format(getuser())
         package = package_name.split()
         package.insert(0, download_path)
         package.append('Setup')
@@ -61,7 +61,7 @@ def get_setup_name(download_type, package_name):
         return ''.join(package)
     
     elif sys.platform == 'linux':
-        download_path = rf'/home/{getuser()}/Downloads/'
+        download_path = r'/home/{0}/Downloads/'.format(getuser())
         package = package_name.split()
         package.insert(0, download_path)
         package.append('Setup')
@@ -157,7 +157,7 @@ def install_package(package_name, switches, download_type):
                 if executable_list[index] == 'Exit':
                     os._exit(0)
                     return
-                    # sys.exit()
+
                 else:
                     path = file_path + "\\" + executable_list[index]
                     click.echo(click.style(f'Running {executable_list[index]}. Hit Control + C to Quit', fg='magenta'))
