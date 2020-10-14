@@ -6,7 +6,7 @@
 		"win64": "https://download.sublimetext.com/Sublime%20Text%20Build%203211%20x64%20Setup.exe",
 		"darwin": "https://download.sublimetext.com/Sublime%20Text%20Build%203211.dmg",
 		"debian": "https://download.sublimetext.com/sublime_text_3_build_3211_x64.tar.bz2",
-		"source": "https://www.google.com",
+		"source": "https://www.sublimetext.com/3",
 		"type": ".exe",
 		"uninstall-switches": ["/VERYSILENT", "/SILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "TASKS=\"contextentry\""],
 		"switches": ["/VERYSILENT", "/NORESTART", "\/TASKS=\"contextentry\""]
@@ -87,6 +87,33 @@
 		"source": "test.org",
 		"type": ".zip",
 		"switches": [""]
+	},
+	"node.json":
+	{
+		"package-name": "NodeJS",
+		"win32": "https://nodejs.org/dist/v12.19.0/node-v12.19.0-x86.msi",
+		"win64": "https://nodejs.org/dist/v12.19.0/node-v12.19.0-x64.msi",
+		"source": "https://nodejs.org/",
+		"type": ".msi",
+		"switches": []
+	},
+	"7-zip.json":
+	{
+		"package-name": "7-Zip",
+		"win32": "https://www.7-zip.org/a/7z1900.exe",
+		"win64": "https://www.7-zip.org/a/7z1900-x64.exe",
+		"source": "https://nodejs.org/",
+		"type": ".exe",
+		"switches": ["/S"]
+	},
+	"notepad++.json":
+	{
+		"package-name": "Notepad++",
+		"win32": "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.8.8/npp.7.8.8.Installer.exe",
+		"win64": "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.8.8/npp.7.8.8.Installer.x64.exe",
+		"type": ".exe",
+		"switches": ["/S"],
+		"uninstall-command": "\"%ProgramFiles(x86)%\\Notepad++\\uninstall.exe\" /S"
 	}
 }
 

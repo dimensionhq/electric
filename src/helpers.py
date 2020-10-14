@@ -1,10 +1,11 @@
 from subprocess import PIPE
 from getpass import getuser
 from colorama import Back
+from extension import *
 import subprocess
 import keyboard
-import requests
 import platform
+import requests
 import zipfile
 import ctypes
 import click
@@ -35,7 +36,6 @@ def get_download_url(architecture, pkg):
     
     elif sys.platform == 'linux':
         return pkg['debian']
-
 
 def parse_json_response(pkg):
     return pkg['package-name'], pkg['source'], pkg['type'], pkg['switches']
@@ -70,7 +70,7 @@ def get_setup_name(download_type, package_name):
 
 
 # noinspection DuplicatedCode
-def download(url, download_type: str, package_name):
+def download(url, download_type: str, package_name, noprogress):
     setup_name = get_setup_name(download_type, package_name)
 
     with open(setup_name, "wb") as f:
@@ -86,12 +86,15 @@ def download(url, download_type: str, package_name):
             for data in response.iter_content(chunk_size=4096):
                 dl += len(data)
                 f.write(data)
-                # this code has an error while running. Needs to be parsed properly for output..
-
-                complete = int(50 * dl / full_length)
-                fill_c, unfill_c = chr(9608) * complete, chr(9617) * (50 - complete)
-                sys.stdout.write(f"\r|{fill_c}{unfill_c}| {round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
-                sys.stdout.flush()
+                    
+                if noprogress:
+                    sys.stdout.write(f"\r{round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
+                    sys.stdout.flush()
+                else:
+                    complete = int(50 * dl / full_length)
+                    fill_c, unfill_c = chr(9608) * complete, chr(9617) * (50 - complete)
+                    sys.stdout.write(f"\r|{fill_c}{unfill_c}| {round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
+                    sys.stdout.flush()
 
 
 def install_package(package_name, switches, download_type):
@@ -102,14 +105,21 @@ def install_package(package_name, switches, download_type):
             command = file_name + ' '
             for switch in switches:
                 command = command + ' ' + switch
-            subprocess.call(command)
-            
+            try:
+                subprocess.call(command)
+            except OSError:
+                click.echo(click.style('Administrator Elevation Required...', fg='red'))
+                os._exit(0)
         elif download_type == '.msi':
             command = 'msiexec.exe /i' + file_name + ' '
             for switch in switches:
                 command = command + ' ' + switch
-            subprocess.call(command)
-            
+            try:
+                subprocess.call(command)
+            except OSError:
+                click.echo(click.style('Administrator Elevation Required...', fg='bright_yellow'))
+                os._exit(0)
+
         elif download_type == '.zip':
             click.echo(click.style(f'Unzipping File At {file_name}', fg='green'))
             zip_directory = fR'C:\Users\{getuser()}\Downloads\\{package_name}'
@@ -190,3 +200,9 @@ def is_admin():
         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
 
     return is_admin
+
+def get_package_names(json_response):
+    package_names = []
+    for package in json_response:
+        package_names.append(package.replace('.json', ''))
+    return package_names

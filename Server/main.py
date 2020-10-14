@@ -1,8 +1,6 @@
 from flask import Flask
 from flask_restful import Api, Resource
-from flask import send_file, jsonify
-from getpass import getuser
-from sys import platform
+from flask import jsonify
 import json
 
 # Create Flask App
@@ -14,6 +12,9 @@ class FileQuery(Resource):
 	def get(self, file_name : str):
 		with open('packages.json') as file:
 			files = json.loads(file.read())
+		if file_name == 'all':
+			return jsonify(files)
+		
 		return jsonify(files[file_name + '.json'])
 
 
