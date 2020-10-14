@@ -11,17 +11,15 @@ try:
 except FileNotFoundError:
     installed = False
 
-
+    
 def download_python() -> int:
     # Download Python
     download_path = ''
 
     if platform == 'win32':
         download_path = f'C:\\Users\\{getuser()}\\Downloads\\PythonSetup.exe'
-
     elif platform == 'darwin':
         download_path = f'\\Users\\{getuser()}\\Downloads\\PythonSetup.pkg'
-
     elif platform == 'linux':
         download_path = f'\\home\\{getuser()}\\Downloads\\PythonSetup.deb'
 
@@ -29,7 +27,6 @@ def download_python() -> int:
 
     if platform == 'win32':
         python_download_url = 'https://www.python.org/ftp/python/3.9.0/python-3.9.0-amd64.exe'
-    
     elif platform == 'darwin':
         python_download_url = 'https://www.python.org/ftp/python/3.9.0/python-3.9.0-macosx10.9.pkg'
 
@@ -39,30 +36,25 @@ def download_python() -> int:
     
     if platform == 'win32':
         setup_python = [f'{download_path} /passive']
-    
     elif platform == 'macos':
         setup_python = [f'sudo installer -store -pkg "{download_path}" -target /Applications']
 
     for command in setup_python:
         call(command)
 
-    working = True
+    success = True
 
     try:
-        proc = Popen('python', stdout=PIPE, stdin=PIPE, stderr=PIPE)
-    
+        proc = Popen('python', stdout=PIPE, stdin=PIPE, stderr=PIPE)   
     except FileNotFoundError:
-        working = False
+        success = False
 
-    if working:
-        return 0
-    
-    return 1
+    return success
 
 
 def download_dependencies() -> int:
     # Download Dependencies Using Pip
-    commands = 'python -m pip install electric' # Change to turbocharge in the case of turbocharge
+    commands = 'python -m pip install electric' # Change to turbocharge in the case of TurboCharge
     
     for command in commands:
         call(command)
@@ -71,7 +63,7 @@ def download_dependencies() -> int:
 
 if not installed:
     download_python()
-    if download_python() == 0:
+    if download_python(): # If already downloaded
         download_dependencies()
 
 
