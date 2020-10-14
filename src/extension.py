@@ -9,7 +9,7 @@ def write_verbose(log, verbose: bool):
 def write_debug(log, debug: bool):
     if debug:
         if isinstance(log, list):
-            log = "\n".join(log)
+            log = "\nDEBUG: ".join(log)
             
         HEADER = "DEBUG: "
         click.echo(click.style(HEADER + log, fg="bright_yellow"))
