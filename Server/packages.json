@@ -111,23 +111,39 @@
 		"package-name": "Notepad++",
 		"win32": "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.8.8/npp.7.8.8.Installer.exe",
 		"win64": "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.8.8/npp.7.8.8.Installer.x64.exe",
-		"type": ".exe",
+        "source": "https://notepad-plus-plus.org/",
+        "type": ".exe",
 		"switches": ["/S"],
 		"uninstall-command": "\"%ProgramFiles(x86)%\\Notepad++\\uninstall.exe\" /S"
+    },
+    "winrar.json":
+    {
+        "package-name": "Winrar",
+        "win32": "https://www.rarlab.com/rar/wrar591.exe",
+        "win64": "https://www.rarlab.com/rar/winrar-x64-591.exe",
+        "source": "https://www.win-rar.com/start.html?&L=0",
+        "type": ".exe",
+        "switches": ["/S"],
+        "uninstall-switches": ["/S"]
+    },
+    "teamviewer.json":
+    {
+        "package-name": "Teamviewer",
+        "win32": "https://download.teamviewer.com/download/TeamViewer_Setup.exe",
+        "win64": "https://download.teamviewer.com/download/TeamViewer_Setup.exe",
+        "source": "https://www.teamviewer.com",
+        "type": ".exe",
+        "switches": ["/S"],
+        "uninstall-switches": ["/S"]
+    },
+    "anydesk.json":
+    {
+        "package-name": "Anydesk",
+        "win32": "https://download.anydesk.com/AnyDesk.exe",
+        "win64": "https://download.anydesk.com/AnyDesk.exe",
+        "source": "https://anydesk.com",
+        "type": ".exe",
+        "switches": ["--install", "C:\\Program Files (x86)\\AnyDesk", "--start-with-win", "--create-shortcuts", "--create-desktop-icon", "--silent"],
+        "uninstall-switches": ["--silent", "--remove"]
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
