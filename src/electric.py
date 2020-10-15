@@ -139,7 +139,7 @@ def uninstall(package_name: str, verbose, debug):
     package_names = get_package_names(res)
     pkg = res[package_name + ".json"]
 
-    write_debug([f"Attaching debugger at {strftime('%H:%M:%S')} on uninstall",
+    write_debug([f"Attaching debugger at {strftime('%H:%M:%S')} on uninstall::initialization",
                  f"Electric is running on {platform.platform()}",
                  f"User domain name: {platform.node()}",
                  f"Command line: \"{' '.join(sys.argv)}\"",
