@@ -7,6 +7,7 @@ import keyboard
 import platform
 import requests
 import zipfile
+import hashlib
 import ctypes
 import click
 import sys
@@ -53,7 +54,7 @@ def get_setup_name(download_type, package_name):
         return ''.join(package)
     
     elif sys.platform == 'darwin':
-        download_path = r'/Users/{0}/Downloads/'.format(getuser())
+        download_path = '/Users/{0}/Downloads/'.format(getuser())
         package = package_name.split()
         package.insert(0, download_path)
         package.append('Setup')
@@ -61,7 +62,7 @@ def get_setup_name(download_type, package_name):
         return ''.join(package)
     
     elif sys.platform == 'linux':
-        download_path = r'/home/{0}/Downloads/'.format(getuser())
+        download_path = '/home/{0}/Downloads/'.format(getuser())
         package = package_name.split()
         package.insert(0, download_path)
         package.append('Setup')
@@ -183,7 +184,6 @@ def install_package(package_name, switches, download_type):
     if sys.platform == 'darwin':
         mount_dmg = f'hdiutil attach -nobrowse {file_name}'
 
-
 def cleanup(download_type, package_name):
     setup_name = get_setup_name(download_type, package_name)
     command = 'del ' + setup_name
@@ -206,3 +206,19 @@ def get_package_names(json_response):
     for package in json_response:
         package_names.append(package.replace('.json', ''))
     return package_names
+
+def get_hash_algorithm(checksum: str):
+    # A function to detect the hash algorithm used in checksum
+    hashes = {32: "md5", 40: "sha1", 64: "sha256", 128: "sha512"}
+    return hashes[len(checksum)] if len(checksum) in hashes else None
+
+def get_checksum(bytecode: bytes, hash_algorithm: str):
+    # A function to get the checksum from bytecode
+    hash_type = getattr(hashlib, hash_algorithm, None)
+
+    if hash_type:
+        return hash_type(bytecode).hexdigest()
+    
+    return None
+
+

@@ -10,7 +10,8 @@ import click
 import json
 import sys
 
-__version__ = 'v1.0.0b'
+
+__version__ = '1.0.0b'
 
 @click.group()
 @click.version_option(__version__)
@@ -18,10 +19,10 @@ __version__ = 'v1.0.0b'
 def cli(ctx):
     pass
 
+
 @cli.command()
 def version():
-    version = '1.0.0b'
-    click.echo(f'electric v{version}')
+    click.echo('electric v{}'.format(__version__))
 
 
 @cli.command()
@@ -44,9 +45,11 @@ def install(package_name: str, verbose, debug, no_progress):
 
     # Debug headers
     write_debug([f"Attaching debugger at {strftime('%H:%M:%S')} on install::initialization",
-                 f"Electric is running on {platform.platform()} on {platform.node()}",
+                 f"Electric is running on {platform.platform()}",
+                 f"User domain name: {platform.node()}",
                  f"Command line: \"{' '.join(sys.argv)}\"",
                  f"Arguments: \"{' '.join(sys.argv[1:])}\"",
+                 f"Current directory: {os.getcwd()}",
                  f"Electric version: {__version__}",
                  f"System architecture detected: {get_architecture()}"
                  ], debug)
@@ -137,9 +140,11 @@ def uninstall(package_name: str, verbose, debug):
     pkg = res[package_name + ".json"]
 
     write_debug([f"Attaching debugger at {strftime('%H:%M:%S')} on uninstall",
-                 f"Electric is running on {platform.platform()} on {platform.node()}",
+                 f"Electric is running on {platform.platform()}",
+                 f"User domain name: {platform.node()}",
                  f"Command line: \"{' '.join(sys.argv)}\"",
                  f"Arguments: \"{' '.join(sys.argv[1:])}\"",
+                 f"Current directory: {os.getcwd()}",
                  f"Electric version: {__version__}",
                  f"System architecture detected: {get_architecture()}"
                  ], debug)
@@ -182,7 +187,7 @@ def uninstall(package_name: str, verbose, debug):
             if "uninstall-command" in pkg:
                 write_verbose("Executing the uninstall command", verbose)
                 run_uninstall(pkg['uninstall-command'], pkg["package-name"])
-                write_debug(f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', debug)
+                write_debug(f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', debug)
             else:
                 click.echo(click.style(f'Could Not Find Any Existing Installations Of {package_name}', fg='yellow'))
             return
@@ -213,7 +218,7 @@ def uninstall(package_name: str, verbose, debug):
             write_verbose("Executing the quiet uninstall command", verbose)
             run_uninstall(command, pkg["package-name"])
             write_verbose("Uninstallation completed.", verbose)
-            write_debug(f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', debug)
+            write_debug(f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', debug)
 
         # If Only UninstallString Exists (Not Preferable)
         if 'UninstallString' in key and 'QuietUninstallString' not in key:
@@ -225,4 +230,4 @@ def uninstall(package_name: str, verbose, debug):
             write_verbose("Executing the uninstall command", verbose)
             run_uninstall(command, pkg["package-name"])
             write_verbose("Uninstallation completed.", verbose)
-            write_debug(f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', debug)
+            write_debug(f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', debug)

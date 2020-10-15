@@ -4,7 +4,7 @@ import click
 def write_verbose(log, verbose: bool):
     if verbose:
         HEADER = "VERBOSE: "
-        click.echo(click.style(HEADER + log, fg="cyan", dim=True))
+        click.echo(click.style(HEADER + log, fg="green", dim=True))
 
 def write_debug(log, debug: bool):
     if debug:
