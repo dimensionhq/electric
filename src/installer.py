@@ -52,10 +52,13 @@ def download_python() -> int:
     return success
 
 
-def download_dependencies() -> int:
+def download_dependencies(password) -> int:
     # Download Dependencies Using Pip
     commands = 'python -m pip install electric' # Change to turbocharge in the case of TurboCharge
     
+    if platform == 'linux':
+        proc = Popen('sudo -S apt-get install python3-pip -y')
+        proc.communicate(password.encode())
     for command in commands:
         call(command)
         return 0
