@@ -14,8 +14,9 @@ class FileQuery(Resource):
 			files = json.loads(file.read())
 		if file_name == 'all':
 			return jsonify(files)
-		
+
 		return jsonify(files[file_name + '.json'])
+
 
 
 # Adding Page-Link For /rapidquery
