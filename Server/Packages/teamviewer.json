@@ -1,0 +1,12 @@
+{
+  "teamviewer.json":
+  {
+      "package-name": "Teamviewer",
+      "win32": "https://download.teamviewer.com/download/TeamViewer_Setup.exe",
+      "win64": "https://download.teamviewer.com/download/TeamViewer_Setup.exe",
+      "source": "https://www.teamviewer.com",
+      "type": ".exe",
+      "switches": ["/S"],
+      "uninstall-switches": ["/S"]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "anydesk.json":
+  {
+      "package-name": "Anydesk",
+      "win32": "https://download.anydesk.com/AnyDesk.exe",
+      "win64": "https://download.anydesk.com/AnyDesk.exe",
+      "source": "https://anydesk.com",
+      "type": ".exe",
+      "switches": ["--install", "C:\\Program Files (x86)\\AnyDesk", "--start-with-win", "--create-shortcuts", "--create-desktop-icon", "--silent"],
+      "uninstall-switches": ["--silent", "--remove"]
+  }
+}

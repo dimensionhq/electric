@@ -1,0 +1,13 @@
+{
+  "virtualbox":
+	{
+		"package-name": "VirtualBox",
+		"win32": "https://download.virtualbox.org/virtualbox/6.1.14/VirtualBox-6.1.14-140239-Win.exe",
+		"win64": "https://download.virtualbox.org/virtualbox/6.1.14/VirtualBox-6.1.14-140239-Win.exe",
+		"darwin": "https://download.virtualbox.org/virtualbox/6.1.14/VirtualBox-6.1.14-140239-OSX.dmg",
+		"debian": "https://download.virtualbox.org/virtualbox/6.1.14/virtualbox-6.1_6.1.14-140239~Ubuntu~eoan_amd64.deb",
+		"source": "https://www.virtualbox.org/wiki/Downloads",
+		"type": ".exe",
+		"switches": ["--silent"]
+	}
+}

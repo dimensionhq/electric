@@ -10,6 +10,7 @@ import zipfile
 import hashlib
 import ctypes
 import click
+import json
 import sys
 import os
 
@@ -31,12 +32,13 @@ def get_download_url(architecture, pkg):
             return pkg['win64']
         elif architecture == 'x32':
             return pkg['win32']
-        
+
     elif sys.platform == 'darwin':
         return pkg['darwin']
-    
+
     elif sys.platform == 'linux':
         return pkg['debian']
+
 
 def parse_json_response(pkg):
     return pkg['package-name'], pkg['source'], pkg['type'], pkg['switches']
@@ -52,7 +54,7 @@ def get_setup_name(download_type, package_name):
         package.append(architecture)
         package.append(download_type)
         return ''.join(package)
-    
+
     elif sys.platform == 'darwin':
         download_path = '/Users/{0}/Downloads/'.format(getuser())
         package = package_name.split()
@@ -60,7 +62,7 @@ def get_setup_name(download_type, package_name):
         package.append('Setup')
         package.append(download_type)
         return ''.join(package)
-    
+
     elif sys.platform == 'linux':
         download_path = '/home/{0}/Downloads/'.format(getuser())
         package = package_name.split()
@@ -83,24 +85,27 @@ def download(url, download_type: str, package_name, noprogress):
         else:
             dl = 0
             full_length = int(total_length)
-            
+
             for data in response.iter_content(chunk_size=4096):
                 dl += len(data)
                 f.write(data)
-                    
+
                 if noprogress:
-                    sys.stdout.write(f"\r{round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
+                    sys.stdout.write(
+                        f"\r{round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
                     sys.stdout.flush()
                 else:
                     complete = int(50 * dl / full_length)
-                    fill_c, unfill_c = chr(9608) * complete, chr(9617) * (50 - complete)
-                    sys.stdout.write(f"\r|{fill_c}{unfill_c}| {round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
+                    fill_c, unfill_c = chr(
+                        9608) * complete, chr(9617) * (50 - complete)
+                    sys.stdout.write(
+                        f"\r|{fill_c}{unfill_c}| {round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
                     sys.stdout.flush()
 
 
-def install_package(package_name, switches, download_type):
+def install_package(package_name, switches, download_type, no_color):
     file_name = get_setup_name(download_type, package_name)
-    
+
     if sys.platform == 'win32':
         if download_type == '.exe':
             command = file_name + ' '
@@ -108,9 +113,26 @@ def install_package(package_name, switches, download_type):
                 command = command + ' ' + switch
             try:
                 subprocess.call(command)
-            except OSError:
-                click.echo(click.style('Administrator Elevation Required...', fg='red'))
+            except OSError as err:
+                # Start Error Handling
+                if '[WinError 740]' in str(err) and 'elevation' in str(err):
+                    if not no_color:
+                        click.echo(click.style(
+                            'Administrator Elevation Required...', fg='red'))
+
+                    if no_color:
+                        click.echo(click.style(
+                            'Administrator Elevation Required...'))
+
+                if 'FileNotFoundError' in str(err):
+                    click.echo(click.style(
+                        'Silent Installation Failed With Exit Code 1.'))
+                    click.echo(click.style(
+                        'The Command Run During Installation Was Invalid Or The Installer Failed During The Installation Process.'))
+                    click.echo(
+                        'Raise A Support Ticket To www.electric.com/issue')
                 os._exit(0)
+
         elif download_type == '.msi':
             command = 'msiexec.exe /i' + file_name + ' '
             for switch in switches:
@@ -118,11 +140,19 @@ def install_package(package_name, switches, download_type):
             try:
                 subprocess.call(command)
             except OSError:
-                click.echo(click.style('Administrator Elevation Required...', fg='bright_yellow'))
-                os._exit(0)
+                if not no_color:
+                    click.echo(click.style(
+                        'Administrator Elevation Required...', fg='bright_yellow'))
+            os._exit(0)
 
         elif download_type == '.zip':
-            click.echo(click.style(f'Unzipping File At {file_name}', fg='green'))
+            if not no_color:
+                click.echo(click.style(
+                    f'Unzipping File At {file_name}', fg='green'))
+            if no_color:
+                click.echo(click.style(
+                    f'Unzipping File At {file_name}'))
+
             zip_directory = fR'C:\Users\{getuser()}\Downloads\\{package_name}'
             with zipfile.ZipFile(file_name, 'r') as zip_ref:
                 zip_ref.extractall(zip_directory)
@@ -132,7 +162,8 @@ def install_package(package_name, switches, download_type):
                     executable_list.append(name)
             executable_list.append('Exit')
 
-            file_path = 'C:\\Users\\{0}\\Downloads\\{1}'.format(getuser(), package_name)
+            file_path = 'C:\\Users\\{0}\\Downloads\\{1}'.format(
+                getuser(), package_name)
 
             def trigger():
                 click.clear()
@@ -171,7 +202,8 @@ def install_package(package_name, switches, download_type):
 
                 else:
                     path = file_path + "\\" + executable_list[index]
-                    click.echo(click.style(f'Running {executable_list[index]}. Hit Control + C to Quit', fg='magenta'))
+                    click.echo(click.style(
+                        f'Running {executable_list[index]}. Hit Control + C to Quit', fg='magenta'))
                     subprocess.call(path, stdout=PIPE, stdin=PIPE, stderr=PIPE)
                     quit()
 
@@ -180,18 +212,26 @@ def install_package(package_name, switches, download_type):
             keyboard.add_hotkey('enter', enter)
             keyboard.wait()
 
-    #TODO: Implement the macOS side.
+    # TODO: Implement the macOS side.
     if sys.platform == 'darwin':
         mount_dmg = f'hdiutil attach -nobrowse {file_name}'
+
 
 def cleanup(download_type, package_name):
     setup_name = get_setup_name(download_type, package_name)
     command = 'del ' + setup_name
     subprocess.call(command, shell=True)
 
-def run_uninstall(command : str, package_name):
+
+def run_uninstall(command: str, package_name, no_color):
     subprocess.call(command, stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
-    click.echo(click.style(f"Successfully Uninstalled {package_name}", fg="bright_magenta"))
+    if not no_color:
+        click.echo(click.style(
+            f"Successfully Uninstalled {package_name}", fg="bright_magenta"))
+    if no_color:
+        click.echo(click.style(
+            f"Successfully Uninstalled {package_name}"))
+
 
 def is_admin():
     try:
@@ -201,16 +241,19 @@ def is_admin():
 
     return is_admin
 
-def get_package_names(json_response):
+
+def get_package_names() -> list:
     package_names = []
-    for package in json_response:
-        package_names.append(package.replace('.json', ''))
+    for file in os.listdir(f'C:\\Users\\{getuser()}\\Desktop\\electric\\Server\\Packages'):
+        package_names.append(file.replace('.json', ''))
     return package_names
+
 
 def get_hash_algorithm(checksum: str):
     # A function to detect the hash algorithm used in checksum
     hashes = {32: "md5", 40: "sha1", 64: "sha256", 128: "sha512"}
     return hashes[len(checksum)] if len(checksum) in hashes else None
+
 
 def get_checksum(bytecode: bytes, hash_algorithm: str):
     # A function to get the checksum from bytecode
@@ -218,7 +261,17 @@ def get_checksum(bytecode: bytes, hash_algorithm: str):
 
     if hash_type:
         return hash_type(bytecode).hexdigest()
-    
+
     return None
 
 
+def send_req_package(packages : list) -> dict:
+    BASE = 'http://127.0.0.1:5000/'
+    json_list = []
+    time = 0.0
+    for package_name in packages:
+        response = requests.get(BASE + f'rapidquery/{package_name}', timeout=15)
+        json_list.append(json.loads(response.text.strip()))
+        time += response.elapsed.total_seconds()
+
+    return json_list, time

@@ -1,0 +1,13 @@
+{
+  "android-studio":
+  {
+    "package-name": "Android Studio",
+    "win32": "",
+    "win64": "https://redirector.gvt1.com/edgedl/android/studio/install/4.0.2.0/android-studio-ide-193.6821437-windows.exe",
+    "darwin": "https://redirector.gvt1.com/edgedl/android/studio/install/4.0.2.0/android-studio-ide-193.6821437-mac.dmg",
+    "debian": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/4.0.2.0/android-studio-ide-193.6821437-linux.tar.gz",
+    "source": "https://developer.android.com/",
+    "type": ".exe",
+    "switches": ["/S"]
+  }
+}

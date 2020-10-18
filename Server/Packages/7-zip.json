@@ -1,0 +1,11 @@
+{
+  "7-zip.json":
+	{
+		"package-name": "7-Zip",
+		"win32": "https://www.7-zip.org/a/7z1900.exe",
+		"win64": "https://www.7-zip.org/a/7z1900-x64.exe",
+		"source": "https://nodejs.org/",
+		"type": ".exe",
+		"switches": ["/S"]
+	}
+}

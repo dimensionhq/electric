@@ -1,0 +1,14 @@
+{
+  "vscode":
+	{
+		"package-name": "Visual Studio Code",
+		"win32": "https://aka.ms/win32-x64-user-stable",
+		"win64": "https://aka.ms/win32-x64-user-stable",
+		"darwin": "https://go.microsoft.com/fwlink/?LinkID=620882",
+		"debian": "https://go.microsoft.com/fwlink/?LinkID=760868",
+		"source": "https://code.visualstudio.com/",
+		"type": ".exe",
+		"switches": ["/VERYSILENT", "/NORESTART", "/MERGETASKS=!runcode"],
+    "uninstall-command": "\"C:\\Users\\tejas\\AppData\\Local\\Programs\\Microsoft VS Code\\unins000.exe\" /VERYSILENT /NORESTART"
+	}
+}

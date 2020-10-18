@@ -1,0 +1,14 @@
+{
+"atom":
+  {
+  	"package-name": "Atom",
+  	"win32": "https://atom.io/download/windows",
+  	"win64": "https://atom.io/download/windows_x64",
+  	"darwin": "https://atom.io/download/macos",
+  	"debian": "https://github.com/atom/atom/releases/download/v1.51.0/atom-amd64.deb",
+  	"source": "https://atom.io/",
+  	"type": ".exe",
+  	"switches": ["--silent"],
+  	"uninstall-command": "\"%LocalAppData%\\atom\\Update.exe\" --uninstall -s"
+  }
+}

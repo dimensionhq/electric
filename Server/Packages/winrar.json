@@ -1,0 +1,12 @@
+{
+  "winrar.json":
+  {
+      "package-name": "Winrar",
+      "win32": "https://www.rarlab.com/rar/wrar591.exe",
+      "win64": "https://www.rarlab.com/rar/winrar-x64-591.exe",
+      "source": "https://www.win-rar.com/start.html?&L=0",
+      "type": ".exe",
+      "switches": ["/S"],
+      "uninstall-switches": ["/S"]
+  }
+}

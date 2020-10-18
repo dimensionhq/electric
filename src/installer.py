@@ -11,7 +11,7 @@ try:
 except FileNotFoundError:
     installed = False
 
-    
+
 def download_python() -> int:
     # Download Python
     download_path = ''
@@ -33,11 +33,12 @@ def download_python() -> int:
     urlretrieve(python_download_url, download_path)
 
     setup_python = []
-    
+
     if platform == 'win32':
         setup_python = [f'{download_path} /passive']
     elif platform == 'macos':
-        setup_python = [f'sudo installer -store -pkg "{download_path}" -target /Applications']
+        setup_python = [
+            f'sudo installer -store -pkg "{download_path}" -target /Applications']
 
     for command in setup_python:
         call(command)
@@ -45,7 +46,7 @@ def download_python() -> int:
     success = True
 
     try:
-        proc = Popen('python', stdout=PIPE, stdin=PIPE, stderr=PIPE)   
+        Popen('python', stdout=PIPE, stdin=PIPE, stderr=PIPE)
     except FileNotFoundError:
         success = False
 
@@ -54,8 +55,9 @@ def download_python() -> int:
 
 def download_dependencies() -> int:
     # Download Dependencies Using Pip
-    commands = 'python -m pip install electric' # Change to turbocharge in the case of TurboCharge
-    
+    # Change to turbocharge in the case of TurboCharge
+    commands = 'python -m pip install electric'
+
     for command in commands:
         call(command)
         return 0
@@ -63,7 +65,7 @@ def download_dependencies() -> int:
 
 if not installed:
     download_python()
-    if download_python(): # If already downloaded
+    if download_python():
         download_dependencies()
 
 
