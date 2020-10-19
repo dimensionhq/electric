@@ -8,7 +8,8 @@
     "debian": "https://download.sublimetext.com/sublime_text_3_build_3211_x64.tar.bz2",
     "source": "https://www.sublimetext.com/3",
     "type": ".exe",
+    "switches": ["/VERYSILENT", "/NORESTART", "\/TASKS=\"contextentry\""],
     "uninstall-switches": ["/VERYSILENT", "/SILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "TASKS=\"contextentry\""],
-    "switches": ["/VERYSILENT", "/NORESTART", "\/TASKS=\"contextentry\""]
+    "uninstall-command" : ""
   }
 }

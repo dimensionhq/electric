@@ -1,6 +1,7 @@
 from subprocess import PIPE
 from getpass import getuser
 from colorama import Back
+from signal import SIGTERM
 from extension import *
 import subprocess
 import keyboard
@@ -102,8 +103,9 @@ def download(url, download_type: str, package_name, noprogress):
                         f"\r|{fill_c}{unfill_c}| {round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
                     sys.stdout.flush()
 
+    return get_setup_name(download_type, package_name)
 
-def install_package(package_name, switches, download_type, no_color):
+def install_package(package_name, switches, download_type, no_color) -> str:
     file_name = get_setup_name(download_type, package_name)
 
     if sys.platform == 'win32':
@@ -112,7 +114,8 @@ def install_package(package_name, switches, download_type, no_color):
             for switch in switches:
                 command = command + ' ' + switch
             try:
-                subprocess.call(command)
+                proc = subprocess.call(command)
+
             except OSError as err:
                 # Start Error Handling
                 if '[WinError 740]' in str(err) and 'elevation' in str(err):
@@ -131,7 +134,7 @@ def install_package(package_name, switches, download_type, no_color):
                         'The Command Run During Installation Was Invalid Or The Installer Failed During The Installation Process.'))
                     click.echo(
                         'Raise A Support Ticket To www.electric.com/issue')
-                os._exit(0)
+                    os._exit(0)
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i' + file_name + ' '
@@ -233,15 +236,6 @@ def run_uninstall(command: str, package_name, no_color):
             f"Successfully Uninstalled {package_name}"))
 
 
-def is_admin():
-    try:
-        is_admin = os.getuid() == 0
-    except AttributeError:
-        is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
-
-    return is_admin
-
-
 def get_package_names() -> list:
     package_names = []
     for file in os.listdir(f'C:\\Users\\{getuser()}\\Desktop\\electric\\Server\\Packages'):
@@ -275,3 +269,30 @@ def send_req_package(packages : list) -> dict:
         time += response.elapsed.total_seconds()
 
     return json_list, time
+
+
+def get_pid(exe_name):
+    proc = subprocess.Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    output, err = proc.communicate()
+    output = output.decode('utf-8')
+    lines = output.splitlines()
+    for line in lines:
+        if exe_name in line:
+            return line.split()[1]
+
+
+def handle_exit(status : str, setup_name : str = ''):
+    if status == 'Downloaded' or status == 'Installing' or status == 'Installed' or status == 'Cleaning Up':
+        exe_name = setup_name.split('\\')[-1]
+        os.kill(int(get_pid(exe_name)), SIGTERM)
+
+        # Cannot delete while app, is running so need to find process, kill it and then continue deletion
+        write('SafetyHarness Successfully Created Clean Exit Gateway', 'green')
+        write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0', 'light_blue')
+        os._exit(0)
+    if status == 'Got Download Path':
+        write('\nRapidExit Successfully Exited With Code 0', 'green')
+        os._exit(0)
+    else:
+        write('\nRapidExit Successfully Exited With Code 0', 'green')
+        os._exit(0)

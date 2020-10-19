@@ -9,6 +9,7 @@
 		"source": "https://code.visualstudio.com/",
 		"type": ".exe",
 		"switches": ["/VERYSILENT", "/NORESTART", "/MERGETASKS=!runcode"],
+    "uninstall-switches": [],
     "uninstall-command": "\"C:\\Users\\tejas\\AppData\\Local\\Programs\\Microsoft VS Code\\unins000.exe\" /VERYSILENT /NORESTART"
 	}
 }

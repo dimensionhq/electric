@@ -9,6 +9,7 @@
     "source": "https://git-scm.com/downloads",
     "type": ".exe",
     "switches": ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"],
-    "uninstall-switches": ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"]
+    "uninstall-switches": ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"],
+    "uninstall-command" : ""
   }
 }

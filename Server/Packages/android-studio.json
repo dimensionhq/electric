@@ -8,6 +8,8 @@
     "debian": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/4.0.2.0/android-studio-ide-193.6821437-linux.tar.gz",
     "source": "https://developer.android.com/",
     "type": ".exe",
-    "switches": ["/S"]
+    "switches": ["/S"],
+    "uninstall-switches": [],
+    "uninstall-command" : ""
   }
 }

@@ -1,13 +1,14 @@
 from timeit import default_timer as timer
 from registry import get_uninstall_key
+from decimal import Decimal
 from time import strftime
 from extension import *
 from constants import *
 from helpers import *
-import logging
 from logger import *
-from decimal import Decimal
+import keyboard
 import difflib
+import logging
 import sys
 
 __version__ = '1.0.0b'
@@ -70,6 +71,7 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
         write_verbose(f'Sending GET request to rapidquery/{p}', verbose, no_color)
         log_info(f'Sending GET request to rapidquery/{p}', logfile)
 
+    status = 'Networking'
     res, time = send_req_package(corrected_package_names)
 
     write_debug(install_debug_headers, debug, no_color)
@@ -78,6 +80,12 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
 
     index = 0
     for package in corrected_package_names:
+        setup_name = ''
+        status = None
+        keyboard.add_hotkey('ctrl+c', lambda:handle_exit(status, setup_name))
+
+        status = ''
+
         write_verbose(
             f"Package to be installed: {package}", verbose, no_color)
         log_info(f"Package to be installed: {package}", logfile)
@@ -100,7 +108,9 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
 
         write_verbose('Generating system download path...', verbose, no_color)
         log_info('Generating system download path...', logfile)
+        status = 'Download Path'
         download_url = get_download_url(system_architecture, pkg)
+        status = 'Got Download Path'
 
         package_name, source, extension_type, switches = parse_json_response(pkg)
 
@@ -117,7 +127,9 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
         # Downloading The File From Source
         write_verbose(f"Downloading from '{download_url}'", verbose, no_color)
         log_info(f"Downloading from '{download_url}'", logfile)
-        download(download_url, extension_type, package_name, no_progress)
+        status = 'Downloading'
+        setup_name = download(download_url, extension_type, package_name, no_progress)
+        status = 'Downloaded'
 
         write('\nFinished Rapid Download', 'green', no_color)
         log_info('Finished Rapid Download', logfile)
@@ -129,14 +141,18 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
         write_debug(
             f'Installing {package_name} through Setup{extension_type}', debug, no_color)
         log_info(f'Installing {package_name} through Setup{extension_type}', logfile)
+
+        status = 'Installing'
         # Running The Installer Silently And Completing Setup
         install_package(package_name, switches, extension_type, no_color)
+        status = 'Installed'
 
         # Completing Cleanup By Deleting The Setup File From Downloads
         write_verbose(
             'Cleaning up the setup and installation files...', verbose, no_color)
         log_info('Cleaning up the setup and installation files...', logfile)
 
+        status = 'Cleaning Up'
         cleanup(extension_type, package_name)
 
         end = timer()
@@ -286,13 +302,15 @@ def uninstall(package_name : str, verbose : bool, debug : bool, no_color : bool,
 
             additional_switches = []
             if "uninstall-switches" in pkg:
-                write_verbose(
-                    "Adding additional uninstall switches", verbose, no_color)
-                log_info("Adding additional uninstall switches", logfile)
-                additional_switches = pkg['uninstall-switches']
+                if pkg['uninstall-switches'] != []:
+                    write_verbose(
+                        "Adding additional uninstall switches", verbose, no_color)
+                    log_info("Adding additional uninstall switches", logfile)
+                    additional_switches = pkg['uninstall-switches']
 
-            for switch in additional_switches:
-                command += ' ' + switch
+            if additional_switches != []:
+                for switch in additional_switches:
+                    command += ' ' + switch
 
             write_verbose("Executing the quiet uninstall command",
                           verbose, no_color)

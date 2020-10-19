@@ -8,6 +8,8 @@
 		"debian": "https://download.virtualbox.org/virtualbox/6.1.14/virtualbox-6.1_6.1.14-140239~Ubuntu~eoan_amd64.deb",
 		"source": "https://www.virtualbox.org/wiki/Downloads",
 		"type": ".exe",
-		"switches": ["--silent"]
+		"switches": ["--silent"],
+    "uninstall-switches": [],
+    "uninstall-command" : ""
 	}
 }

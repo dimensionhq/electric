@@ -4,8 +4,12 @@
 		"package-name": "NodeJS",
 		"win32": "https://nodejs.org/dist/v12.19.0/node-v12.19.0-x86.msi",
 		"win64": "https://nodejs.org/dist/v12.19.0/node-v12.19.0-x64.msi",
+    "darwin": "https://nodejs.org/dist/v14.14.0/node-v14.14.0.pkg",
+    "debian": "https://nodejs.org/dist/v14.14.0/node-v14.14.0-linux-x64.tar.xz",
 		"source": "https://nodejs.org/",
 		"type": ".msi",
-		"switches": []
+		"switches": [],
+    "uninstall-switches": [],
+    "uninstall-command" : ""
 	}
 }

@@ -8,6 +8,8 @@
 		"debian": "https://www.blender.org/download/Blender2.90/blender-2.90.1-linux64.tar.xz/",
 		"source": "https://www.blender.org/",
 		"type": ".msi",
-		"switches": ["/passive"]
+		"switches": ["/passive"],
+    "uninstall-switches": [],
+    "uninstall-command" : ""
 	}
 }
