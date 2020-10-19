@@ -28,9 +28,9 @@ def cli(ctx):
 @click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for installation')
 @click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for installation')
 @click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
-def install(package_name: str, verbose : bool, debug : bool, no_progress : bool, no_color : bool, logfile : str):
+def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no_color: bool, logfile: str):
 
-    jsondict : list = []
+    jsondict: list = []
 
     if logfile:
         logfile = logfile.replace('.txt', '.log')
@@ -44,7 +44,8 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
 
     for input_name in packages:
         if input_name not in correct_names:
-            corrections.append(difflib.get_close_matches(input_name, correct_names, n=1)[0])
+            corrections.append(difflib.get_close_matches(
+                input_name, correct_names, n=1)[0])
         else:
             corrections.append(input_name)
 
@@ -53,10 +54,12 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
             if correction not in packages:
                 write_verbose(
                     f'Successfully found closest match: {correction}.', verbose, no_color)
-                log_info(f'Successfully found closest match: {correction}.', logfile)
+                log_info(
+                    f'Successfully found closest match: {correction}.', logfile)
                 write(
                     f'Autocorrecting To Closest Match: {correction}', 'bright_magenta', no_color=no_color)
-                log_info(f'Autocorrecting To Closest Match: {correction}', logfile)
+                log_info(
+                    f'Autocorrecting To Closest Match: {correction}', logfile)
 
                 if "n" in click.prompt('Do you want to continue? [y/n]')[0]:
                     sys.exit()
@@ -68,7 +71,8 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
                 corrected_package_names.append(input_name)
 
     for p in corrected_package_names:
-        write_verbose(f'Sending GET request to rapidquery/{p}', verbose, no_color)
+        write_verbose(
+            f'Sending GET request to rapidquery/{p}', verbose, no_color)
         log_info(f'Sending GET request to rapidquery/{p}', logfile)
 
     status = 'Networking'
@@ -82,7 +86,7 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
     for package in corrected_package_names:
         setup_name = ''
         status = None
-        keyboard.add_hotkey('ctrl+c', lambda:handle_exit(status, setup_name))
+        keyboard.add_hotkey('ctrl+c', lambda: handle_exit(status, setup_name))
 
         status = ''
 
@@ -92,12 +96,16 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
 
         package = package.strip()
         package_name = package.lower()
+        write_verbose(
+            f'Finding closest match to {package_name}...', verbose, no_color)
+        log_info(f'Finding closest match to {package_name}...', logfile)
 
         package_name = package
 
         write(
             f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', 'green', no_color)
-        log_info(f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', logfile)
+        log_info(
+            f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', logfile)
 
         start = timer()
 
@@ -112,7 +120,8 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
         download_url = get_download_url(system_architecture, pkg)
         status = 'Got Download Path'
 
-        package_name, source, extension_type, switches = parse_json_response(pkg)
+        package_name, source, extension_type, switches = parse_json_response(
+            pkg)
 
         end = timer()
 
@@ -128,7 +137,8 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
         write_verbose(f"Downloading from '{download_url}'", verbose, no_color)
         log_info(f"Downloading from '{download_url}'", logfile)
         status = 'Downloading'
-        setup_name = download(download_url, extension_type, package_name, no_progress)
+        setup_name = download(download_url, extension_type,
+                              package_name, no_progress)
         status = 'Downloaded'
 
         write('\nFinished Rapid Download', 'green', no_color)
@@ -136,11 +146,13 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
 
         write(
             'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', 'blue', no_color)
-        log_info('Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', logfile)
+        log_info(
+            'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', logfile)
 
         write_debug(
             f'Installing {package_name} through Setup{extension_type}', debug, no_color)
-        log_info(f'Installing {package_name} through Setup{extension_type}', logfile)
+        log_info(
+            f'Installing {package_name} through Setup{extension_type}', logfile)
 
         status = 'Installing'
         # Running The Installer Silently And Completing Setup
@@ -165,7 +177,8 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
         log_info('Installation and setup completed.', logfile)
         write_debug(
             f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', debug, no_color)
-        log_info(f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', logfile)
+        log_info(
+            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', logfile)
         closeLog(logfile, 'Install')
 
         index += 1
@@ -177,7 +190,7 @@ def install(package_name: str, verbose : bool, debug : bool, no_progress : bool,
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for uninstallation')
 @click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for installation')
 @click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
-def uninstall(package_name : str, verbose : bool, debug : bool, no_color : bool, logfile : str):
+def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, logfile: str):
 
     if logfile:
         logfile = logfile.replace('.txt', '.log')
@@ -191,7 +204,8 @@ def uninstall(package_name : str, verbose : bool, debug : bool, no_color : bool,
 
     for input_name in packages:
         if input_name not in correct_names:
-            corrections.append(difflib.get_close_matches(input_name, correct_names, n=1)[0])
+            corrections.append(difflib.get_close_matches(
+                input_name, correct_names, n=1)[0])
         else:
             corrections.append(input_name)
 
@@ -200,10 +214,12 @@ def uninstall(package_name : str, verbose : bool, debug : bool, no_color : bool,
             if correction not in packages:
                 write_verbose(
                     f'Successfully found closest match: {correction}.', verbose, no_color)
-                log_info(f'Successfully found closest match: {correction}.', logfile)
+                log_info(
+                    f'Successfully found closest match: {correction}.', logfile)
                 write(
                     f'Autocorrecting To Closest Match: {correction}', 'bright_magenta', no_color=no_color)
-                log_info(f'Autocorrecting To Closest Match: {correction}', logfile)
+                log_info(
+                    f'Autocorrecting To Closest Match: {correction}', logfile)
 
                 if "n" in click.prompt('Do you want to continue? [y/n]')[0]:
                     sys.exit()
@@ -215,7 +231,8 @@ def uninstall(package_name : str, verbose : bool, debug : bool, no_color : bool,
                 corrected_package_names.append(input_name)
 
     for p in corrected_package_names:
-        write_verbose(f'Sending GET request to rapidquery/{p}', verbose, no_color)
+        write_verbose(
+            f'Sending GET request to rapidquery/{p}', verbose, no_color)
         log_info(f'Sending GET request to rapidquery/{p}', logfile)
 
     res, time = send_req_package(corrected_package_names)
@@ -235,7 +252,8 @@ def uninstall(package_name : str, verbose : bool, debug : bool, no_color : bool,
 
         write(
             f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', 'green', no_color)
-        log_info(f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', logfile)
+        log_info(
+            f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', logfile)
 
         start = timer()
         # Getting UninstallString or QuietUninstallString From The Registry Search Algorithm
@@ -255,7 +273,8 @@ def uninstall(package_name : str, verbose : bool, debug : bool, no_color : bool,
                 if pkg['uninstall-command'] == '':
                     write(
                         f'Could Not Find Any Existing Installations Of {package_name}', 'yellow', no_color)
-                    log_error(f'Could Not Find Any Existing Installations Of {package_name}', logfile)
+                    log_error(
+                        f'Could Not Find Any Existing Installations Of {package_name}', logfile)
                     closeLog(logfile, 'Uninstall')
                     index += 1
                     continue
@@ -269,7 +288,8 @@ def uninstall(package_name : str, verbose : bool, debug : bool, no_color : bool,
                     index += 1
                     write_debug(
                         f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', debug, no_color)
-                    log_info(f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', logfile)
+                    log_info(
+                        f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', logfile)
                     closeLog(logfile, 'Uninstall')
                     continue
             else:
@@ -284,7 +304,8 @@ def uninstall(package_name : str, verbose : bool, debug : bool, no_color : bool,
 
         write(
             f'Successfully Got Uninstall Key In {round(end - start, 4)}s', 'cyan', no_color)
-        log_info(f'Successfully Got Uninstall Key In {round(end - start, 4)}s', logfile)
+        log_info(
+            f'Successfully Got Uninstall Key In {round(end - start, 4)}s', logfile)
 
         command = ''
 
@@ -322,7 +343,8 @@ def uninstall(package_name : str, verbose : bool, debug : bool, no_color : bool,
             index += 1
             write_debug(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', debug, no_color)
-            log_info(f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', logfile)
+            log_info(
+                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', logfile)
             closeLog(logfile, 'Uninstall')
 
         # If Only UninstallString Exists (Not Preferable)
@@ -340,5 +362,6 @@ def uninstall(package_name : str, verbose : bool, debug : bool, no_color : bool,
             index += 1
             write_debug(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', debug, no_color)
-            log_info(f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', logfile)
+            log_info(
+                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', logfile)
             closeLog(logfile, 'Uninstall')

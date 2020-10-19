@@ -105,6 +105,7 @@ def download(url, download_type: str, package_name, noprogress):
 
     return get_setup_name(download_type, package_name)
 
+
 def install_package(package_name, switches, download_type, no_color) -> str:
     file_name = get_setup_name(download_type, package_name)
 
@@ -259,12 +260,13 @@ def get_checksum(bytecode: bytes, hash_algorithm: str):
     return None
 
 
-def send_req_package(packages : list) -> dict:
+def send_req_package(packages: list) -> dict:
     BASE = 'http://127.0.0.1:5000/'
     json_list = []
     time = 0.0
     for package_name in packages:
-        response = requests.get(BASE + f'rapidquery/{package_name}', timeout=15)
+        response = requests.get(
+            BASE + f'rapidquery/{package_name}', timeout=15)
         json_list.append(json.loads(response.text.strip()))
         time += response.elapsed.total_seconds()
 
@@ -281,7 +283,7 @@ def get_pid(exe_name):
             return line.split()[1]
 
 
-def handle_exit(status : str, setup_name : str = ''):
+def handle_exit(status: str, setup_name: str = ''):
     if status == 'Downloaded' or status == 'Installing' or status == 'Installed' or status == 'Cleaning Up':
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
