@@ -193,7 +193,6 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
 @click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for installation')
 @click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
 def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, logfile: str):
-
     if logfile:
         logfile = logfile.replace('.txt', '.log')
         createConfig(logfile, logging.INFO, 'Uninstall')
@@ -246,11 +245,12 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
     index = 0
 
     for package in corrected_package_names:
+
         proc = None
         keyboard.add_hotkey('ctrl+c', lambda: kill_proc(proc))
         package = package.strip()
         package_name = package.lower()
-
+        kill_running_proc(package_name)
         pkg = json.loads(res[index])
 
         write(

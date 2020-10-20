@@ -7,6 +7,7 @@ import subprocess
 import keyboard
 import platform
 import requests
+import difflib
 import zipfile
 import hashlib
 import ctypes
@@ -73,7 +74,6 @@ def get_setup_name(download_type, package_name):
         return ''.join(package)
 
 
-# noinspection DuplicatedCode
 def download(url, download_type: str, package_name, noprogress):
     setup_name = get_setup_name(download_type, package_name)
 
@@ -282,12 +282,36 @@ def get_pid(exe_name):
             return line.split()[1]
 
 
+def find_approx_pid(exe_name) -> str:
+    proc = subprocess.Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    output, err = proc.communicate()
+    output = output.decode('utf-8')
+    lines = output.splitlines()
+    split_package_name = exe_name.split('-')
+
+    cleaned_up_names = []
+    for line in lines:
+        try:
+            cleaned_up_names.append(line.split()[0].strip('.exe'))
+        except IndexError:
+            continue
+
+    matches = difflib.get_close_matches(exe_name, cleaned_up_names)
+
+    if matches != []:
+        for line in lines:
+            if matches[0] in line:
+                return line.split()[1]
+
+    return 1
+
+
 def handle_exit(status: str, setup_name: str = ''):
     if status == 'Downloaded' or status == 'Installing' or status == 'Installed' or status == 'Cleaning Up':
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
 
-        # Cannot delete while app, is running so need to find process, kill it and then continue deletion
+
         write('SafetyHarness Successfully Created Clean Exit Gateway', 'green')
         write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0', 'light_blue')
         os._exit(0)
@@ -297,6 +321,17 @@ def handle_exit(status: str, setup_name: str = ''):
     else:
         write('\nRapidExit Successfully Exited With Code 0', 'green')
         os._exit(0)
+
+
+def kill_running_proc(package_name : str):
+    parts = package_name.split('-')
+    name = ' '.join([p.capitalize() for p in parts])
+    pid = int(find_approx_pid(package_name))
+    if pid == 1:
+        return
+    if pid and pid != 1:
+        write(f'Terminating {name}.', 'green')
+        os.kill(pid, SIGTERM)
 
 
 def kill_proc(proc):
