@@ -85,6 +85,7 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
 
     index = 0
     for package in corrected_package_names:
+        write('\n', 'white')
         setup_name = ''
         status = None
         keyboard.add_hotkey('ctrl+c', lambda: handle_exit(status, setup_name))
@@ -104,7 +105,7 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
         package_name = package
 
         write(
-            f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', 'green', no_color)
+            f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', 'bright_yellow', no_color)
         log_info(
             f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', logfile)
 
@@ -145,7 +146,7 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
         log_info('Finished Rapid Download', logfile)
 
         write(
-            'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', 'blue', no_color)
+            'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', no_color)
         log_info(
             'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', logfile)
 
@@ -252,7 +253,7 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
         pkg = json.loads(res[index])
 
         write(
-            f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', 'green', no_color)
+            f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', 'bright_green', no_color)
         log_info(
             f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', logfile)
 
@@ -284,7 +285,11 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
                                   verbose, no_color)
                     log_info("Executing the uninstall command", logfile)
 
-                    proc = subprocess.Popen(shlex.split(pkg['uninstall-command']), stdout=PIPE, stdin=PIPE, stderr=PIPE)
+                    write(
+                        f"Successfully Uninstalled {package_name}", "bright_magenta")
+
+                    proc = subprocess.Popen(shlex.split(
+                        pkg['uninstall-command']), stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
                     proc.wait()
                     index += 1
                     write_debug(
@@ -338,7 +343,8 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
                           verbose, no_color)
             log_info("Executing the quiet uninstall command", logfile)
 
-            proc = subprocess.Popen(shlex.split(command), stdout=PIPE, stdin=PIPE, stderr=PIPE)
+            proc = subprocess.Popen(shlex.split(
+                command), stdout=PIPE, stdin=PIPE, stderr=PIPE)
             proc.wait()
             if not no_color:
                 click.echo(click.style(
@@ -365,7 +371,8 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
             # Run The UninstallString
             write_verbose("Executing the uninstall command", verbose, no_color)
             log_info("Executing the uninstall command", logfile)
-            proc = subprocess.Popen(shlex.split(command), stdout=PIPE, stdin=PIPE, stderr=PIPE)
+            proc = subprocess.Popen(shlex.split(
+                command), stdout=PIPE, stdin=PIPE, stderr=PIPE)
             proc.wait()
             write_verbose("Uninstallation completed.", verbose, no_color)
             log_info("Uninstallation completed.", logfile)
