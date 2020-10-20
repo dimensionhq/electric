@@ -1,11 +1,13 @@
 from timeit import default_timer as timer
 from registry import get_uninstall_key
+from subprocess import  Popen, PIPE
 from decimal import Decimal
 from time import strftime
 from extension import *
 from constants import *
 from utils import *
 from logger import *
+import subprocess
 import keyboard
 import difflib
 import logging
@@ -85,7 +87,6 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
 
     index = 0
     for package in corrected_package_names:
-        write('\n', 'white')
         setup_name = ''
         status = None
         keyboard.add_hotkey('ctrl+c', lambda: handle_exit(status, setup_name))
@@ -288,9 +289,18 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
                     write(
                         f"Successfully Uninstalled {package_name}", "bright_magenta")
 
-                    proc = subprocess.Popen(shlex.split(
-                        pkg['uninstall-command']), stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
-                    proc.wait()
+                    try:
+                        proc = subprocess.Popen(shlex.split(
+                            pkg['uninstall-command']), stdout=PIPE, stdin=PIPE, stderr=PIPE)
+                        proc.wait()
+                    except FileNotFoundError:
+                        try:
+                            proc = subprocess.Popen(shlex.split(
+                                pkg['uninstall-command']), stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
+                            proc.wait()
+                        except FileNotFoundError:
+                            subprocess.call(pkg['uninstall-command'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+
                     index += 1
                     write_debug(
                         f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', debug, no_color)
@@ -343,9 +353,16 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
                           verbose, no_color)
             log_info("Executing the quiet uninstall command", logfile)
 
-            proc = subprocess.Popen(shlex.split(
-                command), stdout=PIPE, stdin=PIPE, stderr=PIPE)
-            proc.wait()
+            try:
+                proc = subprocess.Popen(shlex.split(
+                    command), stdout=PIPE, stdin=PIPE, stderr=PIPE)
+                proc.wait()
+            except FileNotFoundError as err:
+                try:
+                    proc = subprocess(shlex.split(command), stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
+                    proc.wait()
+                except FileNotFoundError:
+                    subprocess.call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
             if not no_color:
                 click.echo(click.style(
                     f"Successfully Uninstalled {package_name}", fg="bright_magenta"))
@@ -371,9 +388,17 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
             # Run The UninstallString
             write_verbose("Executing the uninstall command", verbose, no_color)
             log_info("Executing the uninstall command", logfile)
-            proc = subprocess.Popen(shlex.split(
-                command), stdout=PIPE, stdin=PIPE, stderr=PIPE)
-            proc.wait()
+            try:
+                proc = subprocess.Popen(shlex.split(
+                    command), stdout=PIPE, stdin=PIPE, stderr=PIPE)
+                proc.wait()
+            except FileNotFoundError:
+                try:
+                    proc = subprocess.Popen(shlex.split(
+                        command), stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
+                    proc.wait()
+                except FileNotFoundError:
+                    subprocess.call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
             write_verbose("Uninstallation completed.", verbose, no_color)
             log_info("Uninstallation completed.", logfile)
             index += 1
