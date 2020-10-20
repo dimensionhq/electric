@@ -4,14 +4,15 @@ from decimal import Decimal
 from time import strftime
 from extension import *
 from constants import *
-from helpers import *
+from utils import *
 from logger import *
 import keyboard
 import difflib
 import logging
+import shlex
 import sys
 
-__version__ = '1.0.0b'
+__version__ = '1.0.0a'
 
 
 @click.group()
@@ -110,7 +111,6 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
         start = timer()
 
         pkg = json.loads(res[index])
-        pkg = pkg[package]
 
         system_architecture = get_architecture()
 
@@ -244,11 +244,12 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
     index = 0
 
     for package in corrected_package_names:
+        proc = None
+        keyboard.add_hotkey('ctrl+c', lambda: kill_proc(proc))
         package = package.strip()
         package_name = package.lower()
 
         pkg = json.loads(res[index])
-        pkg = pkg[package]
 
         write(
             f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', 'green', no_color)
@@ -283,8 +284,8 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
                                   verbose, no_color)
                     log_info("Executing the uninstall command", logfile)
 
-                    run_uninstall(pkg['uninstall-command'],
-                                  pkg["package-name"], no_color)
+                    proc = subprocess.Popen(shlex.split(pkg['uninstall-command']), stdout=PIPE, stdin=PIPE, stderr=PIPE)
+                    proc.wait()
                     index += 1
                     write_debug(
                         f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', debug, no_color)
@@ -336,7 +337,15 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
             write_verbose("Executing the quiet uninstall command",
                           verbose, no_color)
             log_info("Executing the quiet uninstall command", logfile)
-            run_uninstall(command, pkg["package-name"], no_color)
+
+            proc = subprocess.Popen(shlex.split(command), stdout=PIPE, stdin=PIPE, stderr=PIPE)
+            proc.wait()
+            if not no_color:
+                click.echo(click.style(
+                    f"Successfully Uninstalled {package_name}", fg="bright_magenta"))
+            if no_color:
+                click.echo(click.style(
+                    f"Successfully Uninstalled {package_name}"))
             write_verbose("Uninstallation completed.", verbose, no_color)
             log_info("Uninstallation completed.", logfile)
 
@@ -356,7 +365,8 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
             # Run The UninstallString
             write_verbose("Executing the uninstall command", verbose, no_color)
             log_info("Executing the uninstall command", logfile)
-            run_uninstall(command, pkg["package-name"], no_color)
+            proc = subprocess.Popen(shlex.split(command), stdout=PIPE, stdin=PIPE, stderr=PIPE)
+            proc.wait()
             write_verbose("Uninstallation completed.", verbose, no_color)
             log_info("Uninstallation completed.", logfile)
             index += 1

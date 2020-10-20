@@ -228,7 +228,7 @@ def cleanup(download_type, package_name):
 
 
 def run_uninstall(command: str, package_name, no_color):
-    subprocess.call(command, stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
+    subprocess.Popen(command, stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
     if not no_color:
         click.echo(click.style(
             f"Successfully Uninstalled {package_name}", fg="bright_magenta"))
@@ -261,15 +261,14 @@ def get_checksum(bytecode: bytes, hash_algorithm: str):
 
 
 def send_req_package(packages: list) -> dict:
-    BASE = 'http://127.0.0.1:5000/'
+    BASE = 'http://electric-packages-api.herokuapp.com/'
     json_list = []
     time = 0.0
     for package_name in packages:
         response = requests.get(
-            BASE + f'rapidquery/{package_name}', timeout=15)
-        json_list.append(json.loads(response.text.strip()))
+            BASE + f'packages/{package_name}', timeout=15)
+        json_list.append(response.text.strip())
         time += response.elapsed.total_seconds()
-
     return json_list, time
 
 
@@ -294,6 +293,17 @@ def handle_exit(status: str, setup_name: str = ''):
         os._exit(0)
     if status == 'Got Download Path':
         write('\nRapidExit Successfully Exited With Code 0', 'green')
+        os._exit(0)
+    else:
+        write('\nRapidExit Successfully Exited With Code 0', 'green')
+        os._exit(0)
+
+
+def kill_proc(proc):
+    if proc is not None:
+        proc.terminate()
+        write('SafetyHarness Successfully Created Clean Exit Gateway', 'green')
+        write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0', 'light_blue')
         os._exit(0)
     else:
         write('\nRapidExit Successfully Exited With Code 0', 'green')

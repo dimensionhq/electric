@@ -15,7 +15,7 @@ def get_uninstall_key(package_name : str):
             arch_keys = {winreg.KEY_WOW64_32KEY, winreg.KEY_WOW64_64KEY}
         else:
             raise OSError("Unhandled arch: %s" % proc_arch)
-        
+
         for arch_key in arch_keys:
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", 0, winreg.KEY_READ | arch_key)
             for i in range(0, winreg.QueryInfoKey(key)[0]):
@@ -34,7 +34,7 @@ def get_uninstall_key(package_name : str):
                             packs.append(None)
 
                     url, loc, pub = packs
-                    
+
                     qstro = None
                     if 'MsiExec.exe' in stro:
                         qstro = stro + ' /quiet'
@@ -88,21 +88,21 @@ def get_uninstall_key(package_name : str):
                     final_list.pop(index)
                 else:
                     name = item.lower()
-                    
+
                 refined_list.append(name)
                 index += 1
 
             for string in strings:
                 matches = difflib.get_close_matches(string, refined_list)
-                
+
                 if not matches:
                     possibilities = []
-                    
+
                     for element in refined_list:
                         for string in strings:
                             if string in element:
                                 possibilities.append(key)
-                                
+
                     if possibilities:
                         total.append(possibilities)
                     else:
@@ -119,20 +119,20 @@ def get_uninstall_key(package_name : str):
     def get_more_accurate_matches(return_array):
         index, confidence = 0, 50
         final_index, final_confidence = (None, None)
-        
+
         for key in return_array:
             name = key['DisplayName']
             loc = key['InstallLocation']
             uninstall_string = None if 'UninstallString' not in key else key['UninstallString']
             quiet_uninstall_string = None if 'QuietUninstallString' not in key else key['QuietUninstallString']
             url = None if 'URLInfoAbout' not in key else key['URLInfoAbout']
-            
+
             for string in strings:
                 if name:
                     if string.lower() in name.lower():
-                        confidence += 10                 
+                        confidence += 10
                 if loc:
-                    if string.lower() in loc.lower():               
+                    if string.lower() in loc.lower():
                         confidence += 5
                 if uninstall_string:
                     if string.lower() in uninstall_string.lower():
@@ -143,21 +143,21 @@ def get_uninstall_key(package_name : str):
                 if url:
                     if string.lower() in url.lower():
                         confidence += 10
-                        
+
                 if final_confidence == confidence:
                     word_list = package_name.split('-')
-                    
+
                     for word in word_list:
-                        for key in [name, quiet_uninstall_string, loc, url]:                      
+                        for key in [name, quiet_uninstall_string, loc, url]:
                             if key:
                                 if word in key:
                                     confidence += 5
-                                
+
                         if word:
                             if uninstall_string:
                                 if word in uninstall_string:
                                         confidence += 5
-                                    
+
                 if not final_index and not final_confidence:
                     final_index = index
                     final_confidence = confidence
