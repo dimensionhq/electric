@@ -12,6 +12,7 @@ import keyboard
 import difflib
 import logging
 import shlex
+import json
 import sys
 
 __version__ = '1.0.0a'
@@ -24,6 +25,10 @@ def cli(ctx):
     pass
 
 
+# TODO: Make Code Completely Independent Of Server Directory
+# TODO: Complete --silent Flag
+# TODO: Complete Parallel / Concurrent Installation
+
 @cli.command()
 @click.argument('package_name', required=True)
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for installation')
@@ -31,9 +36,9 @@ def cli(ctx):
 @click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for installation')
 @click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for installation')
 @click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
-def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no_color: bool, logfile: str):
-
-    jsondict: list = []
+# @click.option('--essential-output', '-eo', is_flag=True, help='Log only essential output to console')
+@click.option('-y', '--yes', is_flag=True, help='Accept all prompts during installation')
+def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no_color: bool, logfile: str, yes : bool):
 
     if logfile:
         logfile = logfile.replace('.txt', '.log')
@@ -64,6 +69,9 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
                 log_info(
                     f'Autocorrecting To Closest Match: {correction}', logfile)
 
+                if yes:
+                    write(f'Successfully Autocorrected To {correction}', color='green', no_color=no_color)
+
                 if "n" in click.prompt('Do you want to continue? [y/n]')[0]:
                     sys.exit()
                 else:
@@ -88,10 +96,8 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
     index = 0
     for package in corrected_package_names:
         setup_name = ''
-        status = None
-        keyboard.add_hotkey('ctrl+c', lambda: handle_exit(status, setup_name))
-
         status = ''
+        keyboard.add_hotkey('ctrl+c', lambda : handle_exit(status, setup_name))
 
         write_verbose(
             f"Package to be installed: {package}", verbose, no_color)
@@ -161,14 +167,6 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
         install_package(package_name, switches, extension_type, no_color)
         status = 'Installed'
 
-        # Completing Cleanup By Deleting The Setup File From Downloads
-        write_verbose(
-            'Cleaning up the setup and installation files...', verbose, no_color)
-        log_info('Cleaning up the setup and installation files...', logfile)
-
-        status = 'Cleaning Up'
-        cleanup(extension_type, package_name)
-
         end = timer()
 
         write(
@@ -192,7 +190,8 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for uninstallation')
 @click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for installation')
 @click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
-def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, logfile: str):
+@click.option('-y', '--yes', is_flag=True, help='Accept all prompts during installation')
+def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, logfile: str, yes : bool):
     if logfile:
         logfile = logfile.replace('.txt', '.log')
         createConfig(logfile, logging.INFO, 'Uninstall')
@@ -250,7 +249,7 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
         keyboard.add_hotkey('ctrl+c', lambda: kill_proc(proc))
         package = package.strip()
         package_name = package.lower()
-        kill_running_proc(package_name)
+        kill_running_proc(package_name, no_color, verbose, debug, yes)
         pkg = json.loads(res[index])
 
         write(
@@ -290,12 +289,12 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
                         f"Successfully Uninstalled {package_name}", "bright_magenta")
 
                     try:
-                        proc = subprocess.Popen(shlex.split(
+                        proc = Popen(shlex.split(
                             pkg['uninstall-command']), stdout=PIPE, stdin=PIPE, stderr=PIPE)
                         proc.wait()
                     except FileNotFoundError:
                         try:
-                            proc = subprocess.Popen(shlex.split(
+                            proc = Popen(shlex.split(
                                 pkg['uninstall-command']), stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
                             proc.wait()
                         except FileNotFoundError:
@@ -354,7 +353,7 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
             log_info("Executing the quiet uninstall command", logfile)
 
             try:
-                proc = subprocess.Popen(shlex.split(
+                proc = Popen(shlex.split(
                     command), stdout=PIPE, stdin=PIPE, stderr=PIPE)
                 proc.wait()
             except FileNotFoundError as err:
@@ -389,12 +388,12 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
             write_verbose("Executing the uninstall command", verbose, no_color)
             log_info("Executing the uninstall command", logfile)
             try:
-                proc = subprocess.Popen(shlex.split(
+                proc = Popen(shlex.split(
                     command), stdout=PIPE, stdin=PIPE, stderr=PIPE)
                 proc.wait()
             except FileNotFoundError:
                 try:
-                    proc = subprocess.Popen(shlex.split(
+                    proc = Popen(shlex.split(
                         command), stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
                     proc.wait()
                 except FileNotFoundError:

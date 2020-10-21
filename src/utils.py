@@ -9,10 +9,10 @@ import platform
 import requests
 import difflib
 import zipfile
+import tempfile
 import hashlib
-import ctypes
+import pathlib
 import click
-import json
 import sys
 import os
 
@@ -48,7 +48,7 @@ def parse_json_response(pkg):
 
 def get_setup_name(download_type, package_name):
     if sys.platform == 'win32':
-        download_path = 'C:\\Users\\{0}\\Downloads\\'.format(getuser())
+        download_path = tempfile.gettempdir()
         architecture = get_architecture()
         package = package_name.split()
         package.insert(0, download_path)
@@ -58,7 +58,7 @@ def get_setup_name(download_type, package_name):
         return ''.join(package)
 
     elif sys.platform == 'darwin':
-        download_path = '/Users/{0}/Downloads/'.format(getuser())
+        download_path = tempfile.gettempdir()
         package = package_name.split()
         package.insert(0, download_path)
         package.append('Setup')
@@ -66,7 +66,7 @@ def get_setup_name(download_type, package_name):
         return ''.join(package)
 
     elif sys.platform == 'linux':
-        download_path = '/home/{0}/Downloads/'.format(getuser())
+        download_path = tempfile.gettempdir()
         package = package_name.split()
         package.insert(0, download_path)
         package.append('Setup')
@@ -157,7 +157,7 @@ def install_package(package_name, switches, download_type, no_color) -> str:
                 click.echo(click.style(
                     f'Unzipping File At {file_name}'))
 
-            zip_directory = fR'C:\Users\{getuser()}\Downloads\\{package_name}'
+            zip_directory = fR'{tempfile.gettempdir()}\\{package_name}'
             with zipfile.ZipFile(file_name, 'r') as zip_ref:
                 zip_ref.extractall(zip_directory)
             executable_list = []
@@ -166,8 +166,7 @@ def install_package(package_name, switches, download_type, no_color) -> str:
                     executable_list.append(name)
             executable_list.append('Exit')
 
-            file_path = 'C:\\Users\\{0}\\Downloads\\{1}'.format(
-                getuser(), package_name)
+            file_path = fR'{tempfile.gettempdir()}\\{package_name}'
 
             def trigger():
                 click.clear()
@@ -307,7 +306,7 @@ def find_approx_pid(exe_name) -> str:
 
 
 def handle_exit(status: str, setup_name: str = ''):
-    if status == 'Downloaded' or status == 'Installing' or status == 'Installed' or status == 'Cleaning Up':
+    if status == 'Downloaded' or status == 'Installing' or status == 'Installed':
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
 
@@ -323,15 +322,25 @@ def handle_exit(status: str, setup_name: str = ''):
         os._exit(0)
 
 
-def kill_running_proc(package_name : str):
+def kill_running_proc(package_name : str, no_color : bool, verbose : bool, debug : bool, yes : bool):
     parts = package_name.split('-')
     name = ' '.join([p.capitalize() for p in parts])
     pid = int(find_approx_pid(package_name))
     if pid == 1:
         return
     if pid and pid != 1:
-        write(f'Terminating {name}.', 'green')
-        os.kill(pid, SIGTERM)
+        if yes:
+            write(f'Terminating {name}.', 'green')
+            os.kill(pid, SIGTERM)
+        terminate = click.prompt(f'Electric Detected {name} Running In The Background. Would You Like To Terminate It? [y/n]')
+        if terminate == 'y':
+            write(f'Terminating {name}.', 'green')
+            os.kill(pid, SIGTERM)
+        else:
+            write('Aborting Installation!', 'red')
+            write_verbose(f'Aborting Installation Due To {name} Running In Background', no_color)
+            write_debug(f'Aborting Installation Due To {name} Running In Background. Process Was Not Terminated.', no_color)
+            os._exit(1)
 
 
 def kill_proc(proc):
