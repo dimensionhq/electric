@@ -11,8 +11,8 @@ import difflib
 import zipfile
 import tempfile
 import hashlib
-import pathlib
 import click
+import json
 import sys
 import os
 
@@ -74,7 +74,7 @@ def get_setup_name(download_type, package_name):
         return ''.join(package)
 
 
-def download(url, download_type: str, package_name, noprogress):
+def download(url, download_type: str, package_name, noprogress, silent):
     setup_name = get_setup_name(download_type, package_name)
 
     with open(setup_name, "wb") as f:
@@ -95,7 +95,11 @@ def download(url, download_type: str, package_name, noprogress):
                     sys.stdout.write(
                         f"\r{round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
                     sys.stdout.flush()
-                else:
+                
+                if silent:
+                    pass
+                
+                elif not noprogress and not silent:
                     complete = int(50 * dl / full_length)
                     fill_c, unfill_c = chr(
                         9608) * complete, chr(9617) * (50 - complete)
@@ -236,10 +240,11 @@ def run_uninstall(command: str, package_name, no_color):
             f"Successfully Uninstalled {package_name}"))
 
 
-def get_package_names() -> list:
+def get_correct_package_names(res : str) -> list:
     package_names = []
-    for file in os.listdir(f'C:\\Users\\{getuser()}\\Desktop\\electric\\Server\\Packages'):
-        package_names.append(file.replace('.json', ''))
+    for package in res:
+        # print('THSI IS THA PACKAGE', package)
+        package_names.append(package)
     return package_names
 
 
@@ -259,16 +264,13 @@ def get_checksum(bytecode: bytes, hash_algorithm: str):
     return None
 
 
-def send_req_package(packages: list) -> dict:
-    BASE = 'http://electric-packages-api.herokuapp.com/'
-    json_list = []
+def send_req_all() -> dict:
+    REQA = 'https://electric-packages-api.herokuapp.com/packages'
     time = 0.0
-    for package_name in packages:
-        response = requests.get(
-            BASE + f'packages/{package_name}', timeout=15)
-        json_list.append(response.text.strip())
-        time += response.elapsed.total_seconds()
-    return json_list, time
+    response = requests.get(REQA, timeout=15)
+    res = response.text.strip()
+    time = response.elapsed.total_seconds()
+    return json.loads(res), time
 
 
 def get_pid(exe_name):
@@ -305,24 +307,25 @@ def find_approx_pid(exe_name) -> str:
     return 1
 
 
-def handle_exit(status: str, setup_name: str = ''):
+def handle_exit(status: str, setup_name : str, no_color : bool, quiet : bool):
     if status == 'Downloaded' or status == 'Installing' or status == 'Installed':
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
 
-
-        write('SafetyHarness Successfully Created Clean Exit Gateway', 'green')
-        write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0', 'light_blue')
+        write('SafetyHarness Successfully Created Clean Exit Gateway', 'green', no_color, quiet)
+        write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0', 'light_blue', no_color, quiet)
         os._exit(0)
+    
     if status == 'Got Download Path':
-        write('\nRapidExit Successfully Exited With Code 0', 'green')
+        write('\nRapidExit Successfully Exited With Code 0', 'green', no_color, quiet)
         os._exit(0)
+
     else:
-        write('\nRapidExit Successfully Exited With Code 0', 'green')
+        write('\nRapidExit Successfully Exited With Code 0', 'green', no_color, quiet)
         os._exit(0)
 
 
-def kill_running_proc(package_name : str, no_color : bool, verbose : bool, debug : bool, yes : bool):
+def kill_running_proc(package_name : str, quiet : bool, verbose : bool, debug : bool, yes : bool, no_color : bool):
     parts = package_name.split('-')
     name = ' '.join([p.capitalize() for p in parts])
     pid = int(find_approx_pid(package_name))
@@ -330,25 +333,34 @@ def kill_running_proc(package_name : str, no_color : bool, verbose : bool, debug
         return
     if pid and pid != 1:
         if yes:
-            write(f'Terminating {name}.', 'green')
+            write(f'Terminating {name}.', 'green', no_color, quiet)
             os.kill(pid, SIGTERM)
+            return
+        if quiet:
+            os.kill(pid, SIGTERM)
+            return
         terminate = click.prompt(f'Electric Detected {name} Running In The Background. Would You Like To Terminate It? [y/n]')
         if terminate == 'y':
-            write(f'Terminating {name}.', 'green')
+            write(f'Terminating {name}.', 'green', no_color, quiet)
             os.kill(pid, SIGTERM)
         else:
-            write('Aborting Installation!', 'red')
-            write_verbose(f'Aborting Installation Due To {name} Running In Background', no_color)
-            write_debug(f'Aborting Installation Due To {name} Running In Background. Process Was Not Terminated.', no_color)
+            write('Aborting Installation!', 'red', no_color, quiet)
+            write_verbose(f'Aborting Installation Due To {name} Running In Background', verbose, no_color, quiet)
+            write_debug(f'Aborting Installation Due To {name} Running In Background. Process Was Not Terminated.', debug, no_color, quiet)
             os._exit(1)
 
 
-def kill_proc(proc):
+def kill_proc(proc, no_color, silent):
     if proc is not None:
         proc.terminate()
-        write('SafetyHarness Successfully Created Clean Exit Gateway', 'green')
-        write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0', 'light_blue')
+        write('SafetyHarness Successfully Created Clean Exit Gateway', 'green', no_color, silent)
+        write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0', 'light_blue', no_color, silent)
         os._exit(0)
     else:
-        write('\nRapidExit Successfully Exited With Code 0', 'green')
+        write('\nRapidExit Successfully Exited With Code 0', 'green', no_color, silent)
         os._exit(0)
+
+def assert_cpu_compatible() -> int:
+    cpu_count = os.cpu_count()
+    print(cpu_count)
+

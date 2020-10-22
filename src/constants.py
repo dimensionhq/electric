@@ -5,7 +5,7 @@ import sys
 import os
 
 
-__version__ = '1.0.0b'
+__version__ = '1.0.0a'
 
 # Install Debug Headers
 install_debug_headers = [

@@ -9,7 +9,7 @@
 		"source": "https://www.virtualbox.org/wiki/Downloads",
 		"type": ".exe",
 		"switches": ["--silent"],
-    "uninstall-switches": [],
-    "uninstall-command" : ""
+ 	   	"uninstall-switches": [],
+    	"uninstall-command" : ""
 	}
 }
