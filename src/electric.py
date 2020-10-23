@@ -27,8 +27,8 @@ def install(package_name):
     
     if package_name != possible[0]:
         click.echo(click.style(f'Autocorrecting To Closest Match: {possible[0]}', fg='bright_magenta'))
-        if click.prompt('Do you want to continue? [y/n]') == 'n':
-            exit()
+        if click.prompt('Do you want to continue? [y/n]').lower() == 'n':
+            exit(0)
 
     package_name = possible[0]
 
