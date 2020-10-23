@@ -8,7 +8,6 @@ from sys import platform
 installed = True
 try:
     process = Popen('python', stdout=PIPE, stdin=PIPE, stderr=PIPE)
-
 except FileNotFoundError:
     installed = False
 
@@ -19,10 +18,8 @@ def download_python() -> int:
 
     if platform == 'win32':
         download_path = f'C:\\Users\\{getuser()}\\Downloads\\PythonSetup.exe'
-
     elif platform == 'darwin':
         download_path = f'\\Users\\{getuser()}\\Downloads\\PythonSetup.pkg'
-
     elif platform == 'linux':
         download_path = f'\\home\\{getuser()}\\Downloads\\PythonSetup.deb'
 
@@ -30,41 +27,41 @@ def download_python() -> int:
 
     if platform == 'win32':
         python_download_url = 'https://www.python.org/ftp/python/3.9.0/python-3.9.0-amd64.exe'
-    
     elif platform == 'darwin':
         python_download_url = 'https://www.python.org/ftp/python/3.9.0/python-3.9.0-macosx10.9.pkg'
 
     urlretrieve(python_download_url, download_path)
 
     setup_python = []
-    
+
     if platform == 'win32':
         setup_python = [f'{download_path} /passive']
-    
     elif platform == 'macos':
-        setup_python = [f'sudo installer -store -pkg "{download_path}" -target /Applications']
+        setup_python = [
+            f'sudo installer -store -pkg "{download_path}" -target /Applications']
 
     for command in setup_python:
         call(command)
 
-    working = True
+    success = True
 
     try:
-        proc = Popen('python', stdout=PIPE, stdin=PIPE, stderr=PIPE)
-    
+        Popen('python', stdout=PIPE, stdin=PIPE, stderr=PIPE)
     except FileNotFoundError:
-        working = False
+        success = False
 
-    if working:
-        return 0
-    
-    return 1
+    return success
 
 
-def download_dependencies() -> int:
+def download_dependencies(password) -> int:
     # Download Dependencies Using Pip
-    commands = 'python -m pip install electric' # Change to turbocharge in the case of turbocharge
-    
+    # Change to turbocharge in the case of TurboCharge
+    commands = 'python -m pip install electric'
+
+    if platform == 'linux':
+        proc = Popen('sudo -S apt-get install python3-pip -y')
+        proc.communicate(password.encode())
+
     for command in commands:
         call(command)
         return 0
@@ -72,7 +69,7 @@ def download_dependencies() -> int:
 
 if not installed:
     download_python()
-    if download_python() == 0:
+    if download_python():
         download_dependencies()
 
 
