@@ -4,7 +4,7 @@ from timeit import default_timer as timer
 from registry import get_uninstall_key
 from subprocess import  Popen, PIPE, run
 from decimal import Decimal
-from click import DYMGroup # previously `from click_didyoumean import DYMGroup` :)
+from click import DYMGroup
 from time import strftime
 from extension import *
 from constants import *
