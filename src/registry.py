@@ -170,7 +170,6 @@ def get_uninstall_key(package_name : str):
 
     get_registry_info()
     get_uninstall_string(package_name)
-
     if final_array:
         if len(final_array) > 1:
             return get_more_accurate_matches(final_array)

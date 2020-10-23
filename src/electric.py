@@ -1,9 +1,10 @@
 from logging import log
+from sys import stderr
 from timeit import default_timer as timer
 from registry import get_uninstall_key
-from subprocess import  Popen, PIPE
+from subprocess import  Popen, PIPE, run
 from decimal import Decimal
-from click_didyoumean import DYMGroup
+from click import DYMGroup # previously `from click_didyoumean import DYMGroup` :)
 from time import strftime
 from extension import *
 from constants import *
@@ -30,6 +31,29 @@ def cli(ctx):
 # TODO: Complete Parallel / Concurrent Installation
 
 
+def handle_python_package(package_name, mode):
+    if platform == 'linux':
+        if mode == 'install':
+            run(f'python -m pip3 install --upgrade {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        
+        elif mode == 'uninstall':
+            run(f'python -m pip3 uninstall {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    
+    elif platform == 'win32':
+        if mode == 'install':
+            run(f'python -m pip install --upgrade {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        
+        elif mode == 'uninstall':
+            run(f'python -m pip uninstall {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        
+    elif platform == 'darwin':
+        if mode == 'install':
+            run(f'python -m pip3 install --upgrade {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        
+        elif mode == 'uninstall':
+            run(f'python -m pip3 uninstall {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+
+
 @cli.command()
 @click.argument('package_name', required=True)
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for installation')
@@ -39,7 +63,8 @@ def cli(ctx):
 @click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during installation')
 @click.option('--silent', '-s', is_flag=True, help='Completely silent installation without any output to console')
-def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no_color: bool, logfile: str, yes : bool, silent : bool, notify_on_completion : bool):
+@click.option('--python', is_flag=True, help='Specify a python package to install with Electric.')
+def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no_color: bool, logfile: str, yes : bool, silent : bool, python : bool):
     status = 'Initialising'
     setup_name = ''
     keyboard.add_hotkey('ctrl+c', lambda : handle_exit(status, setup_name, no_color, silent))
@@ -49,7 +74,7 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
         createConfig(logfile, logging.INFO, 'Install')
         
 
-    packages = package_name.split(',')
+    packages = package_name.strip(' ').split(',')
 
     status = 'Networking'
     write_verbose('Sending GET Request To /rapidquery/packages', verbose, no_color, silent)
@@ -59,133 +84,139 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
     correct_names = get_correct_package_names(res)
     corrected_package_names = []
 
-    for name in packages:
-        if name in correct_names:
-            corrected_package_names.append(name)
-        else:
-            corrections = difflib.get_close_matches(name, correct_names)
-            if corrections:
-                if silent:
-                    click.echo(click.style('Incorrect / Invalid Package Name Entered. Aborting Installation.', fg='red'))
-                    log_info(f'Incorrect / Invalid Package Name Entered. Aborting Installation', logfile)
-                    handle_exit(status, setup_name, no_color, silent)
-
-                if yes:
-                    write(f'Autocorrecting To {corrections[0]}', 'green', no_color, silent)
-                    log_info(f'Autocorrecting To {corrections[0]}', logfile)
-                    write(f'Successfully Autocorrected To {corrections[0]}', 'green', no_color, silent)
-                    log_info(f'Successfully Autocorrected To {corrections[0]}', logfile)
-                    corrected_package_names.append(corrections[0])
-
-                else:
-                    write(f'Autocorrecting To {corrections[0]}', 'bright_magenta', no_color, silent)
-                    write_verbose(f'Autocorrecting To {corrections[0]}', verbose, no_color, silent)
-                    write_debug(f'Autocorrecting To {corrections[0]}', debug, no_color, silent)
-                    log_info(f'Autocorrecting To {corrections[0]}', logfile)
-                    if click.prompt('Would You Like To Continue? [y/n]') == 'y':
-                        package_name = corrections[0]
-                        corrected_package_names.append(package_name)
-                    else:
-                        sys.exit()
+    if not python:
+        for name in packages:
+            if name in correct_names:
+                corrected_package_names.append(name)
             else:
-                write(f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', no_color, silent)
-                write_debug(f'Could Not Find Any Packages Which Match {name}', debug, no_color, silent)
-                write_verbose(f'Could Not Find Any Packages Which Match {name}', verbose, no_color, silent)
-                log_info(f'Could Not Find Any Packages Which Match {name}', logfile)
+                corrections = difflib.get_close_matches(name, correct_names)
+                if corrections:
+                    if silent:
+                        click.echo(click.style('Incorrect / Invalid Package Name Entered. Aborting Installation.', fg='red'))
+                        log_info(f'Incorrect / Invalid Package Name Entered. Aborting Installation', logfile)
+                        handle_exit(status, setup_name, no_color, silent)
 
-    write_debug(install_debug_headers, debug, no_color, silent)
-    for header in install_debug_headers:
-        log_info(header, logfile)
+                    if yes:
+                        write(f'Autocorrecting To {corrections[0]}', 'green', no_color, silent)
+                        log_info(f'Autocorrecting To {corrections[0]}', logfile)
+                        write(f'Successfully Autocorrected To {corrections[0]}', 'green', no_color, silent)
+                        log_info(f'Successfully Autocorrected To {corrections[0]}', logfile)
+                        corrected_package_names.append(corrections[0])
 
-    index = 0
-    for package in corrected_package_names:
-        setup_name = ''
-        status = ''
+                    else:
+                        write(f'Autocorrecting To {corrections[0]}', 'bright_magenta', no_color, silent)
+                        write_verbose(f'Autocorrecting To {corrections[0]}', verbose, no_color, silent)
+                        write_debug(f'Autocorrecting To {corrections[0]}', debug, no_color, silent)
+                        log_info(f'Autocorrecting To {corrections[0]}', logfile)
+                        if click.prompt('Would You Like To Continue? [y/n]') == 'y':
+                            package_name = corrections[0]
+                            corrected_package_names.append(package_name)
+                        else:
+                            sys.exit()
+                else:
+                    write(f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', no_color, silent)
+                    write_debug(f'Could Not Find Any Packages Which Match {name}', debug, no_color, silent)
+                    write_verbose(f'Could Not Find Any Packages Which Match {name}', verbose, no_color, silent)
+                    log_info(f'Could Not Find Any Packages Which Match {name}', logfile)
 
-        write_verbose(
-            f"Package to be installed: {package}", verbose, no_color, silent)
-        log_info(f"Package to be installed: {package}", logfile)
+        write_debug(install_debug_headers, debug, no_color, silent)
+        for header in install_debug_headers:
+            log_info(header, logfile)
 
-        package = package.strip()
-        package_name = package.lower()
-        write_verbose(
-            f'Finding closest match to {package_name}...', verbose, no_color, silent)
-        log_info(f'Finding closest match to {package_name}...', logfile)
+        index = 0
 
-        package_name = package
-        if index == 0:
+        for package in corrected_package_names:
+            setup_name = ''
+            status = ''
+
+            write_verbose(
+                f"Package to be installed: {package}", verbose, no_color, silent)
+            log_info(f"Package to be installed: {package}", logfile)
+
+            package = package.strip()
+            package_name = package.lower()
+            write_verbose(
+                f'Finding closest match to {package_name}...', verbose, no_color, silent)
+            log_info(f'Finding closest match to {package_name}...', logfile)
+
+            package_name = package
+            if index == 0:
+                write(
+                    f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', 'bright_yellow', no_color, silent)
+                write_debug(f'Rapidquery Successfully Received {package_name}.json in {round(time, 9)}s', 'bright_yellow', debug, silent)
+                log_info(
+                    f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', logfile)
+
+            start = timer()
+
+            pkg = res[package_name]
+
+            system_architecture = get_architecture()
+
+            write_verbose('Generating system download path...', verbose, no_color, silent)
+            log_info('Generating system download path...', logfile)
+            status = 'Download Path'
+            download_url = get_download_url(system_architecture, pkg)
+            status = 'Got Download Path'
+
+            package_name, source, extension_type, switches = parse_json_response(pkg)
+
+            end = timer()
+
+            val = round(Decimal(end) - Decimal(start), 6)
             write(
-                f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', 'bright_yellow', no_color, silent)
-            write_debug(f'Rapidquery Successfully Received {package_name}.json in {round(time, 9)}s', 'bright_yellow', debug, silent)
+                f'Electrons Transferred In {val}s', 'cyan', no_color, silent)
+            log_info(f'Electrons Transferred In {val}s', logfile)
+
+            write('Initializing Rapid Download...', 'green', no_color, silent)
+            log_info('Initializing Rapid Download...', logfile)
+
+            # Downloading The File From Source
+            write_verbose(f"Downloading from '{download_url}'", verbose, no_color, silent)
+            log_info(f"Downloading from '{download_url}'", logfile)
+            status = 'Downloading'
+            setup_name = download(download_url, extension_type, package_name, no_progress, silent)
+            status = 'Downloaded'
+
+            write('\nFinished Rapid Download', 'green', no_color, silent)
+            log_info('Finished Rapid Download', logfile)
+
+            write(
+                'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', no_color, silent)
             log_info(
-                f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', logfile)
+                'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', logfile)
+            if debug:
+                click.echo('\n')
 
-        start = timer()
+            write_debug(
+                f'Installing {package_name} through Setup{extension_type}', debug, no_color, silent)
+            log_info(
+                f'Installing {package_name} through Setup{extension_type}', logfile)
 
-        pkg = res[package_name]
+            status = 'Installing'
+            # Running The Installer silently And Completing Setup
+            install_package(package_name, switches, extension_type, no_color)
+            status = 'Installed'
 
-        system_architecture = get_architecture()
+            end = timer()
 
-        write_verbose('Generating system download path...', verbose, no_color, silent)
-        log_info('Generating system download path...', logfile)
-        status = 'Download Path'
-        download_url = get_download_url(system_architecture, pkg)
-        status = 'Got Download Path'
+            write(
+                f'Successfully Installed {package_name}!', 'bright_magenta', no_color, silent)
+            log_info(f'Successfully Installed {package_name}!', logfile)
 
-        package_name, source, extension_type, switches = parse_json_response(pkg)
+            write_verbose('Installation and setup completed.', verbose, no_color, silent)
+            log_info('Installation and setup completed.', logfile)
+            write_debug(
+                f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', debug, no_color, silent)
+            log_info(
+                f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', logfile)
+            closeLog(logfile, 'Install')
 
-        end = timer()
-
-        val = round(Decimal(end) - Decimal(start), 6)
-        write(
-            f'Electrons Transferred In {val}s', 'cyan', no_color, silent)
-        log_info(f'Electrons Transferred In {val}s', logfile)
-
-        write('Initializing Rapid Download...', 'green', no_color, silent)
-        log_info('Initializing Rapid Download...', logfile)
-
-        # Downloading The File From Source
-        write_verbose(f"Downloading from '{download_url}'", verbose, no_color, silent)
-        log_info(f"Downloading from '{download_url}'", logfile)
-        status = 'Downloading'
-        setup_name = download(download_url, extension_type, package_name, no_progress, silent)
-        status = 'Downloaded'
-
-        write('\nFinished Rapid Download', 'green', no_color, silent)
-        log_info('Finished Rapid Download', logfile)
-
-        write(
-            'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', no_color, silent)
-        log_info(
-            'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', logfile)
-        if debug:
-            click.echo('\n')
-
-        write_debug(
-            f'Installing {package_name} through Setup{extension_type}', debug, no_color, silent)
-        log_info(
-            f'Installing {package_name} through Setup{extension_type}', logfile)
-
-        status = 'Installing'
-        # Running The Installer silently And Completing Setup
-        install_package(package_name, switches, extension_type, no_color)
-        status = 'Installed'
-
-        end = timer()
-
-        write(
-            f'Successfully Installed {package_name}!', 'bright_magenta', no_color, silent)
-        log_info(f'Successfully Installed {package_name}!', logfile)
-
-        write_verbose('Installation and setup completed.', verbose, no_color, silent)
-        log_info('Installation and setup completed.', logfile)
-        write_debug(
-            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', debug, no_color, silent)
-        log_info(
-            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', logfile)
-        closeLog(logfile, 'Install')
-
-        index += 1
+            index += 1
+    
+    else:
+        for name in packages:
+            handle_python_package(name, 'install')
 
 
 @cli.command()
