@@ -1,0 +1,5 @@
+__pycache__/
+.idea/
+src/__pycache__
+src/electric.egg-info
+.vscode

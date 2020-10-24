@@ -1,0 +1,15 @@
+{
+  "winrar.json":
+  {
+      "package-name": "Winrar",
+      "win32": "https://www.rarlab.com/rar/wrar591.exe",
+      "win64": "https://www.rarlab.com/rar/winrar-x64-591.exe",
+      "darwin": "https://www.techspot.com/downloads/downloadnow/5169/?evp=51eacb58b57fdb0264a72aca766238ec&file=1",
+      "debian": "https://www.techspot.com/downloads/downloadnow/5168/?evp=1417ad978f211c4d93aad93d2e7d8104&file=1",
+      "source": "https://www.win-rar.com/start.html?&L=0",
+      "type": ".exe",
+      "switches": ["/S"],
+      "uninstall-switches": ["/S"],
+      "uninstall-command" : ""
+  }
+}
