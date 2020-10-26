@@ -1,0 +1,15 @@
+{
+  "teamviewer":
+  {
+      "package-name": "Teamviewer",
+      "win32": "https://download.teamviewer.com/download/TeamViewer_Setup.exe",
+      "win64": "https://download.teamviewer.com/download/TeamViewer_Setup.exe",
+      "darwin": "https://download.teamviewer.com/download/TeamViewer.dmg",
+      "debian" : "https://download.teamviewer.com/download/linux/teamviewer_amd64.deb",
+      "source": "https://www.teamviewer.com",
+      "type": ".exe",
+      "switches": ["/S"],
+      "uninstall-switches": ["/S"],
+      "uninstall-command" : ""
+  }
+}
