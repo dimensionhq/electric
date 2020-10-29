@@ -20,7 +20,7 @@ import sys
 
 __version__ = '1.0.0a'
 
-
+# Adding autocompletion
 @click.group(cls=DYMGroup, max_suggestions = 1)
 @click.version_option(__version__)
 @click.pass_context
