@@ -39,8 +39,31 @@ class Installer(enum.Enum):
         ],
         "dir-spec": ""
     }
-    InstallShield = {}
-    Ghost = {}
+    #TODO: Fix For InstallShield
+    InstallShield = {
+        "install-switches":
+            [
+                '/s',
+                '/v',
+
+            ],
+        "uninstall-switches": [
+            '/s',
+            '/uninst'
+        ],
+        "dir-spec": ""
+    }
+    Ghost = {
+        "install-switches":
+            [
+                '-s'
+            ],
+        "uninstall-switches": [
+                '-u',
+                '-s'
+            ],
+        "dir-spec": ""
+    }
     Squirrel = {
         "install-switches":
         [
@@ -53,4 +76,56 @@ class Installer(enum.Enum):
         ],
         "dir-spec": "",
     }
-    Wise = {}
+    Wise = {
+        "install-switches":
+            [
+                '/S'
+            ],
+        "uninstall-switches":
+            [
+                '/S'
+            ],
+        "dir-spec": "",
+    }
+    QtInstaller = {
+        "install-switches": [],
+        "uninstall-switches": [],
+        "dir-spec": "",
+    }
+    BitRockInstaller = {
+        "install-switches": [
+            '--mode unattended'
+        ],
+        "uninstall-switches": [
+            '--mode unattended',
+            '--unattendedmodeui none'
+        ],
+        "dir-spec": "",
+    }
+    CustomInstaller = {
+        "install-switches": [
+            '/S'
+        ],
+        "uninstall-switches": [
+            '/S',
+        ],
+        "dir-spec": "",
+    }
+    InstallForJInstaller = {
+        "install-switches": [
+            '-q'
+        ],
+        "uninstall-switches": [
+            '/S',
+        ],
+        "dir-spec": "-dir ",
+    }
+    PackageForTheWebInstaller = {
+        "install-switches": [
+            '/S'
+        ],
+        "uninstall-switches": [
+            '/S',
+        ],
+        "dir-spec": "",
+    }

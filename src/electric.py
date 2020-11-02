@@ -1,10 +1,7 @@
 from timeit import default_timer as timer
 from registry import get_uninstall_key
 from click_didyoumean import DYMGroup
-from subprocess import Popen, PIPE
 from decimal import Decimal
-from time import strftime
-from extension import *
 from constants import *
 from external import *
 from logger import *
@@ -14,9 +11,7 @@ import keyboard
 import difflib
 import logging
 import shlex
-import json
 import sys
-import os
 
 __version__ = '1.0.0a'
 

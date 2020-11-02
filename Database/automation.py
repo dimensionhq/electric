@@ -6,7 +6,6 @@ from pathlib import Path
 import pyautogui as gui
 import click
 import sys
-import re
 import os
 
 
@@ -23,7 +22,10 @@ win32 = args[1]
 win64 = args[2]
 darwin = args[3]
 debian = args[4]
-
+win32_type = args[5]
+win64_type = args[6]
+darwin_type = args[7]
+debian_type = args[8]
 
 def get_installer_type(path : str) -> str:
     # Check file size
@@ -113,173 +115,25 @@ def generate_json(win32: str, win64: str, darwin: str, debian: str, package_name
         "win32": f"{win32}",
         "win64": f"{win64}",
         "darwin": f"{darwin}",
-        "debian": f"{debian}"
+        "debian": f"{debian}",
+        "win32-type": win32_type,
+        "win64-type": win64_type,
+        "darwin-type": darwin_type,
+        "debian-type": debian_type,
+        "install-switches": type.value["install-switches"],
+        "uninstall-switches": type.value["uninstall-switches"]
     }
 
     return package
 
 
-def smart_detect_type(win32: str, win64: str, darwin: str, debian: str):
-
-    win32_type = None
-
-    if '.exe' in win32:
-        win32_type = '.exe'
-    if '.msi' in win32:
-        win32_type = '.msi'
-    if '.zip' in win32:
-        win32_type = '.zip'
-
-    win64_type = None
-    if '.exe' in win64:
-        win64_type = '.exe'
-
-    if '.msi' in win64:
-        win64_type = '.msi'
-
-    if '.zip' in win64:
-        win64_type = '.zip'
-
-    darwin_type = None
-    if '.dmg' in darwin:
-        darwin_type = '.dmg'
-
-    if '.pkg' in darwin:
-        darwin_type = '.pkg'
-
-    if '.tar.gz' in darwin:
-        darwin_type = '.tar.gz'
-
-    debian_type = None
-    if '.deb' in debian:
-        debian_type = '.deb'
-
-    if '.tar.gz' in debian:
-        debian_type = '.tar.gz'
-
-    if '.tar.bz2' in debian:
-        debian_type = '.tar.bz2'
-
-    if '.tar.xz' in debian:
-        debian_type = '.tar.xz'
-
-    if win32 != '':
-        if not win32_type:
-            reQuery = re.compile(r'\?.*$', re.IGNORECASE)
-            rePort = re.compile(r':[0-9]+', re.IGNORECASE)
-            reExt = re.compile(r'(\.[A-Za-z0-9]+$)', re.IGNORECASE)
-
-            # remove query string
-            url = reQuery.sub("", win32)
-
-            # remove port
-            url = rePort.sub("", url)
-
-            # extract extension
-            matches = reExt.search(url)
-            extension = ''
-            if matches:
-                extension = matches.group(1)
-
-            if matches != '.zip' or matches != '.exe' or matches != '.msi':
-                pass
-            else:
-                win32_type = extension
-
-    if win64 != '':
-        if not win64_type:
-            reQuery = re.compile(r'\?.*$', re.IGNORECASE)
-            rePort = re.compile(r':[0-9]+', re.IGNORECASE)
-            reExt = re.compile(r'(\.[A-Za-z0-9]+$)', re.IGNORECASE)
-
-            # remove query string
-            url = reQuery.sub("", win64)
-
-            # remove port
-            url = rePort.sub("", url)
-
-            # extract extension
-            matches = reExt.search(url)
-            extension = ''
-            if matches:
-                extension = matches.group(1)
-
-            if matches != '.zip' or matches != '.exe' or matches != '.msi':
-                pass
-            else:
-                win64_type = extension
-
-    if darwin != '':
-        if not darwin_type:
-            reQuery = re.compile(r'\?.*$', re.IGNORECASE)
-            rePort = re.compile(r':[0-9]+', re.IGNORECASE)
-            reExt = re.compile(r'(\.[A-Za-z0-9]+$)', re.IGNORECASE)
-
-            # remove query string
-            url = reQuery.sub("", darwin)
-
-            # remove port
-            url = rePort.sub("", url)
-
-            # extract extension
-            matches = reExt.search(url)
-            extension = ''
-            if matches:
-                extension = matches.group(1)
-
-            if matches != '.zip' or matches != '.dmg' or matches != '.pkg' or matches != '.tar.gz':
-                pass
-            else:
-                darwin_type = extension
-
-    if debian != '':
-        if not debian_type:
-            reQuery = re.compile(r'\?.*$', re.IGNORECASE)
-            rePort = re.compile(r':[0-9]+', re.IGNORECASE)
-            reExt = re.compile(r'(\.[A-Za-z0-9]+$)', re.IGNORECASE)
-
-            # remove query string
-            url = reQuery.sub("", debian)
-
-            # remove port
-            url = rePort.sub("", url)
-
-            # extract extension
-            matches = reExt.search(url)
-            extension = ''
-            if matches:
-                extension = matches.group(1)
-            if matches != '.zip' or matches != '.exe' or matches != '.msi':
-                pass
-            else:
-                debian_type = extension
-
-    return win32_type, win64_type, darwin_type, debian_type
-
-
-def download(win32: str, win64: str, darwin: str, debian: str):
-    win32_type, win64_type, darwin_type, debian_type = smart_detect_type(
-        win32, win64, darwin, debian)
-    if win32 != '':
-        if not win32_type:
-            win32_type = input('Failed To Detect Win32 Type Enter The Type : ')
-    if win64 != '':
-        if not win64_type:
-            win64_type = input('Failed To Detect Win64 Type Enter The Type : ')
-    if darwin != '':
-        if not darwin_type:
-            darwin_type = input(
-                'Failed To Detect Darwin Type Enter The Type : ')
-    if debian != '':
-        if not debian_type:
-            debian_type = input(
-                'Failed To Detect Debian Type Enter The Type : ')
+def download(win64: str):
     path = f'C:\\Users\\tejas\\Downloads\\Setup{win64_type}'
     urlretrieve(win64, path)
-    return path, win32_type, win64_type, darwin_type, debian_type
+    return path
 
 
-path, win32_type, win64_type, darwin_type, debian_type = download(win32, win64, darwin, debian)
+path = download(win64)
 installer_type = get_installer_type(path)
 gen_json = generate_json(win32, win64, darwin, debian, package_name,
                          installer_type, win32_type, win64_type, darwin_type, debian_type)
