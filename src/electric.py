@@ -12,6 +12,7 @@ import difflib
 import logging
 import shlex
 import sys
+import os
 
 __version__ = '1.0.0a'
 
@@ -130,6 +131,18 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
         for package in corrected_package_names:
 
             installation = find_existing_installation(package)
+            if installation:
+                write_debug(f"Aborting Installation As {package} is already installed.", debug, no_color, silent)
+                write_verbose(f"Found an existing installation of => {package}", verbose, no_color, silent)
+                write(f"Found an existing installation {package}.", 'bright_yellow', no_color, silent) 
+                installation_continue = click.prompt(f'Would you like to reinstall {package} [y/n]')
+                if installation_continue == 'y' or installation_continue == 'y':
+                    os.system(f'electric uninstall {package}')
+                    os.system(f'electric install {package}')
+                    return
+                else:
+                    handle_exit(status, setup_name, no_color, silent)
+                
 
             setup_name = ''
             status = ''
@@ -453,12 +466,9 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
                 except FileNotFoundError:
                     subprocess.call(command, stdin=PIPE,
                                     stdout=PIPE, stderr=PIPE)
-            if not no_color:
-                click.echo(click.style(
-                    f"Successfully Uninstalled {package_name}", fg="bright_magenta"))
-            if no_color:
-                click.echo(click.style(
-                    f"Successfully Uninstalled {package_name}"))
+            
+            write(f"Successfully Uninstalled {package_name}", "bright_magenta", no_color, silent)
+                
             write_verbose("Uninstallation completed.",
                           verbose, no_color, silent)
             log_info("Uninstallation completed.", logfile)
