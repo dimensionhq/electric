@@ -122,7 +122,8 @@ def generate_json(win32: str, win64: str, darwin: str, debian: str, package_name
             "darwin-type": darwin_type,
             "debian-type": debian_type,
             "install-switches": type.value["install-switches"],
-            "uninstall-switches": type.value["uninstall-switches"]
+            "uninstall-switches": type.value["uninstall-switches"],
+            "custom-location": type.value["dir-spec"]
         }
     }
 
