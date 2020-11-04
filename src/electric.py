@@ -128,6 +128,9 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
         index = 0
 
         for package in corrected_package_names:
+
+            installation = find_existing_installation(package)
+
             setup_name = ''
             status = ''
 
@@ -146,7 +149,7 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
                 write(
                     f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', 'bright_yellow', no_color, silent)
                 write_debug(
-                    f'Rapidquery Successfully Received {package_name}.json in {round(time, 9)}s', 'bright_yellow', debug, silent)
+                    f'Rapidquery Successfully Received {package_name}.json in {round(time, 9)}s', debug, no_color, silent)
                 log_info(
                     f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', logfile)
 
@@ -181,11 +184,11 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
                 f"Downloading from '{download_url}'", verbose, no_color, silent)
             log_info(f"Downloading from '{download_url}'", logfile)
             status = 'Downloading'
-            setup_name = download(
+            path = download(
                 download_url, extension_type, package_name, no_progress, silent)
             status = 'Downloaded'
 
-            write('\nFinished Rapid Download', 'green', no_color, silent)
+            write('Finished Rapid Download', 'green', no_color, silent)
             log_info('Finished Rapid Download', logfile)
 
             write(
@@ -202,7 +205,7 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
 
             status = 'Installing'
             # Running The Installer silently And Completing Setup
-            install_package(package_name, switches, extension_type, no_color)
+            install_package(path, package_name, switches, extension_type, no_color)
             status = 'Installed'
 
             end = timer()
@@ -368,8 +371,7 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
                                   verbose, no_color, silent)
                     log_info("Executing the uninstall command", logfile)
 
-                    write(
-                        f"Successfully Uninstalled {package_name}", "bright_magenta")
+                   
 
                     try:
                         proc = Popen(shlex.split(
@@ -383,6 +385,9 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
                         except FileNotFoundError:
                             subprocess.call(
                                 pkg['uninstall-command'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+
+                    write(
+                        f"Successfully Uninstalled {package_name}", "bright_magenta", no_color, silent)
 
                     index += 1
                     write_debug(

@@ -24,8 +24,6 @@ def get_uninstall_key(package_name : str):
                 try:
                     name = winreg.QueryValueEx(skey, 'DisplayName')[0]
                     stro = winreg.QueryValueEx(skey, 'UninstallString')[0]
-
-
                     packs = []
                     for regkey in ["URLInfoAbout", "InstallLocation", "Publisher"]:
                         try:
@@ -68,6 +66,7 @@ def get_uninstall_key(package_name : str):
 
     final_array = []
     total = []
+
     def get_uninstall_string(package_name : str):
         nonlocal final_array
         string_gen(package_name)
@@ -105,6 +104,7 @@ def get_uninstall_key(package_name : str):
 
                     if possibilities:
                         total.append(possibilities)
+                        
                     else:
                         continue
                 else:
