@@ -26,6 +26,7 @@ win32_type = args[5]
 win64_type = args[6]
 darwin_type = args[7]
 debian_type = args[8]
+json_name = args[9]
 
 def get_installer_type(path : str) -> str:
     # Check file size
@@ -54,7 +55,6 @@ def get_installer_type(path : str) -> str:
         os.remove(path)
         return clipboard.paste()
 
-
     else:
         gui.hotkey('win', 'd')
         gui.sleep(0.2)
@@ -65,19 +65,19 @@ def get_installer_type(path : str) -> str:
         gui.sleep(2)
 
         gui.hotkey('fn', 'f11')
-        gui.sleep(0.2)
+        gui.sleep(0.4)
         gui.press('enter')
-        gui.sleep(0.2)
+        gui.sleep(0.4)
         gui.press('enter')
 
         gui.click(744, 616)
-        gui.sleep(0.2)
+        gui.sleep(0.4)
         gui.hotkey('shift', 'end')
-        gui.sleep(0.2)
+        gui.sleep(0.4)
         gui.hotkey('ctrl', 'c')
-        gui.sleep(0.2)
+        gui.sleep(0.4)
         gui.hotkey('alt', 'fn', 'f4')
-        gui.sleep(0.2)
+        gui.sleep(0.4)
         gui.press('enter')
         os.remove(path)
         return clipboard.paste()
@@ -111,17 +111,19 @@ def generate_json(win32: str, win64: str, darwin: str, debian: str, package_name
     package_name = package_name.replace('\"', '')
 
     package = {
-        "package-name": f"{package_name}",
-        "win32": f"{win32}",
-        "win64": f"{win64}",
-        "darwin": f"{darwin}",
-        "debian": f"{debian}",
-        "win32-type": win32_type,
-        "win64-type": win64_type,
-        "darwin-type": darwin_type,
-        "debian-type": debian_type,
-        "install-switches": type.value["install-switches"],
-        "uninstall-switches": type.value["uninstall-switches"]
+        json_name.replace('\"', '') : {
+            "package-name": f"{package_name}",
+            "win32": f"{win32}",
+            "win64": f"{win64}",
+            "darwin": f"{darwin}",
+            "debian": f"{debian}",
+            "win32-type": win32_type,
+            "win64-type": win64_type,
+            "darwin-type": darwin_type,
+            "debian-type": debian_type,
+            "install-switches": type.value["install-switches"],
+            "uninstall-switches": type.value["uninstall-switches"]
+        }
     }
 
     return package

@@ -12,7 +12,7 @@ class DatabaseManager:
         collection.insert_one(data)
         label = Label(window, text='Successfully Uploaded To Server')
         label.config(fg='green')
-        label.grid(row=6, column=1, pady=10)
+        label.grid(row=11, column=1, pady=10)
 
 
 window = Tk()
@@ -61,6 +61,9 @@ debianvar = StringVar(window)
 debianvar.set('.deb')
 debianType = OptionMenu(window, debianvar, '.tar.gz', '.zip', '.tar.xz', '.tar.bz2')
 debianType.grid(row=8, column=1, pady=5, padx=10)
+
+jsonNameField = Entry(width=20)
+jsonNameField.grid(row=10, column=1, padx=10, pady=5)
 
 def smart_detect_type():
 
@@ -212,20 +215,20 @@ smartDetect = Button(window, text='Smart Detect', command=smart_detect_type)
 smartDetect.grid(row=9, column=1, pady=20)
 
 
-
-
-def generate_json(package_name : str ,win32 : str, win64 : str, darwin : str, debian : str, win32_type : str, win64_type : str, darwin_type : str, debian_type : str):
+def generate_json(package_name : str ,win32 : str, win64 : str, darwin : str, debian : str, win32_type : str, win64_type : str, darwin_type : str, debian_type : str, json_name : str):
     return {
-        '_id': package_name,
-        'package-name' : package_name,
-        'win32' : win32,
-        'win64' : win64,
-        'darwin' : darwin,
-        'debian' : debian,
-        'win32-type': win32_type.replace('\'', '').replace('(', '').replace(')', '').replace(',', ''),
-        'win64-type': win64_type.replace('\'', '').replace('(', '').replace(')', '').replace(',', ''),
-        'darwin-type': darwin_type.replace('\'', '').replace('(', '').replace(')', '').replace(',', ''),
-        'debian-type': debian_type.replace('\'', '').replace('(', '').replace(')', '').replace(',', ''),
+        f'"{json_name}"' : {
+            '_id': package_name,
+            'package-name' : package_name,
+            'win32' : win32,
+            'win64' : win64,
+            'darwin' : darwin,
+            'debian' : debian,
+            'win32-type': win32_type.replace('\'', '').replace('(', '').replace(')', '').replace(',', ''),
+            'win64-type': win64_type.replace('\'', '').replace('(', '').replace(')', '').replace(',', ''),
+            'darwin-type': darwin_type.replace('\'', '').replace('(', '').replace(')', '').replace(',', ''),
+            'debian-type': debian_type.replace('\'', '').replace('(', '').replace(')', '').replace(',', ''),
+        }
     }
 
 def get_file_input() -> str:
@@ -257,10 +260,10 @@ def upload_to_server(event):
     win64_type = win64var.get()
     darwin_type = darwinvar.get()
     debian_type = debianvar.get()
-    print(debian_type)
+    json_name = jsonNameField.get()
 
     if package_name != '' and win32_url != '' and win64_url != '' and darwin_url != '' and debian_url != '':
-        gen_json = generate_json(package_name, win32_url, win64_url, darwin_url, debian_url, win32_type, win64_type, darwin_type, debian_type)
+        gen_json = generate_json(package_name, win32_url, win64_url, darwin_url, debian_url, win32_type, win64_type, darwin_type, debian_type, json_name)
         manager = DatabaseManager()
         manager.write_data(gen_json)
 
