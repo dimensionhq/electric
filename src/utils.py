@@ -219,7 +219,7 @@ def get_checksum(bytecode: bytes, hash_algorithm: str):
 
 
 def send_req_all() -> dict:
-    REQA = 'https://electric-packages-api.herokuapp.com/packages'
+    REQA = 'https://electric-package-manager.herokuapp.com/packages/'
     time = 0.0
     response = requests.get(REQA, timeout=15)
     res = response.text.strip()

@@ -129,3 +129,23 @@ class Installer(enum.Enum):
         ],
         "dir-spec": "",
     }
+    Msi = {
+        "install-switches": [
+            '/passive',
+            '/quiet',
+            '/norestart'
+        ],
+        "uninstall-switches": [
+            '/passive',
+            '/quiet',
+            '/norestart'
+        ],
+        "dir-spec": "TARGETDIR=",
+    }
+    WindowsUpdateInstaller = {
+        "install-switches": [
+            '/norestart',
+            '/quiet'
+        ]
+    }
+

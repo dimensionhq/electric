@@ -31,6 +31,15 @@ json_name = args[9]
 def get_installer_type(path : str) -> str:
     # Check file size
 
+    if '.msi' in path:
+        return 'MSI'
+    
+    if '.7z' in path:
+        return '7Zip'
+    
+    if '.zip' in path:
+        return 'ZIP'
+
     size = Path(path).stat().st_size / 1000000
 
     if size < 100:
@@ -71,9 +80,9 @@ def get_installer_type(path : str) -> str:
         gui.press('enter')
 
         gui.click(744, 616)
-        gui.sleep(0.4)
+        gui.sleep(0.5)
         gui.hotkey('shift', 'end')
-        gui.sleep(0.4)
+        gui.sleep(0.5)
         gui.hotkey('ctrl', 'c')
         gui.sleep(0.4)
         gui.hotkey('alt', 'fn', 'f4')
@@ -96,7 +105,7 @@ def generate_json(win32: str, win64: str, darwin: str, debian: str, package_name
     if 'InstallShield' in installer_type:
         type = Installer.InstallShield
 
-    if 'NullSoft' in installer_type:
+    if 'Nullsoft' in installer_type:
         type = Installer.NullSoft
 
     if 'Ghost' in installer_type:
@@ -107,6 +116,10 @@ def generate_json(win32: str, win64: str, darwin: str, debian: str, package_name
 
     if 'Wise' in installer_type:
         type = Installer.Wise
+    
+    if installer_type == 'MSI':
+        type = Installer.Msi
+    
 
     package_name = package_name.replace('\"', '')
 
