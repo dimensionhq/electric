@@ -4,6 +4,7 @@ import platform
 import sys
 import os
 
+# Set Of Constants That Can Be Used Throughout The Code
 
 __version__ = '1.0.0a'
 
