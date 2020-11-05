@@ -1,4 +1,4 @@
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, run
 from sys import platform
 from extension import *
 import shlex
@@ -133,5 +133,14 @@ def handle_python_package(package_name, mode, flags: list, no_color, quiet):
             output, err = proc.communicate()
 
 
-# def handle_node_package():
-    # command = 'npm install --global bcrypt'
+def handle_node_package(package_name, mode):
+    process = run('node --version', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+
+    if 'not recognized' in process.stdout.decode() or 'not recognized' in process.sterr.decode():
+        return 'not installed'
+    
+    if mode == 'install':
+        run(f'npm i {package_name} -g')
+
+    else:
+        run(f'npm uninstall {package_name}')
