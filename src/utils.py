@@ -1,6 +1,5 @@
 from custom.smartdownload.pySmartDL import SmartDL
 from subprocess import Popen, PIPE
-from getpass import getuser
 from colorama import Back
 from signal import SIGTERM
 from extension import *

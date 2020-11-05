@@ -143,7 +143,6 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
                     return
                 else:
                     handle_exit(status, setup_name, no_color, silent)
-                
 
             setup_name = ''
             status = ''
@@ -221,8 +220,6 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
             # Running The Installer silently And Completing Setup
             install_package(path, package_name, switches, extension_type, no_color)
             status = 'Installed'
-
-            end = timer()
 
             write(
                 f'Successfully Installed {package_name}!', 'bright_magenta', no_color, silent)
@@ -437,7 +434,7 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
         # Key Can Be A List Or A Dictionary Based On Results
 
         if isinstance(key, list):
-            if key != []:
+            if key:
                 key = key[0]
 
         # If QuietUninstallString Exists (Preferable)
@@ -468,7 +465,7 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
                 proc.wait()
             except FileNotFoundError as err:
                 try:
-                    proc = subprocess(shlex.split(
+                    proc = Popen(shlex.split(
                         command), stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
                     proc.wait()
                 except FileNotFoundError:

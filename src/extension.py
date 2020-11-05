@@ -1,7 +1,7 @@
 import click
-import os
 
-def write(text : str, color : str, has_color : bool, quiet : bool):
+
+def write(text: str, color: str, has_color: bool, quiet: bool):
     if quiet:
         return
     if not has_color:
@@ -13,7 +13,8 @@ def write(text : str, color : str, has_color : bool, quiet : bool):
         if not color:
             click.echo(text)
 
-def write_verbose(log : str, verbose: bool, has_color: bool, quiet : bool):
+
+def write_verbose(log: str, verbose: bool, has_color: bool, quiet: bool):
     if quiet:
         return
     if verbose:
@@ -24,7 +25,7 @@ def write_verbose(log : str, verbose: bool, has_color: bool, quiet : bool):
             click.echo(click.style(HEADER + log))
 
 
-def write_debug(log : str, debug: bool, has_color: bool, quiet : bool):
+def write_debug(log: str, debug: bool, has_color: bool, quiet: bool):
     if quiet:
         return
     if debug:

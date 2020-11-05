@@ -1,10 +1,7 @@
 from setuptools import setup, find_packages
-from setuptools.command.develop import develop
-from setuptools.command.install import install
 from getpass import getuser
 import os
 from sys import platform
-import subprocess
 
 user = getuser()
 
