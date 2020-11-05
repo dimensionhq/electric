@@ -34,6 +34,18 @@ for change in change_stream:
         while True:
             if not isfile(f'{gettempdir()}\\automation.txt'):
                 print('root :: Executing Automation Script')
+                if not win32 or win32 == '':
+                    win32 = 'None'
+                
+                if not win64 or win64 == '':
+                    win64 = 'None'
+
+                if not darwin or darwin == '':
+                    darwin = 'None'
+                
+                if not debian or debian == '':
+                    debian = 'None'
+                
                 cmd = ['python', 'C:\\Users\\tejas\\Desktop\\electric\\Database\\automation.py', f'"{package_name}"', win32, win64, darwin, debian, win32_type, win64_type, darwin_type, debian_type, json_name]
                 proc = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=PIPE)
                 output, err = proc.communicate()
@@ -44,7 +56,6 @@ for change in change_stream:
                 old_json = upload_loc.find_one()
                 if old_json and old_json != '' and old_json != '{}':
                     current_json = old_json
-                    # Delete Old Json File
                     upload_loc.delete_one(current_json)
                     # New Json File
                     response = json.loads(output)
@@ -52,6 +63,7 @@ for change in change_stream:
                     current_json.__setitem__(name, response[name])
 
                     print('root :: Uploading To Database')
+                    # Delete Old Json File
                     upload_loc.insert_one(current_json)
                     del_loc = client['changestream']['collection']
                     count = del_loc.delete_many({})

@@ -1,8 +1,8 @@
 from tkinter.filedialog import askopenfile
 from pymongo import MongoClient
 from tkinter import *
-import re
 import json
+import re
 
 class DatabaseManager:
     def write_data(self, data : str):
@@ -12,58 +12,61 @@ class DatabaseManager:
         collection.insert_one(data)
         label = Label(window, text='Successfully Uploaded To Server')
         label.config(fg='green')
-        label.grid(row=11, column=1, pady=10)
+        label.grid(row=12, column=1, pady=10)
+        label.after(5000, label.grid_forget)
 
 
 window = Tk()
 window.title('JSON Uploader')
 
 name = Label(window, text='Package Name : ')
-name.grid(row=0, column=0)
+name.grid(row=1, column=0)
 nameField = Entry(window, width=30)
-nameField.grid(row=0, column=1, pady=5)
+nameField.grid(row=1, column=1, pady=5)
 
 win32 = Label(window, text='Win32 URL : ')
-win32.grid(row=1, column=0)
+win32.grid(row=2, column=0)
 win32Field = Entry(window, width=100)
-win32Field.grid(row=1, column=1, pady=5, padx=10)
+win32Field.grid(row=2, column=1, pady=5, padx=10)
 win32var = StringVar(window)
 win32var.set('.exe')
-win32Type = OptionMenu(window, win32var, '.zip', '.msi')
-win32Type.grid(row=2, column=1, pady=5, padx=10)
+win32Type = OptionMenu(window, win32var, '.exe', '.zip', '.msi')
+win32Type.grid(row=3, column=1, pady=5, padx=10)
 
 
 win64 = Label(window, text='Win64 URL : ')
-win64.grid(row=3, column=0)
+win64.grid(row=4, column=0)
 win64Field = Entry(window, width=100)
-win64Field.grid(row=3, column=1, pady=5, padx=10)
+win64Field.grid(row=4, column=1, pady=5, padx=10)
 win64var = StringVar(window)
 win64var.set('.exe')
-win64Type = OptionMenu(window, win64var, '.zip', '.msi')
-win64Type.grid(row=4, column=1, pady=5, padx=10)
+win64Type = OptionMenu(window, win64var, '.exe', '.zip', '.msi')
+win64Type.grid(row=5, column=1, pady=5, padx=10)
 
 
 darwin = Label(window, text='Darwin URL : ')
-darwin.grid(row=5, column=0)
+darwin.grid(row=6, column=0)
 darwinField = Entry(window, width=100)
-darwinField.grid(row=5, column=1, pady=5, padx=10)
+darwinField.grid(row=6, column=1, pady=5, padx=10)
 darwinvar = StringVar(window)
 darwinvar.set('.dmg')
-darwinType = OptionMenu(window, darwinvar, '.pkg', '.zip', '.tar.gz')
-darwinType.grid(row=6, column=1, pady=5, padx=10)
+darwinType = OptionMenu(window, darwinvar, '.dmg', '.pkg', '.zip', '.tar.gz')
+darwinType.grid(row=7, column=1, pady=5, padx=10)
 
 
 debian = Label(window, text='Debian URL : ')
-debian.grid(row=7, column=0)
+debian.grid(row=8, column=0)
 debianField = Entry(window, width=100)
-debianField.grid(row=7, column=1, pady=5, padx=10)
+debianField.grid(row=8, column=1, pady=5, padx=10)
 debianvar = StringVar(window)
 debianvar.set('.deb')
-debianType = OptionMenu(window, debianvar, '.tar.gz', '.zip', '.tar.xz', '.tar.bz2')
-debianType.grid(row=8, column=1, pady=5, padx=10)
+debianType = OptionMenu(window, debianvar, '.deb', '.tar.gz', '.zip', '.tar.xz', '.tar.bz2')
+debianType.grid(row=9, column=1, pady=5, padx=10)
 
+jsonNameLabel = Label(window, text='Json Name : ')
+jsonNameLabel.grid(row=0, column=0)
 jsonNameField = Entry(width=20)
-jsonNameField.grid(row=10, column=1, padx=10, pady=5)
+jsonNameField.grid(row=0, column=1, padx=10, pady=5)
 
 def smart_detect_type():
 
@@ -212,7 +215,7 @@ def smart_detect_type():
 
 
 smartDetect = Button(window, text='Smart Detect', command=smart_detect_type)
-smartDetect.grid(row=9, column=1, pady=20)
+smartDetect.grid(row=10, column=1, pady=20)
 
 
 def generate_json(package_name : str ,win32 : str, win64 : str, darwin : str, debian : str, win32_type : str, win64_type : str, darwin_type : str, debian_type : str, json_name : str):
@@ -248,6 +251,8 @@ def get_file_input() -> str:
     darwinField.insert(END, res[pkg_n]['darwin'])
     debianField.delete(0, END)
     debianField.insert(END, res[pkg_n]['debian'])
+    jsonNameField.delete(0, END)
+    jsonNameField.insert(END, (res[pkg_n]['package-name']).lower().replace(' ', '-'))
     return res
 
 def upload_to_server(event):
@@ -262,13 +267,15 @@ def upload_to_server(event):
     debian_type = debianvar.get()
     json_name = jsonNameField.get()
 
-    if package_name != '' and win32_url != '' and win64_url != '' and darwin_url != '' and debian_url != '':
-        gen_json = generate_json(package_name, win32_url, win64_url, darwin_url, debian_url, win32_type, win64_type, darwin_type, debian_type, json_name)
-        manager = DatabaseManager()
-        manager.write_data(gen_json)
+    gen_json = generate_json(package_name, win32_url, win64_url, darwin_url, debian_url, win32_type, win64_type, darwin_type, debian_type, json_name)
+    manager = DatabaseManager()
+    manager.write_data(gen_json)
 
-file_select = Button(window, text='...', command=get_file_input)
+file_select = Button(window, text='Select JSON File', command=get_file_input, width=15, height=1)
 file_select.grid(row=0, column=2)
+
+submit_button = Button(window, text='Upload', command= lambda : upload_to_server('None'))
+submit_button.grid(row=11, column=1, pady=10)
 
 window.bind('<Return>', upload_to_server)
 

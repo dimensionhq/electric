@@ -93,33 +93,32 @@ def get_installer_type(path : str) -> str:
 
 
 def generate_json(win32: str, win64: str, darwin: str, debian: str, package_name: str, installer_type: str, win32_type, win64_type, darwin_type, debian_type):
+    if installer_type:
+        type: Installer = None
 
-    type: Installer = None
+        if 'InstallAware' in installer_type:
+            type = Installer.InstallAware
 
-    if 'InstallAware' in installer_type:
-        type = Installer.InstallAware
+        if 'Squirrel' in installer_type:
+            type = Installer.Squirrel
 
-    if 'Squirrel' in installer_type:
-        type = Installer.Squirrel
+        if 'InstallShield' in installer_type:
+            type = Installer.InstallShield
 
-    if 'InstallShield' in installer_type:
-        type = Installer.InstallShield
+        if 'Nullsoft' in installer_type:
+            type = Installer.NullSoft
 
-    if 'Nullsoft' in installer_type:
-        type = Installer.NullSoft
+        if 'Ghost' in installer_type:
+            type = Installer.Ghost
 
-    if 'Ghost' in installer_type:
-        type = Installer.Ghost
+        if 'Inno Setup' in installer_type:
+            type = Installer.InnoSetup
 
-    if 'Inno Setup' in installer_type:
-        type = Installer.InnoSetup
-
-    if 'Wise' in installer_type:
-        type = Installer.Wise
-    
-    if installer_type == 'MSI':
-        type = Installer.Msi
-    
+        if 'Wise' in installer_type:
+            type = Installer.Wise
+        
+        if installer_type == 'MSI':
+            type = Installer.Msi
 
     package_name = package_name.replace('\"', '')
 
@@ -144,13 +143,19 @@ def generate_json(win32: str, win64: str, darwin: str, debian: str, package_name
 
 
 def download(win64: str):
-    path = f'C:\\Users\\tejas\\Downloads\\Setup{win64_type}'
-    urlretrieve(win64, path)
-    return path
+    if win64 != 'None':
+        path = f'C:\\Users\\tejas\\Downloads\\Setup{win64_type}'
+        urlretrieve(win64, path)
+        return path
 
 
 path = download(win64)
-installer_type = get_installer_type(path)
+
+installer_type = None
+
+if path:
+    installer_type = get_installer_type(path)
+
 gen_json = generate_json(win32, win64, darwin, debian, package_name,
                          installer_type, win32_type, win64_type, darwin_type, debian_type)
 
