@@ -1,5 +1,5 @@
-from custom_modules.smartdownload.pySmartDL import SmartDL
-from subprocess import PIPE
+from custom.smartdownload.pySmartDL import SmartDL
+from subprocess import Popen, PIPE
 from getpass import getuser
 from colorama import Back
 from signal import SIGTERM
@@ -55,7 +55,7 @@ def get_download_url(architecture, pkg):
 
 
 def parse_json_response(pkg):
-    return pkg['package-name'], pkg['source'], pkg['type'], pkg['switches']
+    return pkg['package-name'], pkg['win64-type'], pkg['install-switches']
 
 
 def download(url, download_type: str, package_name, noprogress, silent):
@@ -222,9 +222,9 @@ def send_req_all() -> dict:
     REQA = 'https://electric-package-manager.herokuapp.com/packages/'
     time = 0.0
     response = requests.get(REQA, timeout=15)
-    res = response.text.strip()
+    res = json.loads(response.text.strip())
     time = response.elapsed.total_seconds()
-    return json.loads(res), time
+    return res, time
 
 
 def get_pid(exe_name):
@@ -323,3 +323,7 @@ def find_existing_installation(package_name : str):
     if key:
         return True
     return False
+
+def refresh_environment_variables():
+    Popen(f'{os.getcwd()}\\src\\scripts\\refreshvars.bat', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    

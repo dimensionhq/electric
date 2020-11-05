@@ -37,7 +37,6 @@ def cli(ctx):
 @click.option('--silent', '-s', is_flag=True, help='Completely silent installation without any output to console')
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to install')
 def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no_color: bool, logfile: str, yes: bool, silent: bool, python: bool):
-
     if python:
         if logfile:
             logfile = logfile.replace('.txt', '.log')
@@ -70,6 +69,8 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
                 debug, no_color, silent)
     log_info('Sending GET Request To /rapidquery/packages', logfile)
     res, time = send_req_all()
+    res = json.loads(res)
+    del res['_id']
     correct_names = get_correct_package_names(res)
     corrected_package_names = []
 
@@ -136,7 +137,7 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
                 write_verbose(f"Found an existing installation of => {package}", verbose, no_color, silent)
                 write(f"Found an existing installation {package}.", 'bright_yellow', no_color, silent) 
                 installation_continue = click.prompt(f'Would you like to reinstall {package} [y/n]')
-                if installation_continue == 'y' or installation_continue == 'y':
+                if installation_continue == 'y' or installation_continue == 'y' or yes:
                     os.system(f'electric uninstall {package}')
                     os.system(f'electric install {package}')
                     return
@@ -179,7 +180,7 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
             download_url = get_download_url(system_architecture, pkg)
             status = 'Got Download Path'
 
-            package_name, source, extension_type, switches = parse_json_response(
+            package_name, extension_type, switches = parse_json_response(
                 pkg)
 
             end = timer()
@@ -226,6 +227,12 @@ def install(package_name: str, verbose: bool, debug: bool, no_progress: bool, no
             write(
                 f'Successfully Installed {package_name}!', 'bright_magenta', no_color, silent)
             log_info(f'Successfully Installed {package_name}!', logfile)
+
+            log_info(f'Refreshing Environment Variables', logfile)
+            write_debug(f'Refreshing Env Variables, Calling Batch Script', debug, no_color, silent)
+            write_verbose(f'Refreshing Environment Variables', debug, no_color, silent)
+
+            refresh_environment_variables()
 
             write_verbose('Installation and setup completed.',
                           verbose, no_color, silent)
@@ -286,6 +293,7 @@ def uninstall(package_name: str, verbose: bool, debug: bool, no_color: bool, log
                 debug, no_color, silent)
     log_info('Sending GET Request To /rapidquery/packages', logfile)
     res, time = send_req_all()
+    res = json.loads(res)
     correct_names = get_correct_package_names(res)
     corrected_package_names = []
 
