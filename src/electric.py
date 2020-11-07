@@ -54,8 +54,6 @@ def install(
     no_cache: bool,
     ):
 
-    start = timer()
-
     if python:
         if logfile:
             logfile = logfile.replace('.txt', '.log')
@@ -289,8 +287,6 @@ def install(
         closeLog(logfile, 'Install')
 
         index += 1
-    end = timer()
-    print(end - start)
 
 
 @cli.command()
@@ -314,8 +310,6 @@ def uninstall(
     python: bool,
     no_cache: bool
     ):
-
-    start = timer()
 
     super_cache = check_supercache_valid()
 
@@ -604,5 +598,3 @@ def uninstall(
             log_info(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', logfile)
             closeLog(logfile, 'Uninstall')
-    end = timer()
-    print(end - start)
