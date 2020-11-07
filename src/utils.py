@@ -1,6 +1,8 @@
+from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 from custom.smartdownload.pySmartDL import SmartDL
-from subprocess import Popen, PIPE
-from colorama import Back
+from timeit import default_timer as timer
+from viruscheck import virus_check
+from clint.textui import progress
 from signal import SIGTERM
 from extension import *
 import subprocess
@@ -12,6 +14,7 @@ import difflib
 import zipfile
 import tempfile
 import hashlib
+import urllib
 import click
 import json
 import sys
@@ -54,51 +57,105 @@ def get_download_url(architecture, pkg):
 
 
 def parse_json_response(pkg):
-    return pkg['package-name'], pkg['win64-type'], pkg['install-switches']
+    return pkg['package-name'], pkg['win64-type'], pkg['install-switches'], pkg['custom-location']
 
 
-def download(url, download_type: str, package_name, noprogress, silent):
+def get_download_method(url: str):
+    req = urllib.request.Request(url, method='HEAD')
+    f = urllib.request.urlopen(req)
+    length = int(f.headers['Content-Length'])
+    if length:
+        if length > 20000000:
+            return 'pl'
+        return 'ps'
+    return 'error'
+    
 
-    downloader = SmartDL(url, tempfile.gettempdir())
-    if noprogress or silent:
-        with HiddenPrints():
-            downloader.start()
-            path = downloader.get_dest()
-            return path
+def download(url, noprogress, silent, download_type):
+    progressbar = get_download_method(url)
+    if progressbar == 'pl':
+        downloader = SmartDL(url, tempfile.gettempdir())
+        if noprogress or silent:
+            with HiddenPrints():
+                downloader.limit_speed(10)
+                downloader.start()
+                path = downloader.get_dest()
+                return path
 
-    downloader.start()
-    path = downloader.get_dest()
-    return path
+        downloader.start()
+        path = downloader.get_dest()
+        downloader.wait()
+        return path
+    if progressbar == 'ps':
+        r = requests.get(url, stream=True)
+        path = f'{tempfile.gettempdir()}\\Setup{download_type}'
+        with open(path, 'wb') as f:
+            total_length = int(r.headers.get('content-length'))
+            for chunk in progress.bar(r.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1, empty_char="░", filled_char="█"): 
+                if chunk:
+                    f.write(chunk)
+                    f.flush()
+        pass
+    else:
+        downloader = SmartDL(url, tempfile.gettempdir())
+        if noprogress or silent:
+            with HiddenPrints():
+                downloader.limit_speed(10)
+                downloader.start()
+                path = downloader.get_dest()
+                return path
+
+        downloader.start()
+        path = downloader.get_dest()
+        downloader.wait()
+        return path
 
 
-def install_package(path, package_name, switches, download_type, no_color) -> str:
+def install_package(path, package_name, switches, download_type, no_color, directory, custom_install_switch) -> str:
     if sys.platform == 'win32':
         if download_type == '.exe':
+            if '.exe' not in path:
+                if not os.path.isfile(path + '.exe'):
+                    os.rename(path, f'{path}.exe')
+                path = path + '.exe'
             command = path + ' '
+            
             for switch in switches:
                 command = command + ' ' + switch
-            try:
-                proc = subprocess.call(command)
+            
+            if custom_install_switch:
+                if '/D=' in custom_install_switch:
+                    command += ' ' + custom_install_switch + f'{directory}'
+                else:
+                    command += ' ' + custom_install_switch + f'"{directory}"'
 
-            except OSError as err:
-                # Start Error Handling
+            try:
+                output = subprocess.check_output(
+                    command, stderr=STDOUT, universal_newlines=True
+                )
+            except (CalledProcessError, OSError, FileNotFoundError) as err:
+                
                 if '[WinError 740]' in str(err) and 'elevation' in str(err):
                     if not no_color:
                         click.echo(click.style(
                             'Administrator Elevation Required...', fg='red'))
-
                     if no_color:
                         click.echo(click.style(
                             'Administrator Elevation Required...'))
-
-                if 'FileNotFoundError' in str(err):
+                
+                if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
                     click.echo(click.style(
                         'Silent Installation Failed With Exit Code 1.'))
                     click.echo(click.style(
                         'The Command Run During Installation Was Invalid Or The Installer Failed During The Installation Process.'))
                     click.echo(
                         'Raise A Support Ticket To www.electric.com/issue')
-                    os._exit(0)
+                    
+                else:
+                    click.echo(click.style('Installation Failed..', fg='red'))
+                
+                os._exit(0)
+
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i' + path + ' '
@@ -313,16 +370,72 @@ def kill_proc(proc, no_color, silent):
         write('\nRapidExit Successfully Exited With Code 0', 'green', no_color, silent)
         os._exit(0)
 
+
 def assert_cpu_compatible() -> int:
     cpu_count = os.cpu_count()
     print(cpu_count)
 
-def find_existing_installation(package_name : str):
+
+def find_existing_installation(package_name: str, display_name: str):
     key = registry.get_uninstall_key(package_name)
+    
     if key:
         return True
+    else:
+        key = registry.get_uninstall_key(display_name.lower())
+
+        if key:
+            return True
+        
+        else:
+            key = registry.get_uninstall_key(display_name)
+    
+    if key:
+        return True
+    
     return False
+
 
 def refresh_environment_variables():
     Popen(f'{os.getcwd()}\\src\\scripts\\refreshvars.bat', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+
+
+def check_virus(path: str, no_color: bool, silent: bool):
+    detected = virus_check(path)
+    if detected:
+        for value in detected.items():
+            click.echo(click.style(f'{value[0]} => {value[1]}', fg='yellow'))
+        continue_install = click.prompt('Would You Like To Continue? [y/n]')
+        if continue_install == 'y':
+            pass
+        else:
+            handle_exit('Virus Check', '', no_color, silent)
+    else:
+        click.echo(click.style('No Viruses Detected!', fg='green'))
+
+
+def setup_supercache():
+    res, time = send_req_all()
+    res = json.loads(res)
+    with open('C:\\Users\\tejas\\Desktop\\electric\\supercache.json', 'w+') as file:
+        del res['_id']
+        file.write(json.dumps(res, indent=4))
     
+    return res, time
+
+
+def handle_cached_request():
+    filepath = f'{os.getcwd()}\\supercache.json'
+    if os.path.isfile(filepath):
+        file = open(filepath)
+        start = timer()
+        res = json.load(file)
+        end = timer()
+        if res:
+            return res, (end - start) 
+        else:
+            res, time = setup_supercache()
+            return res, time
+    else:
+        res, time = setup_supercache()
+        return res, time
