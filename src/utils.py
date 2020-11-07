@@ -1,10 +1,10 @@
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
-from custom.smartdownload.pySmartDL import SmartDL
 from timeit import default_timer as timer
 from viruscheck import virus_check
-from clint.textui import progress
 from signal import SIGTERM
+from datetime import datetime
 from extension import *
+from tqdm import tqdm
 import subprocess
 import keyboard
 import platform
@@ -14,8 +14,8 @@ import difflib
 import zipfile
 import tempfile
 import hashlib
-import urllib
 import click
+import time
 import json
 import sys
 import os
@@ -58,57 +58,39 @@ def get_download_url(architecture, pkg):
 
 def parse_json_response(pkg):
     return pkg['package-name'], pkg['win64-type'], pkg['install-switches'], pkg['custom-location']
-
-
-def get_download_method(url: str):
-    req = urllib.request.Request(url, method='HEAD')
-    f = urllib.request.urlopen(req)
-    length = int(f.headers['Content-Length'])
-    if length:
-        if length > 20000000:
-            return 'pl'
-        return 'ps'
-    return 'error'
     
 
 def download(url, noprogress, silent, download_type):
-    progressbar = get_download_method(url)
-    if progressbar == 'pl':
-        downloader = SmartDL(url, tempfile.gettempdir())
-        if noprogress or silent:
-            with HiddenPrints():
-                downloader.limit_speed(10)
-                downloader.start()
-                path = downloader.get_dest()
-                return path
+    path = f'{tempfile.gettempdir()}\\Setup{download_type}'
+    with open(path, "wb") as f:
+        response = requests.get(url, stream=True)
+        total_length = response.headers.get('content-length')
 
-        downloader.start()
-        path = downloader.get_dest()
-        downloader.wait()
-        return path
-    if progressbar == 'ps':
-        r = requests.get(url, stream=True)
-        path = f'{tempfile.gettempdir()}\\Setup{download_type}'
-        with open(path, 'wb') as f:
-            total_length = int(r.headers.get('content-length'))
-            for chunk in progress.bar(r.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1, empty_char="░", filled_char="█"): 
-                if chunk:
-                    f.write(chunk)
-                    f.flush()
-        pass
-    else:
-        downloader = SmartDL(url, tempfile.gettempdir())
-        if noprogress or silent:
-            with HiddenPrints():
-                downloader.limit_speed(10)
-                downloader.start()
-                path = downloader.get_dest()
-                return path
+        if total_length is None:
+            f.write(response.content)
+        else:
+            dl = 0
+            full_length = int(total_length)
 
-        downloader.start()
-        path = downloader.get_dest()
-        downloader.wait()
-        return path
+            for data in response.iter_content(chunk_size=4096):
+                dl += len(data)
+                f.write(data)
+
+                if noprogress:
+                    sys.stdout.write(
+                        f"\r{round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
+                    sys.stdout.flush()
+                
+                if silent:
+                    pass
+                
+                elif not noprogress and not silent:
+                    complete = int(20 * dl / full_length)
+                    fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
+                    sys.stdout.write(
+                        f"\r[{fill_c}{unfill_c}] ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB")
+                    sys.stdout.flush()
+    return path
 
 
 def install_package(path, package_name, switches, download_type, no_color, directory, custom_install_switch) -> str:
@@ -318,6 +300,7 @@ def find_approx_pid(exe_name) -> str:
 
 
 def handle_exit(status: str, setup_name : str, no_color : bool, quiet : bool):
+    time.sleep(0.05)
     if status == 'Downloaded' or status == 'Installing' or status == 'Installed':
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
@@ -424,12 +407,37 @@ def setup_supercache():
     return res, time
 
 
+def update_supercache(res):
+    filepath = f'{os.getcwd()}\\supercache.json'
+    file = open(filepath, 'w+')
+    file.write(json.dumps(res, indent=4))
+    file.close()
+    logpath = f'{os.getcwd()}\\superlog.txt'
+    logfile = open(logpath, 'w+')
+    now = datetime.now()
+    logfile.write(str(now))
+    logfile.close()
+
+
+def check_supercache_valid():
+    filepath = f'{os.getcwd()}\\superlog.txt'
+    if os.path.isfile(filepath):
+        with open(filepath, 'r') as f:
+            contents = f.read()
+        date = datetime.strptime(contents, '%Y-%m-%d %H:%M:%S.%f')
+        if (datetime.now() - date).seconds < 86400:
+            return True
+    return False
+
+
+
 def handle_cached_request():
     filepath = f'{os.getcwd()}\\supercache.json'
     if os.path.isfile(filepath):
         file = open(filepath)
         start = timer()
         res = json.load(file)
+        file.close()
         end = timer()
         if res:
             return res, (end - start) 

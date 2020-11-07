@@ -38,7 +38,7 @@ def cli(ctx):
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during installation')
 @click.option('--silent', '-s', is_flag=True, help='Completely silent installation without any output to console')
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to install')
-@click.option('--super-cache', '-sc', is_flag=True, help='Use a cached installation to increase installation speeds')
+@click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
 def install(
     package_name: str,
     verbose: bool, 
@@ -51,10 +51,11 @@ def install(
     python: bool,
     install_directory: str,
     virus_check: bool,
-    super_cache: bool
+    no_cache: bool,
     ):
 
-    
+    start = timer()
+
     if python:
         if logfile:
             logfile = logfile.replace('.txt', '.log')
@@ -68,6 +69,12 @@ def install(
             handle_python_package(name, 'install', flags, no_color, silent)
 
         sys.exit()
+
+
+    super_cache = check_supercache_valid()
+    if no_cache:
+        super_cache = False
+    
 
     status = 'Initializing'
     setup_name = ''
@@ -94,6 +101,7 @@ def install(
         log_info('Sending GET Request To /packages', logfile)
         res, time = send_req_all()
         res = json.loads(res)
+        update_supercache(res)
         del res['_id']
     
     correct_names = get_correct_package_names(res)
@@ -186,11 +194,11 @@ def install(
         if index == 0:
             if super_cache:
                 write(
-                f'Rapidquery Successfully SuperCached {package_name} in {round(time, 6)}s', 'bright_yellow', no_color, silent)
+                f'Rapidquery Successfully Supercached {package_name} in {round(time, 6)}s', 'bright_yellow', no_color, silent)
                 write_debug(
-                    f'Rapidquery Successfully SuperCached {package_name} in {round(time, 9)}s', debug, no_color, silent)
+                    f'Rapidquery Successfully Supercached {package_name} in {round(time, 9)}s', debug, no_color, silent)
                 log_info(
-                    f'Rapidquery Successfully SuperCached {package_name} in {round(time, 6)}s', logfile)
+                    f'Rapidquery Successfully Supercached {package_name} in {round(time, 6)}s', logfile)
             else: 
                 write(
                     f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', 'bright_yellow', no_color, silent)
@@ -234,7 +242,7 @@ def install(
         status = 'Downloaded'
 
 
-        write('Finished Rapid Download', 'green', no_color, silent)
+        write('\nFinished Rapid Download', 'green', no_color, silent)
         log_info('Finished Rapid Download', logfile)
 
 
@@ -281,6 +289,8 @@ def install(
         closeLog(logfile, 'Install')
 
         index += 1
+    end = timer()
+    print(end - start)
 
 
 @cli.command()
@@ -292,7 +302,7 @@ def install(
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during uninstallation')
 @click.option('--silent', '-s', is_flag=True, help='Completely silent uninstallation without any output to console')
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to uninstall')
-@click.option('--super-cache', '-sc', is_flag=True, help='Use a cached installation to increase installation speeds')
+@click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
 def uninstall(
     package_name: str, 
     verbose: bool, 
@@ -302,8 +312,15 @@ def uninstall(
     yes: bool, 
     silent: bool, 
     python: bool,
-    super_cache: bool
+    no_cache: bool
     ):
+
+    start = timer()
+
+    super_cache = check_supercache_valid()
+
+    if no_cache:
+        super_cache = False
 
     if python:
         if logfile:
@@ -409,10 +426,18 @@ def uninstall(
         kill_running_proc(package_name, silent, verbose, debug, yes, no_color)
         pkg = res[package_name]
 
-        write(
-            f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', 'bright_green', no_color, silent)
-        log_info(
-            f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', logfile)
+        if super_cache:
+            write(
+            f'Rapidquery Successfully Supercached {package_name} in {round(time, 6)}s', 'bright_yellow', no_color, silent)
+            write_debug(
+                f'Rapidquery Successfully Supercached {package_name} in {round(time, 9)}s', debug, no_color, silent)
+            log_info(
+                f'Rapidquery Successfully Supercached {package_name} in {round(time, 6)}s', logfile)
+        else:
+            write(
+                f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', 'bright_green', no_color, silent)
+            log_info(
+                f'Rapidquery Successfully Received {package_name}.json in {round(time, 6)}s', logfile)
 
         # Getting UninstallString or QuietUninstallString From The Registry Search Algorithm
         write_verbose(
@@ -579,3 +604,5 @@ def uninstall(
             log_info(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', logfile)
             closeLog(logfile, 'Uninstall')
+    end = timer()
+    print(end - start)
