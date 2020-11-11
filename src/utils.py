@@ -1,10 +1,10 @@
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 from timeit import default_timer as timer
+from Classes.Metadata import Metadata
 from viruscheck import virus_check
-from signal import SIGTERM
 from datetime import datetime
+from signal import SIGTERM
 from extension import *
-from tqdm import tqdm
 import subprocess
 import keyboard
 import platform
@@ -42,12 +42,9 @@ def get_architecture():
         return 'x32'
 
 
-def get_download_url(architecture, pkg):
+def get_download_url(packet):
     if sys.platform == 'win32':
-        if architecture == 'x64':
-            return pkg['win64']
-        elif architecture == 'x32':
-            return pkg['win32']
+        return packet.win64
 
     elif sys.platform == 'darwin':
         return pkg['darwin']
@@ -55,10 +52,6 @@ def get_download_url(architecture, pkg):
     elif sys.platform == 'linux':
         return pkg['debian']
 
-
-def parse_json_response(pkg):
-    return pkg['package-name'], pkg['win64-type'], pkg['install-switches'], pkg['custom-location']
-    
 
 def download(url, noprogress, silent, download_type):
     path = f'{tempfile.gettempdir()}\\Setup{download_type}'
@@ -110,6 +103,8 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                     command += ' ' + custom_install_switch + f'{directory}'
                 else:
                     command += ' ' + custom_install_switch + f'"{directory}"'
+                if directory == '':
+                    click.echo(click.style(f'Installing {package_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
             try:
                 output = subprocess.check_output(
@@ -299,22 +294,24 @@ def find_approx_pid(exe_name) -> str:
     return 1
 
 
-def handle_exit(status: str, setup_name : str, no_color : bool, quiet : bool):
-    time.sleep(0.05)
+def handle_exit(status: str, setup_name : str, metadata: Metadata):
+    with HiddenPrints():
+        time.sleep(1)
+
     if status == 'Downloaded' or status == 'Installing' or status == 'Installed':
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
 
-        write('SafetyHarness Successfully Created Clean Exit Gateway', 'green', no_color, quiet)
-        write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0', 'light_blue', no_color, quiet)
+        write('SafetyHarness Successfully Created Clean Exit Gateway', 'green', metadata)
+        write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0', 'light_blue', metadata)
         os._exit(0)
     
     if status == 'Got Download Path':
-        write('\nRapidExit Successfully Exited With Code 0', 'green', no_color, quiet)
+        write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
         os._exit(0)
 
     else:
-        write('\nRapidExit Successfully Exited With Code 0', 'green', no_color, quiet)
+        write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
         os._exit(0)
 
 
@@ -430,7 +427,6 @@ def check_supercache_valid():
     return False
 
 
-
 def handle_cached_request():
     filepath = f'{os.getcwd()}\\supercache.json'
     if os.path.isfile(filepath):
@@ -447,3 +443,7 @@ def handle_cached_request():
     else:
         res, time = setup_supercache()
         return res, time
+
+
+def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check):
+    return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check)

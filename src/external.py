@@ -1,3 +1,4 @@
+from Classes.Metadata import Metadata
 from subprocess import Popen, PIPE, run
 from sys import platform
 from extension import *
@@ -5,7 +6,7 @@ import shlex
 import sys
 
 
-def handle_python_package(package_name, mode, flags: list, no_color, quiet):
+def handle_python_package(package_name, mode, flags: list, metadata: Metadata):
 
     command = ''
 

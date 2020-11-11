@@ -70,8 +70,8 @@ def download_dependencies(password) -> int:
 if not installed:
     download_python()
     if download_python():
-        download_dependencies()
+        download_dependencies('')
 
 
 if installed:
-    download_dependencies()
+    download_dependencies('')
