@@ -15,11 +15,25 @@ import click
 import sys
 import os
 from limit import Limiter
+import click_completion
 
 __version__ = '1.0.0a'
 
+click_completion.init()
 
-@click.group(cls=DYMGroup, max_suggestions=1)
+def get_packages(ctx, args, incomplete):
+    return [
+        'node',
+        'atom',
+        'blender',
+        'vscode',
+        'git',
+        'sublime-text-3',
+        'notepad++',
+        'android-studio'
+    ]
+
+@click.group(cls=DYMGroup)
 @click.version_option(__version__)
 @click.pass_context
 def cli(ctx):
@@ -27,7 +41,7 @@ def cli(ctx):
 
 
 @cli.command()
-@click.argument('package_name', required=True)
+@click.argument('package_name', required=True, autocompletion=get_packages)
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for installation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for installation')
 @click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for installation')
@@ -361,7 +375,7 @@ def install(
 
 
 @cli.command()
-@click.argument('package_name', required=True)
+@click.argument('package_name', required=True, autocompletion=get_packages)
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for uninstallation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for uninstallation')
 @click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for uninstallation')

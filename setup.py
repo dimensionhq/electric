@@ -24,11 +24,16 @@ setup(
     packages=find_packages(),
     scripts=[os.path.join(os.path.abspath(os.getcwd()), 'src', 'electric.py')],
     install_requires = [
-        'Click',
+        'click',
         'progress',
         'requests',
         'keyboard',
         'colorama',
+        'aiothrottle',
+        'click_didyoumean',
+        'wheel',
+        'virustotal-api',
+        'switch'
     ],
     package_dir={'': 'src'},
     entry_points =
