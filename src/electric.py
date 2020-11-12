@@ -14,6 +14,7 @@ import difflib
 import click
 import sys
 import os
+from limit import Limiter
 
 __version__ = '1.0.0a'
 
@@ -40,6 +41,7 @@ def cli(ctx):
 @click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
 @click.option('--sync', '-sc', is_flag=True, help='Force downloads and installations one after another')
 @click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after installation')
+@click.option('--rate-limit', '-rl', type=int, default=-1)
 def install(
     package_name: str,
     verbose: bool,
@@ -55,6 +57,7 @@ def install(
     no_cache: bool,
     sync: bool,
     reduce: bool,
+    rate_limit: int
 ):
     start = timer()
     if logfile:
@@ -297,7 +300,14 @@ def install(
             f"Downloading from '{download_url}'", metadata)
         log_info(f"Downloading from '{download_url}'", logfile)
         status = 'Downloading'
-        path = download(download_url, no_progress, silent, packet.win64_type)
+
+        if rate_limit == -1:
+            path = download(download_url, no_progress, silent, packet.win64_type)
+        
+        else:
+            # implement this please im not sure how
+            limiter = Limiter()
+        
         status = 'Downloaded'
 
         write('\nFinished Rapid Download', 'green', metadata)
