@@ -77,7 +77,7 @@ def download(url, noprogress, silent, download_type):
             dl = 0
             full_length = int(total_length)
 
-            for data in response.iter_content(chunk_size=4096):
+            for data in response.iter_content(chunk_size=7096):
                 dl += len(data)
                 f.write(data)
 

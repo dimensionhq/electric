@@ -21,6 +21,7 @@ __version__ = '1.0.0a'
 
 click_completion.init()
 
+
 def get_packages(ctx, args, incomplete):
     return [
         'node',
@@ -32,6 +33,7 @@ def get_packages(ctx, args, incomplete):
         'notepad++',
         'android-studio'
     ]
+
 
 @click.group(cls=DYMGroup)
 @click.version_option(__version__)
@@ -316,11 +318,16 @@ def install(
         status = 'Downloading'
 
         if rate_limit == -1:
-            path = download(download_url, no_progress, silent, packet.win64_type)
-        
+            start = timer()
+            path = download(download_url, no_progress,
+                            silent, packet.win64_type)
+            end = timer()
+            print(end - start)
+
         else:
-            limiter = Limiter()
-        
+            limiter = Limiter(limit=rate_limit)
+            path = limiter(download_url, packet.win64_type)
+
         status = 'Downloaded'
 
         write('\nFinished Rapid Download', 'green', metadata)
