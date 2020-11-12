@@ -111,13 +111,15 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                 command = command + ' ' + switch
 
             if custom_install_switch:
-                if '/D=' in custom_install_switch:
-                    command += ' ' + custom_install_switch + f'{directory}'
-                else:
-                    command += ' ' + custom_install_switch + f'"{directory}"'
-                if directory == '':
-                    click.echo(click.style(
-                        f'Installing {package_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
+                if directory and directory != '':
+                    if '/D=' in custom_install_switch:
+                        command += ' ' + custom_install_switch + f'{directory}'
+                    else:
+                        command += ' ' + custom_install_switch + \
+                            f'"{directory}"'
+                    if directory == '':
+                        click.echo(click.style(
+                            f'Installing {package_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
             try:
                 output = subprocess.check_output(
@@ -138,9 +140,12 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                     os._exit(0)
 
                 else:
-                    print(get_error_message('0000', 'installation'))
-                    handle_unknown_error(str(err))
-                    os._exit(0)
+                    if '1223' in str(err):
+                        pass
+                    else:
+                        print(get_error_message('0000', 'installation'))
+                        handle_unknown_error(str(err))
+                        os._exit(0)
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i ' + path + ' '
@@ -266,7 +271,6 @@ def uninstall_package(command: str, packet: Packet, metadata: Metadata) -> str:
 def get_correct_package_names(res: str) -> list:
     package_names = []
     for package in res:
-        # print('THSI IS THA PACKAGE', package)
         package_names.append(package)
     return package_names
 
@@ -479,7 +483,7 @@ def check_supercache_valid():
 
 
 def handle_cached_request():
-    filepath = f'{os.getcwd()}\\supercache.json'
+    filepath = R'C:\\Users\tejas\Desktop\electric\supercache.json'
     if os.path.isfile(filepath):
         file = open(filepath)
         start = timer()

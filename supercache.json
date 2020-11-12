@@ -1,4 +1,5 @@
 {
+    "_id": "5fa38bdc4cb1b2306fdc9f70",
     "node": {
         "package-name": "NodeJS",
         "win32": "https://nodejs.org/dist/v12.19.0/node-v12.19.0-x86.msi",
@@ -151,5 +152,23 @@
             "/norestart"
         ],
         "custom-location": "TARGETDIR="
+    },
+    "android-studio": {
+        "package-name": "Android Studio",
+        "win32": "None",
+        "win64": "https://redirector.gvt1.com/edgedl/android/studio/install/4.0.2.0/android-studio-ide-193.6821437-windows.exe",
+        "darwin": "https://redirector.gvt1.com/edgedl/android/studio/install/4.0.2.0/android-studio-ide-193.6821437-mac.dmg",
+        "debian": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/4.0.2.0/android-studio-ide-193.6821437-linux.tar.gz",
+        "win32-type": "None",
+        "win64-type": ".exe",
+        "darwin-type": ".dmg",
+        "debian-type": ".tar.gz",
+        "install-switches": [
+            "/S"
+        ],
+        "uninstall-switches": [
+            "/S"
+        ],
+        "custom-location": "/D="
     }
 }
