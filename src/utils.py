@@ -1,9 +1,10 @@
 from subprocess import Popen, PIPE, STDOUT, CalledProcessError
 from timeit import default_timer as timer
 from Classes.Metadata import Metadata
+from Classes.Packet import Packet
 from viruscheck import virus_check
 from datetime import datetime
-from itertools import islice
+from switch import Switch
 from signal import SIGTERM
 from extension import *
 import subprocess
@@ -15,10 +16,10 @@ import registry
 import difflib
 import zipfile
 import hashlib
+import ctypes
 import click
 import time
 import json
-import math
 import sys
 import os
 
@@ -26,6 +27,14 @@ import os
 index = 0
 final_value = None
 path = ''
+
+
+def is_admin():
+    try:
+        is_admin = (os.getuid() == 0)
+    except AttributeError:
+        is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+    return is_admin
 
 
 class HiddenPrints:
@@ -115,7 +124,6 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                     command, stderr=STDOUT, universal_newlines=True
                 )
             except (CalledProcessError, OSError, FileNotFoundError) as err:
-
                 if '[WinError 740]' in str(err) and 'elevation' in str(err):
                     if not no_color:
                         click.echo(click.style(
@@ -138,16 +146,25 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                 os._exit(0)
 
         elif download_type == '.msi':
-            command = 'msiexec.exe /i' + path + ' '
+            command = 'msiexec.exe /i ' + path + ' '
             for switch in switches:
                 command = command + ' ' + switch
             try:
-                subprocess.call(command)
-            except OSError:
+                output = subprocess.check_output(
+                    command, stderr=STDOUT, universal_newlines=True
+                )
+            except (CalledProcessError, OSError, FileNotFoundError) as err:
                 if not no_color:
-                    click.echo(click.style(
-                        'Administrator Elevation Required...', fg='bright_yellow'))
-            os._exit(0)
+                    if not is_admin():
+                        click.echo(click.style(
+                            'Administrator Elevation Required. Exit Code [0001]', fg='bright_yellow'))
+                        print(get_error_message('0001', 'install'))
+                else:
+                    handle_unknown_error(err, Metadata(
+                        None, no_color, None, None, None, None, None, None, None))
+
+                handle_exit('ERROR', 'None', Metadata(
+                    None, no_color, None, None, None, None, None, None, None))
 
         elif download_type == '.zip':
             if not no_color:
@@ -220,14 +237,26 @@ def install_package(path, package_name, switches, download_type, no_color, direc
         mount_dmg = f'hdiutil attach -nobrowse {file_name}'
 
 
-def run_uninstall(command: str, package_name, no_color):
-    subprocess.Popen(command, stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
-    if not no_color:
-        click.echo(click.style(
-            f"Successfully Uninstalled {package_name}", fg="bright_magenta"))
-    if no_color:
-        click.echo(click.style(
-            f"Successfully Uninstalled {package_name}"))
+def uninstall_package(command: str, packet: Packet, metadata: Metadata):
+    try:
+        output = subprocess.check_output(
+            command, stderr=PIPE, stdin=PIPE)
+    except CalledProcessError as err:
+        try:
+            output = subprocess.check_output(
+                command, stderr=PIPE, stdin=PIPE, shell=True)
+        except CalledProcessError as err:
+            if not is_admin():
+                write(
+                    f'Installation Failed With Code [0001]', 'red', metadata)
+                print(get_error_message('0001', 'uninstall'))
+                handle_exit('ERROR', 'None', metadata)
+            else:
+                write(
+                    'Installation Failed Due To An Unknown Error [0000]', 'red', metadata)
+                handle_unknown_error(err.decode('utf-8'), metadata)
+                print(get_error_message('0000', 'uninstall'))
+                handle_exit('ERROR', 'None', metadata)
 
 
 def get_correct_package_names(res: str) -> list:
@@ -393,6 +422,9 @@ def refresh_environment_variables() -> bool:
     output, err = proc.communicate()
     if 'Finished' in output.decode('utf-8'):
         return True
+    else:
+        print('An error occurred')
+        print(err.decode('utf-8'))
 
 
 def check_virus(path: str, no_color: bool, silent: bool):
@@ -462,3 +494,18 @@ def handle_cached_request():
 
 def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce):
     return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce)
+
+
+def get_error_message(code: str, method: str):
+    attr = method.replace('ation', '')
+    with Switch(code) as code:
+        if code('0001'):
+            return f'\n[0001] => {method.capitalize()} failed because the software you tried to {attr} requires administrator permissions.\nHow To Fix:\nRun Your Command Prompt As Administrator And Retry Installation.'
+        if code('0000'):
+            return f'\n[0000] => {method.capitalize()} failed due to an unknown reason, to get support, file a support ticket at https://www.electric.com/support'
+
+
+def handle_unknown_error(err: str):
+    error_msg = click.prompt('Would You Like To See The Error Message? [y/n]')
+    if error_msg == 'y':
+        print(err)

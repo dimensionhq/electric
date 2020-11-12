@@ -205,11 +205,11 @@ def install(
 
             if super_cache:
                 write(
-                    f'Rapidquery Successfully Supercached Packages in {round(time, 6)}s', 'bright_yellow', metadata)
+                    f'Rapidquery Successfully SuperCached Packages in {round(time, 6)}s', 'bright_yellow', metadata)
                 write_debug(
-                    f'Rapidquery Successfully Supercached Packages in {round(time, 9)}s', metadata)
+                    f'Rapidquery Successfully SuperCached Packages in {round(time, 9)}s', metadata)
                 log_info(
-                    f'Rapidquery Successfully Supercached Packages in {round(time, 6)}s', logfile)
+                    f'Rapidquery Successfully SuperCached Packages in {round(time, 6)}s', logfile)
             else:
                 write(
                     f'Rapidquery Successfully Received packages.json in {round(time, 6)}s', 'bright_yellow', metadata)
@@ -327,7 +327,7 @@ def install(
         install_package(path, packet.json_name, packet.install_switches,
                         packet.win64_type, no_color, install_directory, packet.custom_location)
         status = 'Installed'
-
+        refresh_environment_variables()
         write(
             f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
         log_info(f'Successfully Installed {packet.display_name}!', logfile)
@@ -337,12 +337,9 @@ def install(
         write_verbose(f'Refreshing Environment Variables', metadata)
 
         if metadata.reduce_package:
+            write('Successfully Cleaned Up Installer From Temp Directory...',
+                  'green', metadata)
             os.remove(path)
-
-        write('Successfully Cleaned Up Installer From Temp Directory...',
-              'green', metadata)
-
-        refresh_environment_variables()
 
         write_verbose('Installation and setup completed.', metadata)
         log_info('Installation and setup completed.', logfile)
@@ -601,25 +598,7 @@ def uninstall(
             write_verbose("Executing the quiet uninstall command", metadata)
             log_info("Executing the quiet uninstall command", logfile)
 
-            try:
-                proc = Popen(shlex.split(
-                    command), stdout=PIPE, stdin=PIPE, stderr=PIPE)
-                proc.wait()
-                if proc.returncode != 0:
-                    output, err = proc.communicate()
-                    print(err)
-                    write(
-                        f'Installation Failed, Make Sure You Accept All Prompts Asking For Admin permission', 'red', metadata)
-                    handle_exit(status, 'None', metadata)
-
-            except FileNotFoundError:
-                proc = Popen(shlex.split(
-                    command), stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
-                proc.wait()
-                if proc.returncode != 0:
-                    write(
-                        f'Installation Failed, Make Sure You Accept All Prompts Asking For Admin permission', 'red', metadata)
-                    handle_exit(status, 'None', metadata)
+            uninstall_package(command, packet, metadata)
 
             write(
                 f"Successfully Uninstalled {packet.display_name}", "bright_magenta", metadata)
@@ -647,22 +626,8 @@ def uninstall(
             write_verbose("Executing the Uninstall Command", metadata)
             log_info("Executing the Uninstall Command", logfile)
 
-            try:
-                proc = Popen(shlex.split(
-                    command), stdout=PIPE, stdin=PIPE, stderr=PIPE)
-                proc.wait()
-                if proc.returncode != 0:
-                    write(
-                        f'Installation Failed, Make Sure You Accept All Prompts Asking For Admin permission', 'red', metadata)
-                    handle_exit(status, 'None', metadata)
-            except FileNotFoundError:
-                pc = Popen(
-                    command.split(), stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
-                pc.wait()
-                if pc.returncode != 0:
-                    write(
-                        f'Installation Failed, Make Sure You Accept All Prompts Asking For Admin permission', 'red', metadata)
-                    handle_exit(status, 'None', metadata)
+            uninstall_package(command, packet, metadata)
+
             write(
                 f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
             write_verbose("Uninstallation completed.", metadata)
