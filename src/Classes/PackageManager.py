@@ -216,9 +216,7 @@ class PackageManager:
             mount_dmg = f'hdiutil attach -nobrowse {file_name}'
 
     def calculate_spwn(self, number: int) -> str:
-        if number == 1:
-            return 'sync'
-        elif number <= 3:
+        if number <= 3:
             return 'threading'
         return 'processing'
 
@@ -246,9 +244,6 @@ class PackageManager:
                                            packets[0].display_name, f"{tempfile.gettempdir()}\\Setup0{packets[0].win64_type}"))
 
         method = self.calculate_spwn(len(packets))
-
-        if method == 'sync':
-            self.download(download_items[0])
 
         if method == 'threading':
             threads = []
@@ -286,7 +281,6 @@ class PackageManager:
             'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
         log_info(
             'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
-
         return paths
 
     def generate_installers(self, paths) -> list:
@@ -345,11 +339,7 @@ class PackageManager:
 
             if is_msi:
                 if item[idx] == item[1]:
-                    print('proceeding with sync installation detected msi file')
-                    print('This is the number of .msi installers : ', len(item))
                     for val in item:
-                        print('running again')
-                        print(val.display_name)
                         self.install_package(val)
 
             if item:

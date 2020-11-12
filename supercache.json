@@ -1,5 +1,4 @@
 {
-    "_id": "5fa38bdc4cb1b2306fdc9f70",
     "node": {
         "package-name": "NodeJS",
         "win32": "https://nodejs.org/dist/v12.19.0/node-v12.19.0-x86.msi",
@@ -130,5 +129,27 @@
             "/S"
         ],
         "custom-location": "/D="
+    },
+    "blender": {
+        "package-name": "Blender",
+        "win32": "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.90/blender-2.90.1-windows64.msi",
+        "win64": "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.90/blender-2.90.1-windows64.msi",
+        "darwin": "https://www.blender.org/download/Blender2.90/blender-2.90.1-macOS.dmg/",
+        "debian": "https://www.blender.org/download/Blender2.90/blender-2.90.1-linux64.tar.xz/",
+        "win32-type": ".msi",
+        "win64-type": ".msi",
+        "darwin-type": ".dmg",
+        "debian-type": ".tar.xz",
+        "install-switches": [
+            "/passive",
+            "/quiet",
+            "/norestart"
+        ],
+        "uninstall-switches": [
+            "/passive",
+            "/quiet",
+            "/norestart"
+        ],
+        "custom-location": "TARGETDIR="
     }
 }

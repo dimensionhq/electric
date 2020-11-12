@@ -12,8 +12,8 @@ from utils import *
 import keyboard
 import logging
 import difflib
-import shlex
 import click
+import shlex
 import sys
 import os
 
@@ -159,6 +159,8 @@ def install(
     index = 0
 
     if not sync:
+        if len(corrected_package_names) > 5:
+            write('electric Doesn\'t Support More Than 5 Parallel Downloads At Once Currently. Use The --sync Flag To Synchronously Download The Packages')
         if len(corrected_package_names) > 1:
             packets = []
             for package in corrected_package_names:

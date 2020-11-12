@@ -3,20 +3,22 @@ from timeit import default_timer as timer
 from Classes.Metadata import Metadata
 from viruscheck import virus_check
 from datetime import datetime
+from itertools import islice
 from signal import SIGTERM
 from extension import *
 import subprocess
 import keyboard
 import platform
 import requests
+import tempfile
 import registry
 import difflib
 import zipfile
-import tempfile
 import hashlib
 import click
 import time
 import json
+import math
 import sys
 import os
 
@@ -24,6 +26,7 @@ import os
 index = 0
 final_value = None
 path = ''
+
 
 class HiddenPrints:
     def __enter__(self):
@@ -73,10 +76,10 @@ def download(url, noprogress, silent, download_type):
                     sys.stdout.write(
                         f"\r{round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
                     sys.stdout.flush()
-                
+
                 if silent:
                     pass
-                
+
                 elif not noprogress and not silent:
                     complete = int(20 * dl / full_length)
                     fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
@@ -94,24 +97,25 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                     os.rename(path, f'{path}.exe')
                 path = path + '.exe'
             command = path + ' '
-            
+
             for switch in switches:
                 command = command + ' ' + switch
-            
+
             if custom_install_switch:
                 if '/D=' in custom_install_switch:
                     command += ' ' + custom_install_switch + f'{directory}'
                 else:
                     command += ' ' + custom_install_switch + f'"{directory}"'
                 if directory == '':
-                    click.echo(click.style(f'Installing {package_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
+                    click.echo(click.style(
+                        f'Installing {package_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
             try:
                 output = subprocess.check_output(
                     command, stderr=STDOUT, universal_newlines=True
                 )
             except (CalledProcessError, OSError, FileNotFoundError) as err:
-                
+
                 if '[WinError 740]' in str(err) and 'elevation' in str(err):
                     if not no_color:
                         click.echo(click.style(
@@ -119,7 +123,7 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                     if no_color:
                         click.echo(click.style(
                             'Administrator Elevation Required...'))
-                
+
                 if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
                     click.echo(click.style(
                         'Silent Installation Failed With Exit Code 1.'))
@@ -127,12 +131,11 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                         'The Command Run During Installation Was Invalid Or The Installer Failed During The Installation Process.'))
                     click.echo(
                         'Raise A Support Ticket To www.electric.com/issue')
-                    
+
                 else:
                     click.echo(click.style('Installation Failed..', fg='red'))
-                
-                os._exit(0)
 
+                os._exit(0)
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i' + path + ' '
@@ -227,7 +230,7 @@ def run_uninstall(command: str, package_name, no_color):
             f"Successfully Uninstalled {package_name}"))
 
 
-def get_correct_package_names(res : str) -> list:
+def get_correct_package_names(res: str) -> list:
     package_names = []
     for package in res:
         # print('THSI IS THA PACKAGE', package)
@@ -294,7 +297,7 @@ def find_approx_pid(exe_name) -> str:
     return 1
 
 
-def handle_exit(status: str, setup_name : str, metadata: Metadata):
+def handle_exit(status: str, setup_name: str, metadata: Metadata):
     with HiddenPrints():
         time.sleep(1)
 
@@ -302,10 +305,12 @@ def handle_exit(status: str, setup_name : str, metadata: Metadata):
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
 
-        write('SafetyHarness Successfully Created Clean Exit Gateway', 'green', metadata)
-        write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0', 'light_blue', metadata)
+        write('SafetyHarness Successfully Created Clean Exit Gateway',
+              'green', metadata)
+        write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0',
+              'light_blue', metadata)
         os._exit(0)
-    
+
     if status == 'Got Download Path':
         write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
         os._exit(0)
@@ -315,7 +320,7 @@ def handle_exit(status: str, setup_name : str, metadata: Metadata):
         os._exit(0)
 
 
-def kill_running_proc(package_name : str, quiet : bool, verbose : bool, debug : bool, yes : bool, no_color : bool):
+def kill_running_proc(package_name: str, quiet: bool, verbose: bool, debug: bool, yes: bool, no_color: bool):
     parts = package_name.split('-')
     name = ' '.join([p.capitalize() for p in parts])
     pid = int(find_approx_pid(package_name))
@@ -329,25 +334,31 @@ def kill_running_proc(package_name : str, quiet : bool, verbose : bool, debug : 
         if quiet:
             os.kill(pid, SIGTERM)
             return
-        terminate = click.prompt(f'Electric Detected {name} Running In The Background. Would You Like To Terminate It? [y/n]')
+        terminate = click.prompt(
+            f'Electric Detected {name} Running In The Background. Would You Like To Terminate It? [y/n]')
         if terminate == 'y':
             write(f'Terminating {name}.', 'green', no_color, quiet)
             os.kill(pid, SIGTERM)
         else:
             write('Aborting Installation!', 'red', no_color, quiet)
-            write_verbose(f'Aborting Installation Due To {name} Running In Background', verbose, no_color, quiet)
-            write_debug(f'Aborting Installation Due To {name} Running In Background. Process Was Not Terminated.', debug, no_color, quiet)
+            write_verbose(
+                f'Aborting Installation Due To {name} Running In Background', verbose, no_color, quiet)
+            write_debug(
+                f'Aborting Installation Due To {name} Running In Background. Process Was Not Terminated.', debug, no_color, quiet)
             os._exit(1)
 
 
 def kill_proc(proc, no_color, silent):
     if proc is not None:
         proc.terminate()
-        write('SafetyHarness Successfully Created Clean Exit Gateway', 'green', no_color, silent)
-        write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0', 'light_blue', no_color, silent)
+        write('SafetyHarness Successfully Created Clean Exit Gateway',
+              'green', no_color, silent)
+        write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0',
+              'light_blue', no_color, silent)
         os._exit(0)
     else:
-        write('\nRapidExit Successfully Exited With Code 0', 'green', no_color, silent)
+        write('\nRapidExit Successfully Exited With Code 0',
+              'green', no_color, silent)
         os._exit(0)
 
 
@@ -358,7 +369,7 @@ def assert_cpu_compatible() -> int:
 
 def find_existing_installation(package_name: str, display_name: str):
     key = registry.get_uninstall_key(package_name)
-    
+
     if key:
         return True
     else:
@@ -366,18 +377,24 @@ def find_existing_installation(package_name: str, display_name: str):
 
         if key:
             return True
-        
+
         else:
             key = registry.get_uninstall_key(display_name)
-    
+
     if key:
         return True
-    
+
     return False
 
 
-def refresh_environment_variables():
-    Popen(f'{os.getcwd()}\\src\\scripts\\refreshvars.bat', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+def refresh_environment_variables() -> bool:
+    proc = Popen(R'C:\Users\tejas\Desktop\electric\src\scripts\refreshvars.cmd',
+                 stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    output, err = proc.communicate()
+    print(output.decode('utf-8'))
+    print(err)
+    if 'Finished' in output.decode('utf-8'):
+        return True
 
 
 def check_virus(path: str, no_color: bool, silent: bool):
@@ -400,16 +417,16 @@ def setup_supercache():
     with open('C:\\Users\\tejas\\Desktop\\electric\\supercache.json', 'w+') as file:
         del res['_id']
         file.write(json.dumps(res, indent=4))
-    
+
     return res, time
 
 
 def update_supercache(res):
-    filepath = f'{os.getcwd()}\\supercache.json'
+    filepath = f'C:\\Users\\tejas\\Desktop\\electric\\supercache.json'
     file = open(filepath, 'w+')
     file.write(json.dumps(res, indent=4))
     file.close()
-    logpath = f'{os.getcwd()}\\superlog.txt'
+    logpath = f'C:\\Users\\tejas\\Desktop\\electric\\superlog.txt'
     logfile = open(logpath, 'w+')
     now = datetime.now()
     logfile.write(str(now))
@@ -417,7 +434,7 @@ def update_supercache(res):
 
 
 def check_supercache_valid():
-    filepath = f'{os.getcwd()}\\superlog.txt'
+    filepath = R'C:\\Users\tejas\Desktop\electric\superlog.txt'
     if os.path.isfile(filepath):
         with open(filepath, 'r') as f:
             contents = f.read()
@@ -436,7 +453,7 @@ def handle_cached_request():
         file.close()
         end = timer()
         if res:
-            return res, (end - start) 
+            return res, (end - start)
         else:
             res, time = setup_supercache()
             return res, time
