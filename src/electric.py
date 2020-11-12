@@ -41,6 +41,7 @@ def cli(ctx):
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to install')
 @click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
 @click.option('--sync', '-sc', is_flag=True, help='Force downloads and installations one after another')
+@click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after installation')
 def install(
     package_name: str,
     verbose: bool,
@@ -55,12 +56,13 @@ def install(
     virus_check: bool,
     no_cache: bool,
     sync: bool,
+    reduce: bool,
 ):
     start = timer()
     if logfile:
         logfile = logfile.replace('=', '')
     metadata = generate_metadata(
-        no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check)
+        no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce)
 
     if logfile:
         logfile = logfile.replace('.txt', '.log')
@@ -334,6 +336,12 @@ def install(
         write_debug(f'Refreshing Env Variables, Calling Batch Script', metadata)
         write_verbose(f'Refreshing Environment Variables', metadata)
 
+        if metadata.reduce_package:
+            os.remove(path)
+
+        write('Successfully Cleaned Up Installer From Temp Directory...',
+              'green', metadata)
+
         refresh_environment_variables()
 
         write_verbose('Installation and setup completed.', metadata)
@@ -371,7 +379,7 @@ def uninstall(
 ):
 
     metadata = generate_metadata(
-        None, silent, verbose, debug, no_color, yes, logfile, None)
+        None, silent, verbose, debug, no_color, yes, logfile, None, None)
 
     super_cache = check_supercache_valid()
 

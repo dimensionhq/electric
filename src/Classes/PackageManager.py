@@ -353,6 +353,12 @@ class PackageManager:
                 processes.clear()
             idx += 1
 
+        if self.metadata.reduce_package:
+            for path in paths:
+                os.remove(path)
+
+        write('Successfully Cleaned Up Installer From Temp Directory...',
+              'green', self.metadata)
         write(
             f'Successfully Installed Packages!', 'bright_magenta', self.metadata)
         log_info(f'Successfully Installed Packages!', self.metadata.logfile)

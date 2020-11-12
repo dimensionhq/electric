@@ -391,8 +391,6 @@ def refresh_environment_variables() -> bool:
     proc = Popen(R'C:\Users\tejas\Desktop\electric\src\scripts\refreshvars.cmd',
                  stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     output, err = proc.communicate()
-    print(output.decode('utf-8'))
-    print(err)
     if 'Finished' in output.decode('utf-8'):
         return True
 
@@ -462,5 +460,5 @@ def handle_cached_request():
         return res, time
 
 
-def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check):
-    return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check)
+def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce):
+    return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce)
