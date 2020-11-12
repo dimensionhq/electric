@@ -122,11 +122,32 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                             f'Installing {package_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
             try:
-                output = subprocess.check_output(
-                    command, stderr=STDOUT, universal_newlines=True
-                )
+                proc = Popen(command.split(), stdout=PIPE,
+                             stdin=PIPE, stderr=PIPE)
+            except (OSError, FileNotFoundError) as err:
+                try:
+                    proc = Popen(command.split(), stdout=PIPE,
+                                 stdin=PIPE, stderr=PIPE, shell=True)
+                except (OSError, FileNotFoundError) as err:
+                    if '[WinError 740]' in str(err) and 'elevation' in str(err):
+                        if not is_admin():
+                            click.echo(click.style(
+                                'Administrator Elevation Required. Exit Code [0001]', fg='bright_yellow'))
+                            print(get_error_message('0001', 'installation'))
+                            os._exit(0)
 
-            except (CalledProcessError, OSError, FileNotFoundError) as err:
+                    if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
+
+                        click.echo(click.style(
+                            'Installation Failed!', fg='red'))
+                        print(get_error_message('0002', 'installation'))
+                        os._exit(0)
+
+                    else:
+                        print(get_error_message('0000', 'installation'))
+                        handle_unknown_error(str(err))
+                        os._exit(0)
+
                 if '[WinError 740]' in str(err) and 'elevation' in str(err):
                     if not is_admin():
                         click.echo(click.style(
@@ -135,37 +156,63 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                         os._exit(0)
 
                 if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
+
                     click.echo(click.style('Installation Failed!', fg='red'))
                     print(get_error_message('0002', 'installation'))
                     os._exit(0)
 
                 else:
-                    if '1223' in str(err):
-                        pass
-                    else:
-                        print(get_error_message('0000', 'installation'))
-                        handle_unknown_error(str(err))
-                        os._exit(0)
+                    print(get_error_message('0000', 'installation'))
+                    handle_unknown_error(str(err))
+                    os._exit(0)
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i ' + path + ' '
             for switch in switches:
                 command = command + ' ' + switch
             try:
-                output = subprocess.check_output(
-                    command, stderr=STDOUT, universal_newlines=True
-                )
-            except (CalledProcessError, OSError, FileNotFoundError) as err:
-                if not no_color:
+                proc = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            except (OSError, FileNotFoundError) as err:
+                try:
+                    proc = Popen(command.split(), stdout=PIPE,
+                                 stdin=PIPE, stderr=PIPE, shell=True)
+                except (OSError, FileNotFoundError) as err:
+                    if '[WinError 740]' in str(err) and 'elevation' in str(err):
+                        if not is_admin():
+                            click.echo(click.style(
+                                'Administrator Elevation Required. Exit Code [0001]', fg='bright_yellow'))
+                            print(get_error_message('0001', 'installation'))
+                            os._exit(0)
+
+                    if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
+
+                        click.echo(click.style(
+                            'Installation Failed!', fg='red'))
+                        print(get_error_message('0002', 'installation'))
+                        os._exit(0)
+
+                    else:
+                        print(get_error_message('0000', 'installation'))
+                        handle_unknown_error(str(err))
+                        os._exit(0)
+
+                if '[WinError 740]' in str(err) and 'elevation' in str(err):
                     if not is_admin():
                         click.echo(click.style(
                             'Administrator Elevation Required. Exit Code [0001]', fg='bright_yellow'))
-                        print(get_error_message('0001', 'install'))
-                else:
-                    handle_unknown_error(err)
+                        print(get_error_message('0001', 'installation'))
+                        os._exit(0)
 
-                handle_exit('ERROR', 'None', Metadata(
-                    None, no_color, None, None, None, None, None, None, None))
+                if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
+
+                    click.echo(click.style('Installation Failed!', fg='red'))
+                    print(get_error_message('0002', 'installation'))
+                    os._exit(0)
+
+                else:
+                    print(get_error_message('0000', 'installation'))
+                    handle_unknown_error(str(err))
+                    os._exit(0)
 
         elif download_type == '.zip':
             if not no_color:

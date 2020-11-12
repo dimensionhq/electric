@@ -319,7 +319,6 @@ def install(
             path = download(download_url, no_progress, silent, packet.win64_type)
         
         else:
-            # implement this please im not sure how
             limiter = Limiter()
         
         status = 'Downloaded'
