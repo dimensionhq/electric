@@ -2,7 +2,6 @@ from Classes.PackageManager import PackageManager
 from timeit import default_timer as timer
 from registry import get_uninstall_key
 from click_didyoumean import DYMGroup
-from subprocess import Popen, PIPE
 from Classes.Packet import Packet
 from decimal import Decimal
 from constants import *
@@ -13,7 +12,6 @@ import keyboard
 import logging
 import difflib
 import click
-import shlex
 import sys
 import os
 
@@ -262,11 +260,11 @@ def install(
         if index == 0:
             if super_cache:
                 write(
-                    f'Rapidquery Successfully Supercached {packet.json_name} in {round(time, 6)}s', 'bright_yellow', metadata)
+                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', 'bright_yellow', metadata)
                 write_debug(
-                    f'Rapidquery Successfully Supercached {packet.json_name} in {round(time, 9)}s', metadata)
+                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 9)}s', metadata)
                 log_info(
-                    f'Rapidquery Successfully Supercached {packet.json_name} in {round(time, 6)}s', logfile)
+                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', logfile)
             else:
                 write(
                     f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_yellow', metadata)
@@ -322,7 +320,6 @@ def install(
             f'Installing {packet.json_name} through Setup{packet.win64}', logfile)
 
         status = 'Installing'
-
         # Running The Installer silently And Completing Setup
         install_package(path, packet.json_name, packet.install_switches,
                         packet.win64_type, no_color, install_directory, packet.custom_location)
@@ -483,11 +480,11 @@ def uninstall(
 
         if super_cache:
             write(
-                f'Rapidquery Successfully Supercached {packet.json_name} in {round(time, 6)}s', 'bright_yellow', metadata)
+                f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', 'bright_yellow', metadata)
             write_debug(
-                f'Rapidquery Successfully Supercached {packet.json_name} in {round(time, 9)}s', metadata)
+                f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 9)}s', metadata)
             log_info(
-                f'Rapidquery Successfully Supercached {packet.json_name} in {round(time, 6)}s', metadata)
+                f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
         else:
             write(
                 f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_green', metadata)
@@ -565,9 +562,9 @@ def uninstall(
         log_info("Uninstall key found.", logfile)
 
         write(
-            f'Successfully Got Uninstall Key In {round(end - start, 4)}s', 'cyan', metadata)
+            f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', 'cyan', metadata)
         log_info(
-            f'Successfully Got Uninstall Key In {round(end - start, 4)}s', logfile)
+            f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', logfile)
 
         command = ''
 

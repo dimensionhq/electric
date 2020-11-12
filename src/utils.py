@@ -123,27 +123,24 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                 output = subprocess.check_output(
                     command, stderr=STDOUT, universal_newlines=True
                 )
+
             except (CalledProcessError, OSError, FileNotFoundError) as err:
                 if '[WinError 740]' in str(err) and 'elevation' in str(err):
-                    if not no_color:
+                    if not is_admin():
                         click.echo(click.style(
-                            'Administrator Elevation Required...', fg='red'))
-                    if no_color:
-                        click.echo(click.style(
-                            'Administrator Elevation Required...'))
+                            'Administrator Elevation Required. Exit Code [0001]', fg='bright_yellow'))
+                        print(get_error_message('0001', 'installation'))
+                        os._exit(0)
 
                 if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
-                    click.echo(click.style(
-                        'Silent Installation Failed With Exit Code 1.'))
-                    click.echo(click.style(
-                        'The Command Run During Installation Was Invalid Or The Installer Failed During The Installation Process.'))
-                    click.echo(
-                        'Raise A Support Ticket To www.electric.com/issue')
+                    click.echo(click.style('Installation Failed!', fg='red'))
+                    print(get_error_message('0002', 'installation'))
+                    os._exit(0)
 
                 else:
-                    click.echo(click.style('Installation Failed..', fg='red'))
-
-                os._exit(0)
+                    print(get_error_message('0000', 'installation'))
+                    handle_unknown_error(str(err))
+                    os._exit(0)
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i ' + path + ' '
@@ -160,8 +157,7 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                             'Administrator Elevation Required. Exit Code [0001]', fg='bright_yellow'))
                         print(get_error_message('0001', 'install'))
                 else:
-                    handle_unknown_error(err, Metadata(
-                        None, no_color, None, None, None, None, None, None, None))
+                    handle_unknown_error(err)
 
                 handle_exit('ERROR', 'None', Metadata(
                     None, no_color, None, None, None, None, None, None, None))
@@ -237,26 +233,34 @@ def install_package(path, package_name, switches, download_type, no_color, direc
         mount_dmg = f'hdiutil attach -nobrowse {file_name}'
 
 
-def uninstall_package(command: str, packet: Packet, metadata: Metadata):
+def uninstall_package(command: str, packet: Packet, metadata: Metadata) -> str:
     try:
-        output = subprocess.check_output(
+        subprocess.check_output(
             command, stderr=PIPE, stdin=PIPE)
-    except CalledProcessError as err:
+
+    except (CalledProcessError, OSError, FileNotFoundError) as err:
         try:
             output = subprocess.check_output(
                 command, stderr=PIPE, stdin=PIPE, shell=True)
-        except CalledProcessError as err:
-            if not is_admin():
-                write(
-                    f'Installation Failed With Code [0001]', 'red', metadata)
-                print(get_error_message('0001', 'uninstall'))
-                handle_exit('ERROR', 'None', metadata)
+        except (CalledProcessError, OSError, FileNotFoundError) as err:
+            if '[WinError 740]' in str(err) and 'elevation' in str(err):
+                if not is_admin():
+                    write(
+                        f'Installation Failed With Code [0001]', 'red', metadata)
+                    print(get_error_message('0001', 'uninstallation'))
+                    handle_exit('ERROR', 'None', metadata)
             else:
-                write(
-                    'Installation Failed Due To An Unknown Error [0000]', 'red', metadata)
-                handle_unknown_error(err.decode('utf-8'), metadata)
-                print(get_error_message('0000', 'uninstall'))
-                handle_exit('ERROR', 'None', metadata)
+                if not is_admin():
+                    write(
+                        f'Installation Failed With Code [0001]', 'red', metadata)
+                    print(get_error_message('0001', 'uninstallation'))
+                    handle_exit('ERROR', 'None', metadata)
+                else:
+                    write(
+                        'Installation Failed Due To An Unknown Error [0000]', 'red', metadata)
+                    handle_unknown_error(str(err))
+                    print(get_error_message('0000', 'uninstallation'))
+                    os._exit(0)
 
 
 def get_correct_package_names(res: str) -> list:
@@ -500,7 +504,9 @@ def get_error_message(code: str, method: str):
     attr = method.replace('ation', '')
     with Switch(code) as code:
         if code('0001'):
-            return f'\n[0001] => {method.capitalize()} failed because the software you tried to {attr} requires administrator permissions.\nHow To Fix:\nRun Your Command Prompt As Administrator And Retry Installation.'
+            return f'\n[0001] => {method.capitalize()} failed because the software you tried to {attr} requires administrator permissions.\n\nHow To Fix:\nRun Your Command Prompt Or Powershell As Administrator And Retry {method.capitalize()}.'
+        if code('0002'):
+            return f'\n[0002] => {method.capitalize()} failed because the installer provided an incorrect command for {attr}.\nFile a support ticket at https://www.electric.com/support'
         if code('0000'):
             return f'\n[0000] => {method.capitalize()} failed due to an unknown reason, to get support, file a support ticket at https://www.electric.com/support'
 

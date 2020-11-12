@@ -1,11 +1,12 @@
 from timeit import default_timer as timer
 from subprocess import CalledProcessError
+from logger import log_info, closeLog
 from Classes.Download import Download
 from Classes.Install import Install
 from multiprocessing import Process
 from subprocess import PIPE, STDOUT
 from threading import Thread
-from logger import log_info, closeLog
+from colorama import Back
 from extension import *
 from utils import *
 from time import *
@@ -90,26 +91,22 @@ class PackageManager:
 
                 except (CalledProcessError, OSError, FileNotFoundError) as err:
                     if '[WinError 740]' in str(err) and 'elevation' in str(err):
-                        if not self.metadata.no_color:
+                        if not is_admin():
                             click.echo(click.style(
-                                'Administrator Elevation Required...', fg='red'))
-                        if self.metadata.no_color:
-                            click.echo(click.style(
-                                'Administrator Elevation Required...'))
+                                'Administrator Elevation Required. Exit Code [0001]', fg='bright_yellow'))
+                            print(get_error_message('0001', 'installation'))
+                            os._exit(0)
 
                     if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
                         click.echo(click.style(
-                            'Silent Installation Failed With Exit Code 1.'))
-                        click.echo(click.style(
-                            'The Command Run During Installation Was Invalid Or The Installer Failed During The Installation Process.'))
-                        click.echo(
-                            'Raise A Support Ticket To www.electric.com/issues')
+                            'Installation Failed!', fg='red'))
+                        print(get_error_message('0002', 'installation'))
+                        os._exit(0)
 
                     else:
-                        click.echo(click.style(
-                            'Installation Failed..', fg='red'))
-
-                    os._exit(0)
+                        print(get_error_message('0000', 'installation'))
+                        handle_unknown_error(str(err))
+                        os._exit(0)
 
             elif download_type == '.msi':
                 command = 'msiexec.exe /i' + path + ' '
@@ -120,39 +117,24 @@ class PackageManager:
                         command, stderr=STDOUT, universal_newlines=True
                     )
                 except (CalledProcessError, OSError, FileNotFoundError) as err:
-                    if not no_color:
+                    if not is_admin():
                         click.echo(click.style(
-                            'Administrator Elevation Required...', fg='bright_yellow'))
-                    if '[WinError 740]' in str(err) and 'elevation' in str(err):
-                        if not self.metadata.no_color:
-                            click.echo(click.style(
-                                'Administrator Elevation Required...', fg='red'))
-                        if self.metadata.no_color:
-                            click.echo(click.style(
-                                'Administrator Elevation Required...'))
+                            'Administrator Elevation Required. Exit Code [0001]', fg='bright_yellow'))
+                        print(get_error_message('0001', 'install'))
+                else:
+                    handle_unknown_error(str(err))
 
-                    if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
-                        click.echo(click.style(
-                            'Silent Installation Failed With Exit Code 1.'))
-                        click.echo(click.style(
-                            'The Command Run During Installation Was Invalid Or The Installer Failed During The Installation Process.'))
-                        click.echo(
-                            'Raise A Support Ticket To www.electric.com/issues')
-
-                    else:
-                        click.echo(click.style(
-                            'Installation Failed..', fg='red'))
-                    os._exit(0)
+                handle_exit('ERROR', 'None', self.metadata)
 
             elif download_type == '.zip':
-                if not no_color:
+                if not self.metadata.no_color:
                     click.echo(click.style(
                         f'Unzipping File At {path}', fg='green'))
-                if no_color:
+                if self.metadata.no_color:
                     click.echo(click.style(
                         f'Unzipping File At {path}'))
 
-                zip_directory = fR'{tempfile.gettempdir()}\\{package_name}'
+                zip_directory = fR'{tempfile.gettempdir()}\\{self.metadata.display_name}'
                 with zipfile.ZipFile(path, 'r') as zip_ref:
                     zip_ref.extractall(zip_directory)
                 executable_list = []
@@ -161,7 +143,7 @@ class PackageManager:
                         executable_list.append(name)
                 executable_list.append('Exit')
 
-                file_path = fR'{tempfile.gettempdir()}\\{package_name}'
+                file_path = fR'{tempfile.gettempdir()}\\{self.metadata.display_name}'
 
                 def trigger():
                     click.clear()
@@ -214,6 +196,10 @@ class PackageManager:
         # TODO: Implement the macOS side.
         if sys.platform == 'darwin':
             mount_dmg = f'hdiutil attach -nobrowse {file_name}'
+
+        # TODO: IMplement the Linux side.
+        if sys.platform == 'linux' or sys.platform == 'linux2':
+            pass
 
     def calculate_spwn(self, number: int) -> str:
         if number <= 3:
