@@ -55,26 +55,26 @@ def handle_python_package(package_name, mode, flags: list, metadata: Metadata):
 
                 if 'Downloading' in line and package_name in line:
                     write(
-                        f'Python v{py_version[0]} :: Downloading {package_name}', 'green', no_color, quiet)
+                        f'Python v{py_version[0]} :: Downloading {package_name}', 'green', metadata)
 
                 if 'Installing collected packages' in line and package_name in line:
                     write(
-                        f'Python v{py_version[0]} :: Installing {package_name}', 'green', no_color, quiet)
+                        f'Python v{py_version[0]} :: Installing {package_name}', 'green', metadata)
 
                 if 'Requirement already up-to-date:' in line and package_name in line:
                     write(
-                        f'Python v{py_version[0]} :: {package_name} Is Already Installed And On The Latest Version ==> {line.split()[6]}', 'yellow', no_color, quiet)
+                        f'Python v{py_version[0]} :: {package_name} Is Already Installed And On The Latest Version ==> {line.split()[6]}', 'yellow', metadata)
 
                 if 'Successfully installed' in line and package_name in line:
                     ver = line.split('-')[1]
                     write(
-                        f'Python v{py_version[0]} :: Successfully Installed {package_name} {ver}', 'green', no_color, quiet)
+                        f'Python v{py_version[0]} :: Successfully Installed {package_name} {ver}', 'green', metadata)
 
                 if 'You should consider upgrading via' in line:
                     wants = click.prompt(
                         'Would you like to upgrade your pip version? [y/n]')
                     if wants:
-                        write('Updating Pip Version', 'green', no_color, quiet)
+                        write('Updating Pip Version', 'green', metadata)
                         Popen(shlex.split('python -m pip install --upgrade pip'))
 
         elif mode == 'uninstall':
@@ -94,12 +94,12 @@ def handle_python_package(package_name, mode, flags: list, metadata: Metadata):
 
                 if 'Uninstalling' in line and package_name in line:
                     write(
-                        f'Python v{py_version[0]} :: Uninstalling {package_name}', 'green', no_color, quiet)
+                        f'Python v{py_version[0]} :: Uninstalling {package_name}', 'green', metadata)
 
                 if 'Successfully uninstalled' in line and package_name in line:
                     ver = line.split('-')[1]
                     write(
-                        f'Python v{py_version[0]} :: Successfully Uninstalled {package_name} {ver}', 'green', no_color, quiet)
+                        f'Python v{py_version[0]} :: Successfully Uninstalled {package_name} {ver}', 'green', metadata)
 
             _, err = proc.communicate()
 
@@ -107,7 +107,7 @@ def handle_python_package(package_name, mode, flags: list, metadata: Metadata):
                 err = err.decode('utf-8')
                 if f'WARNING: Skipping {package_name}' in err:
                     write(
-                        f'Python v{py_version[0]} :: Could Not Find Any Installations Of {package_name}', 'yellow', no_color, quiet)
+                        f'Python v{py_version[0]} :: Could Not Find Any Installations Of {package_name}', 'yellow', metadata)
 
     elif platform == 'darwin':
 
@@ -131,13 +131,12 @@ def handle_python_package(package_name, mode, flags: list, metadata: Metadata):
 
             proc = Popen(shlex.split(command), stdin=PIPE,
                          stdout=PIPE, stderr=PIPE)
-            output, err = proc.communicate()
 
 
 def handle_node_package(package_name, mode):
-    process = run('node --version', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    proc = run('node --version', stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
-    if 'not recognized' in process.stdout.decode() or 'not recognized' in process.sterr.decode():
+    if 'not recognized' in proc.stdout.decode() or 'not recognized' in proc.stderr.decode():
         return 'not installed'
     
     if mode == 'install':

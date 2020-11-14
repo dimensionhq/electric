@@ -4,6 +4,7 @@ from registry import get_uninstall_key
 from click_didyoumean import DYMGroup
 from Classes.Packet import Packet
 from decimal import Decimal
+from limit import Limiter
 from constants import *
 from external import *
 from logger import *
@@ -14,7 +15,6 @@ import difflib
 import click
 import sys
 import os
-from limit import Limiter
 import click_completion
 
 __version__ = '1.0.0a'
@@ -178,7 +178,7 @@ def install(
 
     if not sync:
         if len(corrected_package_names) > 5:
-            write('electric Doesn\'t Support More Than 5 Parallel Downloads At Once Currently. Use The --sync Flag To Synchronously Download The Packages')
+            write('electric Doesn\'t Support More Than 5 Parallel Downloads At Once Currently. Use The --sync Flag To Synchronously Download The Packages', 'red', metadata)
         if len(corrected_package_names) > 1:
             packets = []
             for package in corrected_package_names:
@@ -346,8 +346,7 @@ def install(
 
         status = 'Installing'
         # Running The Installer silently And Completing Setup
-        install_package(path, packet.json_name, packet.install_switches,
-                        packet.win64_type, no_color, install_directory, packet.custom_location)
+        install_package(path, packet, metadata)
         status = 'Installed'
         refresh_environment_variables()
         write(
@@ -500,8 +499,7 @@ def uninstall(
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
 
-        kill_running_proc(packet.json_name, silent,
-                          verbose, debug, yes, no_color)
+        kill_running_proc(packet.json_name, metadata)
 
         if super_cache:
             write(

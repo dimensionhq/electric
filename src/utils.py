@@ -1,11 +1,13 @@
-from subprocess import Popen, PIPE, STDOUT, CalledProcessError
+from subprocess import Popen, PIPE, CalledProcessError
 from timeit import default_timer as timer
+from Classes.PathManager import PathManager
 from Classes.Metadata import Metadata
 from Classes.Packet import Packet
 from viruscheck import virus_check
 from datetime import datetime
-from switch import Switch
 from signal import SIGTERM
+from colorama import Back
+from switch import Switch
 from extension import *
 import subprocess
 import keyboard
@@ -28,6 +30,9 @@ index = 0
 final_value = None
 path = ''
 
+manager = PathManager()
+parent_dir = manager.get_parent_directory()
+current_dir = manager.get_current_directory()
 
 def is_admin():
     try:
@@ -59,10 +64,10 @@ def get_download_url(packet):
         return packet.win64
 
     elif sys.platform == 'darwin':
-        return pkg['darwin']
+        return packet.darwin
 
     elif sys.platform == 'linux':
-        return pkg['debian']
+        return packet.linux
 
 
 def download(url, noprogress, silent, download_type):
@@ -98,7 +103,13 @@ def download(url, noprogress, silent, download_type):
     return path
 
 
-def install_package(path, package_name, switches, download_type, no_color, directory, custom_install_switch) -> str:
+def install_package(path, packet: Packet, metadata: Metadata) -> str:
+    download_type = packet.win64_type
+    custom_install_switch = packet.custom_location
+    directory = packet.directory
+    package_name = packet.json_name
+    switches = packet.install_switches
+
     if sys.platform == 'win32':
         if download_type == '.exe':
             if '.exe' not in path:
@@ -125,7 +136,7 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                 subprocess.call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
             except (OSError, FileNotFoundError) as err:
                 try:
-                    proc = Popen(command.split(), stdout=PIPE,
+                    Popen(command.split(), stdout=PIPE,
                                  stdin=PIPE, stderr=PIPE)
                 except (OSError, FileNotFoundError) as err:
                     if '[WinError 740]' in str(err) and 'elevation' in str(err):
@@ -169,12 +180,19 @@ def install_package(path, package_name, switches, download_type, no_color, direc
             command = 'msiexec.exe /i ' + path + ' '
             for switch in switches:
                 command = command + ' ' + switch
+            
+            if not is_admin():
+                click.echo(click.style(
+                    'Administrator Elevation Required. Exit Code [0001]', fg='red'))
+                print(get_error_message('0001', 'installation'))
+                os._exit(0)
+            
             try:
-                proc = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                subprocess.call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
             except (OSError, FileNotFoundError) as err:
                 try:
-                    proc = Popen(command.split(), stdout=PIPE,
-                                 stdin=PIPE, stderr=PIPE, shell=True)
+                    Popen(command.split(), stdout=PIPE,
+                                 stdin=PIPE, stderr=PIPE)
                 except (OSError, FileNotFoundError) as err:
                     if '[WinError 740]' in str(err) and 'elevation' in str(err):
                         if not is_admin():
@@ -214,10 +232,10 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                     os._exit(0)
 
         elif download_type == '.zip':
-            if not no_color:
+            if not metadata.no_color:
                 click.echo(click.style(
                     f'Unzipping File At {path}', fg='green'))
-            if no_color:
+            if metadata.no_color:
                 click.echo(click.style(
                     f'Unzipping File At {path}'))
 
@@ -279,9 +297,9 @@ def install_package(path, package_name, switches, download_type, no_color, direc
             keyboard.add_hotkey('enter', enter)
             keyboard.wait()
 
-    # TODO: Implement the macOS side.
-    if sys.platform == 'darwin':
-        mount_dmg = f'hdiutil attach -nobrowse {file_name}'
+    # # TODO: Implement the macOS side.
+    # if sys.platform == 'darwin':
+    #     mount_dmg = f'hdiutil attach -nobrowse {file_name}'
 
 
 def uninstall_package(command: str, packet: Packet, metadata: Metadata) -> str:
@@ -291,7 +309,7 @@ def uninstall_package(command: str, packet: Packet, metadata: Metadata) -> str:
 
     except (CalledProcessError, OSError, FileNotFoundError) as err:
         try:
-            output = subprocess.check_output(
+            subprocess.check_output(
                 command, stderr=PIPE, stdin=PIPE, shell=True)
         except (CalledProcessError, OSError, FileNotFoundError) as err:
             if '[WinError 740]' in str(err) and 'elevation' in str(err):
@@ -361,7 +379,6 @@ def find_approx_pid(exe_name) -> str:
     output, err = proc.communicate()
     output = output.decode('utf-8')
     lines = output.splitlines()
-    split_package_name = exe_name.split('-')
 
     cleaned_up_names = []
     for line in lines:
@@ -403,45 +420,45 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
         os._exit(0)
 
 
-def kill_running_proc(package_name: str, quiet: bool, verbose: bool, debug: bool, yes: bool, no_color: bool):
+def kill_running_proc(package_name: str, metadata: Metadata):
     parts = package_name.split('-')
     name = ' '.join([p.capitalize() for p in parts])
     pid = int(find_approx_pid(package_name))
     if pid == 1:
         return
     if pid and pid != 1:
-        if yes:
-            write(f'Terminating {name}.', 'green', no_color, quiet)
+        if metadata.yes:
+            write(f'Terminating {name}.', 'green', metadata)
             os.kill(pid, SIGTERM)
             return
-        if quiet:
+        if metadata.silent:
             os.kill(pid, SIGTERM)
             return
         terminate = click.prompt(
             f'Electric Detected {name} Running In The Background. Would You Like To Terminate It? [y/n]')
         if terminate == 'y':
-            write(f'Terminating {name}.', 'green', no_color, quiet)
+            write(f'Terminating {name}.', 'green', metadata)
             os.kill(pid, SIGTERM)
         else:
-            write('Aborting Installation!', 'red', no_color, quiet)
+            write('Aborting Installation!', 'red', metadata)
             write_verbose(
-                f'Aborting Installation Due To {name} Running In Background', verbose, no_color, quiet)
+                f'Aborting Installation Due To {name} Running In Background', metadata)
             write_debug(
-                f'Aborting Installation Due To {name} Running In Background. Process Was Not Terminated.', debug, no_color, quiet)
+                f'Aborting Installation Due To {name} Running In Background. Process Was Not Terminated.', metadata)
             os._exit(1)
 
 
-def kill_proc(proc, no_color, silent):
+def kill_proc(proc, metadata: Metadata):
     if proc is not None:
         proc.terminate()
         write('SafetyHarness Successfully Created Clean Exit Gateway',
-              'green', no_color, silent)
+              'green', metadata)
         write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0',
-              'light_blue', no_color, silent)
+              'light_blue', metadata)
         os._exit(0)
     else:
         write('\nRapidExit Successfully Exited With Code 0',
-              'green', no_color, silent)
+              'green', metadata)
         os._exit(0)
 
 
@@ -471,7 +488,7 @@ def find_existing_installation(package_name: str, display_name: str):
 
 
 def refresh_environment_variables() -> bool:
-    proc = Popen(R'C:\Users\tejas\Desktop\electric\src\scripts\refreshvars.cmd',
+    proc = Popen(Rf'{current_dir}scripts\refreshvars.cmd',
                  stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     output, err = proc.communicate()
     if 'Finished' in output.decode('utf-8'):
@@ -481,7 +498,7 @@ def refresh_environment_variables() -> bool:
         print(err.decode('utf-8'))
 
 
-def check_virus(path: str, no_color: bool, silent: bool):
+def check_virus(path: str, metadata: Metadata):
     detected = virus_check(path)
     if detected:
         for value in detected.items():
@@ -490,7 +507,7 @@ def check_virus(path: str, no_color: bool, silent: bool):
         if continue_install == 'y':
             pass
         else:
-            handle_exit('Virus Check', '', no_color, silent)
+            handle_exit('Virus Check', '', metadata)
     else:
         click.echo(click.style('No Viruses Detected!', fg='green'))
 
@@ -498,7 +515,7 @@ def check_virus(path: str, no_color: bool, silent: bool):
 def setup_supercache():
     res, time = send_req_all()
     res = json.loads(res)
-    with open('C:\\Users\\tejas\\Desktop\\electric\\supercache.json', 'w+') as file:
+    with open(Rf'{parent_dir}\supercache.json', 'w+') as file:
         del res['_id']
         file.write(json.dumps(res, indent=4))
 
@@ -506,11 +523,11 @@ def setup_supercache():
 
 
 def update_supercache(res):
-    filepath = f'C:\\Users\\tejas\\Desktop\\electric\\supercache.json'
+    filepath = Rf'{parent_dir}\supercache.json'
     file = open(filepath, 'w+')
     file.write(json.dumps(res, indent=4))
     file.close()
-    logpath = f'C:\\Users\\tejas\\Desktop\\electric\\superlog.txt'
+    logpath = Rf'{parent_dir}\superlog.txt'
     logfile = open(logpath, 'w+')
     now = datetime.now()
     logfile.write(str(now))
@@ -518,7 +535,7 @@ def update_supercache(res):
 
 
 def check_supercache_valid():
-    filepath = R'C:\\Users\tejas\Desktop\electric\superlog.txt'
+    filepath = Rf'{parent_dir}\superlog.txt'
     if os.path.isfile(filepath):
         with open(filepath, 'r') as f:
             contents = f.read()
@@ -529,7 +546,7 @@ def check_supercache_valid():
 
 
 def handle_cached_request():
-    filepath = R'C:\\Users\tejas\Desktop\electric\supercache.json'
+    filepath = Rf'{parent_dir}\supercache.json'
     if os.path.isfile(filepath):
         file = open(filepath)
         start = timer()

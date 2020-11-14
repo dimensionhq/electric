@@ -4,7 +4,6 @@ import zipfile
 import ctypes
 import shutil
 import click
-import time
 import tqdm
 import sys
 import os
@@ -99,8 +98,11 @@ if isAdmin() and admin == 1:
                 f'{electric_dir}\electric')
     shutil.rmtree(Rf'C:\Electric\file')
     write('Successfully Unzipped And Extracted Electric.zip', 'green', metadata)
-    write('Setting Environment, This Might Take Upto 2 Minutes', 'cyan', metadata)
-    
+    write('Running setup.py For Electric', 'green', metadata)
+    os.chdir(Rf'C:\Electric\electric')
+    os.system('pip install --editable .')
+    write('Successfully Installed Electric, Type `electric` To Get A List Of Help Commands!', 'green', metadata)
+
 
 if admin == 1 and not isAdmin():
     click.echo(click.style(

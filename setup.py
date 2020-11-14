@@ -33,7 +33,9 @@ setup(
         'click_didyoumean',
         'wheel',
         'virustotal-api',
-        'switch'
+        'switch',
+        'click_didyoumean',
+        'click_completion'
     ],
     package_dir={'': 'src'},
     entry_points =
