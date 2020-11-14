@@ -107,9 +107,6 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                 path = path + '.exe'
             command = path + ' '
 
-            for switch in switches:
-                command = command + ' ' + switch
-
             if custom_install_switch:
                 if directory and directory != '':
                     if '/D=' in custom_install_switch:
@@ -121,13 +118,15 @@ def install_package(path, package_name, switches, download_type, no_color, direc
                         click.echo(click.style(
                             f'Installing {package_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
+            for switch in switches:
+                command = command + ' ' + switch
+
             try:
-                proc = Popen(command.split(), stdout=PIPE,
-                             stdin=PIPE, stderr=PIPE)
+                subprocess.call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
             except (OSError, FileNotFoundError) as err:
                 try:
                     proc = Popen(command.split(), stdout=PIPE,
-                                 stdin=PIPE, stderr=PIPE, shell=True)
+                                 stdin=PIPE, stderr=PIPE)
                 except (OSError, FileNotFoundError) as err:
                     if '[WinError 740]' in str(err) and 'elevation' in str(err):
                         if not is_admin():
@@ -524,7 +523,7 @@ def check_supercache_valid():
         with open(filepath, 'r') as f:
             contents = f.read()
         date = datetime.strptime(contents, '%Y-%m-%d %H:%M:%S.%f')
-        if (datetime.now() - date).seconds < 86400:
+        if (datetime.now() - date).days < 1:
             return True
     return False
 

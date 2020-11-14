@@ -75,7 +75,6 @@ def install(
     reduce: bool,
     rate_limit: int
 ):
-    start = timer()
     if logfile:
         logfile = logfile.replace('=', '')
     metadata = generate_metadata(
@@ -318,12 +317,8 @@ def install(
         status = 'Downloading'
 
         if rate_limit == -1:
-            start = timer()
             path = download(download_url, no_progress,
                             silent, packet.win64_type)
-            end = timer()
-            print(end - start)
-
         else:
             limiter = Limiter(limit=rate_limit)
             path = limiter(download_url, packet.win64_type)

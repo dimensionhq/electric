@@ -38,31 +38,6 @@
         ],
         "custom-location": ""
     },
-    "vscode": {
-        "package-name": "Visual Studio Code",
-        "win32": "https://aka.ms/win32-x64-user-stable",
-        "win64": "https://aka.ms/win32-x64-user-stable",
-        "darwin": "https://go.microsoft.com/fwlink/?LinkID=620882",
-        "debian": "https://go.microsoft.com/fwlink/?LinkID=760868",
-        "win32-type": ".exe",
-        "win64-type": ".exe",
-        "darwin-type": ".dmg",
-        "debian-type": ".deb",
-        "install-switches": [
-            "/SP-",
-            "/VERYSILENT",
-            "/SUPPRESSMSGBOXES",
-            "/NOCANCEL",
-            "/NORESTART",
-            "/FORCECLOSEAPPLICATIONS"
-        ],
-        "uninstall-switches": [
-            "/VERYSILENT",
-            "/SUPPRESSMSGBOXES",
-            "/NORESTART"
-        ],
-        "custom-location": "/DIR="
-    },
     "git": {
         "package-name": "Git",
         "win32": "https://github.com/git-for-windows/git/releases/download/v2.28.0.windows.1/Git-2.28.0-32-bit.exe",
@@ -170,5 +145,30 @@
             "/S"
         ],
         "custom-location": "/D="
+    },
+    "visual-studio-code": {
+        "package-name": "Visual Studio Code",
+        "win32": "https://aka.ms/win32-x64-user-stable",
+        "win64": "https://aka.ms/win32-x64-user-stable",
+        "darwin": "https://go.microsoft.com/fwlink/?LinkID=620882",
+        "debian": "https://go.microsoft.com/fwlink/?LinkID=760868",
+        "win32-type": ".exe",
+        "win64-type": ".exe",
+        "darwin-type": ".dmg",
+        "debian-type": ".deb",
+        "install-switches": [
+            "/SP-",
+            "/VERYSILENT",
+            "/SUPPRESSMSGBOXES",
+            "/NOCANCEL",
+            "/NORESTART",
+            "/FORCECLOSEAPPLICATIONS"
+        ],
+        "uninstall-switches": [
+            "/VERYSILENT",
+            "/SUPPRESSMSGBOXES",
+            "/NORESTART"
+        ],
+        "custom-location": "/DIR="
     }
 }
