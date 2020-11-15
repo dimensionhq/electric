@@ -1,6 +1,6 @@
+from registry import get_uninstall_key, get_environment_keys
 from Classes.PackageManager import PackageManager
 from timeit import default_timer as timer
-from registry import get_uninstall_key
 from click_didyoumean import DYMGroup
 from Classes.Packet import Packet
 from decimal import Decimal
@@ -266,7 +266,6 @@ def install(
                 return
             else:
                 handle_exit(status, setup_name, metadata)
-
         write_verbose(
             f"Package to be installed: {packet.json_name}", metadata)
         log_info(f"Package to be installed: {packet.json_name}", logfile)
@@ -299,7 +298,6 @@ def install(
         status = 'Download Path'
         download_url = get_download_url(packet)
         status = 'Got Download Path'
-
         end = timer()
 
         val = round(Decimal(end) - Decimal(start), 6)
@@ -338,24 +336,31 @@ def install(
             'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', logfile)
         if debug:
             click.echo('\n')
-
         write_debug(
             f'Installing {packet.json_name} through Setup{packet.win64}', metadata)
         log_info(
             f'Installing {packet.json_name} through Setup{packet.win64}', logfile)
-
+        start_snap = get_environment_keys()
         status = 'Installing'
         # Running The Installer silently And Completing Setup
         install_package(path, packet, metadata)
         status = 'Installed'
-        refresh_environment_variables()
+        final_snap = get_environment_keys()
+
+        if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
+            write('Refreshing Environment Variables...', 'green', metadata)
+            start = timer()
+            log_info(f'Refreshing Environment Variables', logfile)
+            write_debug(f'Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
+            write_verbose(f'Refreshing Environment Variables', metadata)
+            refresh_environment_variables()
+            end = timer()
+            write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
+
         write(
             f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
         log_info(f'Successfully Installed {packet.display_name}!', logfile)
 
-        log_info(f'Refreshing Environment Variables', logfile)
-        write_debug(f'Refreshing Env Variables, Calling Batch Script', metadata)
-        write_verbose(f'Refreshing Environment Variables', metadata)
 
         if metadata.reduce_package:
             write('Successfully Cleaned Up Installer From Temp Directory...',
@@ -596,6 +601,8 @@ def uninstall(
         if isinstance(key, list):
             if key:
                 key = key[0]
+        
+        write(f'Uninstalling {packet.display_name}...', 'green', metadata)
 
         # If QuietUninstallString Exists (Preferable)
         if 'QuietUninstallString' in key:

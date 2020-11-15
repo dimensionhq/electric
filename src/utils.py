@@ -1,6 +1,6 @@
 from subprocess import Popen, PIPE, CalledProcessError
-from timeit import default_timer as timer
 from Classes.PathManager import PathManager
+from timeit import default_timer as timer
 from Classes.Metadata import Metadata
 from Classes.Packet import Packet
 from viruscheck import virus_check
@@ -40,7 +40,6 @@ def is_admin():
     except AttributeError:
         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
     return is_admin
-
 
 class HiddenPrints:
     def __enter__(self):
@@ -90,9 +89,6 @@ def download(url, noprogress, silent, download_type):
                     sys.stdout.write(
                         f"\r{round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
                     sys.stdout.flush()
-
-                if silent:
-                    pass
 
                 elif not noprogress and not silent:
                     complete = int(20 * dl / full_length)
@@ -502,8 +498,14 @@ def check_virus(path: str, metadata: Metadata):
     detected = virus_check(path)
     if detected:
         for value in detected.items():
-            click.echo(click.style(f'{value[0]} => {value[1]}', fg='yellow'))
-        continue_install = click.prompt('Would You Like To Continue? [y/n]')
+            if not metadata.silent and not metadata.no_color:
+                click.echo(click.style(f'\n{value[0]} => {value[1]}', fg='yellow'))
+            elif metadata.no_color and not metadata.silent:
+                click.echo(click.style(f'\n{value[0]} => {value[1]}', fg='white'))
+            else:
+                continue_install = 'y'
+        if not metadata.silent:
+            continue_install = click.prompt('Would You Like To Continue? [y/n]')
         if continue_install == 'y':
             pass
         else:

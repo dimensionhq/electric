@@ -1,10 +1,8 @@
-from timeit import default_timer as timer
-from subprocess import CalledProcessError
 from logger import log_info, closeLog
 from Classes.Download import Download
 from Classes.Install import Install
 from multiprocessing import Process
-from subprocess import PIPE, STDOUT
+from subprocess import PIPE
 from threading import Thread
 from colorama import Back
 from extension import *
@@ -29,7 +27,6 @@ class PackageManager:
         self.metadata = metadata
 
     def download(self, download: Download):
-
         path = f'{tempfile.gettempdir()}\\{download.name}{download.extension}'
         with open(path, "wb") as f:
             response = requests.get(download.url, stream=True)
@@ -249,8 +246,8 @@ class PackageManager:
                 keyboard.wait()
 
         # TODO: Implement the macOS side.
-        if sys.platform == 'darwin':
-            mount_dmg = f'hdiutil attach -nobrowse {file_name}'
+        # if sys.platform == 'darwin':
+            # mount_dmg = f'hdiutil attach -nobrowse {file_name}'
 
         # TODO: IMplement the Linux side.
         if sys.platform == 'linux' or sys.platform == 'linux2':
@@ -284,6 +281,10 @@ class PackageManager:
             download_items.append(Download(packets[0].win64, packets[0].win64_type, 'Setup0',
                                            packets[0].display_name, f"{tempfile.gettempdir()}\\Setup0{packets[0].win64_type}"))
 
+        for item in download_items:
+            write_verbose(f'Sending request to {item.url} for downloading {item.display_name}', self.metadata)
+            write_debug(f'Downloading {item.display_name} from {item.url} into {item.name}{item.extension}', self.metadata)
+        
         method = self.calculate_spwn(len(packets))
 
         if method == 'threading':
@@ -314,9 +315,14 @@ class PackageManager:
             if self.metadata.virus_check:
                 write(
                     f'\nScanning {item.display_name} For Viruses...', 'blue', metadata)
-                check_virus(item.path, metadata.no_color, metadata.silent)
+                check_virus(item.path, metadata)
 
-        write('\nFinished Rapid Download...', 'green', metadata)
+        write_debug(f'Rapid Download Successfully Downloaded {len(download_items)} Packages Using RapidThreading', metadata)
+        write_debug('Rapid Download Exiting With Code 0', metadata)
+        if not self.metadata.debug:
+            write('\nFinished Rapid Download...', 'green', metadata)
+        else:
+            write('Finished Rapid Download...', 'green', metadata)
         log_info('Finished Rapid Download', metadata.logfile)
         write(
             'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
@@ -358,6 +364,7 @@ class PackageManager:
         return install_items
 
     def handle_multi_install(self, paths):
+        write_debug('Initialising Rapid Install Procedure...', self.metadata)
 
         processes = []
 
@@ -365,6 +372,7 @@ class PackageManager:
 
         idx = 0
         for item in install_items:
+            
             is_msi = False
             try:
                 item[1]
@@ -385,6 +393,7 @@ class PackageManager:
 
             if item:
                 for val in item:
+                    write_debug(f'Running Installer For <{val.display_name}> On Thread {item.index(val)}', self.metadata)
                     processes.append(
                         Process(target=self.install_package, args=(val,)))
                 for process in processes:
@@ -408,7 +417,10 @@ class PackageManager:
         write_debug(
             f'Refreshing Env Variables, Calling Batch Script', self.metadata)
         write_verbose(f'Refreshing Environment Variables', self.metadata)
+        start = timer()
         refresh_environment_variables()
+        end = timer()
+        write_debug(f'Successfully Refreshed Environment Variabled in {round((end - start), 2)} seconds', self.metadata)
         write_verbose('Installation and setup completed.', self.metadata)
         log_info('Installation and setup completed.', self.metadata.logfile)
         write_debug(
