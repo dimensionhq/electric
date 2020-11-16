@@ -1,3 +1,8 @@
+######################################################################
+#                               INSTALL                              #
+######################################################################
+
+
 class Install:
     def __init__(self, display_name, path, install_switches, download_type, directory, custom_install_switch, metadata):
         self.display_name = display_name

@@ -1,3 +1,8 @@
+######################################################################
+#                              EXTERNAL                              #
+######################################################################
+
+
 from Classes.Metadata import Metadata
 from subprocess import PIPE, Popen
 from extension import *

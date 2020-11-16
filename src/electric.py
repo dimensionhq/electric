@@ -1,3 +1,8 @@
+######################################################################
+#                            ELECTRIC CLI                            #
+######################################################################
+
+
 from registry import get_uninstall_key, get_environment_keys
 from Classes.PackageManager import PackageManager
 from Classes.Packet import Packet

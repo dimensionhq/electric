@@ -1,3 +1,7 @@
+######################################################################
+#                               PACKET                               #
+######################################################################
+
 class Packet:
     def __init__(self, json_name, display_name, win64, darwin, debian, win64_type, darwin_type, debian_type, custom_location, install_switches, uninstall_switches, directory):
         self.json_name = json_name

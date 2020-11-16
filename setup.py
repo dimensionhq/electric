@@ -1,3 +1,8 @@
+######################################################################
+#                                SETUP                               #
+######################################################################
+
+
 from setuptools import setup, find_packages
 from getpass import getuser
 import os

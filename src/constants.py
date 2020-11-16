@@ -1,3 +1,8 @@
+######################################################################
+#                              CONSTANTS                             #
+######################################################################
+
+
 from utils import get_architecture
 from time import strftime
 import platform

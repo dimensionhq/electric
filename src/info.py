@@ -1,3 +1,8 @@
+######################################################################
+#                                INFO                                #
+######################################################################
+
+
 __title__ = 'electric'
 __description__ = "A package manager for Windows, MacOS And Linux!"
 __url__ = 'https://github.com/TheBossProSniper/Electric'

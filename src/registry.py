@@ -1,3 +1,8 @@
+######################################################################
+#                              REGISTRY                              #
+######################################################################
+
+
 from Classes.RegSnapshot import RegSnapshot
 import difflib
 import winreg

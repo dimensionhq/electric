@@ -1,3 +1,8 @@
+######################################################################
+#                           PACKAGE MANAGER                          #
+######################################################################
+
+
 from logger import log_info, closeLog
 from Classes.Download import Download
 from Classes.Install import Install

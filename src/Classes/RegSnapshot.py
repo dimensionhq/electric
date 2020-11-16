@@ -1,3 +1,8 @@
+######################################################################
+#                          REGISTRY SNAPSHOT                         #
+######################################################################
+
+
 class RegSnapshot:
     def __init__(self, sys_value, sys_length, env_value, env_length):
         self.sys_value = sys_value
