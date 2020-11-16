@@ -2,7 +2,7 @@ __title__ = 'electric'
 __description__ = "A package manager for Windows, MacOS And Linux!"
 __url__ = 'https://github.com/TheBossProSniper/Electric'
 
-__version__ = '0.0.1'
+__version__ = '1.0.0a'
 __author__ = 'Electric Inc.'
 __credits__ = ""
 

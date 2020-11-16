@@ -71,7 +71,7 @@ class PackageManager:
                 for switch in switches:
                     command = command + ' ' + switch
 
-                if custom_install_switch and directory != None:
+                if custom_install_switch and directory:
                     if '/D=' in custom_install_switch:
                         command += ' ' + custom_install_switch + f'{directory}'
                     else:
@@ -81,102 +81,14 @@ class PackageManager:
                         click.echo(click.style(
                             f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
-                try:
-                    proc = Popen(command.split(), stdout=PIPE,
-                                 stdin=PIPE, stderr=PIPE)
-                except (OSError, FileNotFoundError) as err:
-                    try:
-                        proc = Popen(command.split(), stdout=PIPE,
-                                     stdin=PIPE, stderr=PIPE, shell=True)
-                    except (OSError, FileNotFoundError) as err:
-                        if '[WinError 740]' in str(err) and 'elevation' in str(err):
-                            if not is_admin():
-                                click.echo(click.style(
-                                    'Administrator Elevation Required. Exit Code [0001]', fg='bright_yellow'))
-                                print(get_error_message(
-                                    '0001', 'installation'))
-                                os._exit(0)
-
-                        if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
-
-                            click.echo(click.style(
-                                'Installation Failed!', fg='red'))
-                            print(get_error_message('0002', 'installation'))
-                            os._exit(0)
-
-                        else:
-                            print(get_error_message('0000', 'installation'))
-                            handle_unknown_error(str(err))
-                            os._exit(0)
-
-                    if '[WinError 740]' in str(err) and 'elevation' in str(err):
-                        if not is_admin():
-                            click.echo(click.style(
-                                'Administrator Elevation Required. Exit Code [0001]', fg='bright_yellow'))
-                            print(get_error_message('0001', 'installation'))
-                            os._exit(0)
-
-                    if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
-
-                        click.echo(click.style(
-                            'Installation Failed!', fg='red'))
-                        print(get_error_message('0002', 'installation'))
-                        os._exit(0)
-
-                    else:
-                        print(get_error_message('0000', 'installation'))
-                        handle_unknown_error(str(err))
-                        os._exit(0)
+                run_install_cmd(command, self.metadata)
 
             elif download_type == '.msi':
                 command = 'msiexec.exe /i' + path + ' '
                 for switch in switches:
                     command = command + ' ' + switch
-                try:
-                    proc = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-                except (OSError, FileNotFoundError) as err:
-                    try:
-                        proc = Popen(command.split(), stdout=PIPE,
-                                     stdin=PIPE, stderr=PIPE, shell=True)
-                    except (OSError, FileNotFoundError) as err:
-                        if '[WinError 740]' in str(err) and 'elevation' in str(err):
-                            if not is_admin():
-                                click.echo(click.style(
-                                    'Administrator Elevation Required. Exit Code [0001]', fg='bright_yellow'))
-                                print(get_error_message(
-                                    '0001', 'installation'))
-                                os._exit(0)
 
-                        if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
-
-                            click.echo(click.style(
-                                'Installation Failed!', fg='red'))
-                            print(get_error_message('0002', 'installation'))
-                            os._exit(0)
-
-                        else:
-                            print(get_error_message('0000', 'installation'))
-                            handle_unknown_error(str(err))
-                            os._exit(0)
-
-                    if '[WinError 740]' in str(err) and 'elevation' in str(err):
-                        if not is_admin():
-                            click.echo(click.style(
-                                'Administrator Elevation Required. Exit Code [0001]', fg='bright_yellow'))
-                            print(get_error_message('0001', 'installation'))
-                            os._exit(0)
-
-                    if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
-
-                        click.echo(click.style(
-                            'Installation Failed!', fg='red'))
-                        print(get_error_message('0002', 'installation'))
-                        os._exit(0)
-
-                    else:
-                        print(get_error_message('0000', 'installation'))
-                        handle_unknown_error(str(err))
-                        os._exit(0)
+                run_install_cmd(command, self.metadata)
 
             elif download_type == '.zip':
                 if not self.metadata.no_color:
@@ -284,7 +196,7 @@ class PackageManager:
         for item in download_items:
             write_verbose(f'Sending request to {item.url} for downloading {item.display_name}', self.metadata)
             write_debug(f'Downloading {item.display_name} from {item.url} into {item.name}{item.extension}', self.metadata)
-        
+
         method = self.calculate_spwn(len(packets))
 
         if method == 'threading':
@@ -372,7 +284,7 @@ class PackageManager:
 
         idx = 0
         for item in install_items:
-            
+
             is_msi = False
             try:
                 item[1]
@@ -410,13 +322,13 @@ class PackageManager:
                   'green', self.metadata)
 
         write(
-            f'Successfully Installed Packages!', 'bright_magenta', self.metadata)
-        log_info(f'Successfully Installed Packages!', self.metadata.logfile)
+            'Successfully Installed Packages!', 'bright_magenta', self.metadata)
+        log_info('Successfully Installed Packages!', self.metadata.logfile)
 
-        log_info(f'Refreshing Environment Variables', self.metadata.logfile)
+        log_info('Refreshing Environment Variables', self.metadata.logfile)
         write_debug(
-            f'Refreshing Env Variables, Calling Batch Script', self.metadata)
-        write_verbose(f'Refreshing Environment Variables', self.metadata)
+            'Refreshing Env Variables, Calling Batch Script', self.metadata)
+        write_verbose('Refreshing Environment Variables', self.metadata)
         start = timer()
         refresh_environment_variables()
         end = timer()

@@ -1,5 +1,6 @@
-from Classes.Metadata import Metadata
 import click
+
+from Classes.Metadata import Metadata
 
 
 def write(text: str, color: str, metadata: Metadata):

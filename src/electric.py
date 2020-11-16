@@ -1,8 +1,9 @@
 from registry import get_uninstall_key, get_environment_keys
 from Classes.PackageManager import PackageManager
+from Classes.Packet import Packet
 from timeit import default_timer as timer
 from click_didyoumean import DYMGroup
-from Classes.Packet import Packet
+from info import __version__
 from decimal import Decimal
 from limit import Limiter
 from constants import *
@@ -15,35 +16,16 @@ import difflib
 import click
 import sys
 import os
-import click_completion
-
-__version__ = '1.0.0a'
-
-click_completion.init()
-
-
-def get_packages(ctx, args, incomplete):
-    return [
-        'node',
-        'atom',
-        'blender',
-        'vscode',
-        'git',
-        'sublime-text-3',
-        'notepad++',
-        'android-studio'
-    ]
-
 
 @click.group(cls=DYMGroup)
 @click.version_option(__version__)
 @click.pass_context
-def cli(ctx):
+def cli(_):
     pass
 
 
 @cli.command()
-@click.argument('package_name', required=True, autocompletion=get_packages)
+@click.argument('package_name', required=True)
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for installation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for installation')
 @click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for installation')
@@ -54,6 +36,7 @@ def cli(ctx):
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during installation')
 @click.option('--silent', '-s', is_flag=True, help='Completely silent installation without any output to console')
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to install')
+@click.option('--node', '-npm', is_flag=True, help='Specify a Python package to install')
 @click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
 @click.option('--sync', '-sc', is_flag=True, help='Force downloads and installations one after another')
 @click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after installation')
@@ -73,7 +56,8 @@ def install(
     no_cache: bool,
     sync: bool,
     reduce: bool,
-    rate_limit: int
+    rate_limit: int,
+    node: bool,
 ):
     if logfile:
         logfile = logfile.replace('=', '')
@@ -86,13 +70,18 @@ def install(
 
     if python:
 
-        flags = []
-
         package_names = package_name.split(',')
 
         for name in package_names:
-            handle_python_package(name, 'install', flags, metadata)
+            handle_python_package(name, 'install', metadata)
 
+        sys.exit()
+    
+    if node:
+        package_names = package_name.split(',')
+        for name in package_names:
+            handle_node_package(name, 'install', metadata)
+        
         sys.exit()
 
     super_cache = check_supercache_valid()
@@ -132,7 +121,7 @@ def install(
                     click.echo(click.style(
                         'Incorrect / Invalid Package Name Entered. Aborting Installation.', fg='red'))
                     log_info(
-                        f'Incorrect / Invalid Package Name Entered. Aborting Installation', logfile)
+                        'Incorrect / Invalid Package Name Entered. Aborting Installation', logfile)
                     handle_exit(status, setup_name, metadata)
 
                 if yes:
@@ -350,9 +339,9 @@ def install(
         if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
             write('Refreshing Environment Variables...', 'green', metadata)
             start = timer()
-            log_info(f'Refreshing Environment Variables', logfile)
-            write_debug(f'Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
-            write_verbose(f'Refreshing Environment Variables', metadata)
+            log_info('Refreshing Environment Variables', logfile)
+            write_debug('Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
+            write_verbose('Refreshing Environment Variables', metadata)
             refresh_environment_variables()
             end = timer()
             write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
@@ -380,7 +369,7 @@ def install(
 
 
 @cli.command()
-@click.argument('package_name', required=True, autocompletion=get_packages)
+@click.argument('package_name', required=True)
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for uninstallation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for uninstallation')
 @click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for uninstallation')
@@ -420,7 +409,7 @@ def uninstall(
         package_names = package_name.split(',')
 
         for name in package_names:
-            handle_python_package(name, 'uninstall', flags, metadata)
+            handle_python_package(name, 'uninstall', metadata)
 
         sys.exit()
 
@@ -454,7 +443,7 @@ def uninstall(
                     click.echo(click.style(
                         'Incorrect / Invalid Package Name Entered. Aborting Uninstallation.', fg='red'))
                     log_info(
-                        f'Incorrect / Invalid Package Name Entered. Aborting Uninstallation', logfile)
+                        'Incorrect / Invalid Package Name Entered. Aborting Uninstallation', logfile)
                     handle_exit(status, setup_name, metadata)
 
                 if yes:
@@ -601,8 +590,8 @@ def uninstall(
         if isinstance(key, list):
             if key:
                 key = key[0]
-        
-        write(f'Uninstalling {packet.display_name}...', 'green', metadata)
+  
+        write(f'Uninstalling {packet.display_name}', 'green', metadata)
 
         # If QuietUninstallString Exists (Preferable)
         if 'QuietUninstallString' in key:

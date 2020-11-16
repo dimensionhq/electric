@@ -35,7 +35,8 @@ setup(
         'virustotal-api',
         'switch',
         'click_didyoumean',
-        'click_completion'
+        'click_completion',
+        'pyperclip'
     ],
     package_dir={'': 'src'},
     entry_points =
