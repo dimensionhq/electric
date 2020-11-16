@@ -359,8 +359,6 @@ def find_approx_pid(exe_name) -> str:
 
 
 def handle_exit(status: str, setup_name: str, metadata: Metadata):
-    with HiddenPrints():
-        time.sleep(1)
 
     if status == 'Downloaded' or status == 'Installing' or status == 'Installed':
         exe_name = setup_name.split('\\')[-1]
