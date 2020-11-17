@@ -1,17 +1,21 @@
 ######################################################################
 #                     OFFICIAL ELECTRIC INSTALLER                    #
 ######################################################################
+import os
+os.system('pip install tqdm')
+os.system('pip install requests')
+os.system('pip install click')
 
+import click
+click.echo(click.style('All Installer Dependencies Installed!', fg='green'))
 
 import argparse
 import requests
 import zipfile
 import ctypes
 import shutil
-import click
 import tqdm
 import sys
-import os
 
 
 class Metadata:
