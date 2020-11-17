@@ -10,7 +10,7 @@ from timeit import default_timer as timer
 from click_didyoumean import DYMGroup
 from info import __version__
 from decimal import Decimal
-from limit import Limiter
+from limit import Limiter, TokenBucket
 from constants import *
 from external import *
 from logger import *
@@ -21,6 +21,7 @@ import difflib
 import click
 import sys
 import os
+from urllib.request import urlretrieve
 
 @click.group(cls=DYMGroup)
 @click.version_option(__version__)
@@ -312,8 +313,18 @@ def install(
             path = download(download_url, no_progress,
                             silent, packet.win64_type)
         else:
-            limiter = Limiter(limit=rate_limit)
-            path = limiter(download_url, packet.win64_type)
+            bucket = TokenBucket(tokens=10*rate_limit, fill_rate=rate_limit)
+
+            limiter = Limiter(
+                bucket=bucket,
+                filename=f"{tempfile.gettempdir()}\Setup{packet.win64_type}"
+            )
+
+            urlretrieve(
+                url=download_url,
+                filename=f"{tempfile.gettempdir()}\Setup{packet.win64_type}",
+                reporthook=limiter
+            )
 
         status = 'Downloaded'
 
