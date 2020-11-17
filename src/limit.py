@@ -2,77 +2,93 @@
 #                          DOWNLOAD LIMITER                          #
 ######################################################################
 
-# from typing import Any
-# import aiothrottle
-# import aiohttp
-# import asyncio
-# import tempfile
-# import sys
 
-
-# class Limiter:
-
-#     def __init__(self, limit) -> None:
-#         self.limit = limit
-
-#     async def load_file(self, url, download_type) -> Any:
-#         async with aiohttp.ClientSession() as session:
-#             async with session.get(url) as response:
-#                 path = f'{tempfile.gettempdir()}\\Setup{download_type}'
-#                 with open(path, 'wb') as f:
-#                     dl = 0
-#                     full_length = response.content_length
-#                     async for chunk in response.content.iter_chunked(7000):
-#                         f.write(chunk)
-#                         dl += len(chunk)
-#                         complete = int(20 * dl / full_length)
-#                         fill_c, unfill_c = '#' * \
-#                             complete, ' ' * (20 - complete)
-#                         sys.stdout.write(
-#                             f"\r[{fill_c}{unfill_c}] ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB")
-#                         sys.stdout.flush()
-#         return path
-
-#     def __call__(self, url, download_type) -> Any:
-
-#         aiothrottle.limit_rate(self.limit) #1 sec
-
-#         loop = asyncio.get_event_loop()
-#         path = loop.run_until_complete(self.load_file(url, download_type))
-
-#         return path
-
-
-from typing import Any
-import aiothrottle
-import aiohttp
-import asyncio
-import tempfile
 from timeit import default_timer as timer
+import threading
+import time
+from typing import Any
+from urllib.request import urlretrieve
 
+
+class TokenBucket:
+    def __init__(self, tokens, fill_rate) -> None:
+        self.capacity = float(tokens)
+        self._tokens = float(tokens)
+        self.fill_rate = float(fill_rate)
+        self.timestamp = time.time()
+        self.lock = threading.RLock()
+
+    def consume(self, tokens):
+        self.lock.acquire()
+
+        tokens = max(tokens, self.tokens)
+
+        expected_time = (tokens - self.tokens) / self.fill_rate
+
+        if expected_time <= 0:
+            self._tokens -= tokens
+        
+        self.lock.release()
+
+        return max(0, expected_time)
+    
+    @property
+    def tokens(self):
+        self.lock.acquire()
+
+        if self._tokens < self.capacity:
+            now = time.time()
+
+            delta = self.fill_rate * (now - self.timestamp)
+            self._tokens = min(self.capacity, self._tokens + delta)
+
+            self.timestamp = now
+
+        value = self._tokens
+
+        self.lock.release()
+
+        return value
+    
 
 class Limiter:
+    def __init__(self, bucket, filename) -> None:
+        self.bucket = bucket
+        self.last_update = 0
+        self.last_downloaded_kb = 0
 
-    def __init__(self, limit) -> None:
-        self.limit = limit
+        self.filename = filename
+        self.avg_rate = None
 
-    async def load_file(self, url, download_type) -> Any:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                path = f'{tempfile.gettempdir()}\\Setup{download_type}'
-                with open(path, 'wb') as f:
-                    f.write(await response.read())
+    def __call__(self, block_count, block_size, total_size) -> Any:
+        total_kb = total_size / 1024
 
-        return path
+        downloaded_kb = (block_count * block_size) / 1024.
+        just_downloaded = downloaded_kb - self.last_downloaded_kb
+        
+        self.last_downloaded_kb = downloaded_kb
 
-    def __call__(self, url, download_type) -> Any:
-        start = timer()
-        aiothrottle.limit_rate(self.limit)
+        predicted_size = block_size/1024.
 
-        loop = asyncio.get_event_loop()
-        path = loop.run_until_complete(self.load_file(url, download_type))
-        end = timer()
-        print(end - start)
-        aiothrottle.unlimit_rate()
+        wait_time = self.bucket.consume(predicted_size)
+        
+        while wait_time > 0:
+            time.sleep(wait_time)
+            wait_time = self.bucket.consume(predicted_size)
 
-        return path
+        now = time.time()
+        delta = now - self.last_update
+        
+        if self.last_update != 0:
+            if delta > 0:
+                rate = just_downloaded / delta
+                
+                if self.avg_rate is not None:
+                    rate = 0.9 * self.avg_rate + 0.1 * rate
+                
+                self.avg_rate = rate
+            
+            else:
+                rate = self.avg_rate or 0.
+
+        self.last_update = now
