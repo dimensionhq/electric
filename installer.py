@@ -99,7 +99,7 @@ if isAdmin() and admin == 1:
                 pass
     os.remove(f'{electric_dir}\\Electric.zip')
     os.rename(f'{electric_dir}\electric', Rf'{electric_dir}\file')
-    shutil.move(Rf'{electric_dir}\file\electric',
+    shutil.move(Rf'{electric_dir}\file\electric-dist',
                 f'{electric_dir}\electric')
     shutil.rmtree(Rf'C:\Electric\file')
     write('Successfully Unzipped And Extracted Electric.zip', 'green', metadata)
@@ -115,4 +115,4 @@ if admin == 1 and not isAdmin():
 
 
 elif admin == 2:
-    print('User installation')
+    print('User installation not supported yet')
