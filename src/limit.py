@@ -8,6 +8,7 @@ import threading
 import time
 from typing import Any
 from urllib.request import urlretrieve
+from progress.bar import Bar
 
 
 class TokenBucket:
@@ -59,19 +60,24 @@ class Limiter:
 
         self.filename = filename
         self.avg_rate = None
+        self.bar = Bar('')
 
     def __call__(self, block_count, block_size, total_size) -> Any:
         total_kb = total_size / 1024
+        self.bar.max = total_kb / 8.00008
 
         downloaded_kb = (block_count * block_size) / 1024.
         just_downloaded = downloaded_kb - self.last_downloaded_kb
         
         self.last_downloaded_kb = downloaded_kb
 
+        # print('called')
+        self.bar.next()
+
         predicted_size = block_size/1024.
 
         wait_time = self.bucket.consume(predicted_size)
-        
+
         while wait_time > 0:
             time.sleep(wait_time)
             wait_time = self.bucket.consume(predicted_size)

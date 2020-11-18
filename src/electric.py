@@ -313,11 +313,11 @@ def install(
             path = download(download_url, no_progress,
                             silent, packet.win64_type)
         else:
-            bucket = TokenBucket(tokens=10*rate_limit, fill_rate=rate_limit)
+            bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
 
             limiter = Limiter(
                 bucket=bucket,
-                filename=f"{tempfile.gettempdir()}\Setup{packet.win64_type}"
+                filename=f"{tempfile.gettempdir()}\Setup{packet.win64_type}",
             )
 
             urlretrieve(
@@ -325,6 +325,8 @@ def install(
                 filename=f"{tempfile.gettempdir()}\Setup{packet.win64_type}",
                 reporthook=limiter
             )
+
+            path = f"{tempfile.gettempdir()}\Setup{packet.win64_type}"
 
         status = 'Downloaded'
 
@@ -349,6 +351,7 @@ def install(
         status = 'Installing'
         # Running The Installer silently And Completing Setup
         install_package(path, packet, metadata)
+
         status = 'Installed'
         final_snap = get_environment_keys()
 
@@ -630,7 +633,7 @@ def uninstall(
             write_verbose("Executing the quiet uninstall command", metadata)
             log_info("Executing the quiet uninstall command", logfile)
 
-            uninstall_package(command, packet, metadata)
+            run_cmd(command, metadata, 'uninstallation')
 
             write(
                 f"Successfully Uninstalled {packet.display_name}", "bright_magenta", metadata)
@@ -658,7 +661,7 @@ def uninstall(
             write_verbose("Executing the Uninstall Command", metadata)
             log_info("Executing the Uninstall Command", logfile)
 
-            uninstall_package(command, packet, metadata)
+            run_cmd(command, metadata, 'uninstallation')
 
             write(
                 f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)

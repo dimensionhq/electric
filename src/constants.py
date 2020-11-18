@@ -3,7 +3,6 @@
 ######################################################################
 
 
-from utils import get_architecture
 from time import strftime
 import platform
 import sys
@@ -12,6 +11,15 @@ import os
 # Set Of Constants That Can Be Used Throughout The Code
 
 __version__ = '1.0.0a'
+
+def get_architecture():
+    if platform.machine().endswith('64'):
+        return 'x64'
+    if platform.machine().endswith('86'):
+        return 'x32'
+
+    return None
+
 
 # Install Debug Headers
 install_debug_headers = [
@@ -35,4 +43,20 @@ uninstall_debug_headers = [
     f"Current directory: {os.getcwd()}",
     f"Electric version: {__version__}",
     f"System architecture detected: {get_architecture()}"
+]
+
+valid_install_exit_codes = [
+    0,
+    1641,
+    2359302,
+    2149842956,
+]
+
+valid_uninstall_exit_codes = [
+    0,
+    1605,
+    1614,
+    1641,
+    2359303,
+    2149842956
 ]

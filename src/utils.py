@@ -3,7 +3,8 @@
 ######################################################################
 
 
-from subprocess import Popen, PIPE, CalledProcessError
+from constants import valid_install_exit_codes, valid_uninstall_exit_codes
+from subprocess import Popen, PIPE, CalledProcessError, check_call
 from Classes.PathManager import PathManager
 from timeit import default_timer as timer
 from Classes.Metadata import Metadata
@@ -12,13 +13,12 @@ from viruscheck import virus_check
 from datetime import datetime
 import pyperclip as clipboard
 from signal import SIGTERM
-from colorama import Back
+from colorama import Back, Fore
 from switch import Switch
 from extension import *
 import webbrowser
 import subprocess
 import keyboard
-import platform
 import requests
 import tempfile
 import registry
@@ -27,11 +27,11 @@ import zipfile
 import hashlib
 import ctypes
 import click
-import time
 import json
 import sys
 import os
 import re
+
 
 index = 0
 final_value = None
@@ -56,15 +56,6 @@ class HiddenPrints:
     def __exit__(self, exc_type, exc_val, exc_tb):
         sys.stdout.close()
         sys.stdout = self._original_stdout
-
-
-def get_architecture():
-    if platform.machine().endswith('64'):
-        return 'x64'
-    if platform.machine().endswith('86'):
-        return 'x32'
-
-    return None
 
 
 def get_download_url(packet):
@@ -108,50 +99,51 @@ def download(url, noprogress, silent, download_type):
     return path
 
 
-def run_install_cmd(command: str, metadata: Metadata):
+def get_error_cause(error: str, method: str) -> str:
+
+    if method == 'installation':
+        for code in valid_install_exit_codes:
+            if f'exit status {code}' in error:
+                return ['no-error']
+    
+    if method == 'uninstallation':
+        for code in valid_uninstall_exit_codes:
+            if f'exit status {code}' in error:
+                return ['no-error']
+    
+
+    if '[WinError 740]' in error and 'elevation' in error:
+        # Process Needs Elevation To Execute
+        click.echo(click.style(f'\nAdministrator Elevation Requied. Exit Code [0001]', fg='red'))
+        return get_error_message('0001', 'installation')
+    
+    if 'exit status 2' in error or 'exit status 1' in error:
+        # User Declined Prompt Asking For Permission
+        click.echo(click.style(f'\nAdministrative Privileges Declined. Exit Code [0101]', fg='red'))
+        return get_error_message('0101', 'installation')
+    
+    if 'exit status 4' in error:
+        # Fatal Error During Installation
+        click.echo(click.style(f'\nFatal Error. Exit Code [1111]', fg='red'))
+        return get_error_message('1111', 'installation')
+    
+    if 'exit status 3010' or 'exit status 2359301' in error:
+        # Installer Requesting Reboot
+        return get_error_message('1010', 'installation')
+    
+    else:
+        click.echo(click.style(f'\nUnknown Error. Exited With Code [0000]', fg='red'))
+        handle_unknown_error(error)
+        return get_error_message('0000', 'installation')
+
+
+def run_cmd(command: str,  metadata: Metadata, method: str):
     try:
-        subprocess.call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    except (OSError, FileNotFoundError) as err:
-        try:
-            Popen(command.split(), stdout=PIPE,
-                            stdin=PIPE, stderr=PIPE)
-        except (OSError, FileNotFoundError) as err:
-            if '[WinError 740]' in str(err) and 'elevation' in str(err):
-                if not is_admin():
-                    click.echo(click.style(
-                        'Administrator Elevation Required. Exit Code [0001]', fg='bright_yellow'))
-                    disp_error_msg(get_error_message('0001', 'installation'))
-                    handle_exit('ERROR', None, metadata)
-
-            if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
-
-                click.echo(click.style(
-                    'Installation Failed!', fg='red'))
-                disp_error_msg(get_error_message('0002', 'installation'))
-                handle_exit('ERROR', None, metadata)
-
-            else:
-                disp_error_msg(get_error_message('0000', 'installation'))
-                handle_unknown_error(str(err))
-                handle_exit('ERROR', None, metadata)
-
-        if '[WinError 740]' in str(err) and 'elevation' in str(err):
-            if not is_admin():
-                click.echo(click.style(
-                    '\nAdministrator Elevation Required. Exit Code [0001]', fg='bright_yellow'))
-                disp_error_msg(get_error_message('0001', 'installation'))
-                handle_exit('ERROR', None, metadata)
-
-        if 'FileNotFoundError' in str(err) or 'WinError 2' in str(err):
-
-            click.echo(click.style('Installation Failed!', fg='red'))
-            disp_error_msg(get_error_message('0002', 'installation'))
-            handle_exit('ERROR', None, metadata)
-
-        else:
-            disp_error_msg(get_error_message('0000', 'installation'))
-            handle_unknown_error(str(err))
-            handle_exit('ERROR', None, metadata)
+        check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    except (CalledProcessError, OSError, FileNotFoundError) as err:
+        keyboard.add_hotkey(
+        'ctrl+c', lambda: os._exit(0))
+        disp_error_msg(get_error_cause(str(err), method), metadata)
 
 
 def install_package(path, packet: Packet, metadata: Metadata) -> str:
@@ -183,7 +175,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             for switch in switches:
                 command = command + ' ' + switch
 
-            run_install_cmd(command, metadata)
+            run_cmd(command, metadata, 'installation')
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i ' + path + ' '
@@ -195,7 +187,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
                     '\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
                 disp_error_msg(get_error_message('0001', 'installation'))
                 handle_exit('ERROR', None, metadata)
-            run_install_cmd(command, metadata)
+            run_cmd(command, metadata, 'installation')
 
         elif download_type == '.zip':
             if not metadata.no_color:
@@ -266,36 +258,6 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
     # # TODO: Implement the macOS side.
     # if sys.platform == 'darwin':
     #     mount_dmg = f'hdiutil attach -nobrowse {file_name}'
-
-
-def uninstall_package(command: str, packet: Packet, metadata: Metadata) -> str:
-    try:
-        subprocess.check_output(
-            command, stderr=PIPE, stdin=PIPE)
-
-    except (CalledProcessError, OSError, FileNotFoundError) as err:
-        try:
-            subprocess.check_output(
-                command, stderr=PIPE, stdin=PIPE, shell=True)
-        except (CalledProcessError, OSError, FileNotFoundError) as err:
-            if '[WinError 740]' in str(err) and 'elevation' in str(err):
-                if not is_admin():
-                    write(
-                        f'Installation Failed With Code [0001]', 'red', metadata)
-                    print(get_error_message('0001', 'uninstallation'))
-                    handle_exit('ERROR', 'None', metadata)
-            else:
-                if not is_admin():
-                    write(
-                        f'Installation Failed With Code [0001]', 'red', metadata)
-                    print(get_error_message('0001', 'uninstallation'))
-                    handle_exit('ERROR', 'None', metadata)
-                else:
-                    write(
-                        'Installation Failed Due To An Unknown Error [0000]', 'red', metadata)
-                    handle_unknown_error(str(err))
-                    print(get_error_message('0000', 'uninstallation'))
-                    os._exit(0)
 
 
 def get_correct_package_names(res: str) -> list:
@@ -452,7 +414,7 @@ def find_existing_installation(package_name: str, display_name: str):
 
 
 def refresh_environment_variables() -> bool:
-    proc = Popen(Rf'{current_dir}scripts\refreshvars.cmd',
+    proc = Popen(Rf'{current_dir}\scripts\refreshvars.cmd',
                  stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     output, err = proc.communicate()
     if 'Finished' in output.decode('utf-8'):
@@ -537,17 +499,38 @@ def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfil
     return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce)
 
 
-def disp_error_msg(messages: list):
+def disp_error_msg(messages: list, metadata: Metadata):
+    if 'no-error' in messages:
+        return
+
+    reboot = False
     websites = []
     commands = []
+    idx = 0
     for msg in messages:
+        if idx == 0:
+            click.echo(click.style(msg, fg='yellow'))
+            idx += 1
+            continue
+        if 'Reboot' in msg:
+            reboot = True
+            break
         if 'http' in msg:
             websites.append(msg.strip())
-            click.echo(click.style(msg, fg='blue', underline=True))
+            click.echo(click.style(msg, fg='blue'))
+            idx += 1
+            continue
         if 'electric install' in msg:
             commands.append(re.findall(r'\`(.*?)`', msg))
         else:
             click.echo(msg)
+        
+        idx += 1
+
+    if reboot:
+        reboot = click.confirm('Would you like to reboot? [y/n]')
+        if reboot:
+            os.system('shutdown /R')
 
     if commands:
         run = click.prompt('Would You Like To Install Node? [y/n]')
@@ -559,13 +542,14 @@ def disp_error_msg(messages: list):
         website = click.prompt('Would You Like To Visit Any Of The Above Websites? [y/n]')
         if website == 'y':
             try:
-                webpage = int(click.prompt('Enter Webpage Selection Number ')) - 1
+                webpage = int(click.prompt('Which Webpage Would You Like To Visit? ')) - 1
             except:
-                return
+                handle_exit('ERROR', None, metadata)
             try:
                 webbrowser.open(websites[webpage][8:])
             except:
                 pass
+    handle_exit('ERROR', None, metadata)
 
 
 def get_error_message(code: str, method: str):
@@ -585,28 +569,56 @@ def get_error_message(code: str, method: str):
 
         if code('0000'):
             return [
-                f'\n[0000] => {method.capitalize()} failed due to an unknown reason, to get support, file a support ticket at https://www.electric.com/support\n\nHelp:',
+                f'\n[0000] => {method.capitalize()} failed due to an unknown reason.',
+                '\nFile a support ticket at https://www.electric.com/support',
+                '\n\nHelp:',
                 '\nhttps://www.electric.sh/troubleshoot'
                 ]
 
         if code('0011'):
             clipboard.copy('electric install node')
             return [
-                '\n[0011] => Node(npm) is not installed on your system.\n\nHow To Fix:\n', 
+                '\n[0011] => Node(npm) is not installed on your system.', 
+                '\n\nHow To Fix:\n', 
                 'Run `electric install node` [ Copied To Clipboard ] To Install Node(npm)'
                 ]
 
         if code('0010'):
             clipboard.copy('electric install python3')
             return [
-                '\n[0010] => Python(pip) is not installed on your system.\n\nHow To Fix:\n',
+                '\n[0010] => Python(pip) is not installed on your system.',
+                '\n\nHow To Fix:\n',
                 'Run `electric install python3` [ Copied To Clipboard ] To install Python(pip).\n\nHelp:',
-                '\nhttps://www.educative.io/edpresso/how-to-add-python-to-path-variable-in-windows',
-                '\nhttps://stackoverflow.com/questions/23708898/pip-is-not-recognized-as-an-internal-or-external-command'
+                '\n[1] <=> https://www.educative.io/edpresso/how-to-add-python-to-path-variable-in-windows',
+                '\n[2] <=> https://stackoverflow.com/questions/23708898/pip-is-not-recognized-as-an-internal-or-external-command'
                 ]
-
-    return None
-
+        
+        if code('1010'):
+            return [
+                f'\n[1010] => Installer Has Requested A Reboot In Order To Complete {method.capitalize()}.\n'
+            ]
+        
+        if code('1111'):
+            return [
+                f'\n[1111] => The {attr.capitalize()}er For This Package Failed Due To A Fatal Error. This is likely not an issue or error with electric.', 
+                '\n\nWe recommend you raise a support ticket with the data generated below:',
+                generate_report(),
+                '\n\nHelp:\n',
+                '\n[1] <=> https://www.electric.sh/errors/1111',
+                '\n[2] <=> https://www.electric.sh/support',
+            ]
+        
+        if code('0101'):
+            return [
+                f'\n[0101] => The installer / uninstaller was denied of Administrator permissions And failed to initialize successfully.', 
+                '\n\nHow To Fix:\n',
+                'Make sure you accept prompt asking for administrator privileges or alternatively: \n',
+                f'Run Your Command Prompt Or Powershell As Administrator And Retry {method.capitalize()}.\n\n\nHelp:',
+                '\n[1] <=> https://www.electric.sh/errors/0101',
+                '\n[2] <=> https://www.howtogeek.com/194041/how-to-open-the-command-prompt-as-administrator-in-windows-8.1/',
+                '\n[3] <=> https://www.top-password.com/blog/5-ways-to-run-powershell-as-administrator-in-windows-10/\n\n'
+            ]
+        
 
 def handle_unknown_error(err: str):
     error_msg = click.prompt('Would You Like To See The Error Message? [y/n]')
