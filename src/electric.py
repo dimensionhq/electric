@@ -310,8 +310,7 @@ def install(
         status = 'Downloading'
 
         if rate_limit == -1:
-            path = download(download_url, no_progress,
-                            silent, packet.win64_type)
+            path, cached = download(download_url, packet.json_name, metadata, packet.win64_type)
         else:
             bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
 
@@ -330,7 +329,11 @@ def install(
 
         status = 'Downloaded'
 
-        write('\nFinished Rapid Download', 'green', metadata)
+        if not cached:
+            write('\nFinished Rapid Download', 'green', metadata)
+        else:
+            write('Finished Rapid Download', 'green', metadata)
+
         log_info('Finished Rapid Download', logfile)
 
         if virus_check:

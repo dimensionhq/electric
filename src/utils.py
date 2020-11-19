@@ -27,6 +27,7 @@ import zipfile
 import hashlib
 import ctypes
 import random
+import pickle
 import click
 import json
 import sys
@@ -70,39 +71,81 @@ def get_download_url(packet):
         return packet.linux
 
 
-def download(url, noprogress, silent, download_type):
-    path = f'{tempfile.gettempdir()}\\Setup{download_type}'
+def generate_dict(path: str, package_name: str):
+    return {
+        'directory': path,
+        'package_name': package_name,
+        'size': os.stat(path).st_size,
+    }
 
-    while os.path.isfile(path):
-        path = f'{tempfile.gettempdir()}\\Setup{random.randint(200, 10000)}'
+
+def dump_pickle(data: dict):
+    with open(Rf'{tempfile.gettempdir()}\downloadcache.pickle', 'wb') as f:
+        pickle.dump(data, f)
 
 
-    with open(path, "wb") as f:
-        response = requests.get(url, stream=True)
-        total_length = response.headers.get('content-length')
+def retrieve_data():
+    if os.path.isfile(Rf'{tempfile.gettempdir()}\downloadcache.pickle'):
+        with open(Rf'{tempfile.gettempdir()}\downloadcache.pickle', 'rb') as f:
+            final = pickle.loads(f.read())
+            return final
 
-        if total_length is None:
-            f.write(response.content)
+
+def check_existing_download(package_name: str, download_type) -> bool:
+    data = retrieve_data()
+    if data:
+        if data['package_name'] == package_name:
+            if os.stat(data['directory'] + download_type).st_size < data['size']:
+                # Corrupt Installation
+                return False
+            return data['directory']
+    return False 
+
+
+def download(url, package_name, metadata: Metadata, download_type):
+
+        path = check_existing_download(package_name, download_type)
+
+        if isinstance(path, bool):
+            path = f'{tempfile.gettempdir()}\\Setup{download_type}'
         else:
-            dl = 0
-            full_length = int(total_length)
+            write(f'Found Existing Download At => {tempfile.gettempdir()}', 'blue', metadata)
+            return path, True
 
-            for data in response.iter_content(chunk_size=7096):
-                dl += len(data)
-                f.write(data)
+        while os.path.isfile(path):
+            path = f'{tempfile.gettempdir()}\\Setup{random.randint(200, 10000)}'
 
-                if noprogress:
-                    sys.stdout.write(
-                        f"\r{round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
-                    sys.stdout.flush()
+        
 
-                elif not noprogress and not silent:
-                    complete = int(20 * dl / full_length)
-                    fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
-                    sys.stdout.write(
-                        f"\r[{fill_c}{unfill_c}] ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB")
-                    sys.stdout.flush()
-    return path
+        with open(path, "wb") as f:
+            response = requests.get(url, stream=True)
+            total_length = response.headers.get('content-length')
+
+            if total_length is None:
+                f.write(response.content)
+            else:
+                dl = 0
+                full_length = int(total_length)
+
+                for data in response.iter_content(chunk_size=7096):
+                    dl += len(data)
+                    f.write(data)
+
+                    if metadata.no_progress:
+                        sys.stdout.write(
+                            f"\r{round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
+                        sys.stdout.flush()
+
+                    elif not metadata.no_progress and not metadata.silent:
+                        complete = int(20 * dl / full_length)
+                        fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
+                        sys.stdout.write(
+                            f"\r[{fill_c}{unfill_c}] ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB")
+                        sys.stdout.flush()
+        
+        dump_pickle(generate_dict(path, package_name))
+
+        return path, False
 
 
 def get_error_cause(error: str, method: str) -> str:
