@@ -1,7 +1,13 @@
+######################################################################
+#                               LOGGING                              #
+######################################################################
+
+
 import logging
 from time import strftime
 from os.path import isfile
 
+# Create Log File At A Certain Directory (logfile)
 def createConfig(logfile : str, level, process : str):
     mode = None
     if isfile(logfile):

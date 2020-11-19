@@ -1,6 +1,8 @@
 __pycache__/
 .idea/
+.vscode/
 src/__pycache__
 src/electric.egg-info
-.vscode
-.DS_STORE
+Database/__pycache__
+src/Classes/__pycache__
+Private/

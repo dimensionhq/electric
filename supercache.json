@@ -1,0 +1,216 @@
+{
+    "_id": "5fb3f96d28f9d1537720144a",
+    "atom": {
+        "package-name": "Atom",
+        "win32": "https://atom.io/download/windows",
+        "win64": "https://atom.io/download/windows_x64",
+        "darwin": "https://atom.io/download/macos",
+        "debian": "https://github.com/atom/atom/releases/download/v1.51.0/atom-amd64.deb",
+        "win32-type": ".exe",
+        "win64-type": ".exe",
+        "darwin-type": ".dmg",
+        "debian-type": ".deb",
+        "install-switches": [
+            "-s"
+        ],
+        "uninstall-switches": [
+            "-s"
+        ],
+        "custom-location": ""
+    },
+    "sublime-text-3": {
+        "package-name": "Sublime Text 3",
+        "win32": "https://download.sublimetext.com/Sublime%20Text%20Build%203211%20Setup.exe",
+        "win64": "https://download.sublimetext.com/Sublime%20Text%20Build%203211%20x64%20Setup.exe",
+        "darwin": "https://download.sublimetext.com/Sublime%20Text%20Build%203211.dmg",
+        "debian": "https://download.sublimetext.com/sublime_text_3_build_3211_x64.tar.bz2",
+        "win32-type": ".exe",
+        "win64-type": ".exe",
+        "darwin-type": ".dmg",
+        "debian-type": ".tar.bz2",
+        "install-switches": [
+            "/SP-",
+            "/VERYSILENT",
+            "/SUPPRESSMSGBOXES",
+            "/NOCANCEL",
+            "/NORESTART",
+            "/FORCECLOSEAPPLICATIONS"
+        ],
+        "uninstall-switches": [
+            "/VERYSILENT",
+            "/SUPPRESSMSGBOXES",
+            "/NORESTART"
+        ],
+        "custom-location": "/DIR="
+    },
+    "nodejs": {
+        "package-name": "NodeJS",
+        "win32": "https://nodejs.org/dist/v12.19.0/node-v12.19.0-x86.msi",
+        "win64": "https://nodejs.org/dist/v12.19.0/node-v12.19.0-x64.msi",
+        "darwin": "https://nodejs.org/dist/v14.14.0/node-v14.14.0.pkg",
+        "debian": "https://nodejs.org/dist/v14.14.0/node-v14.14.0-linux-x64.tar.xz",
+        "win32-type": ".msi",
+        "win64-type": ".msi",
+        "darwin-type": ".pkg",
+        "debian-type": ".tar.xz",
+        "install-switches": [
+            "/passive",
+            "/quiet",
+            "/norestart"
+        ],
+        "uninstall-switches": [
+            "/passive",
+            "/quiet",
+            "/norestart"
+        ],
+        "custom-location": "/TARGETDIR="
+    },
+    "vscode": {
+        "package-name": "Visual Studio Code",
+        "win32": "https://aka.ms/win32-x64-user-stable",
+        "win64": "https://aka.ms/win32-x64-user-stable",
+        "darwin": "https://go.microsoft.com/fwlink/?LinkID=620882",
+        "debian": "https://go.microsoft.com/fwlink/?LinkID=760868",
+        "win32-type": ".exe",
+        "win64-type": ".exe",
+        "darwin-type": ".dmg",
+        "debian-type": ".deb",
+        "install-switches": [
+            "/SP-",
+            "/VERYSILENT",
+            "/SUPPRESSMSGBOXES",
+            "/NOCANCEL",
+            "/NORESTART",
+            "/FORCECLOSEAPPLICATIONS"
+        ],
+        "uninstall-switches": [
+            "/VERYSILENT",
+            "/SUPPRESSMSGBOXES",
+            "/NORESTART"
+        ],
+        "custom-location": "/DIR="
+    },
+    "git": {
+        "package-name": "Git",
+        "win32": "https://github.com/git-for-windows/git/releases/download/v2.28.0.windows.1/Git-2.28.0-32-bit.exe",
+        "win64": "https://github.com/git-for-windows/git/releases/download/v2.28.0.windows.1/Git-2.28.0-64-bit.exe",
+        "darwin": "https://sourceforge.net/projects/git-osx-installer/files/latest/download",
+        "debian": "http://ftp.br.debian.org/debian/pool/main/g/git/git_2.28.0-1_amd64.deb",
+        "win32-type": ".exe",
+        "win64-type": ".exe",
+        "darwin-type": ".dmg",
+        "debian-type": ".deb",
+        "install-switches": [
+            "/SP-",
+            "/VERYSILENT",
+            "/SUPPRESSMSGBOXES",
+            "/NOCANCEL",
+            "/NORESTART",
+            "/FORCECLOSEAPPLICATIONS"
+        ],
+        "uninstall-switches": [
+            "/VERYSILENT",
+            "/SUPPRESSMSGBOXES",
+            "/NORESTART"
+        ],
+        "custom-location": "/DIR="
+    },
+    "7-zip": {
+        "package-name": "7-Zip",
+        "win32": "https://www.7-zip.org/a/7z1900.exe",
+        "win64": "https://www.7-zip.org/a/7z1900-x64.exe",
+        "darwin": "None",
+        "debian": "None",
+        "win32-type": ".exe",
+        "win64-type": ".exe",
+        "darwin-type": ".dmg",
+        "debian-type": ".deb",
+        "install-switches": [
+            "/S"
+        ],
+        "uninstall-switches": [
+            "/S"
+        ],
+        "custom-location": "None"
+    },
+    "blender": {
+        "package-name": "Blender",
+        "win32": "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.90/blender-2.90.1-windows64.msi",
+        "win64": "https://ftp.nluug.nl/pub/graphics/blender/release/Blender2.90/blender-2.90.1-windows64.msi",
+        "darwin": "https://www.blender.org/download/Blender2.90/blender-2.90.1-macOS.dmg/",
+        "debian": "https://www.blender.org/download/Blender2.90/blender-2.90.1-linux64.tar.xz/",
+        "win32-type": ".msi",
+        "win64-type": ".msi",
+        "darwin-type": ".dmg",
+        "debian-type": ".tar.xz",
+        "install-switches": [
+            "/passive",
+            "/quiet",
+            "/norestart"
+        ],
+        "uninstall-switches": [
+            "/passive",
+            "/quiet",
+            "/norestart"
+        ],
+        "custom-location": "/TARGETDIR="
+    },
+    "notepad++": {
+        "package-name": "Notepad++",
+        "win32": "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.8.8/npp.7.8.8.Installer.exe",
+        "win64": "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.8.8/npp.7.8.8.Installer.x64.exe",
+        "darwin": "None",
+        "debian": "None",
+        "win32-type": ".exe",
+        "win64-type": ".exe",
+        "darwin-type": "None",
+        "debian-type": "None",
+        "install-switches": [
+            "/S"
+        ],
+        "uninstall-switches": [
+            "/S"
+        ],
+        "custom-location": "/D="
+    },
+    "android-studio": {
+        "package-name": "Android Studio",
+        "win32": "None",
+        "win64": "https://redirector.gvt1.com/edgedl/android/studio/install/4.0.2.0/android-studio-ide-193.6821437-windows.exe",
+        "darwin": "https://redirector.gvt1.com/edgedl/android/studio/install/4.0.2.0/android-studio-ide-193.6821437-mac.dmg",
+        "debian": "https://redirector.gvt1.com/edgedl/android/studio/ide-zips/4.0.2.0/android-studio-ide-193.6821437-linux.tar.gz",
+        "win32-type": "None",
+        "win64-type": ".exe",
+        "darwin-type": ".dmg",
+        "debian-type": ".tar.gz",
+        "install-switches": [
+            "/S"
+        ],
+        "uninstall-switches": [
+            "/S"
+        ],
+        "custom-location": "/D="
+    },
+    "anydesk": {
+        "package-name": "Anydesk",
+        "win32": "https://download.anydesk.com/AnyDesk.msi",
+        "win64": "https://download.anydesk.com/AnyDesk.msi",
+        "darwin": "https://download.anydesk.com/anydesk.dmg",
+        "debian": "https://download.anydesk.com/linux/anydesk_6.0.1-1_amd64.deb",
+        "win32-type": ".msi",
+        "win64-type": ".msi",
+        "darwin-type": ".dmg",
+        "debian-type": ".deb",
+        "install-switches": [
+            "/passive",
+            "/quiet",
+            "/norestart"
+        ],
+        "uninstall-switches": [
+            "/passive",
+            "/quiet",
+            "/norestart"
+        ],
+        "custom-location": "/TARGETDIR="
+    }
+}

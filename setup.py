@@ -1,10 +1,12 @@
+######################################################################
+#                                SETUP                               #
+######################################################################
+
+
 from setuptools import setup, find_packages
-from setuptools.command.develop import develop
-from setuptools.command.install import install
 from getpass import getuser
 import os
 from sys import platform
-import subprocess
 
 user = getuser()
 
@@ -27,11 +29,19 @@ setup(
     packages=find_packages(),
     scripts=[os.path.join(os.path.abspath(os.getcwd()), 'src', 'electric.py')],
     install_requires = [
-        'Click',
+        'click',
         'progress',
         'requests',
         'keyboard',
         'colorama',
+        'aiothrottle',
+        'click_didyoumean',
+        'wheel',
+        'virustotal-api',
+        'switch',
+        'click_didyoumean',
+        'click_completion',
+        'pyperclip'
     ],
     package_dir={'': 'src'},
     entry_points =

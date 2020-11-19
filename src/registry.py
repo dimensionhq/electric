@@ -1,3 +1,9 @@
+######################################################################
+#                              REGISTRY                              #
+######################################################################
+
+
+from Classes.RegSnapshot import RegSnapshot
 import difflib
 import winreg
 import os
@@ -24,8 +30,6 @@ def get_uninstall_key(package_name : str):
                 try:
                     name = winreg.QueryValueEx(skey, 'DisplayName')[0]
                     stro = winreg.QueryValueEx(skey, 'UninstallString')[0]
-
-
                     packs = []
                     for regkey in ["URLInfoAbout", "InstallLocation", "Publisher"]:
                         try:
@@ -105,6 +109,7 @@ def get_uninstall_key(package_name : str):
 
                     if possibilities:
                         total.append(possibilities)
+                        
                     else:
                         continue
                 else:
@@ -181,3 +186,9 @@ def get_uninstall_key(package_name : str):
         return get_more_accurate_matches(return_array)
     else:
         return return_array
+
+
+def get_environment_keys() -> RegSnapshot:
+    env_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Environment', 0, winreg.KEY_READ)
+    sys_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, R'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 0, winreg.KEY_READ)
+    return RegSnapshot(str(winreg.EnumValue(env_key, 2)[1]), len(str(winreg.EnumValue(env_key, 2)[1]).split(';')), str(winreg.EnumValue(sys_key, 4)[1]), len(str(winreg.EnumValue(sys_key, 2)[1]).split(';')))
