@@ -5,12 +5,12 @@
 
 from registry import get_uninstall_key, get_environment_keys
 from Classes.PackageManager import PackageManager
-from Classes.Packet import Packet
 from timeit import default_timer as timer
-from click_didyoumean import DYMGroup
+from limit import Limiter, TokenBucket
+from Classes.Packet import Packet
 from info import __version__
 from decimal import Decimal
-from limit import Limiter, TokenBucket
+from cdym import DYMGroup
 from constants import *
 from external import *
 from logger import *

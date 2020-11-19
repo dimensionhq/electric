@@ -26,6 +26,7 @@ import difflib
 import zipfile
 import hashlib
 import ctypes
+import random
 import click
 import json
 import sys
@@ -71,6 +72,11 @@ def get_download_url(packet):
 
 def download(url, noprogress, silent, download_type):
     path = f'{tempfile.gettempdir()}\\Setup{download_type}'
+
+    while os.path.isfile(path):
+        path = f'{tempfile.gettempdir()}\\Setup{random.randint(200, 10000)}'
+
+
     with open(path, "wb") as f:
         response = requests.get(url, stream=True)
         total_length = response.headers.get('content-length')
