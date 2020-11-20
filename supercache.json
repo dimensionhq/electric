@@ -212,5 +212,41 @@
             "/norestart"
         ],
         "custom-location": "/TARGETDIR="
+    },
+    "teamviewer": {
+        "package-name": "Teamviewer",
+        "win32": "https://download.teamviewer.com/download/TeamViewer_Setup.exe",
+        "win64": "https://download.teamviewer.com/download/TeamViewer_Setup.exe",
+        "darwin": "https://download.teamviewer.com/download/TeamViewer.dmg",
+        "debian": "https://download.teamviewer.com/download/linux/teamviewer_amd64.deb",
+        "win32-type": ".exe",
+        "win64-type": ".exe",
+        "darwin-type": ".dmg",
+        "debian-type": ".deb",
+        "install-switches": [
+            "/S"
+        ],
+        "uninstall-switches": [
+            "/S"
+        ],
+        "custom-location": "/D="
+    },
+    "virtualbox": {
+        "package-name": "VirtualBox",
+        "win32": "https://download.virtualbox.org/virtualbox/6.1.14/VirtualBox-6.1.14-140239-Win.exe",
+        "win64": "https://download.virtualbox.org/virtualbox/6.1.14/VirtualBox-6.1.14-140239-Win.exe",
+        "darwin": "https://download.virtualbox.org/virtualbox/6.1.14/VirtualBox-6.1.14-140239-OSX.dmg",
+        "debian": "https://download.virtualbox.org/virtualbox/6.1.14/virtualbox-6.1_6.1.14-140239~Ubuntu~eoan_amd64.deb",
+        "win32-type": ".exe",
+        "win64-type": ".exe",
+        "darwin-type": ".dmg",
+        "debian-type": ".deb",
+        "install-switches": [
+            "--silent"
+        ],
+        "uninstall-switches": [
+            "/qn"
+        ],
+        "custom-location": "None"
     }
 }

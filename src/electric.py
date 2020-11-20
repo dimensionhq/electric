@@ -8,9 +8,9 @@ from Classes.PackageManager import PackageManager
 from timeit import default_timer as timer
 from limit import Limiter, TokenBucket
 from Classes.Packet import Packet
+from cdym import SuperChargeCLI
 from info import __version__
 from decimal import Decimal
-from cdym import DYMGroup
 from constants import *
 from external import *
 from logger import *
@@ -23,14 +23,14 @@ import sys
 import os
 from urllib.request import urlretrieve
 
-@click.group(cls=DYMGroup)
+@click.group(cls=SuperChargeCLI)
 @click.version_option(__version__)
 @click.pass_context
 def cli(_):
     pass
 
 
-@cli.command()
+@cli.command(aliases=['i'])
 @click.argument('package_name', required=True)
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for installation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for installation')
@@ -390,7 +390,7 @@ def install(
     end = timer()
 
 
-@cli.command()
+@cli.command(aliases=['u'])
 @click.argument('package_name', required=True)
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for uninstallation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for uninstallation')
@@ -399,7 +399,7 @@ def install(
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during uninstallation')
 @click.option('--silent', '-s', is_flag=True, help='Completely silent uninstallation without any output to console')
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to uninstall')
-@click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
+@click.option('--no-cache', '-nocache', is_flag=True, help='Prevent cache usage for uninstallation')
 def uninstall(
     package_name: str,
     verbose: bool,
@@ -676,6 +676,7 @@ def uninstall(
             log_info(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', logfile)
             closeLog(logfile, 'Uninstall')
+
 
 @cli.command()
 @click.argument('approx_name', required=True)

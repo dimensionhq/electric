@@ -159,7 +159,6 @@ def get_error_cause(error: str, method: str) -> str:
         for code in valid_uninstall_exit_codes:
             if f'exit status {code}' in error:
                 return ['no-error']
-    
 
     if '[WinError 740]' in error and 'elevation' in error:
         # Process Needs Elevation To Execute
@@ -176,6 +175,11 @@ def get_error_cause(error: str, method: str) -> str:
         click.echo(click.style(f'\nFatal Error. Exit Code [1111]', fg='red'))
         return get_error_message('1111', 'installation')
     
+    if '[WinError 87]' in error and 'incorrect' in error:
+        click.echo(click.style(f'\nUnknown Error. Exited With Code [0000]', fg='red'))
+        handle_unknown_error(error)
+        return get_error_message('0000', 'installation')
+
     if 'exit status 3010' or 'exit status 2359301' in error:
         # Installer Requesting Reboot
         return get_error_message('1010', 'installation')
@@ -187,6 +191,7 @@ def get_error_cause(error: str, method: str) -> str:
 
 
 def run_cmd(command: str,  metadata: Metadata, method: str):
+    command = command.replace('\"\"', '\"')
     try:
         check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except (CalledProcessError, OSError, FileNotFoundError) as err:
