@@ -8,7 +8,7 @@ from Classes.PackageManager import PackageManager
 from timeit import default_timer as timer
 from limit import Limiter, TokenBucket
 from Classes.Packet import Packet
-from cdym import SuperChargeCLI
+from cli import SuperChargeCLI
 from info import __version__
 from decimal import Decimal
 from constants import *
@@ -678,7 +678,7 @@ def uninstall(
             closeLog(logfile, 'Uninstall')
 
 
-@cli.command()
+@cli.command(aliases=['find'])
 @click.argument('approx_name', required=True)
 def search(approx_name: str):
     
@@ -711,3 +711,55 @@ def search(approx_name: str):
     
     else:
         click.echo(click.style('0 packages found!', fg='red'))
+
+@cli.command(aliases=['info'])
+@click.argument('package_name', required=True)
+def show(package_name: str):
+    super_cache = check_supercache_valid()
+
+    if super_cache:
+        res, _ = handle_cached_request()
+
+    else:
+        status = 'Networking'
+        write_verbose('Sending GET Request To /packages', metadata)
+        write_debug('Sending GET Request To /packages', metadata)
+        log_info('Sending GET Request To /packages', logfile)
+        res, _ = send_req_all()
+        res = json.loads(res)
+        update_supercache(res)
+        del res['_id']
+
+    if super_cache:
+        res, _ = handle_cached_request()
+
+    else:
+        status = 'Networking'
+        write_verbose('Sending GET Request To /packages', metadata)
+        write_debug('Sending GET Request To /packages', metadata)
+        log_info('Sending GET Request To /packages', logfile)
+        res, time = send_req_all()
+        res = json.loads(res)
+        update_supercache(res)
+        del res['_id']
+
+    correct_names = get_correct_package_names(res)
+    corrected_package_names = []
+
+    if package_name in correct_names:
+        corrected_package_names.append(package_name)
+    else:
+        corrections = difflib.get_close_matches(package_name, correct_names)
+        if corrections:
+            
+            click.echo(click.style(f'Autocorrecting To {corrections[0]}', fg='bright_magenta'))
+            if click.prompt('Would You Like To Continue? [y/n]') == 'y':
+                package_name = corrections[0]
+                corrected_package_names.append(package_name)
+            else:
+                sys.exit()
+        else:
+            click.echo(click.style(f'Could Not Find Any Packages Which Match {package_name}', fg='bright_magenta'))
+
+    pkg_info = res[corrected_package_names[0]]
+    click.echo(click.style(display_info(pkg_info), fg='green'))

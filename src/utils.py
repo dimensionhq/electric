@@ -698,3 +698,11 @@ def handle_unknown_error(err: str):
             count += 1
   
     return count >= 2
+
+
+def display_info(json: dict) -> str:
+    return f'''
+| Name => {json['package-name']}
+| Url(Windows) => {json['win64']}
+| Url(MacOS) => {json['darwin']}
+    '''
