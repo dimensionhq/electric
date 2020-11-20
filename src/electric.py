@@ -676,3 +676,37 @@ def uninstall(
             log_info(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', logfile)
             closeLog(logfile, 'Uninstall')
+
+@cli.command()
+@click.argument('approx_name', required=True)
+def search(approx_name: str):
+    
+    super_cache = check_supercache_valid()
+    if super_cache:
+        res, time = handle_cached_request()
+
+    else:
+        status = 'Networking'
+        res, time = send_req_all()
+        res = json.loads(res)
+
+    correct_names = get_correct_package_names(res)[1:]
+    
+    matches = difflib.get_close_matches(approx_name, correct_names)
+    
+    if len(matches) > 0:
+        idx = 0
+        for match in matches:
+            if idx == 0:
+                click.echo(click.style(f'{match}', fg='bright_magenta'))
+                idx += 1
+                continue
+            else:
+                print(match)
+        if len(matches) != 1:
+            click.echo(click.style(f'{len(matches)} packages found.', fg='green'))
+        else:
+            click.echo(click.style(f'1 package found.', fg='yellow'))
+    
+    else:
+        click.echo(click.style('0 packages found!', fg='red'))
