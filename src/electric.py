@@ -390,7 +390,7 @@ def install(
     end = timer()
 
 
-@cli.command(aliases=['u'])
+@cli.command(aliases=['remove','u', 'uninst'])
 @click.argument('package_name', required=True)
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for uninstallation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for uninstallation')
