@@ -67,12 +67,13 @@ def install(
 ):
     if logfile:
         logfile = logfile.replace('=', '')
-    metadata = generate_metadata(
-        no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce)
-
-    if logfile:
         logfile = logfile.replace('.txt', '.log')
         createConfig(logfile, logging.INFO, 'Install')
+    
+    log_info('Generating metadata...', logfile)
+    metadata = generate_metadata(
+        no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce)
+    log_info('Successfully generated metadata.', logfile)
 
     if python:
 
@@ -90,10 +91,15 @@ def install(
         
         sys.exit()
 
+    log_info('Checking if supercache exists...', metadata.logfile)
     super_cache = check_supercache_valid()
+    if super_cache:
+        log_info('Supercache detected.', metadata.logfile)
     if no_cache:
+        log_info('Overriding SuperCache To FALSE', metadata.logfile)
         super_cache = False
 
+    log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
     status = 'Initializing'
     setup_name = ''
     keyboard.add_hotkey(
@@ -102,9 +108,11 @@ def install(
     packages = package_name.strip(' ').split(',')
 
     if super_cache:
+        log_info('Handling SuperCache Request.', metadata.logfile)
         res, time = handle_cached_request()
 
     else:
+        log_info('Handling Network Request...')
         status = 'Networking'
         write_verbose('Sending GET Request To /packages', metadata)
         write_debug('Sending GET Request To /packages', metadata)
@@ -173,6 +181,7 @@ def install(
 
     if not sync:
         if len(corrected_package_names) > 5:
+            log_info('Terminating installation!', metadata.logfile)
             write('electric Doesn\'t Support More Than 5 Parallel Downloads At Once Currently. Use The --sync Flag To Synchronously Download The Packages', 'red', metadata)
         if len(corrected_package_names) > 1:
             packets = []
@@ -241,12 +250,14 @@ def install(
 
     for package in corrected_package_names:
         pkg = res[package]
+        log_info('Generating Packet For Further Installation.', metadata.logfile)
         packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory)
+        log_info('Searching for existing installation of package.', metadata.logfile)
         installation = find_existing_installation(package, packet.json_name)
 
         if installation:
             write_debug(
-                f"Aborting Installation As {packet.json_name} is already installed.", metadata)
+                f"Found existing installation of {packet.json_name}.", metadata)
             write_verbose(
                 f"Found an existing installation of => {packet.json_name}", metadata)
             write(
@@ -259,6 +270,7 @@ def install(
                 return
             else:
                 handle_exit(status, setup_name, metadata)
+
         write_verbose(
             f"Package to be installed: {packet.json_name}", metadata)
         log_info(f"Package to be installed: {packet.json_name}", logfile)
@@ -297,11 +309,13 @@ def install(
         write(
             f'Electrons Transferred In {val}s', 'cyan', metadata)
         log_info(f'Electrons Transferred In {val}s', logfile)
+        write_debug(f'Successfully Parsed Download Path in {val}s', metadata)
 
         write('Initializing Rapid Download...', 'green', metadata)
         log_info('Initializing Rapid Download...', logfile)
 
         # Downloading The File From Source
+        write_debug(f'Downloading {packet.display_name} from => {packet.win64}', metadata)
         write_verbose(
             f"Downloading from '{download_url}'", metadata)
         log_info(f"Downloading from '{download_url}'", logfile)
@@ -310,6 +324,7 @@ def install(
         if rate_limit == -1:
             path, cached = download(download_url, packet.json_name, metadata, packet.win64_type)
         else:
+            log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
             bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
 
             limiter = Limiter(
@@ -328,9 +343,9 @@ def install(
         status = 'Downloaded'
 
         if not cached:
-            write('\nFinished Rapid Download', 'green', metadata)
+            write('\nCompleted Rapid Download', 'green', metadata)
         else:
-            write('Finished Rapid Download', 'green', metadata)
+            write('Completed Rapid Download', 'green', metadata)
 
         log_info('Finished Rapid Download', logfile)
 
@@ -342,12 +357,11 @@ def install(
             'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
         log_info(
             'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', logfile)
-        if debug:
-            click.echo('\n')
+
         write_debug(
-            f'Installing {packet.json_name} through Setup{packet.win64}', metadata)
+            f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
         log_info(
-            f'Installing {packet.json_name} through Setup{packet.win64}', logfile)
+            f'Installing {packet.json_name} through Setup{packet.win64_type}', logfile)
         start_snap = get_environment_keys()
         status = 'Installing'
         # Running The Installer silently And Completing Setup
@@ -359,7 +373,7 @@ def install(
         if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
             write('Refreshing Environment Variables...', 'green', metadata)
             start = timer()
-            log_info('Refreshing Environment Variables', logfile)
+            log_info('Refreshing Environment Variables At scripts/refreshvars.cmd', logfile)
             write_debug('Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
             write_verbose('Refreshing Environment Variables', metadata)
             refresh_environment_variables()
@@ -372,13 +386,16 @@ def install(
 
 
         if metadata.reduce_package:
-            write('Successfully Cleaned Up Installer From Temp Directory...',
-                  'green', metadata)
+            
             os.remove(path)
             try:
                 os.remove(Rf'{tempfile.gettempdir()}\downloadcache.pickle')
             except:
                 pass
+                
+            log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
+            write('Successfully Cleaned Up Installer From Temp Directory...',
+                  'green', metadata)
 
         write_verbose('Installation and setup completed.', metadata)
         log_info('Installation and setup completed.', logfile)
@@ -414,12 +431,21 @@ def uninstall(
     no_cache: bool
 ):
 
+    log_info('Generating metadata...', logfile)
+
     metadata = generate_metadata(
         None, silent, verbose, debug, no_color, yes, logfile, None, None)
+    
+    log_info('Successfully generated metadata.', logfile)
 
+    log_info('Checking if supercache exists...', metadata.logfile)
     super_cache = check_supercache_valid()
 
+    if super_cache:
+        log_info('SuperCache detected.', metadata.logfile)
+
     if no_cache:
+        log_info('Overriding SuperCache To FALSE', metadata.logfile)
         super_cache = False
 
     if logfile:
@@ -437,6 +463,7 @@ def uninstall(
 
         sys.exit()
 
+    log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
     status = 'Initializing'
     setup_name = ''
     keyboard.add_hotkey(
@@ -445,15 +472,18 @@ def uninstall(
     packages = package_name.split(',')
 
     if super_cache:
+        log_info('Handling SuperCache Request.', metadata.logfile)
         res, time = handle_cached_request()
 
     else:
+        log_info('Handling Network Request...')
         status = 'Networking'
         write_verbose('Sending GET Request To /rapidquery/packages', metadata)
         write_debug('Sending GET Request To /rapidquery/packages', metadata)
         log_info('Sending GET Request To /rapidquery/packages', logfile)
         res, time = send_req_all()
         res = json.loads(res)
+
     correct_names = get_correct_package_names(res)
     corrected_package_names = []
 
@@ -511,6 +541,7 @@ def uninstall(
 
     for package in corrected_package_names:
         pkg = res[package]
+        log_info('Generating Packet For Further Installation.', metadata.logfile)
         packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None)
         proc = None
         keyboard.add_hotkey(
@@ -534,11 +565,13 @@ def uninstall(
         # Getting UninstallString or QuietUninstallString From The Registry Search Algorithm
         write_verbose(
             "Fetching uninstall key from the registry...", metadata)
+        write_debug('Sending query (uninstall-string) to Registry', metadata)
         log_info("Fetching uninstall key from the registry...", logfile)
 
         start = timer()
         key = get_uninstall_key(packet.json_name)
         end = timer()
+
 
         # If The UninstallString Or QuietUninstallString Doesn't Exist
         # if not key:
@@ -600,6 +633,7 @@ def uninstall(
 
         write_verbose("Uninstall key found.", metadata)
         log_info("Uninstall key found.", logfile)
+        write_debug('Successfully Recieved UninstallString from Windows Registry', metadata)
 
         write(
             f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', 'cyan', metadata)
@@ -614,7 +648,7 @@ def uninstall(
             if key:
                 key = key[0]
   
-        write(f'Uninstalling {packet.display_name}', 'green', metadata)
+        write(f'Uninstalling {packet.display_name}...', 'green', metadata)
 
         # If QuietUninstallString Exists (Preferable)
         if 'QuietUninstallString' in key:
@@ -627,6 +661,7 @@ def uninstall(
                 if packet.uninstall_switches != []:
                     write_verbose(
                         "Adding additional uninstall switches", metadata)
+                    write_debug('Appending / Adding additional uninstallation switches', metadata)
                     log_info("Adding additional uninstall switches", logfile)
                     additional_switches = packet.uninstall_switches
 
@@ -635,8 +670,8 @@ def uninstall(
                     command += ' ' + switch
 
             write_verbose("Executing the quiet uninstall command", metadata)
-            log_info("Executing the quiet uninstall command", logfile)
-
+            log_info(f"Executing the quiet uninstall command => {command}", logfile)
+            write_debug(f'Running silent uninstallation command', metadata)
             run_cmd(command, metadata, 'uninstallation')
 
             write(
