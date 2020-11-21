@@ -72,7 +72,7 @@ if isAdmin() and admin == 1:
         f'Downloading Electric.zip From /install To {electric_dir}\\Electric.zip', 'bright_yellow', metadata)
     with open(f'{electric_dir}\\Electric.zip', "wb") as f:
         response = requests.get(
-            'https://electric-package-manager.herokuapp.com/install', stream=True)
+            'https://electric-package-manager.herokuapp.com/install/windows', stream=True)
         total_length = response.headers.get('content-length')
 
         if total_length is None:

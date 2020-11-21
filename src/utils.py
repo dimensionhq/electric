@@ -61,14 +61,7 @@ class HiddenPrints:
 
 
 def get_download_url(packet):
-    if sys.platform == 'win32':
-        return packet.win64
-
-    elif sys.platform == 'darwin':
-        return packet.darwin
-
-    elif sys.platform == 'linux':
-        return packet.linux
+    return packet.win64
 
 
 def generate_dict(path: str, package_name: str):
@@ -176,9 +169,8 @@ def get_error_cause(error: str, method: str) -> str:
         return get_error_message('1111', 'installation')
     
     if '[WinError 87]' in error and 'incorrect' in error:
-        click.echo(click.style(f'\nUnknown Error. Exited With Code [0000]', fg='red'))
-        handle_unknown_error(error)
-        return get_error_message('0000', 'installation')
+        click.echo(click.style(f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
+        return get_error_message('0002', 'installation')
 
     if 'exit status 3010' or 'exit status 2359301' in error:
         # Installer Requesting Reboot
@@ -207,111 +199,105 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
     package_name = packet.json_name
     switches = packet.install_switches
 
-    if sys.platform == 'win32':
-        if download_type == '.exe':
-            if '.exe' not in path:
-                if not os.path.isfile(path + '.exe'):
-                    os.rename(path, f'{path}.exe')
-                path = path + '.exe'
-            command = path + ' '
+    if download_type == '.exe':
+        if '.exe' not in path:
+            if not os.path.isfile(path + '.exe'):
+                os.rename(path, f'{path}.exe')
+            path = path + '.exe'
+        command = path + ' '
 
-            if custom_install_switch:
-                if directory and directory != '':
-                    if '/D=' in custom_install_switch:
-                        command += ' ' + custom_install_switch + f'{directory}'
-                    else:
-                        command += ' ' + custom_install_switch + \
-                            f'"{directory}"'
-                    if directory == '':
-                        click.echo(click.style(
-                            f'Installing {package_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
-
-            for switch in switches:
-                command = command + ' ' + switch
-
-            run_cmd(command, metadata, 'installation')
-
-        elif download_type == '.msi':
-            command = 'msiexec.exe /i ' + path + ' '
-            for switch in switches:
-                command = command + ' ' + switch
-
-            if not is_admin():
-                click.echo(click.style(
-                    '\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
-                disp_error_msg(get_error_message('0001', 'installation'))
-                handle_exit('ERROR', None, metadata)
-            run_cmd(command, metadata, 'installation')
-
-        elif download_type == '.zip':
-            if not metadata.no_color:
-                click.echo(click.style(
-                    f'Unzipping File At {path}', fg='green'))
-            if metadata.no_color:
-                click.echo(click.style(
-                    f'Unzipping File At {path}'))
-
-            zip_directory = fR'{tempfile.gettempdir()}\\{package_name}'
-            with zipfile.ZipFile(path, 'r') as zip_ref:
-                zip_ref.extractall(zip_directory)
-            executable_list = []
-            for name in os.listdir(zip_directory):
-                if name.endswith('.exe'):
-                    executable_list.append(name)
-            executable_list.append('Exit')
-
-            file_path = fR'{tempfile.gettempdir()}\\{package_name}'
-
-            def trigger():
-                click.clear()
-                for executable in executable_list:
-                    if executable == executable_list[index]:
-                        print(Back.CYAN + executable + Back.RESET)
-                    else:
-                        print(executable)
-
-            trigger()
-
-            def up():
-                global index
-                if len(executable_list) != 1:
-                    index -= 1
-                    if index >= len(executable_list):
-                        index = 0
-                        trigger()
-                        return
-                    trigger()
-
-            def down():
-                global index
-                if len(executable_list) != 1:
-                    index += 1
-                    if index >= len(executable_list):
-                        index = 0
-                        trigger()
-                        return
-                    trigger()
-
-            def enter():
-                if executable_list[index] == 'Exit':
-                    os._exit(0)
-                    return
-
+        if custom_install_switch:
+            if directory and directory != '':
+                if '/D=' in custom_install_switch:
+                    command += ' ' + custom_install_switch + f'{directory}'
                 else:
-                    path = file_path + "\\" + executable_list[index]
+                    command += ' ' + custom_install_switch + \
+                        f'"{directory}"'
+                if directory == '':
                     click.echo(click.style(
-                        f'Running {executable_list[index]}. Hit Control + C to Quit', fg='magenta'))
-                    subprocess.call(path, stdout=PIPE, stdin=PIPE, stderr=PIPE)
-                    quit()
+                        f'Installing {package_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
-            keyboard.add_hotkey('up', up)
-            keyboard.add_hotkey('down', down)
-            keyboard.add_hotkey('enter', enter)
-            keyboard.wait()
+        for switch in switches:
+            command = command + ' ' + switch
 
-    # # TODO: Implement the macOS side.
-    # if sys.platform == 'darwin':
-    #     mount_dmg = f'hdiutil attach -nobrowse {file_name}'
+        run_cmd(command, metadata, 'installation')
+
+    elif download_type == '.msi':
+        command = 'msiexec.exe /i ' + path + ' '
+        for switch in switches:
+            command = command + ' ' + switch
+
+        if not is_admin():
+            click.echo(click.style(
+                '\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
+            disp_error_msg(get_error_message('0001', 'installation'))
+            handle_exit('ERROR', None, metadata)
+        run_cmd(command, metadata, 'installation')
+
+    elif download_type == '.zip':
+        if not metadata.no_color:
+            click.echo(click.style(
+                f'Unzipping File At {path}', fg='green'))
+        if metadata.no_color:
+            click.echo(click.style(
+                f'Unzipping File At {path}'))
+
+        zip_directory = fR'{tempfile.gettempdir()}\\{package_name}'
+        with zipfile.ZipFile(path, 'r') as zip_ref:
+            zip_ref.extractall(zip_directory)
+        executable_list = []
+        for name in os.listdir(zip_directory):
+            if name.endswith('.exe'):
+                executable_list.append(name)
+        executable_list.append('Exit')
+
+        file_path = fR'{tempfile.gettempdir()}\\{package_name}'
+
+        def trigger():
+            click.clear()
+            for executable in executable_list:
+                if executable == executable_list[index]:
+                    print(Back.CYAN + executable + Back.RESET)
+                else:
+                    print(executable)
+
+        trigger()
+
+        def up():
+            global index
+            if len(executable_list) != 1:
+                index -= 1
+                if index >= len(executable_list):
+                    index = 0
+                    trigger()
+                    return
+                trigger()
+
+        def down():
+            global index
+            if len(executable_list) != 1:
+                index += 1
+                if index >= len(executable_list):
+                    index = 0
+                    trigger()
+                    return
+                trigger()
+
+        def enter():
+            if executable_list[index] == 'Exit':
+                os._exit(0)
+
+            else:
+                path = file_path + "\\" + executable_list[index]
+                click.echo(click.style(
+                    f'Running {executable_list[index]}. Hit Control + C to Quit', fg='magenta'))
+                subprocess.call(path, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+                quit()
+
+        keyboard.add_hotkey('up', up)
+        keyboard.add_hotkey('down', down)
+        keyboard.add_hotkey('enter', enter)
+        keyboard.wait()
 
 
 def get_correct_package_names(res: str) -> list:
@@ -338,7 +324,7 @@ def get_checksum(bytecode: bytes, hash_algorithm: str):
 
 
 def send_req_all() -> dict:
-    REQA = 'https://electric-package-manager.herokuapp.com/packages/'
+    REQA = 'https://electric-package-manager.herokuapp.com/packages/windows'
     time = 0.0
     response = requests.get(REQA, timeout=15)
     res = json.loads(response.text.strip())
@@ -348,7 +334,7 @@ def send_req_all() -> dict:
 
 def get_pid(exe_name):
     proc = subprocess.Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    output, err = proc.communicate()
+    output, _ = proc.communicate()
     output = output.decode('utf-8')
     lines = output.splitlines()
     for line in lines:
@@ -618,7 +604,10 @@ def get_error_message(code: str, method: str):
 
         if code('0002'):
             return [
-                f'\n[0002] => {method.capitalize()} failed because the installer provided an incorrect command for {attr}.\nFile a support ticket at https://www.electric.sh/support\n\nHelp:\nhttps://www.electric.sh/troubleshoot'
+                f'\n[0002] => {method.capitalize()} failed because the installer provided an incorrect command for {attr}.', 
+                '\nFile a support ticket at https://www.electric.sh/support', 
+                '\n\nHelp:\n', 
+                'https://www.electric.sh/troubleshoot'
                 ]
 
         if code('0000'):
@@ -703,6 +692,6 @@ def handle_unknown_error(err: str):
 def display_info(json: dict) -> str:
     return f'''
 | Name => {json['package-name']}
+| Version => Coming Soon!
 | Url(Windows) => {json['win64']}
-| Url(MacOS) => {json['darwin']}
     '''

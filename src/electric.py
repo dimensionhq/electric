@@ -183,8 +183,7 @@ def install(
                     custom_dir = install_directory + f'\\{pkg["package-name"]}'
                 else:
                     custom_dir = install_directory
-                packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['darwin'], pkg['debian'], pkg['win64-type'], pkg['darwin-type'],
-                                pkg['debian-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir)
+                packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir)
                 installation = find_existing_installation(
                     package, packet.json_name)
                 if installation:
@@ -242,8 +241,7 @@ def install(
 
     for package in corrected_package_names:
         pkg = res[package]
-        packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['darwin'], pkg['debian'], pkg['win64-type'], pkg['darwin-type'],
-                        pkg['debian-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory)
+        packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory)
         installation = find_existing_installation(package, packet.json_name)
 
         if installation:
@@ -377,6 +375,10 @@ def install(
             write('Successfully Cleaned Up Installer From Temp Directory...',
                   'green', metadata)
             os.remove(path)
+            try:
+                os.remove(Rf'{tempfile.gettempdir()}\downloadcache.pickle')
+            except:
+                pass
 
         write_verbose('Installation and setup completed.', metadata)
         log_info('Installation and setup completed.', logfile)
@@ -390,7 +392,7 @@ def install(
     end = timer()
 
 
-@cli.command(aliases=['remove','u', 'uninst'])
+@cli.command(aliases=['remove', 'u'])
 @click.argument('package_name', required=True)
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for uninstallation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for uninstallation')
@@ -509,8 +511,7 @@ def uninstall(
 
     for package in corrected_package_names:
         pkg = res[package]
-        packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['darwin'], pkg['debian'], pkg['win64-type'],
-                        pkg['darwin-type'], pkg['debian-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None)
+        packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None)
         proc = None
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
@@ -711,6 +712,7 @@ def search(approx_name: str):
     
     else:
         click.echo(click.style('0 packages found!', fg='red'))
+
 
 @cli.command(aliases=['info'])
 @click.argument('package_name', required=True)

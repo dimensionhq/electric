@@ -65,110 +65,102 @@ class PackageManager:
         custom_install_switch = install.custom_install_switch
         directory = install.directory
 
-        if sys.platform == 'win32':
-            if download_type == '.exe':
-                if '.exe' not in path:
-                    if not os.path.isfile(path + '.exe'):
-                        os.rename(path, f'{path}.exe')
-                    path = path + '.exe'
-                command = path + ' '
 
-                for switch in switches:
-                    command = command + ' ' + switch
+        if download_type == '.exe':
+            if '.exe' not in path:
+                if not os.path.isfile(path + '.exe'):
+                    os.rename(path, f'{path}.exe')
+                path = path + '.exe'
+            command = path + ' '
 
-                if custom_install_switch and directory:
-                    if '/D=' in custom_install_switch:
-                        command += ' ' + custom_install_switch + f'{directory}'
+            for switch in switches:
+                command = command + ' ' + switch
+
+            if custom_install_switch and directory:
+                if '/D=' in custom_install_switch:
+                    command += ' ' + custom_install_switch + f'{directory}'
+                else:
+                    command += ' ' + custom_install_switch + \
+                        f'"{directory}"'
+                if directory == '':
+                    click.echo(click.style(
+                        f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
+
+            run_cmd(command, self.metadata, 'installation')
+
+        elif download_type == '.msi':
+            command = 'msiexec.exe /i' + path + ' '
+            for switch in switches:
+                command = command + ' ' + switch
+
+            run_cmd(command, self.metadata, 'installation')
+
+        elif download_type == '.zip':
+            if not self.metadata.no_color:
+                click.echo(click.style(
+                    f'Unzipping File At {path}', fg='green'))
+            if self.metadata.no_color:
+                click.echo(click.style(
+                    f'Unzipping File At {path}'))
+
+            zip_directory = fR'{tempfile.gettempdir()}\\{self.metadata.display_name}'
+            with zipfile.ZipFile(path, 'r') as zip_ref:
+                zip_ref.extractall(zip_directory)
+            executable_list = []
+            for name in os.listdir(zip_directory):
+                if name.endswith('.exe'):
+                    executable_list.append(name)
+            executable_list.append('Exit')
+
+            file_path = fR'{tempfile.gettempdir()}\\{self.metadata.display_name}'
+
+            def trigger():
+                click.clear()
+                for executable in executable_list:
+                    if executable == executable_list[index]:
+                        print(Back.CYAN + executable + Back.RESET)
                     else:
-                        command += ' ' + custom_install_switch + \
-                            f'"{directory}"'
-                    if directory == '':
-                        click.echo(click.style(
-                            f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
+                        print(executable)
 
-                run_cmd(command, self.metadata, 'installation')
+            trigger()
 
-            elif download_type == '.msi':
-                command = 'msiexec.exe /i' + path + ' '
-                for switch in switches:
-                    command = command + ' ' + switch
-
-                run_cmd(command, self.metadata, 'installation')
-
-            elif download_type == '.zip':
-                if not self.metadata.no_color:
-                    click.echo(click.style(
-                        f'Unzipping File At {path}', fg='green'))
-                if self.metadata.no_color:
-                    click.echo(click.style(
-                        f'Unzipping File At {path}'))
-
-                zip_directory = fR'{tempfile.gettempdir()}\\{self.metadata.display_name}'
-                with zipfile.ZipFile(path, 'r') as zip_ref:
-                    zip_ref.extractall(zip_directory)
-                executable_list = []
-                for name in os.listdir(zip_directory):
-                    if name.endswith('.exe'):
-                        executable_list.append(name)
-                executable_list.append('Exit')
-
-                file_path = fR'{tempfile.gettempdir()}\\{self.metadata.display_name}'
-
-                def trigger():
-                    click.clear()
-                    for executable in executable_list:
-                        if executable == executable_list[index]:
-                            print(Back.CYAN + executable + Back.RESET)
-                        else:
-                            print(executable)
-
-                trigger()
-
-                def up():
-                    global index
-                    if len(executable_list) != 1:
-                        index -= 1
-                        if index >= len(executable_list):
-                            index = 0
-                            trigger()
-                            return
+            def up():
+                global index
+                if len(executable_list) != 1:
+                    index -= 1
+                    if index >= len(executable_list):
+                        index = 0
                         trigger()
-
-                def down():
-                    global index
-                    if len(executable_list) != 1:
-                        index += 1
-                        if index >= len(executable_list):
-                            index = 0
-                            trigger()
-                            return
-                        trigger()
-
-                def enter():
-                    if executable_list[index] == 'Exit':
-                        os._exit(0)
                         return
+                    trigger()
 
-                    else:
-                        path = file_path + "\\" + executable_list[index]
-                        click.echo(click.style(
-                            f'Running {executable_list[index]}. Hit Control + C to Quit', fg='magenta'))
-                        subprocess.call(path, stdout=PIPE,
-                                        stdin=PIPE, stderr=PIPE)
-                        quit()
+            def down():
+                global index
+                if len(executable_list) != 1:
+                    index += 1
+                    if index >= len(executable_list):
+                        index = 0
+                        trigger()
+                        return
+                    trigger()
 
-                keyboard.add_hotkey('up', up)
-                keyboard.add_hotkey('down', down)
-                keyboard.add_hotkey('enter', enter)
-                keyboard.wait()
+            def enter():
+                if executable_list[index] == 'Exit':
+                    os._exit(0)
+                    return
 
-        # TODO: Implement the macOS side.
-        # if sys.platform == 'darwin':
-            # mount_dmg = f'hdiutil attach -nobrowse {file_name}'
+                else:
+                    path = file_path + "\\" + executable_list[index]
+                    click.echo(click.style(
+                        f'Running {executable_list[index]}. Hit Control + C to Quit', fg='magenta'))
+                    subprocess.call(path, stdout=PIPE,
+                                    stdin=PIPE, stderr=PIPE)
+                    quit()
 
-        # TODO: IMplement the Linux side.
-        if sys.platform == 'linux' or sys.platform == 'linux2':
-            pass
+            keyboard.add_hotkey('up', up)
+            keyboard.add_hotkey('down', down)
+            keyboard.add_hotkey('enter', enter)
+            keyboard.wait()
 
     def calculate_spwn(self, number: int) -> str:
         if number <= 3:
