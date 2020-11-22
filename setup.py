@@ -29,6 +29,8 @@ setup(
     packages=find_packages(),
     scripts=[os.path.join(os.path.abspath(os.getcwd()), 'src', 'electric.py')],
     install_requires = [
+        'pymongo',
+        'dnspython',
         'click',
         'progress',
         'requests',

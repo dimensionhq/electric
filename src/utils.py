@@ -26,6 +26,7 @@ import registry
 import difflib
 import zipfile
 import hashlib
+import pymongo
 import ctypes
 import random
 import pickle
@@ -142,7 +143,8 @@ def download(url, package_name, metadata: Metadata, download_type):
         return path, False
 
 
-def get_error_cause(error: str, display_name: str, method: str) -> str:
+def get_error_cause(error: str, display_name: str, method: str, metadata: Metadata) -> str:
+    log_info(f'{error} ==> {method}', metadata.logfile)
     if method == 'installation':
         for code in valid_install_exit_codes:
             if f'exit status {code}' in error:
@@ -199,7 +201,7 @@ def run_cmd(command: str, metadata: Metadata, method: str, display_name: str):
     except (CalledProcessError, OSError, FileNotFoundError) as err:
         keyboard.add_hotkey(
         'ctrl+c', lambda: os._exit(0))
-        disp_error_msg(get_error_cause(str(err), display_name, method), metadata)
+        disp_error_msg(get_error_cause(str(err), display_name, method, metadata), metadata)
 
 
 def install_package(path, packet: Packet, metadata: Metadata) -> str:
@@ -556,6 +558,7 @@ def disp_error_msg(messages: list, metadata: Metadata):
     reboot = False
     websites = []
     commands = []
+    support_ticket = False
     idx = 0
     for msg in messages:
         if idx == 0:
@@ -574,11 +577,24 @@ def disp_error_msg(messages: list, metadata: Metadata):
             commands.append(re.findall(r'\`(.*?)`', msg))
         if 'NAME' and 'VERSION' in msg:
             click.echo(click.style(msg, fg='green'))
-            continue
+            support_ticket = True
+            break
         else:
             click.echo(msg)
         
         idx += 1
+    
+    if support_ticket:
+        click.echo('By sending a support ticket, you agree to the Terms And Conditions (https://www.electric.sh/support/terms-and-conditions)')
+        sending_ticket = click.confirm('Would you like to send the support ticket ?')
+        if sending_ticket:
+            client = pymongo.MongoClient('mongodb+srv://TheBossProSniper:electricsupermanager@electric.kuixi.mongodb.net/<dbname>?retryWrites=true&w=majority')
+            database = client['Electric']['Support-Tickets']
+            database.insert_one({
+                "Logs": get_recent_logs()
+            })
+            click.echo(click.style('Successfully Sent Support Ticket!', fg='green'))
+
 
     if reboot:
         reboot = click.confirm('Would you like to reboot? [y/n]')
@@ -618,7 +634,7 @@ def get_error_message(code: str, method: str, display_name: str):
         if code('0002'):
             return [
                 f'\n[0002] => {method.capitalize()} failed because the installer provided an incorrect command for {attr}.', 
-                '\nWe recomment you raise a support ticket with the data generated below:',
+                '\nWe recommend you raise a support ticket with the data generated below:',
                 generate_report(display_name),
                 '\nHelp:\n', 
                 'https://www.electric.sh/troubleshoot'
@@ -627,7 +643,7 @@ def get_error_message(code: str, method: str, display_name: str):
         if code('0000'):
             return [
                 f'\n[0000] => {method.capitalize()} failed due to an unknown reason.',
-                '\nWe recomment you raise a support ticket with the data generated below:',
+                '\nWe recommend you raise a support ticket with the data generated below:',
                 generate_report(display_name),
                 '\nHelp:',
                 '\n[1] <=> https://www.electric.sh/troubleshoot'
@@ -711,12 +727,15 @@ def display_info(json: dict) -> str:
 | Url(Windows) => {json['win64']}
     '''
 
-def generate_report(name: str):
+def get_recent_logs() -> list:
     parent_dir = PathManager().get_parent_directory()
     parent_dir = parent_dir.replace('\\src', '')
     with open(f'{parent_dir}\\electric-log.log', 'r') as file:
         data = file.read() 
-    
+    return data.splitlines()
+
+
+def generate_report(name: str):
     return f'''
 {{
 NAME :: {name}
