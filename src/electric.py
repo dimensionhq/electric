@@ -476,13 +476,14 @@ def uninstall(
         res, time = handle_cached_request()
 
     else:
-        log_info('Handling Network Request...')
+        log_info('Handling Network Request...', metadata.logfile)
         status = 'Networking'
         write_verbose('Sending GET Request To /rapidquery/packages', metadata)
         write_debug('Sending GET Request To /rapidquery/packages', metadata)
         log_info('Sending GET Request To /rapidquery/packages', logfile)
         res, time = send_req_all()
         res = json.loads(res)
+        update_supercache(res)
 
     correct_names = get_correct_package_names(res)
     corrected_package_names = []
@@ -572,7 +573,6 @@ def uninstall(
         key = get_uninstall_key(packet.json_name)
         end = timer()
 
-
         # If The UninstallString Or QuietUninstallString Doesn't Exist
         # if not key:
         #     write_verbose('No registry keys found', verbose, no_color, silent)
@@ -656,7 +656,7 @@ def uninstall(
         if 'QuietUninstallString' in key:
             command = key['QuietUninstallString']
             command = command.replace('/I', '/X')
-            command = command.replace('/quiet', '/passive')
+            command = command.replace('/quiet', '/qn')
 
             additional_switches = None
             if packet.uninstall_switches:
@@ -674,7 +674,7 @@ def uninstall(
             write_verbose("Executing the quiet uninstall command", metadata)
             log_info(f"Executing the quiet uninstall command => {command}", logfile)
             write_debug(f'Running silent uninstallation command', metadata)
-            run_cmd(command, metadata, 'uninstallation')
+            run_cmd(command, metadata, 'uninstallation', packet.display_name)
 
             write(
                 f"Successfully Uninstalled {packet.display_name}", "bright_magenta", metadata)
@@ -702,7 +702,7 @@ def uninstall(
             write_verbose("Executing the Uninstall Command", metadata)
             log_info("Executing the silent Uninstall Command", logfile)
 
-            run_cmd(command, metadata, 'uninstallation')
+            run_cmd(command, metadata, 'uninstallation', packet.display_name)
 
             write(
                 f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)

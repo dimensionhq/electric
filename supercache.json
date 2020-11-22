@@ -170,10 +170,10 @@
         "win64": "https://download.virtualbox.org/virtualbox/6.1.14/VirtualBox-6.1.14-140239-Win.exe",
         "win64-type": ".exe",
         "install-switches": [
-            "/qn"
+            "--silent"
         ],
         "uninstall-switches": [
-            "/qn"
+            ""
         ],
         "custom-location": "None"
     }

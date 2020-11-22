@@ -86,14 +86,14 @@ class PackageManager:
                     click.echo(click.style(
                         f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
-            run_cmd(command, self.metadata, 'installation')
+            run_cmd(command, self.metadata, 'installation', install.display_name)
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i' + path + ' '
             for switch in switches:
                 command = command + ' ' + switch
 
-            run_cmd(command, self.metadata, 'installation')
+            run_cmd(command, self.metadata, 'installation', install.display_name)
 
         elif download_type == '.zip':
             if not self.metadata.no_color:
@@ -147,7 +147,6 @@ class PackageManager:
             def enter():
                 if executable_list[index] == 'Exit':
                     os._exit(0)
-                    return
 
                 else:
                     path = file_path + "\\" + executable_list[index]
