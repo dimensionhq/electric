@@ -6,3 +6,6 @@ src/electric.egg-info
 Database/__pycache__
 src/Classes/__pycache__
 Private/
+superlog.txt
+supercache.json
+electric-log.log
