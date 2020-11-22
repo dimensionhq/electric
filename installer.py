@@ -98,12 +98,12 @@ if isAdmin() and admin == 1:
     with zipfile.ZipFile(f'{electric_dir}\\Electric.zip') as zf:
         for member in tqdm.tqdm(zf.infolist(), smoothing=1.0, ncols=60):
             try:
-                zf.extract(member, f'{electric_dir}\\electric')
+                zf.extract(member, f'{electric_dir}\\electric-windows')
             except zipfile.error as e:
                 pass
     os.remove(f'{electric_dir}\\Electric.zip')
-    os.rename(f'{electric_dir}\electric', Rf'{electric_dir}\file')
-    shutil.move(Rf'{electric_dir}\file\electric-dist',
+    os.rename(f'{electric_dir}\electric-windows', Rf'{electric_dir}\file')
+    shutil.move(Rf'{electric_dir}\file\electric-windows',
                 f'{electric_dir}\electric')
     shutil.rmtree(Rf'C:\Electric\file')
     write('Successfully Unzipped And Extracted Electric.zip', 'green', metadata)
