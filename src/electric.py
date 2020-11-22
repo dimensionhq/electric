@@ -7,6 +7,7 @@ from registry import get_uninstall_key, get_environment_keys
 from Classes.PackageManager import PackageManager
 from timeit import default_timer as timer
 from limit import Limiter, TokenBucket
+from urllib.request import urlretrieve
 from Classes.Packet import Packet
 from cli import SuperChargeCLI
 from info import __version__
@@ -21,7 +22,6 @@ import difflib
 import click
 import sys
 import os
-from urllib.request import urlretrieve
 
 @click.group(cls=SuperChargeCLI)
 @click.version_option(__version__)
@@ -112,7 +112,7 @@ def install(
         res, time = handle_cached_request()
 
     else:
-        log_info('Handling Network Request...')
+        log_info('Handling Network Request...', metadata.logfile)
         status = 'Networking'
         write_verbose('Sending GET Request To /packages', metadata)
         write_debug('Sending GET Request To /packages', metadata)
@@ -625,6 +625,7 @@ def uninstall(
         # continue
 
         if not key:
+            log_info(f'electric didn\'t detect any existing installations of => {packet.display_name}', metadata.logfile)
             write(
                 f'Could Not Find Any Existing Installations Of {packet.display_name}', 'yellow', metadata)
             closeLog(logfile, 'Uninstall')
@@ -633,6 +634,7 @@ def uninstall(
 
         write_verbose("Uninstall key found.", metadata)
         log_info("Uninstall key found.", logfile)
+        log_info(key, metadata.logfile)
         write_debug('Successfully Recieved UninstallString from Windows Registry', metadata)
 
         write(
@@ -698,7 +700,7 @@ def uninstall(
 
             # Run The UninstallString
             write_verbose("Executing the Uninstall Command", metadata)
-            log_info("Executing the Uninstall Command", logfile)
+            log_info("Executing the silent Uninstall Command", logfile)
 
             run_cmd(command, metadata, 'uninstallation')
 
