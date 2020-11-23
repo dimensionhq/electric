@@ -73,7 +73,7 @@ def install(
     log_info('Generating metadata...', logfile)
     metadata = generate_metadata(
         no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce)
-    log_info('Successfully generated metadata.', logfile)
+    log_info('Successfully generated metadata.', metadata.logfile)
 
     if python:
 
@@ -116,7 +116,7 @@ def install(
         status = 'Networking'
         write_verbose('Sending GET Request To /packages', metadata)
         write_debug('Sending GET Request To /packages', metadata)
-        log_info('Sending GET Request To /packages', logfile)
+        log_info('Sending GET Request To /packages', metadata.logfile)
         res, time = send_req_all()
         res = json.loads(res)
         update_supercache(res)
@@ -135,18 +135,18 @@ def install(
                     click.echo(click.style(
                         'Incorrect / Invalid Package Name Entered. Aborting Installation.', fg='red'))
                     log_info(
-                        'Incorrect / Invalid Package Name Entered. Aborting Installation', logfile)
+                        'Incorrect / Invalid Package Name Entered. Aborting Installation', metadata.logfile)
                     handle_exit(status, setup_name, metadata)
 
                 if yes:
                     write(
                         f'Autocorrecting To {corrections[0]}', 'green', metadata)
                     log_info(
-                        f'Autocorrecting To {corrections[0]}', logfile)
+                        f'Autocorrecting To {corrections[0]}', metadata.logfile)
                     write(
                         f'Successfully Autocorrected To {corrections[0]}', 'green', metadata)
                     log_info(
-                        f'Successfully Autocorrected To {corrections[0]}', logfile)
+                        f'Successfully Autocorrected To {corrections[0]}', metadata.logfile)
                     corrected_package_names.append(corrections[0])
 
                 else:
@@ -157,7 +157,7 @@ def install(
                     write_debug(
                         f'Autocorrecting To {corrections[0]}', metadata)
                     log_info(
-                        f'Autocorrecting To {corrections[0]}', logfile)
+                        f'Autocorrecting To {corrections[0]}', metadata.logfile)
                     if click.prompt('Would You Like To Continue? [y/n]') == 'y':
                         package_name = corrections[0]
                         corrected_package_names.append(package_name)
@@ -171,11 +171,11 @@ def install(
                 write_verbose(
                     f'Could Not Find Any Packages Which Match {name}', metadata)
                 log_info(
-                    f'Could Not Find Any Packages Which Match {name}', logfile)
+                    f'Could Not Find Any Packages Which Match {name}', metadata.logfile)
 
     write_debug(install_debug_headers, metadata)
     for header in install_debug_headers:
-        log_info(header, logfile)
+        log_info(header, metadata.logfile)
 
     index = 0
 
@@ -214,12 +214,12 @@ def install(
                 write_verbose(
                     f'Package to be installed: {packet.json_name}', metadata)
                 log_info(
-                    f'Package to be installed: {packet.json_name}', logfile)
+                    f'Package to be installed: {packet.json_name}', metadata.logfile)
 
                 write_verbose(
                     f'Finding closest match to {packet.json_name}...', metadata)
                 log_info(
-                    f'Finding closest match to {packet.json_name}...', logfile)
+                    f'Finding closest match to {packet.json_name}...', metadata.logfile)
                 packets.append(packet)
 
             if super_cache:
@@ -228,23 +228,23 @@ def install(
                 write_debug(
                     f'Rapidquery Successfully SuperCached Packages in {round(time, 9)}s', metadata)
                 log_info(
-                    f'Rapidquery Successfully SuperCached Packages in {round(time, 6)}s', logfile)
+                    f'Rapidquery Successfully SuperCached Packages in {round(time, 6)}s', metadata.logfile)
             else:
                 write(
                     f'Rapidquery Successfully Received packages.json in {round(time, 6)}s', 'bright_yellow', metadata)
                 write_debug(
                     f'Rapidquery Successfully Received packages.json in {round(time, 9)}s', metadata)
                 log_info(
-                    f'Rapidquery Successfully Received packages.json in {round(time, 6)}s', logfile)
+                    f'Rapidquery Successfully Received packages.json in {round(time, 6)}s', metadata.logfile)
 
                 write_verbose('Generating system download path...', metadata)
-                log_info('Generating system download path...', logfile)
+                log_info('Generating system download path...', metadata.logfile)
 
             manager = PackageManager(packets, metadata)
             paths = manager.handle_multi_download()
-            log_info('Finished Rapid Download...', logfile)
+            log_info('Finished Rapid Download...', metadata.logfile)
             log_info(
-                'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', logfile)
+                'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
             manager.handle_multi_install(paths)
             return
 
@@ -273,11 +273,11 @@ def install(
 
         write_verbose(
             f'Package to be installed: {packet.json_name}', metadata)
-        log_info(f'Package to be installed: {packet.json_name}', logfile)
+        log_info(f'Package to be installed: {packet.json_name}', metadata.logfile)
 
         write_verbose(
             f'Finding closest match to {packet.json_name}...', metadata)
-        log_info(f'Finding closest match to {packet.json_name}...', logfile)
+        log_info(f'Finding closest match to {packet.json_name}...', metadata.logfile)
 
         if index == 0:
             if super_cache:
@@ -286,17 +286,17 @@ def install(
                 write_debug(
                     f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 9)}s', metadata)
                 log_info(
-                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', logfile)
+                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata.logfile)
             else:
                 write(
                     f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_yellow', metadata)
                 write_debug(
                     f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 9)}s', metadata)
                 log_info(
-                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', logfile)
+                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
 
         write_verbose('Generating system download path...', metadata)
-        log_info('Generating system download path...', logfile)
+        log_info('Generating system download path...', metadata.logfile)
 
         start = timer()
 
@@ -308,17 +308,17 @@ def install(
         val = round(Decimal(end) - Decimal(start), 6)
         write(
             f'Electrons Transferred In {val}s', 'cyan', metadata)
-        log_info(f'Electrons Transferred In {val}s', logfile)
+        log_info(f'Electrons Transferred In {val}s', metadata.logfile)
         write_debug(f'Successfully Parsed Download Path in {val}s', metadata)
 
         write('Initializing Rapid Download...', 'green', metadata)
-        log_info('Initializing Rapid Download...', logfile)
+        log_info('Initializing Rapid Download...', metadata.logfile)
 
         # Downloading The File From Source
         write_debug(f'Downloading {packet.display_name} from => {packet.win64}', metadata)
         write_verbose(
             f"Downloading from '{download_url}'", metadata)
-        log_info(f"Downloading from '{download_url}'", logfile)
+        log_info(f"Downloading from '{download_url}'", metadata.logfile)
         status = 'Downloading'
 
         if rate_limit == -1:
@@ -347,7 +347,7 @@ def install(
         else:
             write('Completed Rapid Download', 'green', metadata)
 
-        log_info('Finished Rapid Download', logfile)
+        log_info('Finished Rapid Download', metadata.logfile)
 
         if virus_check:
             write('Scanning File For Viruses...', 'blue', metadata)
@@ -356,12 +356,12 @@ def install(
         write(
             'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
         log_info(
-            'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', logfile)
+            'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
         write_debug(
             f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
         log_info(
-            f'Installing {packet.json_name} through Setup{packet.win64_type}', logfile)
+            f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
         start_snap = get_environment_keys()
         status = 'Installing'
         # Running The Installer silently And Completing Setup
@@ -372,7 +372,7 @@ def install(
         if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
             write('Refreshing Environment Variables...', 'green', metadata)
             start = timer()
-            log_info('Refreshing Environment Variables At scripts/refreshvars.cmd', logfile)
+            log_info('Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
             write_debug('Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
             write_verbose('Refreshing Environment Variables', metadata)
             refresh_environment_variables()
@@ -381,7 +381,7 @@ def install(
 
         write(
             f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
-        log_info(f'Successfully Installed {packet.display_name}!', logfile)
+        log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
 
 
         if metadata.reduce_package:
@@ -397,12 +397,12 @@ def install(
                   'green', metadata)
 
         write_verbose('Installation and setup completed.', metadata)
-        log_info('Installation and setup completed.', logfile)
+        log_info('Installation and setup completed.', metadata.logfile)
         write_debug(
             f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata)
         log_info(
-            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', logfile)
-        closeLog(logfile, 'Install')
+            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
+        closeLog(metadata.logfile, 'Install')
 
         index += 1
     end = timer()
@@ -479,7 +479,7 @@ def uninstall(
         status = 'Networking'
         write_verbose('Sending GET Request To /rapidquery/packages', metadata)
         write_debug('Sending GET Request To /rapidquery/packages', metadata)
-        log_info('Sending GET Request To /rapidquery/packages', logfile)
+        log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
         res, time = send_req_all()
         res = json.loads(res)
         update_supercache(res)
@@ -497,17 +497,17 @@ def uninstall(
                     click.echo(click.style(
                         'Incorrect / Invalid Package Name Entered. Aborting Uninstallation.', fg='red'))
                     log_info(
-                        'Incorrect / Invalid Package Name Entered. Aborting Uninstallation', logfile)
+                        'Incorrect / Invalid Package Name Entered. Aborting Uninstallation', metadata.logfile)
                     handle_exit(status, setup_name, metadata)
 
                 if yes:
                     write(
                         f'Autocorrecting To {corrections[0]}', 'green', metadata)
-                    log_info(f'Autocorrecting To {corrections[0]}', logfile)
+                    log_info(f'Autocorrecting To {corrections[0]}', metadata.logfile)
                     write(
                         f'Successfully Autocorrected To {corrections[0]}', 'green', metadata)
                     log_info(
-                        f'Successfully Autocorrected To {corrections[0]}', logfile)
+                        f'Successfully Autocorrected To {corrections[0]}', metadata.logfile)
                     corrected_package_names.append(corrections[0])
 
                 else:
@@ -517,7 +517,7 @@ def uninstall(
                         f'Autocorrecting To {corrections[0]}', metadata)
                     write_debug(
                         f'Autocorrecting To {corrections[0]}', metadata)
-                    log_info(f'Autocorrecting To {corrections[0]}', logfile)
+                    log_info(f'Autocorrecting To {corrections[0]}', metadata.logfile)
                     if click.prompt('Would You Like To Continue? [y/n]') == 'y':
                         package_name = corrections[0]
                         corrected_package_names.append(package_name)
@@ -531,11 +531,11 @@ def uninstall(
                 write_verbose(
                     f'Could Not Find Any Packages Which Match {name}', metadata)
                 log_info(
-                    f'Could Not Find Any Packages Which Match {name}', logfile)
+                    f'Could Not Find Any Packages Which Match {name}', metadata.logfile)
 
     write_debug(install_debug_headers, metadata)
     for header in install_debug_headers:
-        log_info(header, logfile)
+        log_info(header, metadata.logfile)
 
     index = 0
 
@@ -560,13 +560,13 @@ def uninstall(
             write(
                 f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_green', metadata)
             log_info(
-                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', logfile)
+                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
 
         # Getting UninstallString or QuietUninstallString From The Registry Search Algorithm
         write_verbose(
             'Fetching uninstall key from the registry...', metadata)
         write_debug('Sending query (uninstall-string) to Registry', metadata)
-        log_info('Fetching uninstall key from the registry...', logfile)
+        log_info('Fetching uninstall key from the registry...', metadata.logfile)
 
         start = timer()
         key = get_uninstall_key(packet.json_name)
@@ -627,19 +627,19 @@ def uninstall(
             log_info(f'electric didn\'t detect any existing installations of => {packet.display_name}', metadata.logfile)
             write(
                 f'Could Not Find Any Existing Installations Of {packet.display_name}', 'yellow', metadata)
-            closeLog(logfile, 'Uninstall')
+            closeLog(metadata.logfile, 'Uninstall')
             index += 1
             continue
 
         write_verbose('Uninstall key found.', metadata)
-        log_info('Uninstall key found.', logfile)
+        log_info('Uninstall key found.', metadata.logfile)
         log_info(key, metadata.logfile)
         write_debug('Successfully Recieved UninstallString from Windows Registry', metadata)
 
         write(
             f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', 'cyan', metadata)
         log_info(
-            f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', logfile)
+            f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', metadata.logfile)
 
         command = ''
 
@@ -663,7 +663,7 @@ def uninstall(
                     write_verbose(
                         'Adding additional uninstall switches', metadata)
                     write_debug('Appending / Adding additional uninstallation switches', metadata)
-                    log_info('Adding additional uninstall switches', logfile)
+                    log_info('Adding additional uninstall switches', metadata.logfile)
                     additional_switches = packet.uninstall_switches
 
             if additional_switches:
@@ -671,7 +671,7 @@ def uninstall(
                     command += ' ' + switch
 
             write_verbose('Executing the quiet uninstall command', metadata)
-            log_info(f'Executing the quiet uninstall command => {command}', logfile)
+            log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
             write_debug(f'Running silent uninstallation command', metadata)
             run_cmd(command, metadata, 'uninstallation', packet.display_name)
 
@@ -679,14 +679,14 @@ def uninstall(
                 f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
 
             write_verbose('Uninstallation completed.', metadata)
-            log_info('Uninstallation completed.', logfile)
+            log_info('Uninstallation completed.', metadata.logfile)
 
             index += 1
             write_debug(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
             log_info(
-                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', logfile)
-            closeLog(logfile, 'Uninstall')
+                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
+            closeLog(metadata.logfile, 'Uninstall')
 
         # If Only UninstallString Exists (Not Preferable)
         if 'UninstallString' in key and 'QuietUninstallString' not in key:
@@ -699,20 +699,20 @@ def uninstall(
 
             # Run The UninstallString
             write_verbose('Executing the Uninstall Command', metadata)
-            log_info('Executing the silent Uninstall Command', logfile)
+            log_info('Executing the silent Uninstall Command', metadata.logfile)
 
             run_cmd(command, metadata, 'uninstallation', packet.display_name)
 
             write(
                 f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
             write_verbose('Uninstallation completed.', metadata)
-            log_info('Uninstallation completed.', logfile)
+            log_info('Uninstallation completed.', metadata.logfile)
             index += 1
             write_debug(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
             log_info(
-                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', logfile)
-            closeLog(logfile, 'Uninstall')
+                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
+            closeLog(metadata.logfile, 'Uninstall')
 
 
 @cli.command(aliases=['find'])
