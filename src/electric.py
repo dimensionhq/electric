@@ -763,19 +763,6 @@ def show(package_name: str):
         # write_verbose('Sending GET Request To /packages', metadata)
         # write_debug('Sending GET Request To /packages', metadata)
         # log_info('Sending GET Request To /packages', logfile)
-        res, _ = send_req_all()
-        res = json.loads(res)
-        update_supercache(res)
-        del res['_id']
-
-    if super_cache:
-        res, _ = handle_cached_request()
-
-    else:
-        status = 'Networking'
-        write_verbose('Sending GET Request To /packages', metadata)
-        write_debug('Sending GET Request To /packages', metadata)
-        log_info('Sending GET Request To /packages', logfile)
         res, time = send_req_all()
         res = json.loads(res)
         update_supercache(res)
