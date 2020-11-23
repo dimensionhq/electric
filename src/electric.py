@@ -760,9 +760,9 @@ def show(package_name: str):
 
     else:
         status = 'Networking'
-        write_verbose('Sending GET Request To /packages', metadata)
-        write_debug('Sending GET Request To /packages', metadata)
-        log_info('Sending GET Request To /packages', logfile)
+        # write_verbose('Sending GET Request To /packages', metadata)
+        # write_debug('Sending GET Request To /packages', metadata)
+        # log_info('Sending GET Request To /packages', logfile)
         res, _ = send_req_all()
         res = json.loads(res)
         update_supercache(res)
