@@ -52,7 +52,6 @@ def is_admin():
         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
     return is_admin
 
-
 class HiddenPrints:
     def __enter__(self):
         self._original_stdout = sys.stdout
@@ -91,10 +90,17 @@ def check_existing_download(package_name: str, download_type) -> bool:
     data = retrieve_data()
     if data:
         if data['package_name'] == package_name:
-            if os.stat(data['directory'] + download_type).st_size < data['size']:
-                # Corrupt Installation
-                return False
-            return data['directory']
+                try:
+                    filesize = os.stat(data['directory'] + download_type).st_size
+                except FileNotFoundError:
+                    print('NOWENORWE')
+                    os.rename(data['directory'], data['directory'] + download_type)
+                    filesize = os.stat(data['directory'] + download_type).st_size
+                
+                if filesize < data['size']:
+                    # Corrupt Installation
+                    return False
+                return data['directory']
     return False 
 
 

@@ -2,7 +2,7 @@
 #                              REGISTRY                              #
 ######################################################################
 
-
+from timeit import default_timer as timer
 from Classes.RegSnapshot import RegSnapshot
 import difflib
 import winreg
@@ -192,4 +192,15 @@ def get_uninstall_key(package_name : str):
 def get_environment_keys() -> RegSnapshot:
     env_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Environment', 0, winreg.KEY_READ)
     sys_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, R'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 0, winreg.KEY_READ)
-    return RegSnapshot(str(winreg.EnumValue(env_key, 2)[1]), len(str(winreg.EnumValue(env_key, 2)[1]).split(';')), str(winreg.EnumValue(sys_key, 4)[1]), len(str(winreg.EnumValue(sys_key, 2)[1]).split(';')))
+    sys_idx = 0
+    while True:
+        if winreg.EnumValue(env_key, sys_idx)[0] == 'Path':
+            break
+        sys_idx += 1
+    env_idx = 0
+    while True:
+        if winreg.EnumValue(sys_key, env_idx)[0] == 'Path':
+            break
+        env_idx += 1
+    snap = RegSnapshot(str(winreg.EnumValue(env_key, sys_idx)[1]), len(str(winreg.EnumValue(env_key, sys_idx)[1]).split(';')), str(winreg.EnumValue(sys_key, env_idx)[1]), len(str(winreg.EnumValue(sys_key, env_idx)[1]).split(';')))
+    return snap

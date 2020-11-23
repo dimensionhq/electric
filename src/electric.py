@@ -369,7 +369,6 @@ def install(
 
         status = 'Installed'
         final_snap = get_environment_keys()
-
         if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
             write('Refreshing Environment Variables...', 'green', metadata)
             start = timer()
