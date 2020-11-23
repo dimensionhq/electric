@@ -6,10 +6,16 @@
 import os
 
 class PathManager:
-    def get_parent_directory(self) -> str:
+    @staticmethod
+    def get_parent_directory() -> str:
         directory = os.path.dirname(os.path.abspath(__file__))
         return directory.replace('Classes', '').replace('src', '')[:-1].replace(R'\bin', '')
 
-    def get_current_directory(self) -> str:
+    @staticmethod
+    def get_current_directory() -> str:
         directory = os.path.dirname(os.path.abspath(__file__))
         return os.path.split(directory)[0]
+
+    @staticmethod
+    def get_appdata_directory() -> str:
+        return os.environ['APPDATA'] + R'\electric'

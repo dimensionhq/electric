@@ -42,9 +42,8 @@ index = 0
 final_value = None
 path = ''
 
-manager = PathManager()
-parent_dir = manager.get_parent_directory()
-current_dir = manager.get_current_directory()
+appdata_dir = PathManager.get_appdata_directory()
+
 
 def is_admin():
     try:
@@ -76,7 +75,7 @@ def generate_dict(path: str, package_name: str):
 
 
 def dump_pickle(data: dict):
-    with open(Rf'{tempfile.gettempdir()}\downloadcache.pickle', 'wb') as f:
+    with open(Rf'{appdata_dir}\downloadcache.pickle', 'wb') as f:
         pickle.dump(data, f)
 
 
@@ -107,8 +106,7 @@ def check_existing_download(package_name: str, download_type) -> bool:
 def download(url, package_name, metadata: Metadata, download_type):
 
         path = check_existing_download(package_name, download_type)
-
-        if not isfile(Rf'{tempfile.gettempdir()}\electric'):
+        if not os.path.isdir(Rf'{tempfile.gettempdir()}\electric'):
             os.mkdir(Rf'{tempfile.gettempdir()}\electric')
 
         if isinstance(path, bool):
@@ -473,7 +471,7 @@ def find_existing_installation(package_name: str, display_name: str):
 
 
 def refresh_environment_variables() -> bool:
-    proc = Popen(Rf'{current_dir}\scripts\refreshvars.cmd',
+    proc = Popen(Rf'{appdata_dir}\scripts\refreshvars.cmd',
                  stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     output, err = proc.communicate()
     if 'Finished' in output.decode('utf-8'):
@@ -504,9 +502,11 @@ def check_virus(path: str, metadata: Metadata):
 
 
 def setup_supercache():
+    if not os.path.isdir(Rf'{appdata_dir}\supercache.json'):
+        os.mkdir(appdata_dir)
     res, time = send_req_all()
     res = json.loads(res)
-    with open(Rf'{current_dir}\supercache.json', 'w+') as file:
+    with open(Rf'{appdata_dir}\supercache.json', 'w+') as file:
         del res['_id']
         file.write(json.dumps(res, indent=4))
 
@@ -517,11 +517,14 @@ def update_supercache(res):
     if isfile(f'{tempfile.gettempdir()}\electric'):
         shutil.rmtree(f'{tempfile.gettempdir()}\electric')
 
-    filepath = Rf'{parent_dir}\supercache.json'
+    if not os.path.isdir(appdata_dir):
+        setup_supercache()
+
+    filepath = Rf'{appdata_dir}\supercache.json'
     file = open(filepath, 'w+')
     file.write(json.dumps(res, indent=4))
     file.close()
-    logpath = Rf'{parent_dir}\superlog.txt'
+    logpath = Rf'{appdata_dir}\superlog.txt'
     logfile = open(logpath, 'w+')
     now = datetime.now()
     logfile.write(str(now))
@@ -529,7 +532,7 @@ def update_supercache(res):
 
 
 def check_supercache_valid():
-    filepath = Rf'{parent_dir}\superlog.txt'
+    filepath = Rf'{appdata_dir}\superlog.txt'
     if os.path.isfile(filepath):
         with open(filepath, 'r') as f:
             contents = f.read()
@@ -540,7 +543,7 @@ def check_supercache_valid():
 
 
 def handle_cached_request():
-    filepath = Rf'{parent_dir}\supercache.json'
+    filepath = Rf'{appdata_dir}\supercache.json'
     if os.path.isfile(filepath):
         file = open(filepath)
         start = timer()
@@ -738,9 +741,7 @@ def display_info(json: dict) -> str:
     '''
 
 def get_recent_logs() -> list:
-    parent_dir = PathManager().get_parent_directory()
-    parent_dir = parent_dir.replace('\\src', '')
-    with open(Rf'{parent_dir}\electric-log.log', 'r') as file:
+    with open(Rf'{appdata_dir}\electric-log.log', 'r') as file:
         data = file.read() 
     return data.splitlines()
 

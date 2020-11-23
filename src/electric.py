@@ -320,7 +320,7 @@ def install(
             f"Downloading from '{download_url}'", metadata)
         log_info(f"Downloading from '{download_url}'", metadata.logfile)
         status = 'Downloading'
-
+        
         if rate_limit == -1:
             path, cached = download(download_url, packet.json_name, metadata, packet.win64_type)
         else:
