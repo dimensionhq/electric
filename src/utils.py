@@ -13,7 +13,7 @@ from viruscheck import virus_check
 from datetime import datetime
 import pyperclip as clipboard
 from signal import SIGTERM
-from colorama import Back, Fore
+from colorama import Back
 from switch import Switch
 from extension import *
 from logger import *
@@ -42,7 +42,7 @@ final_value = None
 path = ''
 
 manager = PathManager()
-parent_dir = manager.get_parent_directory()
+parent_dir = manager.get_parent_directory().replace(R'\bin', '')
 current_dir = manager.get_current_directory()
 
 def is_admin():
@@ -51,6 +51,7 @@ def is_admin():
     except AttributeError:
         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
     return is_admin
+
 
 class HiddenPrints:
     def __enter__(self):
@@ -499,7 +500,7 @@ def check_virus(path: str, metadata: Metadata):
 def setup_supercache():
     res, time = send_req_all()
     res = json.loads(res)
-    with open(Rf'{parent_dir}supercache.json', 'w+') as file:
+    with open(Rf'{current_dir}\supercache.json', 'w+') as file:
         del res['_id']
         file.write(json.dumps(res, indent=4))
 
@@ -507,7 +508,8 @@ def setup_supercache():
 
 
 def update_supercache(res):
-    filepath = Rf'{parent_dir}supercache.json'
+    print(parent_dir)
+    filepath = Rf'{parent_dir}\supercache.json'
     file = open(filepath, 'w+')
     file.write(json.dumps(res, indent=4))
     file.close()
@@ -519,7 +521,7 @@ def update_supercache(res):
 
 
 def check_supercache_valid():
-    filepath = Rf'{parent_dir}superlog.txt'
+    filepath = Rf'{parent_dir}\superlog.txt'
     if os.path.isfile(filepath):
         with open(filepath, 'r') as f:
             contents = f.read()
@@ -530,7 +532,7 @@ def check_supercache_valid():
 
 
 def handle_cached_request():
-    filepath = Rf'{parent_dir}supercache.json'
+    filepath = Rf'{parent_dir}\supercache.json'
     if os.path.isfile(filepath):
         file = open(filepath)
         start = timer()
@@ -730,7 +732,7 @@ def display_info(json: dict) -> str:
 def get_recent_logs() -> list:
     parent_dir = PathManager().get_parent_directory()
     parent_dir = parent_dir.replace('\\src', '')
-    with open(f'{parent_dir}\\electric-log.log', 'r') as file:
+    with open(Rf'{parent_dir}\electric-log.log', 'r') as file:
         data = file.read() 
     return data.splitlines()
 

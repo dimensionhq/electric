@@ -105,11 +105,8 @@ if isAdmin() and installation == 1:
     os.rename(f'{electric_dir}\electric-dist', Rf'{electric_dir}\file')
     shutil.move(Rf'{electric_dir}\file\electric-dist',
                 f'{electric_dir}\electric')
-    shutil.rmtree(Rf'C:\Electric\file')
+    shutil.rmtree(Rf'C:\Electric\file') 
     write('Successfully Unzipped And Extracted Electric.zip', 'green', metadata)
-    write('Running setup.py For Electric', 'green', metadata)
-    os.chdir(Rf'C:\Electric\electric')
-    os.system('pip install --editable .')
     write('Successfully Installed Electric, Type `electric` To Get A List Of Help Commands!', 'green', metadata)
 
 if isAdmin() and installation == 2 and not metadata.silent:
@@ -175,7 +172,6 @@ if isAdmin() and installation == 2 and not metadata.silent:
             write('Successfully Unzipped And Extracted Electric.zip', 'green', metadata)
             write('Running setup.py For Electric', 'green', metadata)
             os.chdir(Rf'{electric_dir}\electric')
-            os.system('pip install --editable .')
             write('Successfully Installed Electric, Type `electric` To Get A List Of Help Commands!', 'green', metadata)
 
         if compression_type == '.7z':
@@ -221,9 +217,7 @@ if isAdmin() and installation == 2 and not metadata.silent:
             os.remove(f'{electric_dir}\\Electric.7z')
             os.rename(f'{electric_dir}\\electric-dist', f'{electric_dir}\\electric')
             write('\nSuccessfully Unzipped And Extracted Electric.7z', 'green', metadata)
-            write('Running setup.py For Electric', 'green', metadata)
             os.chdir(Rf'{electric_dir}\electric')
-            os.system('pip install --editable .')
             write('Successfully Installed Electric, Type `electric` To Get A List Of Help Commands!', 'green', metadata)
         
         if compression_type == '.tar':
@@ -268,9 +262,7 @@ if isAdmin() and installation == 2 and not metadata.silent:
             os.remove(f'{electric_dir}\\Electric.tar')
             os.rename(f'{electric_dir}\\electric-dist', f'{electric_dir}\\electric')
             write('\nSuccessfully Unzipped And Extracted Electric.tar', 'green', metadata)
-            write('Running setup.py For Electric', 'green', metadata)
             os.chdir(Rf'{electric_dir}\electric')
-            os.system('pip install --editable .')
             write('Successfully Installed Electric, Type `electric` To Get A List Of Help Commands!', 'green', metadata)
 
 

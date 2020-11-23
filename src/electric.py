@@ -802,3 +802,6 @@ def show(package_name: str):
 
     pkg_info = res[corrected_package_names[0]]
     click.echo(click.style(display_info(pkg_info), fg='green'))
+
+if __name__ == '__main__':
+    cli()

@@ -13,3 +13,6 @@ Private/
 superlog.txt
 supercache.json
 electric-log.log
+src/build
+src/electric.spec
+src/dist
