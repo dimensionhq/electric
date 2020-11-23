@@ -759,7 +759,7 @@ def show(package_name: str):
         res, _ = handle_cached_request()
 
     else:
-        status = 'Networking'
+        # status = 'Networking'
         # write_verbose('Sending GET Request To /packages', metadata)
         # write_debug('Sending GET Request To /packages', metadata)
         # log_info('Sending GET Request To /packages', logfile)
