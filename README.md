@@ -17,4 +17,5 @@ git clone -b dev https://github.com/TheBossProSniper/Electric
 ```
 2. Run the installer.py with admin(administrator) permissions.
 3. Reopen your terminal and type `electric` to test if electric is correctly installed.
-4. You're done!
+4. Add the directory created at `C:\Electric` or your custom directory to the PATH (edit environment variables).
+5. You're done!
