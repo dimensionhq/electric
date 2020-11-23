@@ -508,7 +508,6 @@ def setup_supercache():
 
 
 def update_supercache(res):
-    print(parent_dir)
     filepath = Rf'{parent_dir}\supercache.json'
     file = open(filepath, 'w+')
     file.write(json.dumps(res, indent=4))
