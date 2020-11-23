@@ -32,8 +32,12 @@ class PackageManager:
         self.metadata = metadata
 
     def download(self, download: Download):
-        path = f'{tempfile.gettempdir()}\\{download.name}{download.extension}'
-        with open(path, "wb") as f:
+        if not isfile(Rf'{tempfile.gettempdir()}\electric'):
+            os.mkdir(Rf'{tempfile.gettempdir()}\electric')
+
+        path = Rf'{tempfile.gettempdir()}\electric\{download.name}{download.extension}'
+
+        with open(path, 'wb') as f:
             response = requests.get(download.url, stream=True)
             total_length = response.headers.get('content-length')
             if total_length is None:
@@ -80,8 +84,7 @@ class PackageManager:
                 if '/D=' in custom_install_switch:
                     command += ' ' + custom_install_switch + f'{directory}'
                 else:
-                    command += ' ' + custom_install_switch + \
-                        f'"{directory}"'
+                    command += ' ' + custom_install_switch + f'"{directory}"'
                 if directory == '':
                     click.echo(click.style(
                         f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))

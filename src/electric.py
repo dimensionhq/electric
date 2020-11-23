@@ -197,11 +197,11 @@ def install(
                     package, packet.json_name)
                 if installation:
                     write_debug(
-                        f"Aborting Installation As {packet.json_name} is already installed.", metadata)
+                        f'Aborting Installation As {packet.json_name} is already installed.', metadata)
                     write_verbose(
-                        f"Found an existing installation of => {packet.json_name}", metadata)
+                        f'Found an existing installation of => {packet.json_name}', metadata)
                     write(
-                        f"Found an existing installation {packet.json_name}.", 'bright_yellow', metadata)
+                        f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
                     installation_continue = click.prompt(
                         f'Would you like to reinstall {packet.json_name} [y/n]')
                     if installation_continue == 'y' or installation_continue == 'y' or yes:
@@ -212,9 +212,9 @@ def install(
                         handle_exit(status, setup_name, metadata)
 
                 write_verbose(
-                    f"Package to be installed: {packet.json_name}", metadata)
+                    f'Package to be installed: {packet.json_name}', metadata)
                 log_info(
-                    f"Package to be installed: {packet.json_name}", logfile)
+                    f'Package to be installed: {packet.json_name}', logfile)
 
                 write_verbose(
                     f'Finding closest match to {packet.json_name}...', metadata)
@@ -257,11 +257,11 @@ def install(
 
         if installation:
             write_debug(
-                f"Found existing installation of {packet.json_name}.", metadata)
+                f'Found existing installation of {packet.json_name}.', metadata)
             write_verbose(
-                f"Found an existing installation of => {packet.json_name}", metadata)
+                f'Found an existing installation of => {packet.json_name}', metadata)
             write(
-                f"Found an existing installation {packet.json_name}.", 'bright_yellow', metadata)
+                f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
             installation_continue = click.prompt(
                 f'Would you like to reinstall {packet.json_name} [y/n]')
             if installation_continue == 'y' or installation_continue == 'y' or yes:
@@ -272,8 +272,8 @@ def install(
                 handle_exit(status, setup_name, metadata)
 
         write_verbose(
-            f"Package to be installed: {packet.json_name}", metadata)
-        log_info(f"Package to be installed: {packet.json_name}", logfile)
+            f'Package to be installed: {packet.json_name}', metadata)
+        log_info(f'Package to be installed: {packet.json_name}', logfile)
 
         write_verbose(
             f'Finding closest match to {packet.json_name}...', metadata)
@@ -329,16 +329,16 @@ def install(
 
             limiter = Limiter(
                 bucket=bucket,
-                filename=f"{tempfile.gettempdir()}\Setup{packet.win64_type}",
+                filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
             )
 
             urlretrieve(
                 url=download_url,
-                filename=f"{tempfile.gettempdir()}\Setup{packet.win64_type}",
+                filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
                 reporthook=limiter
             )
 
-            path = f"{tempfile.gettempdir()}\Setup{packet.win64_type}"
+            path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
 
         status = 'Downloaded'
 
@@ -564,9 +564,9 @@ def uninstall(
 
         # Getting UninstallString or QuietUninstallString From The Registry Search Algorithm
         write_verbose(
-            "Fetching uninstall key from the registry...", metadata)
+            'Fetching uninstall key from the registry...', metadata)
         write_debug('Sending query (uninstall-string) to Registry', metadata)
-        log_info("Fetching uninstall key from the registry...", logfile)
+        log_info('Fetching uninstall key from the registry...', logfile)
 
         start = timer()
         key = get_uninstall_key(packet.json_name)
@@ -631,8 +631,8 @@ def uninstall(
             index += 1
             continue
 
-        write_verbose("Uninstall key found.", metadata)
-        log_info("Uninstall key found.", logfile)
+        write_verbose('Uninstall key found.', metadata)
+        log_info('Uninstall key found.', logfile)
         log_info(key, metadata.logfile)
         write_debug('Successfully Recieved UninstallString from Windows Registry', metadata)
 
@@ -661,25 +661,25 @@ def uninstall(
             if packet.uninstall_switches:
                 if packet.uninstall_switches != []:
                     write_verbose(
-                        "Adding additional uninstall switches", metadata)
+                        'Adding additional uninstall switches', metadata)
                     write_debug('Appending / Adding additional uninstallation switches', metadata)
-                    log_info("Adding additional uninstall switches", logfile)
+                    log_info('Adding additional uninstall switches', logfile)
                     additional_switches = packet.uninstall_switches
 
             if additional_switches:
                 for switch in additional_switches:
                     command += ' ' + switch
 
-            write_verbose("Executing the quiet uninstall command", metadata)
-            log_info(f"Executing the quiet uninstall command => {command}", logfile)
+            write_verbose('Executing the quiet uninstall command', metadata)
+            log_info(f'Executing the quiet uninstall command => {command}', logfile)
             write_debug(f'Running silent uninstallation command', metadata)
             run_cmd(command, metadata, 'uninstallation', packet.display_name)
 
             write(
-                f"Successfully Uninstalled {packet.display_name}", "bright_magenta", metadata)
+                f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
 
-            write_verbose("Uninstallation completed.", metadata)
-            log_info("Uninstallation completed.", logfile)
+            write_verbose('Uninstallation completed.', metadata)
+            log_info('Uninstallation completed.', logfile)
 
             index += 1
             write_debug(
@@ -698,15 +698,15 @@ def uninstall(
                 command += f' {switch}'
 
             # Run The UninstallString
-            write_verbose("Executing the Uninstall Command", metadata)
-            log_info("Executing the silent Uninstall Command", logfile)
+            write_verbose('Executing the Uninstall Command', metadata)
+            log_info('Executing the silent Uninstall Command', logfile)
 
             run_cmd(command, metadata, 'uninstallation', packet.display_name)
 
             write(
                 f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-            write_verbose("Uninstallation completed.", metadata)
-            log_info("Uninstallation completed.", logfile)
+            write_verbose('Uninstallation completed.', metadata)
+            log_info('Uninstallation completed.', logfile)
             index += 1
             write_debug(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)

@@ -28,6 +28,7 @@ import zipfile
 import hashlib
 import pymongo
 import ctypes
+import shutil
 import random
 import pickle
 import click
@@ -42,7 +43,7 @@ final_value = None
 path = ''
 
 manager = PathManager()
-parent_dir = manager.get_parent_directory().replace(R'\bin', '')
+parent_dir = manager.get_parent_directory()
 current_dir = manager.get_current_directory()
 
 def is_admin():
@@ -107,18 +108,19 @@ def download(url, package_name, metadata: Metadata, download_type):
 
         path = check_existing_download(package_name, download_type)
 
+        if not isfile(Rf'{tempfile.gettempdir()}\electric'):
+            os.mkdir(Rf'{tempfile.gettempdir()}\electric')
+
         if isinstance(path, bool):
-            path = f'{tempfile.gettempdir()}\\Setup{download_type}'
+            path = Rf'{tempfile.gettempdir()}\electric\Setup{download_type}'
         else:
             write(f'Found Existing Download At => {tempfile.gettempdir()}', 'blue', metadata)
             return path, True
 
         while os.path.isfile(path):
-            path = f'{tempfile.gettempdir()}\\Setup{random.randint(200, 10000)}'
+            path = Rf'{tempfile.gettempdir()}\Setup{random.randint(200, 10000)}'
 
-        
-
-        with open(path, "wb") as f:
+        with open(path, 'wb') as f:
             response = requests.get(url, stream=True)
             total_length = response.headers.get('content-length')
 
@@ -134,14 +136,14 @@ def download(url, package_name, metadata: Metadata, download_type):
 
                     if metadata.no_progress:
                         sys.stdout.write(
-                            f"\r{round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB")
+                            f'\r{round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB')
                         sys.stdout.flush()
 
                     elif not metadata.no_progress and not metadata.silent:
                         complete = int(20 * dl / full_length)
                         fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
                         sys.stdout.write(
-                            f"\r[{fill_c}{unfill_c}] ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB")
+                            f'\r[{fill_c}{unfill_c}] ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
                         sys.stdout.flush()
         
         dump_pickle(generate_dict(path, package_name))
@@ -229,8 +231,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
                 if '/D=' in custom_install_switch:
                     command += ' ' + custom_install_switch + f'{directory}'
                 else:
-                    command += ' ' + custom_install_switch + \
-                        f'"{directory}"'
+                    command += ' ' + custom_install_switch + f'"{directory}"'
                 if directory == '':
                     click.echo(click.style(
                         f'Installing {package_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
@@ -306,7 +307,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
                 os._exit(0)
 
             else:
-                path = file_path + "\\" + executable_list[index]
+                path = file_path + '\\' + executable_list[index]
                 click.echo(click.style(
                     f'Running {executable_list[index]}. Hit Control + C to Quit', fg='magenta'))
                 subprocess.call(path, stdout=PIPE, stdin=PIPE, stderr=PIPE)
@@ -327,7 +328,7 @@ def get_correct_package_names(res: str) -> list:
 
 def get_hash_algorithm(checksum: str):
     # A function to detect the hash algorithm used in checksum
-    hashes = {32: "md5", 40: "sha1", 64: "sha256", 128: "sha512"}
+    hashes = {32: 'md5', 40: 'sha1', 64: 'sha256', 128: 'sha512'}
     return hashes[len(checksum)] if len(checksum) in hashes else None
 
 
@@ -513,6 +514,9 @@ def setup_supercache():
 
 
 def update_supercache(res):
+    if isfile(f'{tempfile.gettempdir()}\electric'):
+        shutil.rmtree(f'{tempfile.gettempdir()}\electric')
+
     filepath = Rf'{parent_dir}\supercache.json'
     file = open(filepath, 'w+')
     file.write(json.dumps(res, indent=4))

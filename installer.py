@@ -26,8 +26,8 @@ class Metadata:
 
 
 parser = argparse.ArgumentParser(description='Electric Installer')
-parser.add_argument('--silent', action="store_true")
-parser.add_argument('--verbose', action="store_true")
+parser.add_argument('--silent', action='store_true')
+parser.add_argument('--verbose', action='store_true')
 args = parser.parse_args()
 metadata = Metadata(args.silent, args.verbose)
 
@@ -70,7 +70,7 @@ if isAdmin() and installation == 1:
     write(R'Successfully Created Directory At C:\Electric', 'green', metadata)
     write_verbose(
         f'Downloading Electric.zip From /install To {electric_dir}\\Electric.zip', 'bright_yellow', metadata)
-    with open(f'{electric_dir}\\Electric.zip', "wb") as f:
+    with open(f'{electric_dir}\\Electric.zip', 'wb') as f:
         response = requests.get(
             'https://electric-package-manager.herokuapp.com/install/windows/zip', stream=True)
         total_length = response.headers.get('content-length')
@@ -88,7 +88,7 @@ if isAdmin() and installation == 1:
                 complete = int(20 * dl / full_length)
                 fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
                 sys.stdout.write(
-                    f"\r[{fill_c}{unfill_c}] ⚡  {round(dl / full_length * 100, 1)} %  ⚡  {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB ")
+                    f'\r[{fill_c}{unfill_c}] ⚡  {round(dl / full_length * 100, 1)} %  ⚡  {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB ')
                 sys.stdout.flush()
 
     write('\nSuccessfully Downloaded Electric.zip', 'green', metadata)
@@ -132,7 +132,7 @@ if isAdmin() and installation == 2 and not metadata.silent:
             write(Rf'Successfully Created Directory At {electric_dir}', 'green', metadata)
             write_verbose(
                 f'Downloading Electric.zip From /install To {electric_dir}\\Electric.zip', 'bright_yellow', metadata)
-            with open(f'{electric_dir}\\Electric.zip', "wb") as f:
+            with open(f'{electric_dir}\\Electric.zip', 'wb') as f:
                 response = requests.get(
                     'https://electric-package-manager.herokuapp.com/install/windows/zip', stream=True)
                 total_length = response.headers.get('content-length')
@@ -150,7 +150,7 @@ if isAdmin() and installation == 2 and not metadata.silent:
                         complete = int(20 * dl / full_length)
                         fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
                         sys.stdout.write(
-                            f"\r[{fill_c}{unfill_c}] ⚡  {round(dl / full_length * 100, 1)} %  ⚡  {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB ")
+                            f'\r[{fill_c}{unfill_c}] ⚡  {round(dl / full_length * 100, 1)} %  ⚡  {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB ')
                         sys.stdout.flush()
 
             write('\nSuccessfully Downloaded Electric.zip', 'green', metadata)
@@ -188,7 +188,7 @@ if isAdmin() and installation == 2 and not metadata.silent:
             write(Rf'Successfully Created Directory At {electric_dir}', 'green', metadata)
             write_verbose(
                 f'Downloading Electric.zip From /install To {electric_dir}\\Electric.7z', 'bright_yellow', metadata)
-            with open(f'{electric_dir}\\Electric.7z', "wb") as f:
+            with open(f'{electric_dir}\\Electric.7z', 'wb') as f:
                 response = requests.get(
                     'https://electric-package-manager.herokuapp.com/install/windows/7z', stream=True)
                 total_length = response.headers.get('content-length')
@@ -206,7 +206,7 @@ if isAdmin() and installation == 2 and not metadata.silent:
                         complete = int(20 * dl / full_length)
                         fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
                         sys.stdout.write(
-                            f"\r[{fill_c}{unfill_c}] ⚡  {round(dl / full_length * 100, 1)} %  ⚡  {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB ")
+                            f'\r[{fill_c}{unfill_c}] ⚡  {round(dl / full_length * 100, 1)} %  ⚡  {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB ')
                         sys.stdout.flush()
 
             import py7zr
@@ -232,7 +232,7 @@ if isAdmin() and installation == 2 and not metadata.silent:
             write(Rf'Successfully Created Directory At {electric_dir}', 'green', metadata)
             write_verbose(
                 f'Downloading Electric.zip From /install To {electric_dir}\\Electric.tar', 'bright_yellow', metadata)
-            with open(f'{electric_dir}\\Electric.tar', "wb") as f:
+            with open(f'{electric_dir}\\Electric.tar', 'wb') as f:
                 response = requests.get(
                     'https://electric-package-manager.herokuapp.com/install/windows/tar', stream=True)
                 total_length = response.headers.get('content-length')
@@ -250,7 +250,7 @@ if isAdmin() and installation == 2 and not metadata.silent:
                         complete = int(20 * dl / full_length)
                         fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
                         sys.stdout.write(
-                            f"\r[{fill_c}{unfill_c}] ⚡  {round(dl / full_length * 100, 1)} %  ⚡  {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB ")
+                            f'\r[{fill_c}{unfill_c}] ⚡  {round(dl / full_length * 100, 1)} %  ⚡  {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB ')
                         sys.stdout.flush()
             
             import tarfile

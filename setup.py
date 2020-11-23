@@ -22,7 +22,7 @@ setup(
     name = 'electric',
     version = '1.0.0',
     description= 'The Official Package Manager For Windows, MacOS and Linux!',
-    url="https://github.com/TheBossProSniper/Electric",
+    url='https://github.com/TheBossProSniper/Electric',
     author = 'TheBossProSniper',
     author_email = 'thebossprosniper@gmail.com',
     py_modules=['electric'],

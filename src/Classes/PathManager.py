@@ -8,7 +8,7 @@ import os
 class PathManager:
     def get_parent_directory(self) -> str:
         directory = os.path.dirname(os.path.abspath(__file__))
-        return directory.replace('Classes', '').replace('src', '')[:-1]
+        return directory.replace('Classes', '').replace('src', '')[:-1].replace(R'\bin', '')
 
     def get_current_directory(self) -> str:
         directory = os.path.dirname(os.path.abspath(__file__))

@@ -20,10 +20,10 @@ def get_uninstall_key(package_name : str):
         elif proc_arch == 'x86' or proc_arch == 'amd64':
             arch_keys = {winreg.KEY_WOW64_32KEY, winreg.KEY_WOW64_64KEY}
         else:
-            raise OSError("Unhandled arch: %s" % proc_arch)
+            raise OSError('Unhandled arch: %s' % proc_arch)
 
         for arch_key in arch_keys:
-            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", 0, winreg.KEY_READ | arch_key)
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall', 0, winreg.KEY_READ | arch_key)
             for i in range(0, winreg.QueryInfoKey(key)[0]):
                 skey_name = winreg.EnumKey(key, i)
                 skey = winreg.OpenKey(key, skey_name)
@@ -31,7 +31,7 @@ def get_uninstall_key(package_name : str):
                     name = winreg.QueryValueEx(skey, 'DisplayName')[0]
                     stro = winreg.QueryValueEx(skey, 'UninstallString')[0]
                     packs = []
-                    for regkey in ["URLInfoAbout", "InstallLocation", "Publisher"]:
+                    for regkey in ['URLInfoAbout', 'InstallLocation', 'Publisher']:
                         try:
                            packs.append(winreg.QueryValueEx(skey, regkey)[0])
                         except:
@@ -44,28 +44,28 @@ def get_uninstall_key(package_name : str):
                         qstro = stro + ' /quiet'
                     try:
                         qstro = winreg.QueryValueEx(skey, 'QuietUninstallString')[0]
-                    except OSError as e:
+                    except OSError:
                             pass
                     if qstro is not None:
                         gen_dict = {
-                                    "DisplayName": name,
-                                    "QuietUninstallString": qstro,
-                                    "URLInfoAbout": url,
-                                    "InstallLocation": loc,
-                                    "Publisher": pub,
+                                    'DisplayName': name,
+                                    'QuietUninstallString': qstro,
+                                    'URLInfoAbout': url,
+                                    'InstallLocation': loc,
+                                    'Publisher': pub,
                                    }
 
                         keys.append(gen_dict)
                     else:
                         gen_dict = {
-                                    "DisplayName": name,
-                                    "UninstallString": stro,
-                                    "URLInfoAbout": url,
-                                    "InstallLocation": loc,
-                                    "Publisher": pub,
+                                    'DisplayName': name,
+                                    'UninstallString': stro,
+                                    'URLInfoAbout': url,
+                                    'InstallLocation': loc,
+                                    'Publisher': pub,
                                    }
                         keys.append(gen_dict)
-                except OSError as e:
+                except OSError:
                         pass
                 finally:
                     skey.Close()
