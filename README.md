@@ -3,9 +3,11 @@ A package manager for Windows, MacOS And Linux!
 
 Highly optimized for speed and usability, Electric is anywhere from 200% to 700% faster than other market competitors for downloading Applications and Packages, and has incredible speeds for concurrent / parallel downloading.
 
-Electric, unlike your average package manager believes in incredible effeciency, and officially supports installing packages at the same time (not one after another). Built for today's systems and with good support for lower specced systems, Electric runs smoothly even on systems with as little as 2 Gb of RAM!
+Electric, unlike your average package manager believes in incredible effeciency, and officially supports installing packages at the same time (not one after another). 
 
-Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at Issues.
+Built for today's systems and with good support for lower specced systems, Electric runs smoothly even on systems with as little as 2 Gb of RAM!
+
+IMPORTANT: Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at [issues](https://github.com/TheBossProSniper/electric-windows/issues).
 
 ## Installation
 
