@@ -8,15 +8,19 @@ from subprocess import Popen, PIPE, CalledProcessError, check_call, call
 from Classes.PathManager import PathManager
 from timeit import default_timer as timer
 from Classes.Metadata import Metadata
+import Classes.PackageManager as mgr
 from Classes.Packet import Packet
 from viruscheck import virus_check
 from datetime import datetime
 import pyperclip as clipboard
+from decimal import Decimal
 from signal import SIGTERM
 from colorama import Back
 from switch import Switch
 from extension import *
+from registry import *
 from logger import *
+from limit import *
 import webbrowser
 import keyboard
 import requests
@@ -76,13 +80,13 @@ def generate_dict(path: str, package_name: str):
 
 
 def dump_pickle(data: dict):
-    with open(Rf'{appdata_dir}\downloadcache.pickle', 'wb') as f:
+    with open(Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle', 'wb') as f:
         pickle.dump(data, f)
 
 
 def retrieve_data():
-    if os.path.isfile(Rf'{tempfile.gettempdir()}\downloadcache.pickle'):
-        with open(Rf'{tempfile.gettempdir()}\downloadcache.pickle', 'rb') as f:
+    if os.path.isfile(Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle'):
+        with open(Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle', 'rb') as f:
             final = pickle.loads(f.read())
             return final
 
@@ -94,9 +98,13 @@ def check_existing_download(package_name: str, download_type) -> bool:
                 try:
                     filesize = os.stat(data['directory'] + download_type).st_size
                 except FileNotFoundError:
-                    os.rename(data['directory'], data['directory'] + download_type)
-                    filesize = os.stat(data['directory'] + download_type).st_size
-                
+                    
+                    if download_type not in data['directory']:
+                        os.rename(data['directory'], data['directory'] + download_type)
+                    try:
+                        filesize = os.stat(data['directory']).st_size
+                    except FileNotFoundError:
+                        filesize = os.stat(data['directory'] + download_type).st_size
                 if filesize < data['size']:
                     # Corrupt Installation
                     return False
@@ -151,6 +159,7 @@ def download(url, package_name, metadata: Metadata, download_type):
 
 
 def get_error_cause(error: str, display_name: str, method: str, metadata: Metadata) -> str:
+
     log_info(f'{error} ==> {method}', metadata.logfile)
     if method == 'installation':
         for code in valid_install_exit_codes:
@@ -755,3 +764,184 @@ VERSION :: Coming Soon!
 LOGFILE :: <--attachment-->
 }}
     '''
+
+def install_dependencies(packet: Packet, rate_limit: int, install_directory: str, metadata: Metadata):
+    write(f'Installing Dependencies For => {packet.display_name}', 'cyan', metadata)
+    disp = str(packet.dependencies).replace("[", "").replace("]", "").replace("\'", "")
+    write(f'{packet.display_name} has the following dependencies: {disp}', 'yellow', metadata)
+    continue_install = click.confirm('Would you like to install the above dependencies ?')
+    if continue_install:
+        res, _ = handle_cached_request()
+        if len(packet.dependencies) > 1 and len(packet.dependencies) <= 5:
+            write(f'Using Parallel Installation For Installing Dependencies', 'green', metadata)
+            
+            packets = []
+            for package in packet.dependencies:
+
+                pkg = res[package]
+                custom_dir = None
+                if install_directory:
+                    custom_dir = install_directory + f'\\{pkg["package-name"]}'
+                else:
+                    custom_dir = install_directory
+                
+                packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'])
+                installation = find_existing_installation(
+                    package, packet.json_name)
+                if installation:
+                    write_debug(
+                        f'Aborting Installation As {packet.json_name} is already installed.', metadata)
+                    write_verbose(
+                        f'Found an existing installation of => {packet.json_name}', metadata)
+                    write(
+                        f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
+                    installation_continue = click.prompt(
+                        f'Would you like to reinstall {packet.json_name} [y/n]')
+                    if installation_continue == 'y' or installation_continue == 'y' or yes:
+                        os.system(f'electric uninstall {packet.json_name}')
+                        os.system(f'electric install {packet.json_name}')
+                        return
+                    else:
+                        handle_exit('ERROR', None, metadata)
+
+                write_verbose(
+                    f'Package to be installed: {packet.json_name}', metadata)
+                log_info(
+                    f'Package to be installed: {packet.json_name}', metadata.logfile)
+
+                write_verbose(
+                    f'Finding closest match to {packet.json_name}...', metadata)
+                log_info(
+                    f'Finding closest match to {packet.json_name}...', metadata.logfile)
+                packets.append(packet)
+
+                write_verbose('Generating system download path...', metadata)
+                log_info('Generating system download path...', metadata.logfile)
+
+            manager = mgr.PackageManager(packets, metadata)
+            paths = manager.handle_multi_download()
+            log_info('Finished Rapid Download...', metadata.logfile)
+            log_info(
+                'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+            manager.handle_multi_install(paths)
+            return
+        else:
+            write('Starting Sync Installation...', 'green', metadata)
+            for package in packet.dependencies:
+                pkg = res[package]
+                log_info('Generating Packet For Further Installation.', metadata.logfile)
+                packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'])
+                log_info('Searching for existing installation of package.', metadata.logfile)
+                installation = find_existing_installation(package, packet.json_name)
+
+                if installation:
+                    write_debug(
+                        f'Found existing installation of {packet.json_name}.', metadata)
+                    write_verbose(
+                        f'Found an existing installation of => {packet.json_name}', metadata)
+                    write(
+                        f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
+                    continue
+
+                if packet.dependencies:
+                    install_dependencies(packet, install_directory, metadata)
+
+                write_verbose(
+                    f'Package to be installed: {packet.json_name}', metadata)
+                log_info(f'Package to be installed: {packet.json_name}', metadata.logfile)
+
+                write_verbose('Generating system download path...', metadata)
+                log_info('Generating system download path...', metadata.logfile)
+
+                start = timer()
+                download_url = get_download_url(packet)
+                end = timer()
+
+                val = round(Decimal(end) - Decimal(start), 6)
+                write(
+                    f'Electrons Transferred In {val}s', 'cyan', metadata)
+                log_info(f'Electrons Transferred In {val}s', metadata.logfile)
+                write_debug(f'Successfully Parsed Download Path in {val}s', metadata)
+
+                write('Initializing Rapid Download...', 'green', metadata)
+                log_info('Initializing Rapid Download...', metadata.logfile)
+
+                # Downloading The File From Source
+                write_debug(f'Downloading {packet.display_name} from => {packet.win64}', metadata)
+                write_verbose(
+                    f"Downloading from '{download_url}'", metadata)
+                log_info(f"Downloading from '{download_url}'", metadata.logfile)
+                
+                if rate_limit == -1:
+                    path, _ = download(download_url, packet.json_name, metadata, packet.win64_type)
+                else:
+                    log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
+                    bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
+
+                    limiter = Limiter(
+                        bucket=bucket,
+                        filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
+                    )
+
+                    urlretrieve(
+                        url=download_url,
+                        filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
+                        reporthook=limiter
+                    )
+
+                    path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
+
+                write('Completed Rapid Download', 'green', metadata)
+
+                log_info('Finished Rapid Download', metadata.logfile)
+
+                if metadata.virus_check:
+                    write('Scanning File For Viruses...', 'blue', metadata)
+                    check_virus(path, metadata)
+
+                write(
+                    'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
+                log_info(
+                    'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+
+                write_debug(
+                    f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
+                log_info(
+                    f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
+                start_snap = get_environment_keys()
+
+                # Running The Installer silently And Completing Setup
+                install_package(path, packet, metadata)
+
+                final_snap = get_environment_keys()
+                if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
+                    write('Refreshing Environment Variables...', 'green', metadata)
+                    start = timer()
+                    log_info('Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
+                    write_debug('Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
+                    write_verbose('Refreshing Environment Variables', metadata)
+                    refresh_environment_variables()
+                    end = timer()
+                    write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
+
+                write(
+                    f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
+                log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
+
+
+                if metadata.reduce_package:
+                    
+                    os.remove(path)
+                    try:
+                        os.remove(Rf'{tempfile.gettempdir()}\downloadcache.pickle')
+                    except:
+                        pass
+                        
+                    log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
+                    write('Successfully Cleaned Up Installer From Temp Directory...',
+                        'green', metadata)
+
+                write_verbose('Dependency successfully Installed.', metadata)
+                log_info('Dependency successfully Installed.', metadata.logfile)
+    else:
+        os._exit(1)

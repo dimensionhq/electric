@@ -23,6 +23,7 @@ import click
 import sys
 import os
 
+
 @click.group(cls=SuperChargeCLI)
 @click.version_option(__version__)
 @click.pass_context
@@ -192,7 +193,7 @@ def install(
                     custom_dir = install_directory + f'\\{pkg["package-name"]}'
                 else:
                     custom_dir = install_directory
-                packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir)
+                packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'])
                 installation = find_existing_installation(
                     package, packet.json_name)
                 if installation:
@@ -251,7 +252,7 @@ def install(
     for package in corrected_package_names:
         pkg = res[package]
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory)
+        packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'])
         log_info('Searching for existing installation of package.', metadata.logfile)
         installation = find_existing_installation(package, packet.json_name)
 
@@ -270,6 +271,9 @@ def install(
                 return
             else:
                 handle_exit(status, setup_name, metadata)
+
+        if packet.dependencies:
+            install_dependencies(packet, rate_limit, install_directory, metadata)
 
         write_verbose(
             f'Package to be installed: {packet.json_name}', metadata)
@@ -542,7 +546,7 @@ def uninstall(
     for package in corrected_package_names:
         pkg = res[package]
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None)
+        packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'])
         proc = None
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
@@ -571,6 +575,8 @@ def uninstall(
         start = timer()
         key = get_uninstall_key(packet.json_name)
         end = timer()
+
+        # TODO: Add suggestions to uninstall bundled in dependencies
 
         # If The UninstallString Or QuietUninstallString Doesn't Exist
         # if not key:

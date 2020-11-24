@@ -3,7 +3,7 @@
 ######################################################################
 
 class Packet:
-    def __init__(self, json_name, display_name, win64, win64_type, custom_location, install_switches, uninstall_switches, directory):
+    def __init__(self, json_name, display_name, win64, win64_type, custom_location, install_switches, uninstall_switches, directory, dependencies):
         self.json_name = json_name
         self.display_name = display_name
         self.win64 = win64
@@ -12,4 +12,5 @@ class Packet:
         self.install_switches = install_switches
         self.uninstall_switches = uninstall_switches
         self.directory = directory
+        self.dependencies = dependencies
         
