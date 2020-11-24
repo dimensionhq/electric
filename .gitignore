@@ -9,7 +9,7 @@ src/__pycache__
 src/electric.egg-info
 Database/__pycache__
 src/Classes/__pycache__
-Private/
+Dev/
 superlog.txt
 supercache.json
 electric-log.log
