@@ -1,21 +1,26 @@
 # Electric
 A package manager for Windows, MacOS And Linux!
 
-Highly optimized for speed and usability, Electric is anywhere from 200% to 700% faster than Chocolatey for downloading Applications and Packages, and has incredible speeds for concurrent / parallel downloading.
+Highly optimized for speed and usability, Electric is anywhere from 200% to 700% faster than other market competitors for downloading Applications and Packages, and has incredible speeds for concurrent / parallel downloading.
 
-Since electric is in an alpha phase, it might not be completely stable. Feel free to open any issues or bug reports at Issues.
+Electric, unlike your average package manager believes in incredible effeciency, and officially supports installing packages at the same time (not one after another). 
+
+Built for today's systems and with good support for lower specced systems, Electric runs smoothly even on systems with as little as 2 Gb of RAM!
+
+IMPORTANT: Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at [issues](https://github.com/TheBossProSniper/electric-windows/issues).
 
 ## Installation
 
-IMPORTANT: Currently electric only works on Windows Systems, With Support In The Working For Darwin ( MacOSX ) and Debian Based Systems
+IMPORTANT: Currently electric only works on Windows Systems, With Support In Progress For Darwin ( MacOSX ) and Debian Based Systems
 
 #### Steps
 
-1. Clone the github repository / download the latest source code from the dev branch using:
-```
-git clone -b dev https://github.com/TheBossProSniper/Electric
-```
-2. Run the installer.py with admin(administrator) permissions.
-3. Reopen your terminal and type `electric` to test if electric is correctly installed.
-4. Add the directory created at `C:\Electric` or your custom directory to the PATH (edit environment variables).
-5. You're done!
+1. Download the latest version of the electric Installer from the [Releases Page](https://github.com/TheBossProSniper/electric-windows/releases/tag/v1.0.0-alpha)
+
+2. After completing the download, start the installer (double-click) and follow the simple installation prompts.
+
+NOTE: If you see warnings about the software not being trusted or from an unverified publisher, don't panic, this is a known issue as Electric is not code signed yet.
+
+3. Open your command prompt (cmd.exe) or alternatively powershell (powershell.exe) and type `electric` to get a list of help commands.
+
+4. Yaay! Electric is installed on your system!
