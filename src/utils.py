@@ -4,7 +4,7 @@
 
 
 from constants import valid_install_exit_codes, valid_uninstall_exit_codes
-from subprocess import Popen, PIPE, CalledProcessError, check_call
+from subprocess import Popen, PIPE, CalledProcessError, check_call, call
 from Classes.PathManager import PathManager
 from timeit import default_timer as timer
 from Classes.Metadata import Metadata
@@ -18,7 +18,6 @@ from switch import Switch
 from extension import *
 from logger import *
 import webbrowser
-import subprocess
 import keyboard
 import requests
 import tempfile
@@ -45,12 +44,6 @@ path = ''
 appdata_dir = PathManager.get_appdata_directory()
 
 
-def is_admin():
-    try:
-        is_admin = (os.getuid() == 0)
-    except AttributeError:
-        is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
-    return is_admin
 
 class HiddenPrints:
     def __enter__(self):
@@ -60,6 +53,14 @@ class HiddenPrints:
     def __exit__(self, exc_type, exc_val, exc_tb):
         sys.stdout.close()
         sys.stdout = self._original_stdout
+
+
+def is_admin():
+    try:
+        is_admin = (os.getuid() == 0)
+    except AttributeError:
+        is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+    return is_admin
 
 
 def get_download_url(packet):
@@ -308,7 +309,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
                 path = file_path + '\\' + executable_list[index]
                 click.echo(click.style(
                     f'Running {executable_list[index]}. Hit Control + C to Quit', fg='magenta'))
-                subprocess.call(path, stdout=PIPE, stdin=PIPE, stderr=PIPE)
+                call(path, stdout=PIPE, stdin=PIPE, stderr=PIPE)
                 quit()
 
         keyboard.add_hotkey('up', up)
@@ -350,7 +351,7 @@ def send_req_all() -> dict:
 
 
 def get_pid(exe_name):
-    proc = subprocess.Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    proc = Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, _ = proc.communicate()
     output = output.decode('utf-8')
     lines = output.splitlines()
@@ -360,7 +361,7 @@ def get_pid(exe_name):
 
 
 def find_approx_pid(exe_name) -> str:
-    proc = subprocess.Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    proc = Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, err = proc.communicate()
     output = output.decode('utf-8')
     lines = output.splitlines()
@@ -713,7 +714,7 @@ def handle_unknown_error(err: str):
         print(err)
 
 
-    proc = subprocess.Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    proc = Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, err = proc.communicate()
     output = output.decode('utf-8')
     lines = output.splitlines()
