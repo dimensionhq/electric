@@ -5,7 +5,7 @@ Highly optimized for speed and usability, Electric is anywhere from 200% to 700%
 
 Electric, unlike your average package manager believes in incredible effeciency, and officially supports installing packages at the same time (not one after another). 
 
-Built for today's systems and with good support for lower specced systems, Electric runs smoothly even on systems with as little as 2 Gb of RAM!
+Built for today's systems and with good support for lower specced systems, Electric runs smoothly even on systems with as little as 2 GB of ram!
 
 IMPORTANT: Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at [issues](https://github.com/TheBossProSniper/electric-windows/issues).
 
