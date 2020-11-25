@@ -723,20 +723,36 @@ def uninstall(
 
 @cli.command(aliases=['find'])
 @click.argument('approx_name', required=True)
-def search(approx_name: str):
-    
+@click.option('--starts-with', '-sw', is_flag=True, help='Find packages which start with the specified literal')
+@click.option('--exact', '-e', is_flag=True, help='Find packages which exactly match the specified literal')
+def search(
+    approx_name: str,
+    starts_with: str,
+    exact: str,
+    ):
+
+
     super_cache = check_supercache_valid()
     if super_cache:
-        res, time = handle_cached_request()
+        res, _ = handle_cached_request()
 
     else:
-        status = 'Networking'
-        res, time = send_req_all()
+        res, _ = send_req_all()
         res = json.loads(res)
 
     correct_names = get_correct_package_names(res)[1:]
-    
-    matches = difflib.get_close_matches(approx_name, correct_names)
+
+    matches = []
+    if exact:
+        for name in correct_names:
+            if name == approx_name:
+                matches.append(name)
+    if starts_with:
+        for name in correct_names:
+            if name.startswith(approx_name):
+                matches.append(name)
+    elif not exact and not starts_with:    
+        matches = difflib.get_close_matches(approx_name, correct_names)
     
     if len(matches) > 0:
         idx = 0
