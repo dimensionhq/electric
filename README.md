@@ -1,6 +1,6 @@
 # Electric
 
-<img src="https://img.shields.io/github/license/TheBossProSniper/Electric-Windows?color=pink"> <img src="https://img.shields.io/tokei/lines/github/TheBossProSniper/Electric-Windows?color=yellow&label=lines%20of%20code"> <img src="https://img.shields.io/github/languages/top/TheBossProSniper/Electric-Windows?color=%230xfffff"> <img src="https://img.shields.io/github/repo-size/TheBossProSniper/Electric?color=orange"> 
+<img src="https://img.shields.io/github/license/TheBossProSniper/Electric-Windows?color=pink"> <img src="https://img.shields.io/tokei/lines/github/TheBossProSniper/Electric-Windows?color=white&label=lines%20of%20code"> <img src="https://img.shields.io/github/languages/top/TheBossProSniper/Electric-Windows?color=%230xfffff"> <img src="https://img.shields.io/github/repo-size/TheBossProSniper/Electric?color=orange"> 
 
 [comment]: <> (https://img.shields.io/codeclimate/maintainability/TheBossProSniper/Electric-Windows => GO TO shields.io) 
 
