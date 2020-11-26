@@ -23,4 +23,4 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 
 3. Open your command prompt (cmd.exe) or alternatively powershell (powershell.exe) and type `electric` to get a list of help commands.
 
-4. Electric is installed on your system!
+4. Yaay! Electric is installed on your system!
