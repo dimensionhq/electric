@@ -1,4 +1,0 @@
-build electric:
-  image: python
-  script:
-    - python src/electric.py install sublime-text-3
