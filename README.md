@@ -1,6 +1,9 @@
 # Electric
 
-<img src="https://img.shields.io/github/languages/code-size/TheBossProSniper/Electric-Windows">
+<img src="https://img.shields.io/github/license/TheBossProSniper/Electric-Windows?color=pink"> <img src="https://img.shields.io/github/languages/top/TheBossProSniper/Electric-Windows?color=%230xfffff"> <img src="https://img.shields.io/github/repo-size/TheBossProSniper/Electric?color=orange"> 
+
+[comment]: <> (https://img.shields.io/codeclimate/maintainability/TheBossProSniper/Electric-Windows => GO TO shields.io) 
+
 
 A package manager for Windows, MacOS And Linux!
 
