@@ -447,9 +447,9 @@ def kill_running_proc(package_name: str, metadata: Metadata):
         if metadata.silent:
             os.kill(pid, SIGTERM)
             return
-        terminate = click.prompt(
-            f'Electric Detected {name} Running In The Background. Would You Like To Terminate It? [y/n]')
-        if terminate == 'y':
+        terminate = click.confirm(
+            f'Electric Detected {name} Running In The Background. Would You Like To Terminate It?')
+        if terminate:
             write(f'Terminating {name}.', 'green', metadata)
             os.kill(pid, SIGTERM)
         else:
@@ -522,7 +522,7 @@ def check_virus(path: str, metadata: Metadata):
             else:
                 continue_install = 'y'
         if not metadata.silent:
-            continue_install = click.prompt('Would You Like To Continue? [y/n]')
+            continue_install = click.confirm('Would You Like To Continue?')
         if continue_install == 'y':
             pass
         else:
@@ -640,18 +640,18 @@ def disp_error_msg(messages: list, metadata: Metadata):
 
 
     if reboot:
-        reboot = click.confirm('Would you like to reboot? [y/n]')
+        reboot = click.confirm('Would you like to reboot?')
         if reboot:
             os.system('shutdown /R')
 
     if commands:
-        run = click.prompt('Would You Like To Install Node? [y/n]')
+        run = click.confirm('Would You Like To Install Node?')
         if run == 'y':
             print('\n')
             os.system(commands[0][0])
 
     if websites:
-        website = click.prompt('Would You Like To Visit Any Of The Above Websites? [y/n]')
+        website = click.confirm('Would You Like To Visit Any Of The Above Websites?')
         if website == 'y':
             try:
                 webpage = int(click.prompt('Which Webpage Would You Like To Visit? ')) - 1
@@ -748,8 +748,8 @@ def get_error_message(code: str, method: str, display_name: str):
         
 
 def handle_unknown_error(err: str):
-    error_msg = click.prompt('Would You Like To See The Error Message? [y/n]')
-    if error_msg == 'y':
+    error_msg = click.confirm('Would You Like To See The Error Message? [y/n]')
+    if error_msg:
         print(err)
 
 
@@ -811,9 +811,9 @@ def install_dependencies(packet: Packet, rate_limit: int, install_directory: str
                         f'Found an existing installation of => {packet.json_name}', metadata)
                     write(
                         f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
-                    installation_continue = click.prompt(
-                        f'Would you like to reinstall {packet.json_name} [y/n]')
-                    if installation_continue == 'y' or installation_continue == 'y' or yes:
+                    installation_continue = click.confirm(
+                        f'Would you like to reinstall {packet.json_name}')
+                    if installation_continue or metadata.yes:
                         os.system(f'electric uninstall {packet.json_name}')
                         os.system(f'electric install {packet.json_name}')
                         return

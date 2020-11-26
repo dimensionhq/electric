@@ -159,11 +159,12 @@ def install(
                         f'Autocorrecting To {corrections[0]}', metadata)
                     log_info(
                         f'Autocorrecting To {corrections[0]}', metadata.logfile)
-                    if click.prompt('Would You Like To Continue? [y/n]') == 'y':
+                    if click.confirm('Would You Like To Continue?'):
                         package_name = corrections[0]
                         corrected_package_names.append(package_name)
                     else:
-                        sys.exit()
+                        handle_exit('ERROR', None, metadata)
+                        
             else:
                 write(
                     f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
@@ -203,9 +204,9 @@ def install(
                         f'Found an existing installation of => {packet.json_name}', metadata)
                     write(
                         f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
-                    installation_continue = click.prompt(
-                        f'Would you like to reinstall {packet.json_name} [y/n]')
-                    if installation_continue == 'y' or installation_continue == 'y' or yes:
+                    installation_continue = click.confirm(
+                        f'Would you like to reinstall {packet.json_name}')
+                    if installation_continue or yes:
                         os.system(f'electric uninstall {packet.json_name}')
                         os.system(f'electric install {packet.json_name}')
                         return
@@ -263,9 +264,9 @@ def install(
                 f'Found an existing installation of => {packet.json_name}', metadata)
             write(
                 f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
-            installation_continue = click.prompt(
-                f'Would you like to reinstall {packet.json_name} [y/n]')
-            if installation_continue == 'y' or installation_continue == 'y' or yes:
+            installation_continue = click.confirm(
+                f'Would you like to reinstall {packet.json_name}')
+            if installation_continue or yes:
                 os.system(f'electric uninstall {packet.json_name}')
                 os.system(f'electric install {packet.json_name}')
                 return
@@ -522,11 +523,11 @@ def uninstall(
                     write_debug(
                         f'Autocorrecting To {corrections[0]}', metadata)
                     log_info(f'Autocorrecting To {corrections[0]}', metadata.logfile)
-                    if click.prompt('Would You Like To Continue? [y/n]') == 'y':
+                    if click.confirm('Would You Like To Continue?'):
                         package_name = corrections[0]
                         corrected_package_names.append(package_name)
                     else:
-                        sys.exit()
+                        handle_exit('ERROR', None, metadata)
             else:
                 write(
                     f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
@@ -800,11 +801,9 @@ def show(package_name: str):
         if corrections:
             
             click.echo(click.style(f'Autocorrecting To {corrections[0]}', fg='bright_magenta'))
-            if click.prompt('Would You Like To Continue? [y/n]') == 'y':
+            if click.confirm('Would You Like To Continue?'):
                 package_name = corrections[0]
                 corrected_package_names.append(package_name)
-            else:
-                sys.exit()
         else:
             click.echo(click.style(f'Could Not Find Any Packages Which Match {package_name}', fg='bright_magenta'))
 
