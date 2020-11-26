@@ -4,11 +4,12 @@ import os
 keys = []
 
 def query_registry_info():
-    
+
         arch_keys = {winreg.KEY_WOW64_32KEY, winreg.KEY_WOW64_64KEY}
         
         for arch_key in arch_keys:
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall', 0, winreg.KEY_READ | arch_key)
+            
             for i in range(0, winreg.QueryInfoKey(key)[0]):
                 skey_name = winreg.EnumKey(key, i)
                 skey = winreg.OpenKey(key, skey_name)
@@ -31,7 +32,7 @@ def query_registry_info():
                         qstro = winreg.QueryValueEx(skey, 'QuietUninstallString')[0]
                     except OSError:
                             pass
-                    if qstro is not None:
+                    if qstro:
                         gen_dict = {
                                     'DisplayName': name,
                                     'QuietUninstallString': qstro,
@@ -41,6 +42,7 @@ def query_registry_info():
                                    }
 
                         keys.append(gen_dict)
+
                     else:
                         gen_dict = {
                                     'DisplayName': name,
@@ -54,6 +56,7 @@ def query_registry_info():
                         pass
                 finally:
                     skey.Close()
+
 
 def find_accurate_matches(strings, package_name, return_array):
 
@@ -103,5 +106,6 @@ def find_accurate_matches(strings, package_name, return_array):
                 if final_confidence < confidence:
                     final_index = index
                     final_confidence = confidence
+            
             index += 1
         return return_array[final_index]
