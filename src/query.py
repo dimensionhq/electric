@@ -4,15 +4,9 @@ import os
 keys = []
 
 def query_registry_info():
-        proc_arch = os.environ['PROCESSOR_ARCHITECTURE'].lower()
-        proc_arch64 = None if 'PROCESSOR_ARCHITEW6432' not in os.environ.keys() else os.environ['PROCESSOR_ARCHITEW6432'].lower()
-        if proc_arch == 'x86' and not proc_arch64:
-            arch_keys = {0}
-        elif proc_arch == 'x86' or proc_arch == 'amd64':
-            arch_keys = {winreg.KEY_WOW64_32KEY, winreg.KEY_WOW64_64KEY}
-        else:
-            raise OSError('Unhandled arch: %s' % proc_arch)
-
+    
+        arch_keys = {winreg.KEY_WOW64_32KEY, winreg.KEY_WOW64_64KEY}
+        
         for arch_key in arch_keys:
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall', 0, winreg.KEY_READ | arch_key)
             for i in range(0, winreg.QueryInfoKey(key)[0]):
