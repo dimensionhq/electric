@@ -750,6 +750,7 @@ def display_info(json: dict) -> str:
 | Url(Windows) => {json['win64']}
     '''
 
+
 def get_recent_logs() -> list:
     with open(Rf'{appdata_dir}\electric-log.log', 'r') as file:
         data = file.read() 
