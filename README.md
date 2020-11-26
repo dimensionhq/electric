@@ -1,6 +1,6 @@
 # Electric
 
-<img src="/github/languages/code-size/TheBossProSniper/Electric-Windows">
+<img src="https://img.shields.io/github/languages/code-size/TheBossProSniper/Electric-Windows">
 
 A package manager for Windows, MacOS And Linux!
 
