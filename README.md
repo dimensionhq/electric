@@ -1,5 +1,7 @@
 # Electric
 
+<img src="/github/languages/code-size/TheBossProSniper/Electric-Windows">
+
 A package manager for Windows, MacOS And Linux!
 
 Highly optimized for speed and usability, Electric is anywhere from 200% to 700% faster than other market competitors for downloading Applications and Packages, and has incredible speeds for concurrent / parallel downloading.
