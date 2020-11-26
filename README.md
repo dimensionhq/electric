@@ -1,5 +1,4 @@
 # Electric
-<img src="https://travis-ci.org/TheBossProSniper/Electric-Windows.svg?branch=master">
 
 A package manager for Windows, MacOS And Linux!
 
