@@ -59,6 +59,22 @@ class HiddenPrints:
         sys.stdout = self._original_stdout
 
 
+def get_recent_logs() -> list:
+    with open(Rf'{appdata_dir}\electric-log.log', 'r') as file:
+        data = file.read() 
+    return data.splitlines()
+
+
+def generate_report(name: str):
+    return f'''
+{{
+NAME :: {name}
+VERSION :: Coming Soon!
+LOGFILE :: <--attachment-->
+}}
+    '''
+
+
 def is_admin():
     try:
         is_admin = (os.getuid() == 0)
@@ -171,6 +187,10 @@ def get_error_cause(error: str, display_name: str, method: str, metadata: Metada
             if f'exit status {code}' in error:
                 return ['no-error']
     
+    if 'exit status 1603' in error:
+        click.echo(click.style('\nAdministrator Elevation Required Or Unknown Error. Exit Code [1603]', fg='red'))
+        return get_error_message('1603', 'installation', display_name)
+
     if 'exit status 1639' in error:
         click.echo(click.style(f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
         return get_error_message('0002', 'installation', display_name)
@@ -652,7 +672,9 @@ def get_error_message(code: str, method: str, display_name: str):
                 f'\n[0001] => {method.capitalize()} failed because the software you tried to {attr} requires administrator permissions.',
                 f'\n\nHow To Fix:\n\nRun Your Command Prompt Or Powershell As Administrator And Retry {method.capitalize()}.\n\nHelp:',
                 '\n[1] <=> https://www.howtogeek.com/194041/how-to-open-the-command-prompt-as-administrator-in-windows-8.1/',
-                '\n[2] <=> https://www.top-password.com/blog/5-ways-to-run-powershell-as-administrator-in-windows-10/\n\n']
+                '\n[2] <=> https://www.top-password.com/blog/5-ways-to-run-powershell-as-administrator-in-windows-10/\n\n'
+                f'If that doesn\'t work, please file a support ticket at => https://www.electric.sh/support'
+            ]
 
         if code('0002'):
             return [
@@ -679,6 +701,14 @@ def get_error_message(code: str, method: str, display_name: str):
                 '\n\nHow To Fix:\n', 
                 'Run `electric install node` [ Copied To Clipboard ] To Install Node(npm)'
                 ]
+        
+        if code('1603'):
+            return [
+                f'\n[1603] => {method.capitalize()} might have failed because the software you tried to {attr} might require administrator permissions.',
+                f'\n\nHow To Fix:\n\nRun Your Command Prompt Or Powershell As Administrator And Retry {method.capitalize()}.\n\nHelp:',
+                '\n[1] <=> https://www.howtogeek.com/194041/how-to-open-the-command-prompt-as-administrator-in-windows-8.1/',
+                '\n[2] <=> https://www.top-password.com/blog/5-ways-to-run-powershell-as-administrator-in-windows-10/\n\n',
+            ]
 
         if code('0010'):
             clipboard.copy('electric install python3')
@@ -750,21 +780,6 @@ def display_info(json: dict) -> str:
 | Url(Windows) => {json['win64']}
     '''
 
-
-def get_recent_logs() -> list:
-    with open(Rf'{appdata_dir}\electric-log.log', 'r') as file:
-        data = file.read() 
-    return data.splitlines()
-
-
-def generate_report(name: str):
-    return f'''
-{{
-NAME :: {name}
-VERSION :: Coming Soon!
-LOGFILE :: <--attachment-->
-}}
-    '''
 
 def install_dependencies(packet: Packet, rate_limit: int, install_directory: str, metadata: Metadata):
     write(f'Installing Dependencies For => {packet.display_name}', 'cyan', metadata)
