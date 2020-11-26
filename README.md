@@ -15,7 +15,6 @@ Built for today's systems and with good support for lower specced systems, Elect
 
 IMPORTANT: Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at [issues](https://github.com/TheBossProSniper/electric-windows/issues).
 
-***
 ## Installation
 
 IMPORTANT: Currently electric only works on Windows Systems, With Support In Progress For Darwin ( MacOSX ) and Debian Based Systems
