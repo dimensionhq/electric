@@ -66,6 +66,9 @@ def install(
     rate_limit: int,
     node: bool,
 ):
+    # if install_directory:
+
+
     if logfile:
         logfile = logfile.replace('=', '')
         logfile = logfile.replace('.txt', '.log')

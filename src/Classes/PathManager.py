@@ -19,3 +19,4 @@ class PathManager:
     @staticmethod
     def get_appdata_directory() -> str:
         return os.environ['APPDATA'] + R'\electric'
+        

@@ -9,8 +9,8 @@ from Classes.PathManager import PathManager
 from timeit import default_timer as timer
 from Classes.Metadata import Metadata
 import Classes.PackageManager as mgr
-from Classes.Packet import Packet
 from viruscheck import virus_check
+from Classes.Packet import Packet
 from datetime import datetime
 import pyperclip as clipboard
 from decimal import Decimal
@@ -46,8 +46,6 @@ final_value = None
 path = ''
 
 appdata_dir = PathManager.get_appdata_directory()
-
-
 
 class HiddenPrints:
     def __enter__(self):
@@ -175,7 +173,7 @@ def download(url, package_name, metadata: Metadata, download_type):
 
 
 def get_error_cause(error: str, display_name: str, method: str, metadata: Metadata) -> str:
-
+    print(error)
     log_info(f'{error} ==> {method}', metadata.logfile)
     if method == 'installation':
         for code in valid_install_exit_codes:
@@ -257,15 +255,25 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
         if custom_install_switch:
             if directory and directory != '':
                 if '/D=' in custom_install_switch:
+                    idx = 0
+                    for switch in switches:
+                        if idx == 0:
+                            command = command + switch
+                            continue
+                        command = command + ' ' + switch
+                        idx += 1
+
                     command += ' ' + custom_install_switch + f'{directory}'
                 else:
                     command += ' ' + custom_install_switch + f'"{directory}"'
                 if directory == '':
-                    click.echo(click.style(
+                    click.echo(click.style( 
                         f'Installing {package_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
-        for switch in switches:
-            command = command + ' ' + switch
+        if not directory:
+            for switch in switches:
+                command = command + ' ' + switch
+
 
         run_cmd(command, metadata, 'installation', packet.display_name)
 
@@ -501,7 +509,7 @@ def find_existing_installation(package_name: str, display_name: str):
 
 
 def refresh_environment_variables() -> bool:
-    proc = Popen(Rf'{appdata_dir}\scripts\refreshvars.cmd',
+    proc = Popen(Rf'{PathManager.get_current_directory()}\scripts\refreshvars.cmd',
                  stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     output, err = proc.communicate()
     if 'Finished' in output.decode('utf-8'):
@@ -523,10 +531,10 @@ def check_virus(path: str, metadata: Metadata):
                 continue_install = 'y'
         if not metadata.silent:
             continue_install = click.confirm('Would You Like To Continue?')
-        if continue_install == 'y':
-            pass
-        else:
-            handle_exit('Virus Check', '', metadata)
+            if continue_install:
+                pass
+            else:
+                handle_exit('Virus Check', '', metadata)
     else:
         click.echo(click.style('No Viruses Detected!', fg='green'))
 
@@ -560,6 +568,42 @@ def update_supercache(res):
     logfile.write(str(now))
     logfile.close()
 
+def check_for_updates():
+    client = pymongo.MongoClient('mongodb+srv://TheBossProSniper:electricsupermanager@electric.kuixi.mongodb.net/<dbname>?retryWrites=true&w=majority')
+    database = client['Electric']['Update-Status']
+    if database.find_one({}):
+        if click.confirm('A new update for electric is available, would you like to proceed with the update?'):
+            click.echo(click.style('Updating Electric..', fg='green'))
+            UPDATEA = 'https://electric-package-manager.herokuapp.com/update/windows'
+            
+            with open(Rf'{tempfile.gettempdir()}\Update.7z', 'wb') as f:
+                response = requests.get(UPDATEA, stream=True)
+                total_length = response.headers.get('content-length')
+
+                if total_length is None:
+                    f.write(response.content)
+                else:
+                    dl = 0
+                    full_length = int(total_length)
+
+                    for data in response.iter_content(chunk_size=7096):
+                        dl += len(data)
+                        f.write(data)
+
+                        complete = int(20 * dl / full_length)
+                        fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
+                        sys.stdout.write(
+                            f'\r[{fill_c}{unfill_c}] ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
+                        sys.stdout.flush()
+
+            DETACHED_PROCESS = 0x00000008
+            path = PathManager.get_current_directory().replace(R'\bin', '')
+            command = Rf"{path}\Updater\updater.exe"
+            proc = Popen([sys.executable, command],
+                                creationflags=DETACHED_PROCESS)
+
+            sys.exit()
+        
 
 def check_supercache_valid():
     filepath = Rf'{appdata_dir}\superlog.txt'
@@ -569,6 +613,7 @@ def check_supercache_valid():
         date = datetime.strptime(contents, '%Y-%m-%d %H:%M:%S.%f')
         if (datetime.now() - date).days < 1:
             return True
+    check_for_updates()
     return False
 
 
@@ -748,7 +793,7 @@ def get_error_message(code: str, method: str, display_name: str):
         
 
 def handle_unknown_error(err: str):
-    error_msg = click.confirm('Would You Like To See The Error Message? [y/n]')
+    error_msg = click.confirm('Would You Like To See The Error Message?')
     if error_msg:
         print(err)
 

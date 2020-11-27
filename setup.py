@@ -43,7 +43,8 @@ setup(
         'switch',
         'click_didyoumean',
         'click_completion',
-        'pyperclip'
+        'pyperclip',
+        'mslex'
     ],
     package_dir={'': 'src'},
     entry_points =

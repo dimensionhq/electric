@@ -7,15 +7,16 @@ from Classes.Metadata import Metadata
 from subprocess import PIPE, Popen
 from extension import *
 from utils import *
-import shlex
+import mslex
 import sys
 
 
 def handle_python_package(package_name: str, mode: str, metadata: Metadata):
     command = ''
 
-    valid = Popen('pip --version', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    valid = Popen(mslex.split('pip --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE)
     _, err = valid.communicate()
+
     if err:
         click.echo(click.style('npm Or node Is Not Installed. Exit Code [0011]', fg='red'))
         disp_error_msg(get_error_message('0011', 'install'))
@@ -25,7 +26,7 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
 
         command += f' {package_name}'
 
-        proc = Popen(shlex.split(command), stdin=PIPE,
+        proc = Popen(mslex.split(command), stdin=PIPE,
                         stdout=PIPE, stderr=PIPE)
 
         py_version = sys.version.split()
@@ -54,14 +55,14 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
                     'Would you like to upgrade your pip version?')
                 if wants:
                     write('Updating Pip Version', 'green', metadata)
-                    Popen(shlex.split('python -m pip install --upgrade pip'))
+                    Popen(mslex.split('python -m pip install --upgrade pip'))
 
     elif mode == 'uninstall':
         command = 'python -m pip uninstall --no-input --yes'
 
         command += f' {package_name}'
 
-        proc = Popen(shlex.split(command), stdin=PIPE,
+        proc = Popen(mslex.split(command), stdin=PIPE,
                         stdout=PIPE, stderr=PIPE)
 
         py_version = sys.version.split()
@@ -88,7 +89,7 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
 
 
 def handle_node_package(package_name: str, mode: str, metadata: Metadata):
-    version_proc = Popen('npm --version'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    version_proc = Popen(mslex.split('npm --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     version, err = version_proc.communicate()
     version = version.decode().strip()
 
@@ -99,7 +100,7 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
 
 
     if mode == 'install':
-        proc = Popen(f'npm i {package_name} -g'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        proc = Popen(mslex.split(f'npm i {package_name} -g'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         write(f'npm v{version} :: Collecting {package_name}', 'green', metadata)
         package_version = None
         for line in proc.stdout:
@@ -117,5 +118,5 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
 
 
     else:
-        proc = Popen(f'npm uninstall {package_name}'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        proc = Popen(mslex.split(f'npm uninstall {package_name}'), stdin=PIPE, stdout=PIPE, stderr=PIPE)
         _, err = proc.communicate()
