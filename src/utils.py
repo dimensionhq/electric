@@ -36,6 +36,7 @@ import random
 import pickle
 import click
 import json
+import info
 import sys
 import os
 import re
@@ -568,42 +569,66 @@ def update_supercache(res):
     logfile.write(str(now))
     logfile.close()
 
+
+def check_newer_version(new_version) -> bool:
+    current_version = int(info.__version__.replace('.', '').replace('a', '').replace('b', ''))
+    new_version = int(new_version.replace('.', ''))
+    if current_version < new_version:
+        return True
+    return False
+
+
 def check_for_updates():
     client = pymongo.MongoClient('mongodb+srv://TheBossProSniper:electricsupermanager@electric.kuixi.mongodb.net/<dbname>?retryWrites=true&w=majority')
     database = client['Electric']['Update-Status']
-    if database.find_one({}):
-        if click.confirm('A new update for electric is available, would you like to proceed with the update?'):
-            click.echo(click.style('Updating Electric..', fg='green'))
-            UPDATEA = 'https://electric-package-manager.herokuapp.com/update/windows'
+    doc = database.find_one({})
+    if doc:    
+        new_version = doc['version']
+        if check_newer_version(new_version):
+            # Implement Version Check
+            if click.confirm('A new update for electric is available, would you like to proceed with the update?'):
+                click.echo(click.style('Updating Electric..', fg='green'))
+                UPDATEA = 'https://electric-package-manager.herokuapp.com/update/windows'
+
+                import ctypes
+
+                def is_admin():
+                    try:
+                        return ctypes.windll.shell32.IsUserAnAdmin()
+                    except:
+                        return False
+                
             
-            with open(Rf'{tempfile.gettempdir()}\Update.7z', 'wb') as f:
-                response = requests.get(UPDATEA, stream=True)
-                total_length = response.headers.get('content-length')
+                if is_admin():
+                    with open(Rf'C:\Program Files (x86)\Electric\Update.7z', 'wb') as f:
+                        response = requests.get(UPDATEA, stream=True)
+                        total_length = response.headers.get('content-length')
 
-                if total_length is None:
-                    f.write(response.content)
+                        if total_length is None:
+                            f.write(response.content)
+                        else:
+                            dl = 0
+                            full_length = int(total_length)
+
+                            for data in response.iter_content(chunk_size=7096):
+                                dl += len(data)
+                                f.write(data)
+
+                                complete = int(20 * dl / full_length)
+                                fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
+                                sys.stdout.write(
+                                    f'\r[{fill_c}{unfill_c}] ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
+                                sys.stdout.flush()
+
+
+                    command = R'"C:\Program Files (x86)\Electric\updater\updater.exe"'
+                    
+                    Popen(command, close_fds=True, shell=True)
+                    click.echo(click.style('\nSuccessfully Updated Electric!', fg='green'))
+                    sys.exit()
                 else:
-                    dl = 0
-                    full_length = int(total_length)
+                    click.echo(click.style('Re-Run Electric As Administrator To Update', fg='red'))
 
-                    for data in response.iter_content(chunk_size=7096):
-                        dl += len(data)
-                        f.write(data)
-
-                        complete = int(20 * dl / full_length)
-                        fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
-                        sys.stdout.write(
-                            f'\r[{fill_c}{unfill_c}] ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
-                        sys.stdout.flush()
-
-            DETACHED_PROCESS = 0x00000008
-            path = PathManager.get_current_directory().replace(R'\bin', '')
-            command = Rf"{path}\Updater\updater.exe"
-            proc = Popen([sys.executable, command],
-                                creationflags=DETACHED_PROCESS)
-
-            sys.exit()
-        
 
 def check_supercache_valid():
     filepath = Rf'{appdata_dir}\superlog.txt'
