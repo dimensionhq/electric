@@ -638,7 +638,8 @@ def check_supercache_valid():
         date = datetime.strptime(contents, '%Y-%m-%d %H:%M:%S.%f')
         if (datetime.now() - date).days < 1:
             return True
-    check_for_updates()
+        if (datetime.now() - date).days > 3:
+            check_for_updates()
     return False
 
 
