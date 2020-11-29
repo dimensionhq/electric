@@ -127,7 +127,16 @@ def check_existing_download(package_name: str, download_type) -> bool:
     return False 
 
 
-def download(url, package_name, metadata: Metadata, download_type):
+def get_chunk_size(total_size: str):
+    size = int(total_size)
+    size = size / 1000000
+    if size < 7:
+        return 4096
+    else:
+        return 7096
+
+
+def download(url: str, package_name: str, metadata: Metadata, download_type: str):
 
         path = check_existing_download(package_name, download_type)
         if not os.path.isdir(Rf'{tempfile.gettempdir()}\electric'):
@@ -140,19 +149,20 @@ def download(url, package_name, metadata: Metadata, download_type):
             return path, True
 
         while os.path.isfile(path):
-            path = Rf'{tempfile.gettempdir()}\Setup{random.randint(200, 10000)}'
+            path = Rf'{tempfile.gettempdir()}\electric\Setup{random.randint(200, 100000)}'
 
         with open(path, 'wb') as f:
             response = requests.get(url, stream=True)
             total_length = response.headers.get('content-length')
-
+            chunk_size = get_chunk_size(total_length)
             if total_length is None:
                 f.write(response.content)
             else:
                 dl = 0
                 full_length = int(total_length)
-
-                for data in response.iter_content(chunk_size=7096):
+                # 7096 => 7.48, 8.001
+                # 4096 => 6.87, 6.005, 7.59, 7.35
+                for data in response.iter_content(chunk_size=chunk_size):
                     dl += len(data)
                     f.write(data)
 
@@ -174,7 +184,7 @@ def download(url, package_name, metadata: Metadata, download_type):
 
 
 def get_error_cause(error: str, display_name: str, method: str, metadata: Metadata) -> str:
-    print(error)
+    # print(error)
     log_info(f'{error} ==> {method}', metadata.logfile)
     if method == 'installation':
         for code in valid_install_exit_codes:
@@ -745,7 +755,7 @@ def get_error_message(code: str, method: str, display_name: str):
                 f'\n\nHow To Fix:\n\nRun Your Command Prompt Or Powershell As Administrator And Retry {method.capitalize()}.\n\nHelp:',
                 '\n[1] <=> https://www.howtogeek.com/194041/how-to-open-the-command-prompt-as-administrator-in-windows-8.1/',
                 '\n[2] <=> https://www.top-password.com/blog/5-ways-to-run-powershell-as-administrator-in-windows-10/\n\n'
-                f'If that doesn\'t work, please file a support ticket at => https://www.electric.sh/support'
+                f'If that doesn\'t work, please file a support ticket at => https://www.electric.sh/support\n'
             ]
 
         if code('0002'):

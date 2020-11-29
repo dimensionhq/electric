@@ -330,7 +330,10 @@ def install(
         status = 'Downloading'
         
         if rate_limit == -1:
+            start = timer()
             path, cached = download(download_url, packet.json_name, metadata, packet.win64_type)
+            end = timer()
+            print(end - start)
         else:
             log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
             bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
