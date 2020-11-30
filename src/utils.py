@@ -672,8 +672,8 @@ def handle_cached_request():
         return res, time
 
 
-def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce):
-    return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce)
+def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit):
+    return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce, rate_limit)
 
 
 def disp_error_msg(messages: list, metadata: Metadata):
@@ -863,7 +863,7 @@ def display_info(json: dict) -> str:
     '''
 
 
-def install_dependencies(packet: Packet, rate_limit: int, install_directory: str, metadata: Metadata):
+def install_dependent_packages(packet: Packet, rate_limit: int, install_directory: str, metadata: Metadata):
     write(f'Installing Dependencies For => {packet.display_name}', 'cyan', metadata)
     disp = str(packet.dependencies).replace("[", "").replace("]", "").replace("\'", "")
     write(f'{packet.display_name} has the following dependencies: {disp}', 'yellow', metadata)

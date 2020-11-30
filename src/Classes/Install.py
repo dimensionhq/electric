@@ -1,10 +1,10 @@
 ######################################################################
 #                               INSTALL                              #
 ######################################################################
-
+from Classes.Metadata import Metadata
 
 class Install:
-    def __init__(self, display_name, path, install_switches, download_type, directory, custom_install_switch, metadata):
+    def __init__(self, display_name: str, path: str, install_switches, download_type: str, directory: str, custom_install_switch, metadata: Metadata):
         self.display_name = display_name
         self.path = path
         self.install_switches = install_switches

@@ -3,9 +3,9 @@
 ######################################################################
 
 
-import click
-
 from Classes.Metadata import Metadata
+from logger import log_info 
+import click
 
 
 def write(text: str, color: str, metadata: Metadata):
@@ -44,3 +44,10 @@ def write_debug(log: str, metadata: Metadata):
             click.echo(click.style(HEADER + log, fg="bright_yellow"))
         else:
             click.echo(click.style(HEADER + log))
+
+
+def write_all(text: str, color: str, metadata: Metadata):
+    write(text, color, metadata)
+    write_verbose(text, metadata)
+    write_debug(text, metadata)
+    log_info(text, metadata.logfile)

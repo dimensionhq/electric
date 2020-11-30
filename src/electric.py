@@ -66,8 +66,6 @@ def install(
     rate_limit: int,
     node: bool,
 ):
-    # if install_directory:
-
 
     if logfile:
         logfile = logfile.replace('=', '')
@@ -76,7 +74,7 @@ def install(
     
     log_info('Generating metadata...', logfile)
     metadata = generate_metadata(
-        no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce)
+        no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit)
     log_info('Successfully generated metadata.', metadata.logfile)
 
     if python:
@@ -143,10 +141,7 @@ def install(
                     handle_exit(status, setup_name, metadata)
 
                 if yes:
-                    write(
-                        f'Autocorrecting To {corrections[0]}', 'green', metadata)
-                    log_info(
-                        f'Autocorrecting To {corrections[0]}', metadata.logfile)
+                    write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
                     write(
                         f'Successfully Autocorrected To {corrections[0]}', 'green', metadata)
                     log_info(
@@ -154,14 +149,8 @@ def install(
                     corrected_package_names.append(corrections[0])
 
                 else:
-                    write(
-                        f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
-                    write_verbose(
-                        f'Autocorrecting To {corrections[0]}', metadata)
-                    write_debug(
-                        f'Autocorrecting To {corrections[0]}', metadata)
-                    log_info(
-                        f'Autocorrecting To {corrections[0]}', metadata.logfile)
+                    write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
+                    
                     if click.confirm('Would You Like To Continue?'):
                         package_name = corrections[0]
                         corrected_package_names.append(package_name)
@@ -169,14 +158,7 @@ def install(
                         handle_exit('ERROR', None, metadata)
                         
             else:
-                write(
-                    f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
-                write_debug(
-                    f'Could Not Find Any Packages Which Match {name}', metadata)
-                write_verbose(
-                    f'Could Not Find Any Packages Which Match {name}', metadata)
-                log_info(
-                    f'Could Not Find Any Packages Which Match {name}', metadata.logfile)
+                write_all(f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
 
     write_debug(install_debug_headers, metadata)
     for header in install_debug_headers:
@@ -228,23 +210,14 @@ def install(
                 packets.append(packet)
 
             if super_cache:
-                write(
-                    f'Rapidquery Successfully SuperCached Packages in {round(time, 6)}s', 'bright_yellow', metadata)
-                write_debug(
-                    f'Rapidquery Successfully SuperCached Packages in {round(time, 9)}s', metadata)
-                log_info(
-                    f'Rapidquery Successfully SuperCached Packages in {round(time, 6)}s', metadata.logfile)
+                write_all(f'Rapidquery Successfully SuperCached Packages in {round(time, 6)}s', 'bright_yellow', metadata)
             else:
-                write(
+                write_all(
                     f'Rapidquery Successfully Received packages.json in {round(time, 6)}s', 'bright_yellow', metadata)
-                write_debug(
-                    f'Rapidquery Successfully Received packages.json in {round(time, 9)}s', metadata)
-                log_info(
-                    f'Rapidquery Successfully Received packages.json in {round(time, 6)}s', metadata.logfile)
 
                 write_verbose('Generating system download path...', metadata)
                 log_info('Generating system download path...', metadata.logfile)
-
+            
             manager = PackageManager(packets, metadata)
             paths = manager.handle_multi_download()
             log_info('Finished Rapid Download...', metadata.logfile)
@@ -277,7 +250,7 @@ def install(
                 handle_exit(status, setup_name, metadata)
 
         if packet.dependencies:
-            install_dependencies(packet, rate_limit, install_directory, metadata)
+            install_dependent_packages(packet, rate_limit, install_directory, metadata)
 
         write_verbose(
             f'Package to be installed: {packet.json_name}', metadata)
@@ -289,20 +262,12 @@ def install(
 
         if index == 0:
             if super_cache:
-                write(
+                write_all(
                     f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', 'bright_yellow', metadata)
-                write_debug(
-                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 9)}s', metadata)
-                log_info(
-                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata.logfile)
             else:
-                write(
+                write_all(
                     f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_yellow', metadata)
-                write_debug(
-                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 9)}s', metadata)
-                log_info(
-                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
-
+                
         write_verbose('Generating system download path...', metadata)
         log_info('Generating system download path...', metadata.logfile)
 
@@ -333,7 +298,6 @@ def install(
             start = timer()
             path, cached = download(download_url, packet.json_name, metadata, packet.win64_type)
             end = timer()
-            print(end - start)
         else:
             log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
             bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
@@ -444,7 +408,7 @@ def uninstall(
     log_info('Generating metadata...', logfile)
 
     metadata = generate_metadata(
-        None, silent, verbose, debug, no_color, yes, logfile, None, None)
+        None, silent, verbose, debug, no_color, yes, logfile, None, None, None)
     
     log_info('Successfully generated metadata.', logfile)
 

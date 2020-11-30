@@ -32,7 +32,7 @@ class PackageManager:
         self.metadata = metadata
 
     def download(self, download: Download):
-        if not isfile(Rf'{tempfile.gettempdir()}\electric'):
+        if not os.path.isdir(Rf'{tempfile.gettempdir()}\electric'):
             os.mkdir(Rf'{tempfile.gettempdir()}\electric')
 
         path = Rf'{tempfile.gettempdir()}\electric\{download.name}{download.extension}'
@@ -169,7 +169,14 @@ class PackageManager:
             return 'threading'
         return 'processing'
 
+    def handle_dependencies(self):
+        for packet in self.packets:
+            if packet.dependencies:
+                install_dependent_packages(packet, self.metadata.rate_limit, packet.directory, self.metadata)
+
     def handle_multi_download(self) -> list:
+
+        self.handle_dependencies()
         metadata = self.metadata
 
         write(
