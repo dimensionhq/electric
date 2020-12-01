@@ -297,7 +297,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
         if not is_admin():
             click.echo(click.style(
                 '\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
-            disp_error_msg(get_error_message('0001', 'installation'))
+            disp_error_msg(get_error_message('0001', 'installation', packet.display_name), metadata)
             handle_exit('ERROR', None, metadata)
         run_cmd(command, metadata, 'installation', packet.display_name)
 
