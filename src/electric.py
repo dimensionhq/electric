@@ -181,7 +181,7 @@ def install(
                     custom_dir = install_directory
                 packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'])
                 installation = find_existing_installation(
-                    package, packet.json_name)
+                    package, packet.display_name)
                 if installation:
                     write_debug(
                         f'Aborting Installation As {packet.json_name} is already installed.', metadata)
@@ -522,7 +522,7 @@ def uninstall(
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
 
-        kill_running_proc(packet.json_name, metadata)
+        kill_running_proc(packet.json_name, packet.display_name, metadata)
 
         if super_cache:
             write(
@@ -544,7 +544,8 @@ def uninstall(
         log_info('Fetching uninstall key from the registry...', metadata.logfile)
 
         start = timer()
-        key = get_uninstall_key(packet.json_name)
+        key = get_uninstall_key(packet.json_name, packet.display_name)
+        
         end = timer()
 
         # TODO: Add suggestions to uninstall bundled in dependencies
@@ -670,7 +671,7 @@ def uninstall(
             command = key['UninstallString']
             command = command.replace('/I', '/X')
             command = command.replace('/quiet', '/passive')
-            command = f'"{command}"'
+            # command = f'"{command}"'
             for switch in packet.uninstall_switches:
                 command += f' {switch}'
 
