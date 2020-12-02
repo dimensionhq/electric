@@ -2,74 +2,49 @@
 #                              REGISTRY                              #
 ######################################################################
 
-from timeit import default_timer as timer
 from Classes.RegSnapshot import RegSnapshot
 import difflib
 import winreg
-import os
 
 
 keys = []
 
-def get_uninstall_key(package_name : str):
-    def get_registry_info():
-        proc_arch = os.environ['PROCESSOR_ARCHITECTURE'].lower()
-        proc_arch64 = None if 'PROCESSOR_ARCHITEW6432' not in os.environ.keys() else os.environ['PROCESSOR_ARCHITEW6432'].lower()
-        if proc_arch == 'x86' and not proc_arch64:
-            arch_keys = {0}
-        elif proc_arch == 'x86' or proc_arch == 'amd64':
-            arch_keys = {winreg.KEY_WOW64_32KEY, winreg.KEY_WOW64_64KEY}
-        else:
-            raise OSError('Unhandled arch: %s' % proc_arch)
+def get_uninstall_key(package_name : str, display_name: str):
+    def send_query(hive, flag):
+        aReg = winreg.ConnectRegistry(None, hive)
+        aKey = winreg.OpenKey(aReg, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+                            0, winreg.KEY_READ | flag)
 
-        for arch_key in arch_keys:
-            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall', 0, winreg.KEY_READ | arch_key)
-            for i in range(0, winreg.QueryInfoKey(key)[0]):
-                skey_name = winreg.EnumKey(key, i)
-                skey = winreg.OpenKey(key, skey_name)
+        count_subkey = winreg.QueryInfoKey(aKey)[0]
+
+        software_list = []
+
+        for i in range(count_subkey):
+            software = {}
+            try:
+                asubkey_name = winreg.EnumKey(aKey, i)
+                asubkey = winreg.OpenKey(aKey, asubkey_name)
+                software['DisplayName'] = winreg.QueryValueEx(asubkey, "DisplayName")[0]
                 try:
-                    name = winreg.QueryValueEx(skey, 'DisplayName')[0]
-                    stro = winreg.QueryValueEx(skey, 'UninstallString')[0]
-                    packs = []
-                    for regkey in ['URLInfoAbout', 'InstallLocation', 'Publisher']:
-                        try:
-                           packs.append(winreg.QueryValueEx(skey, regkey)[0])
-                        except:
-                            packs.append(None)
+                    software['UninstallString'] = winreg.QueryValueEx(asubkey, "UninstallString")[0]
+                except:
+                    software['UninstallString'] = 'undefined'
+                try:
+                    software['Version'] = winreg.QueryValueEx(asubkey, "DisplayVersion")[0]
+                except EnvironmentError:
+                    software['Version'] = 'undefined'
+                try:
+                    software['Publisher'] = winreg.QueryValueEx(asubkey, "Publisher")[0]
+                except EnvironmentError:
+                    software['Publisher'] = 'undefined'
+                software_list.append(software)
+            except EnvironmentError:
+                continue
 
-                    url, loc, pub = packs
+        return software_list
 
-                    qstro = None
-                    if 'MsiExec.exe' in stro:
-                        qstro = stro + ' /quiet'
-                    try:
-                        qstro = winreg.QueryValueEx(skey, 'QuietUninstallString')[0]
-                    except OSError:
-                            pass
-                    if qstro is not None:
-                        gen_dict = {
-                                    'DisplayName': name,
-                                    'QuietUninstallString': qstro,
-                                    'URLInfoAbout': url,
-                                    'InstallLocation': loc,
-                                    'Publisher': pub,
-                                   }
-
-                        keys.append(gen_dict)
-                    else:
-                        gen_dict = {
-                                    'DisplayName': name,
-                                    'UninstallString': stro,
-                                    'URLInfoAbout': url,
-                                    'InstallLocation': loc,
-                                    'Publisher': pub,
-                                   }
-                        keys.append(gen_dict)
-                except OSError:
-                        pass
-                finally:
-                    skey.Close()
-
+    keys = send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY) + send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY) + send_query(winreg.HKEY_CURRENT_USER, 0)
+    
     final_array = []
     total = []
 
@@ -82,7 +57,7 @@ def get_uninstall_key(package_name : str):
             url = None if 'URLInfoAbout' not in key else key['URLInfoAbout']
             uninstall_string = '' if 'UninstallString' not in key else key['UninstallString']
             quiet_uninstall_string = '' if 'QuietUninstallString' not in key else key['QuietUninstallString']
-            install_location = '' if 'InstallLocation' not in key else key['InstallLocation']
+            install_location = None if 'InstallLocation' not in key else key['InstallLocation']
             final_list = [display_name, url, uninstall_string, quiet_uninstall_string, install_location]
             index = 0
             matches = None
@@ -96,10 +71,9 @@ def get_uninstall_key(package_name : str):
 
                 refined_list.append(name)
                 index += 1
-
+                
             for string in strings:
                 matches = difflib.get_close_matches(string, refined_list)
-
                 if not matches:
                     possibilities = []
 
@@ -116,11 +90,12 @@ def get_uninstall_key(package_name : str):
                 else:
                     final_array.append(key)
 
-
     strings = []
+
     def string_gen(package_name : str):
         package_name = package_name.split('-')
         strings.append(''.join(package_name))
+        strings.append(display_name.lower())
 
     def get_more_accurate_matches(return_array):
         index, confidence = 0, 50
@@ -128,7 +103,12 @@ def get_uninstall_key(package_name : str):
 
         for key in return_array:
             name = key['DisplayName']
-            loc = key['InstallLocation']
+            loc = None
+            try:
+                loc = key['InstallLocation']
+            except KeyError:
+                pass
+    
             uninstall_string = None if 'UninstallString' not in key else key['UninstallString']
             quiet_uninstall_string = None if 'QuietUninstallString' not in key else key['QuietUninstallString']
             url = None if 'URLInfoAbout' not in key else key['URLInfoAbout']
@@ -174,8 +154,9 @@ def get_uninstall_key(package_name : str):
         return return_array[final_index]
 
 
-    get_registry_info()
     get_uninstall_string(package_name)
+
+
     if final_array:
         if len(final_array) > 1:
             return get_more_accurate_matches(final_array)

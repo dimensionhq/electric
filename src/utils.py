@@ -183,8 +183,8 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         return path, False
 
 
-def get_error_cause(error: str, command: str, display_name: str, method: str, metadata: Metadata) -> str:
-    print('\n\n' + error, ' => ', command + '\n\n')
+def get_error_cause(error: str, display_name: str, method: str, metadata: Metadata) -> str:
+    print(error)
     log_info(f'{error} ==> {method}', metadata.logfile)
     if method == 'installation':
         for code in valid_install_exit_codes:
@@ -241,6 +241,7 @@ def get_error_cause(error: str, command: str, display_name: str, method: str, me
 def run_cmd(command: str, metadata: Metadata, method: str, display_name: str):
     log_info(f'Running command: {command}', metadata.logfile)
     command = command.replace('\"\"', '\"')
+    # print('Running Command => ', command)
     try:
         check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except (CalledProcessError, OSError, FileNotFoundError) as err:
@@ -296,7 +297,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
         if not is_admin():
             click.echo(click.style(
                 '\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
-            disp_error_msg(get_error_message('0001', 'installation'))
+            disp_error_msg(get_error_message('0001', 'installation', packet.display_name), metadata)
             handle_exit('ERROR', None, metadata)
         run_cmd(command, metadata, 'installation', packet.display_name)
 
@@ -408,7 +409,7 @@ def get_pid(exe_name):
             return line.split()[1]
 
 
-def find_approx_pid(exe_name) -> str:
+def find_approx_pid(exe_name, display_name) -> str:
     proc = Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, err = proc.communicate()
     output = output.decode('utf-8')
@@ -417,12 +418,16 @@ def find_approx_pid(exe_name) -> str:
     cleaned_up_names = []
     for line in lines:
         try:
-            cleaned_up_names.append(line.split()[0].strip('.exe'))
+            cleaned_up_names.append(line.split()[0].replace('.exe', ''))
         except IndexError:
             continue
 
     matches = difflib.get_close_matches(exe_name, cleaned_up_names)
+    
+    if matches == []:
+        matches = difflib.get_close_matches(display_name, cleaned_up_names)
 
+    
     if matches != []:
         for line in lines:
             if matches[0] in line:
@@ -452,10 +457,10 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
         os._exit(0)
 
 
-def kill_running_proc(package_name: str, metadata: Metadata):
+def kill_running_proc(package_name: str, display_name: str, metadata: Metadata):
     parts = package_name.split('-')
     name = ' '.join([p.capitalize() for p in parts])
-    pid = int(find_approx_pid(package_name))
+    pid = int(find_approx_pid(package_name, display_name))
     if pid == 1:
         return
     if pid and pid != 1:
@@ -500,21 +505,7 @@ def assert_cpu_compatible() -> int:
 
 
 def find_existing_installation(package_name: str, display_name: str):
-    key = registry.get_uninstall_key(package_name)
-
-    if key:
-        return True
-    else:
-        key = registry.get_uninstall_key(display_name.lower())
-
-        if key:
-            return True
-
-        else:
-            key = registry.get_uninstall_key(display_name)
-
-    if key:
-        return True
+    key = registry.get_uninstall_key(package_name, display_name)
 
     return False
 
