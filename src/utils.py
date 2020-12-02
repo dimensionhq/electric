@@ -515,7 +515,8 @@ def assert_cpu_compatible() -> int:
 
 def find_existing_installation(package_name: str, display_name: str):
     key = registry.get_uninstall_key(package_name, display_name)
-
+    if key:
+        return True
     return False
 
 
