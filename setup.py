@@ -45,7 +45,7 @@ setup(
         'click_completion',
         'pyperclip',
         'mslex',
-        'pygments' # TODO: => Add Volt Pretty Print Support Using `pygmentize.exe test.py`
+        'pygments', # TODO: => Add Volt Pretty Print Support Using `pygmentize.exe test.py`
     ],
     package_dir={'': 'src'},
     entry_points =

@@ -173,9 +173,14 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
                     elif not metadata.no_progress and not metadata.silent:
                         complete = int(20 * dl / full_length)
-                        fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
+                        fill_c = click.style('█', fg='bright_black') * complete
+                        unfill_c = click.style('█', fg='black') * (20 - complete)
+                        # sys.stdout.write(
+                        #     f'\r⚡ {fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ')
                         sys.stdout.write(
-                            f'\r[{fill_c}{unfill_c}] ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
+                            f'\r{fill_c}{unfill_c} {round(dl / full_length * 100, 1)} % ')
+                        # sys.stdout.write(
+                        #     f'\r{fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
                         sys.stdout.flush()
         
         dump_pickle(generate_dict(path, package_name))
@@ -411,7 +416,7 @@ def get_pid(exe_name):
 
 def find_approx_pid(exe_name, display_name) -> str:
     proc = Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
-    output, err = proc.communicate()
+    output, _ = proc.communicate()
     output = output.decode('utf-8')
     lines = output.splitlines()
 
@@ -439,6 +444,10 @@ def find_approx_pid(exe_name, display_name) -> str:
 def handle_exit(status: str, setup_name: str, metadata: Metadata):
 
     if status == 'Downloaded' or status == 'Installing' or status == 'Installed':
+        with HiddenPrints():
+            time.sleep(0.5)
+            print('\n')
+            
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
 
