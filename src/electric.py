@@ -65,7 +65,7 @@ def install(
     reduce: bool,
     rate_limit: int,
     node: bool,
-):
+):  
 
     if logfile:
         logfile = logfile.replace('=', '')
@@ -93,6 +93,7 @@ def install(
         
         sys.exit()
 
+        
     log_info('Checking if supercache exists...', metadata.logfile)
     super_cache = check_supercache_valid()
     if super_cache:

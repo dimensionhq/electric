@@ -183,8 +183,8 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         return path, False
 
 
-def get_error_cause(error: str, display_name: str, method: str, metadata: Metadata) -> str:
-    # print(error)
+def get_error_cause(error: str, command: str, display_name: str, method: str, metadata: Metadata) -> str:
+    print('\n\n' + error, ' => ', command + '\n\n')
     log_info(f'{error} ==> {method}', metadata.logfile)
     if method == 'installation':
         for code in valid_install_exit_codes:
@@ -246,7 +246,7 @@ def run_cmd(command: str, metadata: Metadata, method: str, display_name: str):
     except (CalledProcessError, OSError, FileNotFoundError) as err:
         keyboard.add_hotkey(
         'ctrl+c', lambda: os._exit(0))
-        disp_error_msg(get_error_cause(str(err), display_name, method, metadata), metadata)
+        disp_error_msg(get_error_cause(str(err), command, display_name, method, metadata), metadata)
 
 
 def install_package(path, packet: Packet, metadata: Metadata) -> str:
@@ -1043,3 +1043,4 @@ def install_dependent_packages(packet: Packet, rate_limit: int, install_director
                 log_info('Dependency successfully Installed.', metadata.logfile)
     else:
         os._exit(1)
+
