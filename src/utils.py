@@ -204,7 +204,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                         # sys.stdout.write(
                         #     f'\r{fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
                         sys.stdout.flush()
-        # os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
+        os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
         dump_pickle(generate_dict(newpath if newpath else path, package_name), 'downloadcache')
         if not newpath:
             return path, False
