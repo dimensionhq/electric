@@ -1,18 +1,17 @@
-from Tkinter import *
+from appJar import *
 import os
-top = Tk()
+app = gui("Package downloader", "400x200")
+app.setBg("orange")
+app.setFont(18)
 
- top.title('Package installer')
-L1 = Label(top, text="Package")
-L1.pack( side = LEFT)
-E1 = Entry(top, bd =5)
-E1.pack(side = RIGHT)
+def press(button):
+    if button == "Cancel":
+        app.stop()
+    else:
+      pkg = app.getEntry("Package Name")
+      os.system('electric install ' + pkg)
+app.addLabel("title", "Installer GUI")
+app.addLabelEntry("Package Name")
+app.addButtons(["Get", "Cancel"], press)
 
- def installCallBack():
-   eval(os.system('cmd /k "' + pkg + '"'))
-   pkg = L1.get()
-   tkMessageBox.showinfo( "Installer", "Installed :)")
-
- B = Button(top, text ="Install", command = installCallBack)
-
- top.mainloop()
+app.go()
