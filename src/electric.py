@@ -14,12 +14,14 @@ from info import __version__
 from decimal import Decimal
 from constants import *
 from external import *
+from colorama import *
 from logger import *
 from utils import *
 import keyboard
 import logging
 import difflib
 import click
+import halo
 import sys
 import os
 
@@ -115,6 +117,8 @@ def install(
         res, time = handle_cached_request()
 
     else:
+        spinner = halo.Halo(color='grey')
+        spinner.start()
         log_info('Handling Network Request...', metadata.logfile)
         status = 'Networking'
         write_verbose('Sending GET Request To /packages', metadata)
@@ -124,6 +128,7 @@ def install(
         res = json.loads(res)
         update_supercache(res)
         del res['_id']
+        spinner.stop()
 
     correct_names = get_correct_package_names(res)
     corrected_package_names = []
@@ -211,7 +216,7 @@ def install(
                 packets.append(packet)
 
             if super_cache:
-                write_all(f'Rapidquery Successfully SuperCached Packages in {round(time, 6)}s', 'bright_yellow', metadata)
+                write_all(f'Rapidquery Successfully SuperCached Packages in {round(time, 6)}s', 'bright_white', metadata)
             else:
                 write_all(
                     f'Rapidquery Successfully Received packages.json in {round(time, 6)}s', 'bright_yellow', metadata)
@@ -232,6 +237,12 @@ def install(
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'])
         log_info('Searching for existing installation of package.', metadata.logfile)
+        if not metadata.silent:
+            if not metadata.no_color:
+                print(f'Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
+            else:
+                print(f'Recieved => [ {packet.display_name} ]')
+
         installation = find_existing_installation(package, packet.json_name)
 
         if installation:
@@ -240,7 +251,7 @@ def install(
             write_verbose(
                 f'Found an existing installation of => {packet.json_name}', metadata)
             write(
-                f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
+                f'Detected an existing installation {packet.json_name}.', 'bright_yellow', metadata)
             installation_continue = click.confirm(
                 f'Would you like to reinstall {packet.json_name}')
             if installation_continue or yes:
@@ -263,12 +274,20 @@ def install(
 
         if index == 0:
             if super_cache:
-                write_all(
-                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', 'bright_yellow', metadata)
+                write_verbose(
+                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
+                write_debug(
+                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
+                log_info(f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata.logfile)
             else:
-                write_all(
-                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_yellow', metadata)
+                write_verbose(
+                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_white', metadata)
+                write_debug(
+                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_white', metadata)
+                log_info(
+                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
                 
+
         write_verbose('Generating system download path...', metadata)
         log_info('Generating system download path...', metadata.logfile)
 
@@ -278,12 +297,6 @@ def install(
         download_url = get_download_url(packet)
         status = 'Got Download Path'
         end = timer()
-
-        val = round(Decimal(end) - Decimal(start), 6)
-        write(
-            f'Electrons Transferred In {val}s', 'cyan', metadata)
-        log_info(f'Electrons Transferred In {val}s', metadata.logfile)
-        write_debug(f'Successfully Parsed Download Path in {val}s', metadata)
 
         write('Initializing Rapid Download...', 'green', metadata)
         log_info('Initializing Rapid Download...', metadata.logfile)

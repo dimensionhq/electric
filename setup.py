@@ -46,6 +46,8 @@ setup(
         'pyperclip',
         'mslex',
         'pygments', # TODO: => Add Volt Pretty Print Support Using `pygmentize.exe test.py`
+        'halo',
+        'cursor'
     ],
     package_dir={'': 'src'},
     entry_points =

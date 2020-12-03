@@ -3,6 +3,7 @@
 ######################################################################
 
 
+from click.exceptions import Abort, ClickException
 from constants import valid_install_exit_codes, valid_uninstall_exit_codes
 from subprocess import Popen, PIPE, CalledProcessError, check_call, call
 from Classes.PathManager import PathManager
@@ -11,11 +12,11 @@ from Classes.Metadata import Metadata
 import Classes.PackageManager as mgr
 from viruscheck import virus_check
 from Classes.Packet import Packet
+from colorama import Back, Fore, Style
 from datetime import datetime
 import pyperclip as clipboard
 from decimal import Decimal
 from signal import SIGTERM
-from colorama import Back
 from switch import Switch
 from extension import *
 from registry import *
@@ -34,6 +35,7 @@ import ctypes
 import shutil
 import random
 import pickle
+import cursor
 import click
 import json
 import info
@@ -94,20 +96,20 @@ def generate_dict(path: str, package_name: str):
     }
 
 
-def dump_pickle(data: dict):
-    with open(Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle', 'wb') as f:
+def dump_pickle(data: dict, filename: str):
+    with open(Rf'{tempfile.gettempdir()}\electric\{filename}.pickle', 'wb') as f:
         pickle.dump(data, f)
 
 
-def retrieve_data():
-    if os.path.isfile(Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle'):
-        with open(Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle', 'rb') as f:
+def retrieve_data(filename: str):
+    if os.path.isfile(Rf'{tempfile.gettempdir()}\electric\{filename}.pickle'):
+        with open(Rf'{tempfile.gettempdir()}\electric\{filename}.pickle', 'rb') as f:
             final = pickle.loads(f.read())
             return final
 
 
 def check_existing_download(package_name: str, download_type) -> bool:
-    data = retrieve_data()
+    data = retrieve_data('downloadcache')
     if data:
         if data['package_name'] == package_name:
                 try:
@@ -135,9 +137,21 @@ def get_chunk_size(total_size: str):
     else:
         return 7096
 
+def get_color_escape(r, g, b, background=False):
+    return '\033[{};2;{};{};{}m'.format(48 if background else 38, r, g, b)
+
+
+def check_resume_download(metadata: Metadata) -> int:
+    data = retrieve_data('unfinishedcache')
+    try:
+        if os.path.isfile(data['path']):
+            write(f'Resuming Existing Download At => {tempfile.gettempdir()}', 'blue', metadata)
+            return os.stat(data['path']).st_size, data['path']
+    except:
+        return None, None
 
 def download(url: str, package_name: str, metadata: Metadata, download_type: str):
-
+        cursor.hide()
         path = check_existing_download(package_name, download_type)
         if not os.path.isdir(Rf'{tempfile.gettempdir()}\electric'):
             os.mkdir(Rf'{tempfile.gettempdir()}\electric')
@@ -151,8 +165,15 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         while os.path.isfile(path):
             path = Rf'{tempfile.gettempdir()}\electric\Setup{random.randint(200, 100000)}'
 
-        with open(path, 'wb') as f:
-            response = requests.get(url, stream=True)
+        size, newpath = check_resume_download(metadata)
+        if not size:
+            dump_pickle({'path': path, 'url': url, 'name': package_name, 'download-type': download_type}, 'unfinishedcache')
+
+        with open(newpath if newpath else path, 'wb' if not size else 'ab') as f:
+            if size:
+                response = requests.get(url, stream=True, headers={'Range': 'bytes=%d-' % size})
+            else:
+                response = requests.get(url, stream=True)
             total_length = response.headers.get('content-length')
             chunk_size = get_chunk_size(total_length)
             if total_length is None:
@@ -172,21 +193,23 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                         sys.stdout.flush()
 
                     elif not metadata.no_progress and not metadata.silent:
-                        complete = int(20 * dl / full_length)
-                        fill_c = click.style('█', fg='bright_black') * complete
-                        unfill_c = click.style('█', fg='black') * (20 - complete)
+                        complete = int(25 * dl / full_length)
+                        fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
+                        # fill_c = click.style('█', fg='bright_black') * complete
+                        unfill_c = Fore.BLACK + '█' * (25 - complete)
                         # sys.stdout.write(
                         #     f'\r⚡ {fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ')
                         sys.stdout.write(
-                            f'\r{fill_c}{unfill_c} {round(dl / full_length * 100, 1)} % ')
+                            f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} {round(dl / 1000000)} / {round(full_length / 1000000)} MB {Fore.RESET}')
                         # sys.stdout.write(
                         #     f'\r{fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
                         sys.stdout.flush()
-        
-        dump_pickle(generate_dict(path, package_name))
-
-        return path, False
-
+        # os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
+        dump_pickle(generate_dict(newpath if newpath else path, package_name), 'downloadcache')
+        if not newpath:
+            return path, False
+        else:
+            return newpath, False
 
 def get_error_cause(error: str, display_name: str, method: str, metadata: Metadata) -> str:
     print(error)
@@ -252,7 +275,7 @@ def run_cmd(command: str, metadata: Metadata, method: str, display_name: str):
     except (CalledProcessError, OSError, FileNotFoundError) as err:
         keyboard.add_hotkey(
         'ctrl+c', lambda: os._exit(0))
-        disp_error_msg(get_error_cause(str(err), command, display_name, method, metadata), metadata)
+        disp_error_msg(get_error_cause(str(err), display_name, method, metadata), metadata)
 
 
 def install_package(path, packet: Packet, metadata: Metadata) -> str:
@@ -442,12 +465,7 @@ def find_approx_pid(exe_name, display_name) -> str:
 
 
 def handle_exit(status: str, setup_name: str, metadata: Metadata):
-
-    if status == 'Downloaded' or status == 'Installing' or status == 'Installed':
-        with HiddenPrints():
-            time.sleep(0.5)
-            print('\n')
-            
+    if status == 'Downloaded' or status == 'Installing' or status == 'Installed':        
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
 
@@ -461,6 +479,9 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
         write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
         os._exit(0)
 
+    if status == 'Downloading':
+        write('\n\nRapidExit Successfully Exited With Code 0', 'green', metadata)
+        os._exit(0)
     else:
         write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
         os._exit(0)
@@ -729,13 +750,13 @@ def disp_error_msg(messages: list, metadata: Metadata):
 
     if commands:
         run = click.confirm('Would You Like To Install Node?')
-        if run == 'y':
+        if run:
             print('\n')
             os.system(commands[0][0])
 
     if websites:
         website = click.confirm('Would You Like To Visit Any Of The Above Websites?')
-        if website == 'y':
+        if website:
             try:
                 webpage = int(click.prompt('Which Webpage Would You Like To Visit? ')) - 1
             except:
@@ -943,7 +964,7 @@ def install_dependent_packages(packet: Packet, rate_limit: int, install_director
                     continue
 
                 if packet.dependencies:
-                    install_dependencies(packet, install_directory, metadata)
+                    install_dependent_packages(packet, rate_limit, install_directory, metadata)
 
                 write_verbose(
                     f'Package to be installed: {packet.json_name}', metadata)
