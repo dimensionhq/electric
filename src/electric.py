@@ -237,11 +237,7 @@ def install(
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'])
         log_info('Searching for existing installation of package.', metadata.logfile)
-        if not metadata.silent:
-            if not metadata.no_color:
-                print(f'Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
-            else:
-                print(f'Recieved => [ {packet.display_name} ]')
+        
 
         installation = find_existing_installation(package, packet.json_name)
 
@@ -290,7 +286,16 @@ def install(
 
         write_verbose('Generating system download path...', metadata)
         log_info('Generating system download path...', metadata.logfile)
+        
+        if not metadata.silent:
+            if not metadata.no_color:
+                if super_cache:
+                    print(f'SuperCached', Fore.GREEN + '=>' + Fore.RESET, '[', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
+                else:
+                    print(f'Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
 
+            else:
+                print(f'Found => [ {packet.display_name} ]')
         start = timer()
 
         status = 'Download Path'
@@ -298,7 +303,6 @@ def install(
         status = 'Got Download Path'
         end = timer()
 
-        write('Initializing Rapid Download...', 'green', metadata)
         log_info('Initializing Rapid Download...', metadata.logfile)
 
         # Downloading The File From Source
@@ -330,11 +334,6 @@ def install(
             path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
 
         status = 'Downloaded'
-
-        if not cached:
-            write('\nCompleted Rapid Download', 'green', metadata)
-        else:
-            write('Completed Rapid Download', 'green', metadata)
 
         log_info('Finished Rapid Download', metadata.logfile)
 

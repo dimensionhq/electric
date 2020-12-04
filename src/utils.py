@@ -3,7 +3,6 @@
 ######################################################################
 
 
-from click.exceptions import Abort, ClickException
 from constants import valid_install_exit_codes, valid_uninstall_exit_codes
 from subprocess import Popen, PIPE, CalledProcessError, check_call, call
 from Classes.PathManager import PathManager
