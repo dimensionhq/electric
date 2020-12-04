@@ -47,7 +47,6 @@ def get_uninstall_key(package_name : str, display_name: str):
     
     final_array = []
     total = []
-
     def get_uninstall_string(package_name : str):
         nonlocal final_array
         string_gen(package_name)
