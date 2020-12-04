@@ -277,9 +277,9 @@ def install(
                 log_info(f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata.logfile)
             else:
                 write_verbose(
-                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_white', metadata)
+                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
                 write_debug(
-                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_white', metadata)
+                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
                 log_info(
                     f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
                 

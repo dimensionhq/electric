@@ -15,13 +15,15 @@ def createConfig(logfile : str, level, process : str):
     if not isdir(appdata_dir):
         os.mkdir(appdata_dir)
 
-    with open(f'{appdata_dir}\\electric-log.log', 'w+') as f:
-        pass
+    with open(Rf'{appdata_dir}\electric-log.log', 'w+') as f:
+        f.write("")
+    
     mode = None
     if isfile(logfile):
         mode = 'a+'
     else:
         mode = 'w+'
+    
     file = open(logfile, mode)
     try:
         file.write('\n')
