@@ -138,3 +138,4 @@ class DYMCommandCollection(DYMMixin, click.CommandCollection):  # pylint: disabl
     *did-you-mean* functionality when a certain
     command is not found in the group.
     """
+

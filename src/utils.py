@@ -150,6 +150,15 @@ def check_resume_download(package_name: str, metadata: Metadata):
             return (None, None)
     except:
         return (None, None)
+    
+
+def send_req_bundle():
+    REQA = 'https://electric-package-manager.herokuapp.com/bundles/windows'
+    time = 0.0
+    response = requests.get(REQA, timeout=15)
+    res = response.json()
+    time = response.elapsed.total_seconds()
+    return res, time
 
 
 def download(url: str, package_name: str, metadata: Metadata, download_type: str):
@@ -212,6 +221,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
             return path, False
         else:
             return newpath, False
+
 
 def get_error_cause(error: str, display_name: str, method: str, metadata: Metadata) -> str:
     print(error)
@@ -424,7 +434,7 @@ def send_req_all() -> dict:
     REQA = 'https://electric-package-manager.herokuapp.com/packages/windows'
     time = 0.0
     response = requests.get(REQA, timeout=15)
-    res = json.loads(response.text.strip())
+    res = response.json()
     time = response.elapsed.total_seconds()
     return res, time
 
