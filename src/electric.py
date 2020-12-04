@@ -340,9 +340,12 @@ def install(
         if virus_check:
             write('Scanning File For Viruses...', 'blue', metadata)
             check_virus(path, metadata)
-
-        write(
-            'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
+        if not cached:
+            write(
+                '\nUsing Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
+        else:
+            write(
+                'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
         log_info(
             'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 

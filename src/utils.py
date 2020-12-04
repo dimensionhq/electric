@@ -140,14 +140,17 @@ def get_color_escape(r, g, b, background=False):
     return '\033[{};2;{};{};{}m'.format(48 if background else 38, r, g, b)
 
 
-def check_resume_download(metadata: Metadata) -> int:
+def check_resume_download(package_name: str, metadata: Metadata):
     data = retrieve_data('unfinishedcache')
     try:
-        if os.path.isfile(data['path']):
+        if os.path.isfile(data['path']) and package_name == data['name']:
             write(f'Resuming Existing Download At => {tempfile.gettempdir()}', 'blue', metadata)
             return os.stat(data['path']).st_size, data['path']
+        else:
+            return (None, None)
     except:
-        return None, None
+        return (None, None)
+
 
 def download(url: str, package_name: str, metadata: Metadata, download_type: str):
         cursor.hide()
@@ -164,7 +167,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         while os.path.isfile(path):
             path = Rf'{tempfile.gettempdir()}\electric\Setup{random.randint(200, 100000)}'
 
-        size, newpath = check_resume_download(metadata)
+        size, newpath = check_resume_download(package_name, metadata)
         if not size:
             dump_pickle({'path': path, 'url': url, 'name': package_name, 'download-type': download_type}, 'unfinishedcache')
 
