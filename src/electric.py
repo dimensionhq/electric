@@ -637,6 +637,7 @@ def uninstall(
 @click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
 @click.option('--sync', '-sc', is_flag=True, help='Force downloads and installations one after another')
 @click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after bundle installation')
+@click.option('--exclude', '-ex', 'exclude', help='Exclude a package from bundle installation')
 @click.option('--rate-limit', '-rl', type=int, default=-1)
 @click.pass_context
 def bundle(
@@ -656,7 +657,9 @@ def bundle(
     sync: bool,
     reduce: bool,
     rate_limit: bool,
+    exclude: str,
     ):
+    
     metadata = generate_metadata(
             no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit)
 
@@ -666,14 +669,11 @@ def bundle(
             logfile = logfile.replace('.txt', '.log')
             createConfig(logfile, logging.INFO, 'Install')
 
-        
-
         log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
         status = 'Initializing'
         setup_name = ''
         keyboard.add_hotkey(
             'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
-
 
         spinner = halo.Halo(color='grey')
         spinner.start()
@@ -702,6 +702,10 @@ def bundle(
         
             package_names += f',{value}'
 
+        if exclude:
+            package_names = package_names.replace(exclude, '')
+            if package_names[0] == ',':
+                package_names = package_names[1:]
         
         if remove:
             ctx.invoke(
@@ -716,6 +720,7 @@ def bundle(
                 python=None,
                 no_cache=no_cache,
                 )
+
         else:
             ctx.invoke(
                 install, 
