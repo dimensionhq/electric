@@ -3,6 +3,7 @@
 ######################################################################
 
 
+from typing import List
 from constants import valid_install_exit_codes, valid_uninstall_exit_codes
 from subprocess import Popen, PIPE, CalledProcessError, check_call, call
 from Classes.PathManager import PathManager
@@ -1079,3 +1080,41 @@ def install_dependent_packages(packet: Packet, rate_limit: int, install_director
     else:
         os._exit(1)
 
+
+def get_autocorrections(package_names: list, corrected_package_names: list, metadata: Metadata) -> list:
+    corrected_names = []
+
+    for name in package_names:
+        if name in corrected_package_names:
+            corrected_names.append(name)
+        else:
+            corrections = difflib.get_close_matches(name, corrected_package_names)
+            if corrections:
+                if metadata.silent:
+                    click.echo(click.style(
+                        'Incorrect / Invalid Package Name Entered. Aborting Installation.', fg='red'))
+                    log_info(
+                        'Incorrect / Invalid Package Name Entered. Aborting Installation', metadata.logfile)
+                    
+                    handle_exit('ERROR', None, metadata)
+
+                if metadata.yes:
+                    write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
+                    write(
+                        f'Successfully Autocorrected To {corrections[0]}', 'green', metadata)
+                    log_info(
+                        f'Successfully Autocorrected To {corrections[0]}', metadata.logfile)
+                    corrected_package_names.append(corrections[0])
+
+                else:
+                    write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
+                    
+                    if click.confirm('Would You Like To Continue?'):
+                        package_name = corrections[0]
+                        corrected_package_names.append(package_name)
+                    else:
+                        handle_exit('ERROR', None, metadata)
+            else:
+                write_all(f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
+            
+    return corrected_names

@@ -53,7 +53,7 @@ class PackageManager:
                     f.write(data)
 
                     complete = int(20 * dl / full_length)
-                    fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
+                    fill_c, unfill_c = '█' * complete, ' ' * (20 - complete)
                     try:
                         sys.stdout.write(
                             f"\r[{fill_c}{unfill_c}] ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB")

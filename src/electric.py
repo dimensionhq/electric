@@ -129,40 +129,7 @@ def install(
         spinner.stop()
 
     correct_names = get_correct_package_names(res)
-    corrected_package_names = []
-
-    for name in packages:
-        if name in correct_names:
-            corrected_package_names.append(name)
-        else:
-            corrections = difflib.get_close_matches(name, correct_names)
-            if corrections:
-                if silent:
-                    click.echo(click.style(
-                        'Incorrect / Invalid Package Name Entered. Aborting Installation.', fg='red'))
-                    log_info(
-                        'Incorrect / Invalid Package Name Entered. Aborting Installation', metadata.logfile)
-                    handle_exit(status, setup_name, metadata)
-
-                if yes:
-                    write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
-                    write(
-                        f'Successfully Autocorrected To {corrections[0]}', 'green', metadata)
-                    log_info(
-                        f'Successfully Autocorrected To {corrections[0]}', metadata.logfile)
-                    corrected_package_names.append(corrections[0])
-
-                else:
-                    write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
-                    
-                    if click.confirm('Would You Like To Continue?'):
-                        package_name = corrections[0]
-                        corrected_package_names.append(package_name)
-                    else:
-                        handle_exit('ERROR', None, metadata)
-                        
-            else:
-                write_all(f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
+    corrected_package_names = get_autocorrections(packages, correct_names, metadata)
 
     write_debug(install_debug_headers, metadata)
     for header in install_debug_headers:
@@ -468,53 +435,7 @@ def uninstall(
         update_supercache(res)
 
     correct_names = get_correct_package_names(res)
-    corrected_package_names = []
-
-    for name in packages:
-        if name in correct_names:
-            corrected_package_names.append(name)
-        else:
-            corrections = difflib.get_close_matches(name, correct_names)
-            if corrections:
-                if silent:
-                    click.echo(click.style(
-                        'Incorrect / Invalid Package Name Entered. Aborting Uninstallation.', fg='red'))
-                    log_info(
-                        'Incorrect / Invalid Package Name Entered. Aborting Uninstallation', metadata.logfile)
-                    handle_exit(status, setup_name, metadata)
-
-                if yes:
-                    write(
-                        f'Autocorrecting To {corrections[0]}', 'green', metadata)
-                    log_info(f'Autocorrecting To {corrections[0]}', metadata.logfile)
-                    write(
-                        f'Successfully Autocorrected To {corrections[0]}', 'green', metadata)
-                    log_info(
-                        f'Successfully Autocorrected To {corrections[0]}', metadata.logfile)
-                    corrected_package_names.append(corrections[0])
-
-                else:
-                    write(
-                        f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
-                    write_verbose(
-                        f'Autocorrecting To {corrections[0]}', metadata)
-                    write_debug(
-                        f'Autocorrecting To {corrections[0]}', metadata)
-                    log_info(f'Autocorrecting To {corrections[0]}', metadata.logfile)
-                    if click.confirm('Would You Like To Continue?'):
-                        package_name = corrections[0]
-                        corrected_package_names.append(package_name)
-                    else:
-                        handle_exit('ERROR', None, metadata)
-            else:
-                write(
-                    f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
-                write_debug(
-                    f'Could Not Find Any Packages Which Match {name}', metadata)
-                write_verbose(
-                    f'Could Not Find Any Packages Which Match {name}', metadata)
-                log_info(
-                    f'Could Not Find Any Packages Which Match {name}', metadata.logfile)
+    corrected_package_names = get_autocorrections(packages, correct_names, metadata)
 
     write_debug(install_debug_headers, metadata)
     for header in install_debug_headers:
@@ -769,40 +690,9 @@ def bundle(
         idx = 0
 
         correct_names = get_correct_package_names(res)
-        corrected_package_names = []
+    
+        corrected_package_names = get_autocorrections([bundle_name], correct_names, metadata)
 
-
-        if bundle_name in correct_names:
-            corrected_package_names.append(bundle_name)
-        else:
-            corrections = difflib.get_close_matches(bundle_name, correct_names)
-            if corrections:
-                if silent:
-                    click.echo(click.style(
-                        'Incorrect / Invalid Package Name Entered. Aborting Installation.', fg='red'))
-                    log_info(
-                        'Incorrect / Invalid Package Name Entered. Aborting Installation', metadata.logfile)
-                    handle_exit(status, setup_name, metadata)
-
-                if yes:
-                    write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
-                    write(
-                        f'Successfully Autocorrected To {corrections[0]}', 'green', metadata)
-                    log_info(
-                        f'Successfully Autocorrected To {corrections[0]}', metadata.logfile)
-                    corrected_package_names.append(corrections[0])
-
-                else:
-                    write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
-                    
-                    if click.confirm('Would You Like To Continue?'):
-                        package_name = corrections[0]
-                        corrected_package_names.append(package_name)
-                    else:
-                        handle_exit('ERROR', None, metadata)
-                        
-            else:
-                write_all(f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
         
         for value in res[corrected_package_names[0]]['dependencies']:
             if idx == 0:
