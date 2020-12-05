@@ -17,6 +17,7 @@ import subprocess
 import tempfile
 import requests
 import zipfile
+import cursor
 import click
 import sys
 import os
@@ -32,6 +33,7 @@ class PackageManager:
         self.metadata = metadata
 
     def download(self, download: Download):
+        cursor.hide()
         if not os.path.isdir(Rf'{tempfile.gettempdir()}\electric'):
             os.mkdir(Rf'{tempfile.gettempdir()}\electric')
 
@@ -61,6 +63,7 @@ class PackageManager:
 
         paths.update({download.display_name: {'path': path,
                                               'display_name': download.display_name}})
+        cursor.show()
 
     def install_package(self, install: Install) -> str:
         path = install.path
@@ -85,7 +88,10 @@ class PackageManager:
                     command += ' ' + custom_install_switch + f'{directory}'
                 else:
                     command += ' ' + custom_install_switch + f'"{directory}"'
-                if directory == '':
+                # if custom_install_switch == '':
+                #     click.echo(click.style(
+                #         f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
+            if custom_install_switch == 'None':
                     click.echo(click.style(
                         f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
