@@ -210,6 +210,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                         unfill_c = Fore.BLACK + '█' * (25 - complete)
                         # sys.stdout.write(
                         #     f'\r⚡ {fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ')
+
                         sys.stdout.write(
                             f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} {round(dl / 1000000)} / {round(full_length / 1000000)} MB {Fore.RESET}')
                         # sys.stdout.write(
@@ -224,7 +225,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
 
 def get_error_cause(error: str, display_name: str, method: str, metadata: Metadata) -> str:
-    print(error)
+    # print(error)
     log_info(f'{error} ==> {method}', metadata.logfile)
     if method == 'installation':
         for code in valid_install_exit_codes:

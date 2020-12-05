@@ -391,97 +391,6 @@ def install(
     end = timer()
 
 
-@cli.command(aliases=['bdl'])
-@click.argument('bundle_name', required=True)
-@click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for installation')
-@click.option('--debug', '-d', is_flag=True, help='Enable debug mode for installation')
-@click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for installation')
-@click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for installation')
-@click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
-@click.option('--install-dir', '-dir', 'install_directory', help='Specify an installation directory for a package')
-@click.option('--virus-check', '-vc', is_flag=True, help='Check for virus before installation')
-@click.option('-y', '--yes', is_flag=True, help='Accept all prompts during installation')
-@click.option('--silent', '-s', is_flag=True, help='Completely silent installation without any output to console')
-@click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
-@click.option('--sync', '-sc', is_flag=True, help='Force downloads and installations one after another')
-@click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after installation')
-@click.option('--rate-limit', '-rl', type=int, default=-1)
-@click.pass_context
-def bundle(
-    ctx, 
-    bundle_name: str,
-    verbose: bool,
-    debug: bool,
-    no_progress: bool,
-    no_color: bool,
-    logfile: str,
-    install_directory: str,
-    virus_check: bool,
-    yes: bool,
-    silent: bool,
-    no_cache: bool,
-    sync: bool,
-    reduce: bool,
-    rate_limit: bool
-    ):
-
-    if logfile:
-        logfile = logfile.replace('=', '')
-        logfile = logfile.replace('.txt', '.log')
-        createConfig(logfile, logging.INFO, 'Install')
-
-    metadata = generate_metadata(
-        no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit)
-
-    log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
-    status = 'Initializing'
-    setup_name = ''
-    keyboard.add_hotkey(
-        'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
-
-
-    spinner = halo.Halo(color='grey')
-    spinner.start()
-    log_info('Handling Network Request...', metadata.logfile)
-    status = 'Networking'
-    write_verbose('Sending GET Request To /bundles', metadata)
-    write_debug('Sending GET Request To /bundles', metadata)
-    log_info('Sending GET Request To /bundles', metadata.logfile)
-    res, time = send_req_bundle()
-    res = json.loads(res)
-    del res['_id']
-    spinner.stop()
-    package_names = ''
-    idx = 0
-    
-    for value in res[bundle_name]['dependencies']:
-        if idx == 0:
-            package_names += value
-            idx += 1
-            continue
-    
-        package_names += f',{value}'
-
-    ctx.invoke(
-        install, 
-        package_name=package_names,
-        verbose=verbose,
-        debug=debug,
-        no_progress=no_progress,
-        no_color=no_color,
-        logfile=logfile,
-        install_directory=install_directory,
-        virus_check=virus_check,
-        yes=yes,
-        silent=silent,
-        python=None,
-        node=None,
-        no_cache=no_cache,
-        sync=sync,
-        reduce=reduce,
-        rate_limit=rate_limit
-        )
-
 @cli.command(aliases=['remove', 'u'])
 @click.argument('package_name', required=True)
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for uninstallation')
@@ -790,6 +699,156 @@ def uninstall(
             log_info(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
             closeLog(metadata.logfile, 'Uninstall')
+
+
+@cli.command(aliases=['bdl'])
+@click.argument('bundle_name', required=True)
+@click.option('--remove', '-uninst', is_flag=True, help='Uninstall packages in a bundle installed')
+@click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for bundle installation')
+@click.option('--debug', '-d', is_flag=True, help='Enable debug mode for bundle installation')
+@click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for bundle installation')
+@click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for bundle installation')
+@click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
+@click.option('--install-dir', '-dir', 'install_directory', help='Specify an installation directory for a package')
+@click.option('--virus-check', '-vc', is_flag=True, help='Check for virus before bundle installation')
+@click.option('-y', '--yes', is_flag=True, help='Accept all prompts during bundle installation')
+@click.option('--silent', '-s', is_flag=True, help='Completely silent bundle installation without any output to console')
+@click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
+@click.option('--sync', '-sc', is_flag=True, help='Force downloads and installations one after another')
+@click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after bundle installation')
+@click.option('--rate-limit', '-rl', type=int, default=-1)
+@click.pass_context
+def bundle(
+    ctx, 
+    bundle_name: str,
+    remove: bool,
+    verbose: bool,
+    debug: bool,
+    no_progress: bool,
+    no_color: bool,
+    logfile: str,
+    install_directory: str,
+    virus_check: bool,
+    yes: bool,
+    silent: bool,
+    no_cache: bool,
+    sync: bool,
+    reduce: bool,
+    rate_limit: bool,
+    ):
+    metadata = generate_metadata(
+            no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit)
+
+    if is_admin():
+        if logfile:
+            logfile = logfile.replace('=', '')
+            logfile = logfile.replace('.txt', '.log')
+            createConfig(logfile, logging.INFO, 'Install')
+
+        
+
+        log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
+        status = 'Initializing'
+        setup_name = ''
+        keyboard.add_hotkey(
+            'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
+
+
+        spinner = halo.Halo(color='grey')
+        spinner.start()
+        log_info('Handling Network Request...', metadata.logfile)
+        status = 'Networking'
+        write_verbose('Sending GET Request To /bundles', metadata)
+        write_debug('Sending GET Request To /bundles', metadata)
+        log_info('Sending GET Request To /bundles', metadata.logfile)
+        res, _ = send_req_bundle()
+        res = json.loads(res)
+        del res['_id']
+        spinner.stop()
+        package_names = ''
+        idx = 0
+
+        correct_names = get_correct_package_names(res)
+        corrected_package_names = []
+
+
+        if bundle_name in correct_names:
+            corrected_package_names.append(bundle_name)
+        else:
+            corrections = difflib.get_close_matches(bundle_name, correct_names)
+            if corrections:
+                if silent:
+                    click.echo(click.style(
+                        'Incorrect / Invalid Package Name Entered. Aborting Installation.', fg='red'))
+                    log_info(
+                        'Incorrect / Invalid Package Name Entered. Aborting Installation', metadata.logfile)
+                    handle_exit(status, setup_name, metadata)
+
+                if yes:
+                    write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
+                    write(
+                        f'Successfully Autocorrected To {corrections[0]}', 'green', metadata)
+                    log_info(
+                        f'Successfully Autocorrected To {corrections[0]}', metadata.logfile)
+                    corrected_package_names.append(corrections[0])
+
+                else:
+                    write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
+                    
+                    if click.confirm('Would You Like To Continue?'):
+                        package_name = corrections[0]
+                        corrected_package_names.append(package_name)
+                    else:
+                        handle_exit('ERROR', None, metadata)
+                        
+            else:
+                write_all(f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
+        
+        for value in res[corrected_package_names[0]]['dependencies']:
+            if idx == 0:
+                package_names += value
+                idx += 1
+                continue
+        
+            package_names += f',{value}'
+
+        
+        if remove:
+            ctx.invoke(
+                uninstall, 
+                package_name=package_names,
+                verbose=verbose,
+                debug=debug,
+                no_color=no_color,
+                logfile=logfile,
+                yes=yes,
+                silent=silent,
+                python=None,
+                no_cache=no_cache,
+                )
+        else:
+            ctx.invoke(
+                install, 
+                package_name=package_names,
+                verbose=verbose,
+                debug=debug,
+                no_progress=no_progress,
+                no_color=no_color,
+                logfile=logfile,
+                install_directory=install_directory,
+                virus_check=virus_check,
+                yes=yes,
+                silent=silent,
+                python=None,
+                node=None,
+                no_cache=no_cache,
+                sync=sync,
+                reduce=reduce,
+                rate_limit=rate_limit
+                )
+    else:
+        click.echo(click.style('\nAdministrator Elevation Required. Exit Code [0001]', 'red'), err=True)
+        disp_error_msg(get_error_message('0001', 'installation', 'None'), metadata)
 
 
 @cli.command(aliases=['find'])
