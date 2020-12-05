@@ -200,7 +200,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
                     if metadata.no_progress:
                         sys.stdout.write(
-                            f'\r{round(dl / 1000000, 2)} / {round(full_length / 1000000, 2)} MB')
+                            f'\r{round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
                         sys.stdout.flush()
 
                     elif not metadata.no_progress and not metadata.silent:
@@ -212,7 +212,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                         #     f'\r⚡ {fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ')
 
                         sys.stdout.write(
-                            f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} {round(dl / 1000000)} / {round(full_length / 1000000)} MB {Fore.RESET}')
+                            f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
                         # sys.stdout.write(
                         #     f'\r{fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
                         sys.stdout.flush()
