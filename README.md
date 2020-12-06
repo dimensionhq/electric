@@ -18,7 +18,8 @@ IMPORTANT: Since electric is in an alpha phase, it might not be completely stabl
 IMPORTANT: Currently electric only works on Windows Systems, With Support In Progress For Darwin ( MacOSX ) and Debian Based Systems
 
 ## Config In Beta
-A small peek of what's coming up next (pssst, don't tell anyone!)
+A small peek of what's coming up next (pssst! don't tell anyone!) for electric!
+
 ![demostration](https://user-images.githubusercontent.com/63039748/101287676-b65ec700-3817-11eb-8b78-a08976032286.gif)
 
 
