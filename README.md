@@ -17,6 +17,11 @@ IMPORTANT: Since electric is in an alpha phase, it might not be completely stabl
 
 IMPORTANT: Currently electric only works on Windows Systems, With Support In Progress For Darwin ( MacOSX ) and Debian Based Systems
 
+## Config In Beta
+A small peek of what's coming up next (pssst, don't tell anyone!)
+![demostration](https://user-images.githubusercontent.com/63039748/101287676-b65ec700-3817-11eb-8b78-a08976032286.gif)
+
+
 #### Steps
 
 1. Download the latest version of the electric Installer from the [Releases Page](https://github.com/TheBossProSniper/electric-windows/releases/tag/v1.0.0-alpha)
