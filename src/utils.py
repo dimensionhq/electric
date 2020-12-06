@@ -2,8 +2,6 @@
 #                           HELPERS / UTILS                          #
 ######################################################################
 
-
-from typing import List
 from constants import valid_install_exit_codes, valid_uninstall_exit_codes
 from subprocess import Popen, PIPE, CalledProcessError, check_call, call
 from Classes.PathManager import PathManager
@@ -20,6 +18,7 @@ from signal import SIGTERM
 from switch import Switch
 from extension import *
 from registry import *
+from psutil import *
 from logger import *
 from limit import *
 import webbrowser
@@ -60,6 +59,8 @@ class HiddenPrints:
         sys.stdout = self._original_stdout
 
 
+
+
 def get_recent_logs() -> list:
     with open(Rf'{appdata_dir}\electric-log.log', 'r') as file:
         data = file.read() 
@@ -86,6 +87,7 @@ def is_admin():
 
 def get_download_url(packet):
     return packet.win64
+
 
 
 def generate_dict(path: str, package_name: str):

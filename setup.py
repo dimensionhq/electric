@@ -47,7 +47,8 @@ setup(
         'mslex',
         'pygments', # TODO: => Add Volt Pretty Print Support Using `pygmentize.exe test.py`
         'halo',
-        'cursor'
+        'cursor',
+        'psutil'
     ],
     package_dir={'': 'src'},
     entry_points =

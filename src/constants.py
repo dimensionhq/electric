@@ -3,7 +3,9 @@
 ######################################################################
 
 
+from Classes.SystemManager import SystemManager
 from time import strftime
+from utils import *
 import platform
 import sys
 import os
@@ -20,6 +22,7 @@ def get_architecture():
 
     return None
 
+processor = SystemManager.get_pc_config()['cpu-info']
 
 # Install Debug Headers
 install_debug_headers = [
@@ -30,7 +33,8 @@ install_debug_headers = [
     f'Arguments: \"{" ".join(sys.argv[1:])}\"',
     f'Current directory: {os.getcwd()}',
     f'Electric version: {__version__}',
-    f'System architecture detected: {get_architecture()}'
+    f'System architecture detected: {get_architecture()}',
+    f'Processor detected: {processor}'
 ]
 
 # Uninstall Debug Headers
@@ -59,4 +63,9 @@ valid_uninstall_exit_codes = [
     1641,
     2359303,
     2149842956
+]
+
+old_processors = [
+    'Pentium',
+    'Core 2 Duo',
 ]

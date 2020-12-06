@@ -12,3 +12,4 @@ class Install:
         self.directory = directory
         self.custom_install_switch = custom_install_switch
         self.metadata = metadata
+
