@@ -1,0 +1,57 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Electric-Config",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [
+				{
+					"name": "constant.version.electric",
+					"match": "\\b(\\d[\\d\\.]+)\\b"
+				},
+				{
+					"name": "keyword.operator.assignment.electric",
+					"match": "=>"
+				},
+				{
+    				"name": "entity.name.class",
+					"match": "\\[ ([a-zA-Z\\-]+) \\]"
+				},
+				{
+					"name": "entity.name.function",
+					"match": "([a-z\\-]+)(?=\\.)"
+				},
+				{
+					"name": "keyword.other",
+					"match": "\\."
+				},
+				{
+					"name": "comment",
+					"match": "(#\\s?.*)"
+				}
+			]
+		},
+		"strings": 
+		{
+			"name": "string.quoted.double.electric",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.electric",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	
+	"scopeName": "source.electric"
+}
+
