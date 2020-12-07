@@ -18,14 +18,14 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
     _, err = valid.communicate()
 
     if err:
-        click.echo(click.style('npm Or node Is Not Installed. Exit Code [0011]', fg='red'))
+        click.echo(click.style('Python Is Not Installed. Exit Code [0011]', fg='red'))
         disp_error_msg(get_error_message('0011', 'install'))
         handle_exit('ERROR', None, metadata)
     if mode == 'install':
         command = 'python -m pip install --upgrade --no-input'
 
         command += f' {package_name}'
-
+        
         proc = Popen(mslex.split(command), stdin=PIPE,
                         stdout=PIPE, stderr=PIPE)
 
@@ -41,9 +41,9 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
                 write(
                     f'Python v{py_version[0]} :: Installing {package_name}', 'green', metadata)
 
-            if 'Requirement already up-to-date:' in line and package_name in line:
+            if f'Requirement already satisfied: {package_name} ' in line and package_name in line:
                 write(
-                    f'Python v{py_version[0]} :: {package_name} Is Already Installed And On The Latest Version ==> {line.split()[6]}', 'yellow', metadata)
+                    f'Python v{py_version[0]} :: {package_name} Is Already Installed And On The Latest Version ==> {line.split()[-1]}', 'yellow', metadata)
 
             if 'Successfully installed' in line and package_name in line:
                 ver = line.split('-')[1]
