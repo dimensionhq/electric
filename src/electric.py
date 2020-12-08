@@ -43,6 +43,7 @@ def cli(_):
 @click.option('--virus-check', '-vc', is_flag=True, help='Check for virus before installation')
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during installation')
 @click.option('--silent', '-s', is_flag=True, help='Completely silent installation without any output to console')
+@click.option('--vscode', '-vs', is_flag=True, help='Specify a Visual Studio Code extension to install')
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to install')
 @click.option('--node', '-npm', is_flag=True, help='Specify a Python package to install')
 @click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
@@ -66,6 +67,7 @@ def install(
     reduce: bool,
     rate_limit: int,
     node: bool,
+    vscode: bool,
 ):  
     if logfile:
         logfile = logfile.replace('=', '')
@@ -93,6 +95,12 @@ def install(
         
         sys.exit()
 
+    if vscode:
+        package_names = package_name.split(',')
+        for name in package_names:
+            handle_vscode_extension(name, 'install', metadata)
+        
+        sys.exit()
         
     log_info('Checking if supercache exists...', metadata.logfile)
     super_cache = check_supercache_valid()

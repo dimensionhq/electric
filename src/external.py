@@ -6,8 +6,10 @@
 from Classes.Metadata import Metadata
 from subprocess import PIPE, Popen
 from extension import *
+from colorama import *
 from utils import *
 import mslex
+import halo
 import sys
 
 
@@ -132,3 +134,31 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
                 time = line.split(' ')[4].strip()
                 write(f'npm v{version} :: Sucessfully Uninstalled {package_name} And {number} Other Dependencies in {time}', 'green', metadata)
 
+
+def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
+    try:
+        version_proc = Popen(mslex.split('code --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    except FileNotFoundError:
+        click.echo(click.style('Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
+        disp_error_msg(get_error_message('0111', 'install'))
+        handle_exit('ERROR', None, metadata)
+
+    version, err = version_proc.communicate()
+    version = version.decode().strip()
+
+    if err:
+        click.echo(click.style('Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
+        disp_error_msg(get_error_message('0111', 'install'))
+        handle_exit('ERROR', None, metadata)
+
+    if mode == 'install':
+        command = f'code --install-extension {package_name} --force'
+        proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        for line in proc.stdout:
+            line = line.decode()
+            
+            if 'Installing extensions' in line:
+                write(f'Installing {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+
+            if 'is already installed' in line:
+                write(f'{Fore.MAGENTA}{package_name}{Fore.YELLOW} is already installed!', 'white', metadata)
