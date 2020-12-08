@@ -9,6 +9,7 @@ from Classes.PackageManager import PackageManager
 from timeit import default_timer as timer
 from urllib.request import urlretrieve
 from limit import Limiter, TokenBucket
+from Classes.Config import Config
 from Classes.Packet import Packet
 from info import __version__
 from constants import *
@@ -819,6 +820,47 @@ def search(
     
     else:
         click.echo(click.style('0 packages found!', fg='red'))
+
+
+@cli.command(aliases=['validate'])
+@click.argument('filepath', required=True)
+def sign(
+        filepath: str
+    ):
+
+    
+    Config.generate_configuration(filepath, False)
+    
+
+    md5 = hashlib.md5(open(filepath, 'rb').read()).hexdigest()
+    sha256_hash = hashlib.sha256()
+    with open(filepath,"rb") as f:
+        # Read and update hash string value in blocks of 4K
+        for byte_block in iter(lambda: f.read(4096),b""):
+            sha256_hash.update(byte_block)
+    
+    sha256 = sha256_hash.hexdigest()
+    with open(filepath, 'r') as f:
+        l = [line.strip() for line in f.readlines()]
+        
+        if '# --------------------Checksum Start-------------------------- #' in l and '# --------------------Checksum End--------------------------- #' in l:
+            click.echo(click.style(f'File Already Signed, Aborting Signing!', fg='red'))
+            exit()
+    
+    with open(filepath, 'a') as f:
+        f.writelines([
+            '\n# --------------------Checksum Start-------------------------- #',
+            '\n',
+            '########################################################################\n',
+            f'# {md5}',
+            '\n',
+            f'# {sha256}',
+            '\n',
+            '########################################################################',
+            '\n# --------------------Checksum End--------------------------- #'
+        ])
+
+    click.echo(click.style(f'Successfully Signed {filepath}', fg='green'))
 
 
 @cli.command(aliases=['info'])

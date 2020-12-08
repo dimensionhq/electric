@@ -1,0 +1,36 @@
+[ Info ]
+# Go To https://www.electric.sh/electric-configuration-documentation/ For More Information
+Publisher => "TheBossProSniper"
+Description => "My Python Development Environment!"
+OS => "Windows"
+
+[ Editor-Configuration ]
+Editor => "Visual Studio Code"
+
+[ Packages ]
+vscode
+python => 3.9.0
+
+[ Editor-Extensions ]
+panicbit.cargo
+adpyke.codesnap
+softwaredotcom.swdc-vscode
+icrawl.discord-vscode
+dracula-theme.theme-dracula
+
+[ Pip-Packages ]
+click => 7.1.2
+beautifulsoup4 => 4.9.3
+numpy => 1.19.3
+pyinstaller => 4.1
+
+[ Node-Packages ]
+electron => 11.0.4
+express => 4.17.1
+
+# --------------------Checksum Start-------------------------- #
+########################################################################
+# 7e917406110305cd1d8037937ba9cc7f
+# 61b9a21747bf9af67e6b7d7cd2138c506c28f9b9336f0cce99b4556a8cf9435e
+########################################################################
+# --------------------Checksum End--------------------------- #

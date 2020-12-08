@@ -1,7 +1,9 @@
-from subprocess import *
-from utils import *
-from external import *
 from sys import platform
+from subprocess import *
+from external import *
+from utils import *
+import colorama
+import pyperclip
 import click
 
 
@@ -56,7 +58,7 @@ class Config:
         click.echo(click.style('All Tests Passed!', 'green'))
 
     @staticmethod
-    def generate_configuration(filepath: str):
+    def generate_configuration(filepath: str, signed=True):
         d = {}
         with open(f'{filepath}', 'r') as f:
             chunks = f.read().split("[")
@@ -105,6 +107,20 @@ class Config:
 
                         d[header].append({ k : v.replace('"', '') })
 
+            if signed:
+                lines = f.readlines()
+                
+                l = [line.strip() for line in lines]
+                
+                if not '# --------------------Checksum Start-------------------------- #' in l or not '# --------------------Checksum End--------------------------- #' in l:
+                    click.echo(click.style(f'File Checksum Not Found! Run `electric sign {filepath}` ( Copied To Clipboard ) to sign your .electric configuration.', fg='red'))
+                    pyperclip.copy(f'electric sign {filepath}')
+                    exit()
+                
+                if lines[-1] != '# --------------------Checksum End--------------------------- #':
+                    click.echo(click.style('DataAfterChecksumError : Comments, Code And New lines Are Not Allowed After The Checksum End Header.'))
+                    exit()
+            
         d.pop("")
 
         return Config(d)
@@ -148,9 +164,3 @@ class Config:
             except:
                 if not click.confirm('Would you like to continue configuration installation?'):
                     exit()
-
-
-filepath = input('Enter the path to the .electric File => ').replace('\"', '')
-config = Config.generate_configuration(filepath)
-config.check_prerequisites()
-config.install()

@@ -9,7 +9,6 @@ from extension import *
 from colorama import *
 from utils import *
 import mslex
-import halo
 import sys
 
 
