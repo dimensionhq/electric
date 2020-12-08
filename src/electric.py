@@ -375,6 +375,7 @@ def install(
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during uninstallation')
 @click.option('--silent', '-s', is_flag=True, help='Completely silent uninstallation without any output to console')
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to uninstall')
+@click.option('--vscode', '-vs', is_flag=True, help='Specify a Visual Studio Code extension to install')
 @click.option('--node', '-npm', is_flag=True, help='Specify a Python package to install')
 @click.option('--no-cache', '-nocache', is_flag=True, help='Prevent cache usage for uninstallation')
 def uninstall(
@@ -386,6 +387,7 @@ def uninstall(
     yes: bool,
     silent: bool,
     python: bool,
+    vscode: bool,
     node: bool,
     no_cache: bool
 ):
@@ -424,6 +426,13 @@ def uninstall(
         package_names = package_name.split(',')
         for name in package_names:
             handle_node_package(name, 'uninstall', metadata)
+        
+        sys.exit()
+    
+    if vscode:
+        package_names = package_name.split(',')
+        for name in package_names:
+            handle_vscode_extension(name, 'uninstall', metadata)
         
         sys.exit()
 

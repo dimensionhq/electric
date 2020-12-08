@@ -144,7 +144,7 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
         handle_exit('ERROR', None, metadata)
 
     version, err = version_proc.communicate()
-    version = version.decode().strip()
+    version = version.decode().strip().split('\n')[0]
 
     if err:
         click.echo(click.style('Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
@@ -158,7 +158,24 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
             line = line.decode()
             
             if 'Installing extensions' in line:
-                write(f'Installing {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+                write(f'Code v{version} :: Installing {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
 
             if 'is already installed' in line:
-                write(f'{Fore.MAGENTA}{package_name}{Fore.YELLOW} is already installed!', 'white', metadata)
+                write(f'{Fore.GREEN}Code v{version} :: {Fore.MAGENTA}{package_name}{Fore.YELLOW} is already installed!', 'white', metadata)
+            
+            if 'was successfully installed' in line:
+                write(f'{Fore.GREEN}Code v{version} :: Successfully Installed {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+    if mode == 'uninstall':
+        command = f'code --uninstall-extension {package_name} --force'
+        proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        for line in proc.stdout:
+            line = line.decode()
+            
+            if 'Uninstalling' in line:
+                write(f'Code v{version} :: Uninstalling {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+
+            if 'is not installed' in line:
+                write(f'{Fore.GREEN}Code v{version} :: {Fore.MAGENTA}{package_name}{Fore.YELLOW} is not installed!', 'white', metadata)
+            
+            if 'was successfully uninstalled' in line:
+                write(f'{Fore.GREEN}Code v{version} :: Successfully Uninstalled {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
