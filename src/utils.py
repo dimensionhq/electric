@@ -41,7 +41,7 @@ import info
 import sys
 import os
 import re
-
+from googlesearch import search
 
 index = 0
 final_value = None
@@ -785,7 +785,7 @@ def disp_error_msg(messages: list, metadata: Metadata):
 
 
 def get_error_message(code: str, method: str, display_name: str):
-    attr = method.replace('ation', '')
+    attr = method.strip('ation')
     with Switch(code) as code:
         if code('0001'):
             return [
@@ -796,33 +796,33 @@ def get_error_message(code: str, method: str, display_name: str):
                 f'If that doesn\'t work, please file a support ticket at => https://www.electric.sh/support\n'
             ]
 
-        if code('0002'):
+        elif code('0002'):
             return [
                 f'\n[0002] => {method.capitalize()} failed because the installer provided an incorrect command for {attr}.', 
                 '\nWe recommend you raise a support ticket with the data generated below:',
                 generate_report(display_name),
                 '\nHelp:\n', 
                 'https://www.electric.sh/troubleshoot'
-                ]
+            ]
 
-        if code('0000'):
+        elif code('0000'):
             return [
                 f'\n[0000] => {method.capitalize()} failed due to an unknown reason.',
                 '\nWe recommend you raise a support ticket with the data generated below:',
                 generate_report(display_name),
                 '\nHelp:',
-                '\n[1] <=> https://www.electric.sh/troubleshoot'
-                ]
+                f'\n[1] <=> https://www.electric.sh/troubleshoot'
+            ]
 
-        if code('0011'):
+        elif code('0011'):
             clipboard.copy('electric install node')
             return [
                 '\n[0011] => Node(npm) is not installed on your system.', 
                 '\n\nHow To Fix:\n', 
                 'Run `electric install node` [ Copied To Clipboard ] To Install Node(npm)'
-                ]
+            ]
         
-        if code('1603'):
+        elif code('1603'):
             return [
                 f'\n[1603] => {method.capitalize()} might have failed because the software you tried to {attr} might require administrator permissions.',
                 f'\n\nHow To Fix:\n\nRun Your Command Prompt Or Powershell As Administrator And Retry {method.capitalize()}.\n\nHelp:',
@@ -830,7 +830,7 @@ def get_error_message(code: str, method: str, display_name: str):
                 '\n[2] <=> https://www.top-password.com/blog/5-ways-to-run-powershell-as-administrator-in-windows-10/\n\n',
             ]
 
-        if code('0010'):
+        elif code('0010'):
             clipboard.copy('electric install python3')
             return [
                 '\n[0010] => Python(pip) is not installed on your system.',
@@ -840,12 +840,12 @@ def get_error_message(code: str, method: str, display_name: str):
                 '\n[2] <=> https://stackoverflow.com/questions/23708898/pip-is-not-recognized-as-an-internal-or-external-command'
                 ]
         
-        if code('1010'):
+        elif code('1010'):
             return [
                 f'\n[1010] => Installer Has Requested A Reboot In Order To Complete {method.capitalize()}.\n'
             ]
         
-        if code('1111'):
+        elif code('1111'):
             return [
                 f'\n[1111] => The {attr.capitalize()}er For This Package Failed Due To A Fatal Error. This is likely not an issue or error with electric.', 
                 '\n\nWe recommend you raise a support ticket with the data generated below:',
@@ -855,7 +855,7 @@ def get_error_message(code: str, method: str, display_name: str):
                 '\n[2] <=> https://www.electric.sh/support',
             ]
         
-        if code('0101'):
+        elif code('0101'):
             return [
                 f'\n[0101] => The installer / uninstaller was denied of Administrator permissions And failed to initialize successfully.', 
                 '\n\nHow To Fix:\n',
@@ -869,8 +869,20 @@ def get_error_message(code: str, method: str, display_name: str):
 
 def handle_unknown_error(err: str):
     error_msg = click.confirm('Would You Like To See The Error Message?')
+    
     if error_msg:
         print(err)
+        print('\n\n')
+
+        results = search(query=err, stop=3)
+        results = [f'\n\t[{index + 1}] <=> {r}' for index, r in enumerate(results)]
+
+        results = ''.join(results)
+        
+        if '.google-cookie' in os.listdir('.'):
+            os.remove('.google-cookie')
+
+        print(f'Some helpful troubleshooting links:{results}')
 
 
     proc = Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
