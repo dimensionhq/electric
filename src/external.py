@@ -32,7 +32,8 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
         py_version = sys.version.split()
         for line in proc.stdout:
             line = line.decode('utf-8')
-
+            if f'Collecting {package_name}' in line:
+                write(f'Python v{py_version[0]} :: Collecting {package_name}', 'green', metadata)
             if 'Downloading' in line and package_name in line:
                 write(
                     f'Python v{py_version[0]} :: Downloading {package_name}', 'green', metadata)
@@ -69,7 +70,6 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
 
         for line in proc.stdout:
             line = line.decode('utf-8')
-
             if 'Uninstalling' in line and package_name in line:
                 write(
                     f'Python v{py_version[0]} :: Uninstalling {package_name}', 'green', metadata)
@@ -105,10 +105,14 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
         package_version = None
         for line in proc.stdout:
             line = line.decode()
-            if package_name in line and '@' in line and 'install' in line or 'postinstall' in line:
+            
+            if 'node install.js' in line:
+                write(f'npm v{version} :: Running `node install.js` for {package_name}', 'green', metadata)
+            if package_name in line and '@' in line and 'install' in line or ' postinstall' in line:
                 package_version = line.split()[1]
                 write(f'npm v{version} :: {package_version} Installing To <=> "{line.split()[3]}"', 'green', metadata)
-            if 'Success' in line and package_name in line:
+
+            if 'Success' in line and package_name in line or 'added' in line:
                 write(f'npm v{version} :: Successfully Installed {package_version}', 'green', metadata)
             if 'updated' in line:
                 if package_version:
@@ -118,5 +122,13 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
 
 
     else:
-        proc = Popen(mslex.split(f'npm uninstall {package_name}'), stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        _, err = proc.communicate()
+        proc = Popen(mslex.split(f'npm uninstall -g {package_name}'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        for line in proc.stdout:
+            line = line.decode()
+            if 'up to date' in line:
+                write(f'npm v{version} :: Could Not Find Any Existing Installations Of => {package_name}', 'yellow', metadata)
+            if 'removed' in line:
+                number = line.split(' ')[1].strip()
+                time = line.split(' ')[4].strip()
+                write(f'npm v{version} :: Sucessfully Uninstalled {package_name} And {number} Other Dependencies in {time}', 'green', metadata)
+

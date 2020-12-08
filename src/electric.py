@@ -7,8 +7,8 @@ from registry import get_uninstall_key, get_environment_keys
 from cli import SuperChargeCLI
 from Classes.PackageManager import PackageManager
 from timeit import default_timer as timer
-from limit import Limiter, TokenBucket
 from urllib.request import urlretrieve
+from limit import Limiter, TokenBucket
 from Classes.Packet import Packet
 from info import __version__
 from constants import *
@@ -367,6 +367,7 @@ def install(
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during uninstallation')
 @click.option('--silent', '-s', is_flag=True, help='Completely silent uninstallation without any output to console')
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to uninstall')
+@click.option('--node', '-npm', is_flag=True, help='Specify a Python package to install')
 @click.option('--no-cache', '-nocache', is_flag=True, help='Prevent cache usage for uninstallation')
 def uninstall(
     package_name: str,
@@ -377,6 +378,7 @@ def uninstall(
     yes: bool,
     silent: bool,
     python: bool,
+    node: bool,
     no_cache: bool
 ):
 
@@ -403,13 +405,18 @@ def uninstall(
 
     if python:
 
-        flags = []
-
         package_names = package_name.split(',')
 
         for name in package_names:
             handle_python_package(name, 'uninstall', metadata)
 
+        sys.exit()
+
+    if node:
+        package_names = package_name.split(',')
+        for name in package_names:
+            handle_node_package(name, 'uninstall', metadata)
+        
         sys.exit()
 
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
