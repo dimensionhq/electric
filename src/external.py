@@ -126,7 +126,7 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
         for line in proc.stdout:
             line = line.decode()
             if 'up to date' in line:
-                write(f'npm v{version} :: Could Not Find Any Existing Installations Of => {package_name}', 'yellow', metadata)
+                write(f'npm v{version} :: Could Not Find Any Existing Installations Of {package_name}', 'yellow', metadata)
             if 'removed' in line:
                 number = line.split(' ')[1].strip()
                 time = line.split(' ')[4].strip()
