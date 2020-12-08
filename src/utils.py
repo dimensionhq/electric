@@ -882,7 +882,7 @@ def handle_unknown_error(err: str):
         if '.google-cookie' in os.listdir('.'):
             os.remove('.google-cookie')
 
-        print(f'Some helpful troubleshooting links:{results}')
+        print(f'These automatically generated links may help:{results}')
 
 
     proc = Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
