@@ -854,8 +854,6 @@ def sign(
     config = Config.generate_configuration(filepath, False)
     click.echo(click.style('No syntax errors found!', 'green'))
     config.verify()
-    
-    return
 
 
     md5 = hashlib.md5(open(filepath, 'rb').read()).hexdigest()
