@@ -87,7 +87,7 @@ class Config:
                                 click.echo(click.style(f'ValueNotFoundError : No Value Provided For Key :: {colorama.Fore.CYAN}{message}', fg='yellow'))
                                 exit()
                         except ValueError:
-                            if header in ['Packages', 'Pip-Packages', 'Editor-Extensions']:
+                            if header in ['Packages', 'Pip-Packages', 'Editor-Extensions', 'Node-Packages']:
                                 k, v = line, "latest"           
                             else:
                                 with open(f'{filepath}', 'r') as f:
@@ -118,12 +118,54 @@ class Config:
                     exit()
                 
                 if lines[-1] != '# --------------------Checksum End--------------------------- #':
-                    click.echo(click.style('DataAfterChecksumError : Comments, Code And New lines Are Not Allowed After The Checksum End Header.'))
+                    click.echo(click.style('DataAfterChecksumError : Comments, Code And New lines Are Not Allowed After The Checksum End Header.', 'red'))
                     exit()
             
         d.pop("")
 
         return Config(d)
+
+
+    def verify(self):
+        config = self.dictionary
+        python_packages = config['Pip-Packages'] if 'Pip-Packages' in self.headers else None
+        node_packages = config['Node-Packages'] if 'Node-Packages' in self.headers else None
+        editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
+        packages = config['Packages'] if 'Packages' in self.headers else None
+        editor_type = config['Editor-Configuration'][0]['Editor'] if 'Editor-Configuration' in self.headers else None
+        click.echo(click.style('↓ Validating Electric Packages        ↓', 'cyan'))
+        for package in packages:
+            proc = Popen(f'electric show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            output, err = proc.communicate()
+            if 'Could Not Find Any Packages' in output.decode():
+                click.echo(click.style(f'`{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
+                exit()
+
+        click.echo(click.style('↓ Validating Node or Npm Modules      ↓', 'cyan'))
+
+        for package in node_packages:
+            proc = Popen(f'npm show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            output, err = proc.communicate()
+            if f'\'{list(package.keys())[0]}\' is not in the npm registry.' in err.decode():
+                click.echo(click.style(f'The ( npm | node ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
+                exit()
+        
+        click.echo(click.style('↓ Validating Python or Pip Modules    ↓', 'cyan'))
+        
+        for package in python_packages:
+            proc = Popen(f'pip show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            output, err = proc.communicate()
+            if 'not found:' in err.decode():
+                click.echo(click.style(f'The ( python | pip ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
+                exit()
+
+        if not editor_type == 'Visual Studio Code':
+            click.echo(click.style(f'The editor => {editor_type} is not supported by electric yet!', 'red'))
+        else:
+            for package in editor_extensions:
+                if not '.' in list(package.keys())[0]:
+                    click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
+
 
     def install(self):
         config = self.dictionary

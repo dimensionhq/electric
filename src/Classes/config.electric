@@ -9,7 +9,7 @@ Editor => "Visual Studio Code"
 
 [ Packages ]
 vscode
-python => 3.9.0
+# python => 3.9.0
 
 [ Editor-Extensions ]
 panicbit.cargo
@@ -24,13 +24,14 @@ beautifulsoup4 => 4.9.3
 numpy => 1.19.3
 pyinstaller => 4.1
 
+
 [ Node-Packages ]
 electron => 11.0.4
 express => 4.17.1
 
 # --------------------Checksum Start-------------------------- #
 ########################################################################
-# 7e917406110305cd1d8037937ba9cc7f
-# 61b9a21747bf9af67e6b7d7cd2138c506c28f9b9336f0cce99b4556a8cf9435e
+# 46cb271471ff902e322177cf4ce21869
+# b102a56f2dd00eec953ffb0ac7a395b28fc6785dd5795e5a456554a6e6f218d5
 ########################################################################
 # --------------------Checksum End--------------------------- #

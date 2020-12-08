@@ -822,15 +822,41 @@ def search(
         click.echo(click.style('0 packages found!', fg='red'))
 
 
+@cli.command(aliases='create')
+@click.argument('project_name', required=True)
+def new(
+    project_name: str
+    ):
+    with open(f'{project_name}.electric', 'w+') as f:
+        f.writelines(
+            [
+            "[ Info ]\n",
+            "# Go To https://www.electric.sh/electric-configuration-documentation/ For More Information\n",
+            "Publisher =>\n",
+            "Description =>\n\n",
+            "\n[ Editor-Configuration ]\n",
+            "Editor =>\n",
+            "\n[ Packages ]\n",
+            "\n[ Editor-Extensions ]\n",
+            "\n[ Pip-Packages ]\n",
+            "\n[ Node-Packages ]\n"
+            ]
+        )
+    click.echo(click.style(f'Successfully Created {Fore.LIGHTBLUE_EX}`{project_name}.electric`{Fore.GREEN} at {os.getcwd()}\\', 'green'))
+
+
 @cli.command(aliases=['validate'])
 @click.argument('filepath', required=True)
 def sign(
         filepath: str
     ):
 
+    config = Config.generate_configuration(filepath, False)
+    click.echo(click.style('No syntax errors found!', 'green'))
+    config.verify()
     
-    Config.generate_configuration(filepath, False)
-    
+    return
+
 
     md5 = hashlib.md5(open(filepath, 'rb').read()).hexdigest()
     sha256_hash = hashlib.sha256()
