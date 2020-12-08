@@ -822,7 +822,7 @@ def search(
         click.echo(click.style('0 packages found!', fg='red'))
 
 
-@cli.command(aliases='create')
+@cli.command(aliases=['create'])
 @click.argument('project_name', required=True)
 def new(
     project_name: str
