@@ -18,6 +18,7 @@ from signal import SIGTERM
 from switch import Switch
 from extension import *
 from registry import *
+from halo import Halo
 from psutil import *
 from logger import *
 from limit import *
@@ -872,15 +873,16 @@ def handle_unknown_error(err: str):
     
     if error_msg:
         print(err)
-        print('\n\n')
+        print('\n')
+        with Halo('Troubleshooting ', text_color='yellow') as h:
+            results = search(query=err, stop=3)
+            results = [f'\n\t[{index + 1}] <=> {r}' for index, r in enumerate(results)]
 
-        results = search(query=err, stop=3)
-        results = [f'\n\t[{index + 1}] <=> {r}' for index, r in enumerate(results)]
-
-        results = ''.join(results)
-        
-        if '.google-cookie' in os.listdir('.'):
-            os.remove('.google-cookie')
+            results = ''.join(results)
+            
+            if '.google-cookie' in os.listdir('.'):
+                os.remove('.google-cookie')
+            h.close()
 
         print(f'These automatically generated links may help:{results}')
 
