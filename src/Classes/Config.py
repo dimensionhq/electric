@@ -134,7 +134,7 @@ class Config:
             editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
             for extension in editor_extensions:
                 extension = list(extension.keys())[0]
-                command = f'code --install-extension {extension} --force'
+                command = f'electric install --vscode {extension}'
                 try:
                     os.system(command)
                 except:
