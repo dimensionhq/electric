@@ -49,6 +49,7 @@ setup(
         'halo',
         'cursor',
         'psutil'
+        'google'
     ],
     package_dir={'': 'src'},
     entry_points =
