@@ -845,6 +845,22 @@ def new(
     click.echo(click.style(f'Successfully Created {Fore.LIGHTBLUE_EX}`{project_name}.electric`{Fore.GREEN} at {os.getcwd()}\\', 'green'))
 
 
+@cli.command()
+@click.argument('config_path', required=True)
+@click.option('--remove', '-uninst', is_flag=True, help='Uninstall packages in a bundle installed')
+def config(
+    config_path: str,
+    remove: bool,
+    ):
+    config = Config.generate_configuration(config_path)
+    config.check_prerequisites()
+    if remove:
+        config.uninstall()
+    else:
+        config.install()
+
+
+
 @cli.command(aliases=['validate'])
 @click.argument('filepath', required=True)
 def sign(

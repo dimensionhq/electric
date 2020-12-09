@@ -13,7 +13,10 @@ class Config:
         self.dictionary = dictionary
         self.publisher = dictionary['Info'][0]['Publisher']
         self.description = dictionary['Info'][1]['Description']
-        self.os = dictionary['Info'][2]['OS']
+        try:
+            self.os = dictionary['Info'][2]['OS']
+        except IndexError:
+            self.os = None
         self.headers = dictionary.keys()
 
     def check_prerequisites(self):
@@ -45,6 +48,7 @@ class Config:
                     
                     click.echo(click.style('Node Not Found, Aborting Config Installation!', fg='red'))
                     exit()
+
         editor_type = self.dictionary['Editor-Configuration'][0]['Editor'] if 'Editor-Configuration' in self.headers else None
         if editor_type:
             if not find_existing_installation(editor_type, 'Visual Studio Code'):
@@ -146,10 +150,10 @@ class Config:
                         click.echo(click.style('Hashes Match!', 'green'))
                     else:
                         click.echo(click.style('Hashes Don\'t Match! Aborting Installation!', 'red'))
-        d.pop('')
-        os.remove(rf'{gettempdir()}\electric\configuration.electric')
-        return Config(d)
+                    os.remove(rf'{gettempdir()}\electric\configuration.electric')
 
+        d.pop('')
+        return Config(d)
 
     def verify(self):
         config = self.dictionary
@@ -178,56 +182,108 @@ class Config:
         click.echo(click.style('↓ Validating Python or Pip Modules    ↓', 'cyan'))
         
         for package in python_packages:
-            proc = Popen(f'pip show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            proc = Popen(f'pip search {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
             output, err = proc.communicate()
-            if 'not found:' in err.decode():
+
+            if not output.decode():
                 click.echo(click.style(f'The ( python | pip ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
                 exit()
 
         if not editor_type == 'Visual Studio Code':
             click.echo(click.style(f'The editor => {editor_type} is not supported by electric yet!', 'red'))
         else:
-            for package in editor_extensions:
-                if not '.' in list(package.keys())[0]:
-                    click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
-
+            if editor_extensions:
+                for package in editor_extensions:
+                    if not '.' in list(package.keys())[0]:
+                        click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
 
     def install(self):
-        config = self.dictionary
-        python_packages = config['Pip-Packages'] if 'Pip-Packages' in self.headers else None
-        node_packages = config['Node-Packages'] if 'Node-Packages' in self.headers else None
-        editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
-        packages = config['Packages'] if 'Packages' in self.headers else None
-        editor_type = config['Editor-Configuration'][0]['Editor'] if 'Editor-Configuration' in self.headers else None
-        for package in packages:
-            try:
-                os.system(f'electric install {list(package.keys())[0]}')
-            except:
-                if not click.confirm('Would you like to continue configuration installation?'):
-                    exit()
-        for python_package in python_packages:
-            command = f'electric install --python {list(python_package.keys())[0]}'
-            try:
-                os.system(command)
-            except:
-                if not click.confirm('Would you like to continue configuration installation?'):
-                    exit()
-        
-        if editor_type == 'Visual Studio Code':
+        if is_admin():
+            config = self.dictionary
+            python_packages = config['Pip-Packages'] if 'Pip-Packages' in self.headers else None
+            node_packages = config['Node-Packages'] if 'Node-Packages' in self.headers else None
             editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
-            for extension in editor_extensions:
-                extension = list(extension.keys())[0]
-                command = f'electric install --vscode {extension}'
+            packages = config['Packages'] if 'Packages' in self.headers else None
+            editor_type = config['Editor-Configuration'][0]['Editor'] if 'Editor-Configuration' in self.headers else None
+            for package in packages:
                 try:
-                    os.system(command)
+                    os.system(f'electric install {list(package.keys())[0]}')
                 except:
                     if not click.confirm('Would you like to continue configuration installation?'):
                         exit()
-        
-        for node_package in node_packages:
-            node_package = list(node_package)[0]
-            try:
-                os.system(f'electric install --node {node_package}')
-            except:
-                if not click.confirm('Would you like to continue configuration installation?'):
-                    exit()
+            
+            if python_packages:
+                for python_package in python_packages:
+                    command = f'electric install --python {list(python_package.keys())[0]}'
+                    try:
+                        os.system(command)
+                    except:
+                        if not click.confirm('Would you like to continue configuration installation?'):
+                            exit()
+            
+            if editor_type == 'Visual Studio Code' and editor_extensions:
+                editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
+                for extension in editor_extensions:
+                    extension = list(extension.keys())[0]
+                    command = f'electric install --vscode {extension}'
+                    try:
+                        os.system(command)
+                    except:
+                        if not click.confirm('Would you like to continue configuration installation?'):
+                            exit()
+            if node_packages:
+                for node_package in node_packages:
+                    node_package = list(node_package)[0]
+                    try:
+                        os.system(f'electric install --node {node_package}')
+                    except:
+                        if not click.confirm('Would you like to continue configuration installation?'):
+                            exit()
+        else:
+            click.echo(click.style('Config installation must be ran as administrator!', fg='red'), err=True)
+
+    def uninstall(self):
+        if is_admin():
+            config = self.dictionary
+            python_packages = config['Pip-Packages'] if 'Pip-Packages' in self.headers else None
+            node_packages = config['Node-Packages'] if 'Node-Packages' in self.headers else None
+            editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
+            packages = config['Packages'] if 'Packages' in self.headers else None
+            editor_type = config['Editor-Configuration'][0]['Editor'] if 'Editor-Configuration' in self.headers else None
+            if packages:
+                for package in packages:
+                    try:
+                        os.system(f'electric uninstall {list(package.keys())[0]}')
+                    except:
+                        if not click.confirm('Would you like to continue configuration installation?'):
+                            exit()
+            
+            if python_packages:
+                for python_package in python_packages:
+                    command = f'electric uninstall --python {list(python_package.keys())[0]}'
+                    try:
+                        os.system(command)
+                    except:
+                        if not click.confirm('Would you like to continue configuration installation?'):
+                            exit()
+            
+            if editor_type == 'Visual Studio Code' and editor_extensions:
+                editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
+                for extension in editor_extensions:
+                    extension = list(extension.keys())[0]
+                    command = f'electric uninstall --vscode {extension}'
+                    try:
+                        os.system(command)
+                    except:
+                        if not click.confirm('Would you like to continue configuration installation?'):
+                            exit()
+            if node_packages:
+                for node_package in node_packages:
+                    node_package = list(node_package)[0]
+                    try:
+                        os.system(f'electric uninstall --node {node_package}')
+                    except:
+                        if not click.confirm('Would you like to continue configuration installation?'):
+                            exit()
+        else:
+            click.echo(click.style('Config installation must be ran as administrator!', fg='red'), err=True)
