@@ -1,5 +1,6 @@
 from sys import platform
 from subprocess import *
+from tempfile import gettempdir
 from external import *
 from utils import *
 import colorama
@@ -106,12 +107,12 @@ class Config:
                                 exit()
 
                         d[header].append({ k : v.replace('"', '') })
-
+            
             if signed:
-                lines = f.readlines()
-                
+                with open(f'{filepath}', 'r') as f:
+                    lines = f.readlines()
+
                 l = [line.strip() for line in lines]
-                
                 if not '# --------------------Checksum Start-------------------------- #' in l or not '# --------------------Checksum End--------------------------- #' in l:
                     click.echo(click.style(f'File Checksum Not Found! Run `electric sign {filepath}` ( Copied To Clipboard ) to sign your .electric configuration.', fg='red'))
                     pyperclip.copy(f'electric sign {filepath}')
@@ -120,9 +121,33 @@ class Config:
                 if lines[-1] != '# --------------------Checksum End--------------------------- #':
                     click.echo(click.style('DataAfterChecksumError : Comments, Code And New lines Are Not Allowed After The Checksum End Header.', 'red'))
                     exit()
-            
-        d.pop("")
+                
+                if '# --------------------Checksum Start-------------------------- #' in l and '# --------------------Checksum End--------------------------- #' in l:
+                    idx = 0
+                    for item in l:
+                        if item == '# --------------------Checksum Start-------------------------- #':
+                            idx = list.index(l, item)
 
+                    md5 = l[idx + 2].replace('#', '').strip()
+                    sha256 = l[idx + 3].replace('#', '').strip()
+                    # Generate Temporary Configuration File
+                    with open(rf'{gettempdir()}\electric\configuration.electric', 'w+') as f:
+                        f.writelines(lines[:-7])
+        
+                    md5_checksum = hashlib.md5(open(rf'{gettempdir()}\electric\configuration.electric', 'rb').read()).hexdigest()
+                    sha256_hash_checksum = hashlib.sha256()
+                    with open(rf'{gettempdir()}\electric\configuration.electric', 'rb') as f:
+                        # Read and update hash string value in blocks of 4K
+                        for byte_block in iter(lambda: f.read(4096),b''):
+                            sha256_hash_checksum.update(byte_block)
+                    
+                    sha256_checksum = sha256_hash_checksum.hexdigest()
+                    if md5 == md5_checksum and sha256 == sha256_checksum:
+                        click.echo(click.style('Hashes Match!', 'green'))
+                    else:
+                        click.echo(click.style('Hashes Don\'t Match! Aborting Installation!', 'red'))
+        d.pop('')
+        os.remove(rf'{gettempdir()}\electric\configuration.electric')
         return Config(d)
 
 
