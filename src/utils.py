@@ -30,7 +30,6 @@ import registry
 import difflib
 import zipfile
 import hashlib
-import pymongo
 import ctypes
 import shutil
 import random
@@ -628,18 +627,17 @@ def check_newer_version(new_version) -> bool:
 
 
 def check_for_updates():
-    client = pymongo.MongoClient('mongodb+srv://TheBossProSniper:electricsupermanager@electric.kuixi.mongodb.net/<dbname>?retryWrites=true&w=majority')
-    database = client['Electric']['Update-Status']
-    doc = database.find_one({})
-    if doc:    
-        new_version = doc['version']
+    res = requests.get('http://electric-package-manager.herokuapp.com/version/windows', timeout=10)
+    js = res.json()
+    version_dict = json.loads(js)
+
+    if version_dict:    
+        new_version = version_dict['version']
         if check_newer_version(new_version):
             # Implement Version Check
             if click.confirm('A new update for electric is available, would you like to proceed with the update?'):
                 click.echo(click.style('Updating Electric..', fg='green'))
                 UPDATEA = 'https://electric-package-manager.herokuapp.com/update/windows'
-
-                import ctypes
 
                 def is_admin():
                     try:
@@ -752,12 +750,9 @@ def disp_error_msg(messages: list, metadata: Metadata):
         click.echo('By sending a support ticket, you agree to the Terms And Conditions (https://www.electric.sh/support/terms-and-conditions)')
         sending_ticket = click.confirm('Would you like to send the support ticket ?')
         if sending_ticket:
-            client = pymongo.MongoClient('mongodb+srv://TheBossProSniper:electricsupermanager@electric.kuixi.mongodb.net/<dbname>?retryWrites=true&w=majority')
-            database = client['Electric']['Support-Tickets']
-            database.insert_one({
-                "Logs": get_recent_logs()
-            })
-            click.echo(click.style('Successfully Sent Support Ticket!', fg='green'))
+            res = requests.post('http://electric-package-manager.herokuapp.com/windows/support-ticket', json={'Logs': get_recent_logs()})
+            if res.status_code == 200:
+                click.echo(click.style('Successfully Sent Support Ticket!', fg='green'))
 
 
     if reboot:
