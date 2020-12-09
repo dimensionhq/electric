@@ -69,3 +69,57 @@ old_processors = [
     'Pentium',
     'Core 2 Duo',
 ]
+
+electric_commands = [
+    'install',
+    'uninstall',
+    'bundle',
+    'search',
+    'new',
+    'config',
+    'sign',
+    'show',
+    'find',
+]
+
+install_flags = [
+    '--verbose',
+    '--debug',
+    '--no-progress',
+    '--no-color',
+    '--log-output',
+    '--install-dir',
+    '--virus-check',
+    '--yes',
+    '--silent',
+    '--vscode',
+    '--python',
+    '--node',
+    '--no-cache',
+    '--sync',
+    '--reduce',
+    '--rate-limit'
+]
+
+uninstall_flags = [
+    '--verbose',
+    '--debug',
+    '--no-color',
+    '--log-output',
+    '--yes',
+    '--silent',
+    '--vscode',
+    '--python',
+    '--node',
+    '--no-cache',
+]
+
+search_flags = [
+    '--starts-with',
+    '--exact'
+]
+
+config_flags = [
+    '--remove'
+]
+

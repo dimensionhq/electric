@@ -860,7 +860,6 @@ def config(
         config.install()
 
 
-
 @cli.command(aliases=['validate'])
 @click.argument('filepath', required=True)
 def sign(
@@ -940,6 +939,78 @@ def show(package_name: str):
     pkg_info = res[corrected_package_names[0]]
     click.echo(click.style(display_info(pkg_info), fg='green'))
 
+@cli.command()
+@click.option('--word', required=True)
+@click.option('--commandline', required=True)
+@click.option('--position', required=True)
+def complete(
+    word : str,
+    commandline: str,
+    position: str
+    ):
+
+    n = len(commandline.split(' '))
+    if word:
+        possibilities = []
+        if n == 2:
+            possibilities = electric_commands
+        
+        if n == 3:
+            appdata_dir = PathManager.get_appdata_directory()
+            
+            with open(rf'{appdata_dir}\supercache.json', 'r') as f:
+                dictionary = json.loads(f.read())
+
+            possibilities = list(dictionary.keys())
+
+        if n >= 4:
+            command = commandline.split(' ')[1]
+            
+            if command == 'install' or command == 'bundle' or command == 'i':
+                possibilities = install_flags
+            if command == 'uninstall' or command == 'remove' or command == 'u':
+                possibilities = uninstall_flags
+            if command == 'search' or command == 'find':
+                possibilities = search_flags
+            if command == 'config':
+                possibilities = config_flags
+
+        completion = ''
+
+        for command in possibilities:
+            if command.startswith(word):
+                completion = command
+        click.echo(completion)
+
+    else:
+
+        if n == 1:
+            for completion in electric_commands:
+                click.echo(completion)
+        
+        if n >= 3:
+            command = commandline.split(' ')[1]
+            
+            if command == 'install':
+                for completion in install_flags:
+                    click.echo(completion)
+
+            if command == 'uninstall':
+                for completion in uninstall_flags:
+                    click.echo(completion)
+
+
 
 if __name__ == '__main__':
     cli()
+
+# Append To $PROFILE For Powershell Completion
+# Register-ArgumentCompleter -Native -CommandName winget -ScriptBlock {
+#     param($wordToComplete, $commandAst, $cursorPosition)
+#         [Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
+#         $Local:word = $wordToComplete.Replace('"', '""')
+#         $Local:ast = $commandAst.ToString().Replace('"', '""')
+#         winget complete --word="$Local:word" --commandline "$Local:ast" --position $cursorPosition | ForEach-Object {
+#             [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+#         }
+# }

@@ -118,6 +118,10 @@ class DYMMixin(object):  # pylint: disable=too-few-public-methods
         if rows:
             with formatter.section('Commands'):
                 formatter.write_dl(rows)
+    
+    # TODO: Implement Click Help Message!
+    # def format_help(self, ctx, formatter):
+    #     print('Help Message Here!')
 
 
 class SuperChargeCLI(DYMMixin, click.Group):  # pylint: disable=too-many-public-methods
