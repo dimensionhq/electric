@@ -82,6 +82,20 @@ electric_commands = [
     'find',
 ]
 
+
+tab_completion = '''
+Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
+    param($wordToComplete, $commandAst, $cursorPosition)
+        [Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
+        $Local:word = $wordToComplete.Replace('"', '""')
+        $Local:ast = $commandAst.ToString().Replace('"', '""')
+        electric complete --word="$Local:word" --commandline "$Local:ast" --position $cursorPosition | ForEach-Object {
+            [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+        }
+    }
+'''
+
+
 install_flags = [
     '--verbose',
     '--debug',

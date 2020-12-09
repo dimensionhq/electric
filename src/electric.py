@@ -69,7 +69,8 @@ def install(
     rate_limit: int,
     node: bool,
     vscode: bool,
-):  
+):
+
     if logfile:
         logfile = logfile.replace('=', '')
         logfile = logfile.replace('.txt', '.log')
@@ -1000,17 +1001,5 @@ def complete(
                     click.echo(completion)
 
 
-
 if __name__ == '__main__':
     cli()
-
-# Append To $PROFILE For Powershell Completion
-# Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
-#     param($wordToComplete, $commandAst, $cursorPosition)
-#         [Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
-#         $Local:word = $wordToComplete.Replace('"', '""')
-#         $Local:ast = $commandAst.ToString().Replace('"', '""')
-#         electric complete --word="$Local:word" --commandline "$Local:ast" --position $cursorPosition | ForEach-Object {
-#             [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
-#         }
-# }
