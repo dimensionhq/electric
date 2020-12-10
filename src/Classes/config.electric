@@ -1,0 +1,20 @@
+[ Info ]
+# Go To https://www.electric.sh/electric-configuration-documentation/ For More Information
+Publisher => "TheBossProSniper"
+Description => "My Python Development Environment!"
+
+
+[ Editor-Configuration ]
+Editor => "Visual Studio Code"
+
+[ Packages ]
+atom
+vscode
+notepad++
+sublime-text-3
+
+[ Pip-Packages ]
+pyperclip
+
+[ Node-Packages ]
+express

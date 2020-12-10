@@ -1,10 +1,10 @@
+from tempfile import gettempdir
 from sys import platform
 from subprocess import *
-from tempfile import gettempdir
 from external import *
 from utils import *
-import colorama
 import pyperclip
+import colorama
 import click
 
 
@@ -151,9 +151,12 @@ class Config:
                             click.echo(click.style('Hashes Match!', 'green'))
                         else:
                             click.echo(click.style('Hashes Don\'t Match! Aborting Installation!', 'red'))
+                            os.remove(rf'{gettempdir()}\electric\configuration.electric')
+                            exit(1)
                         os.remove(rf'{gettempdir()}\electric\configuration.electric')
         except FileNotFoundError:
-            click.echo(click.style('File Does Not Exist!', fg='green'))
+            click.echo(click.style(f'Could Not Find {Fore.BLUE}{filepath}{Fore.RESET}.', fg='red'), err=True)
+            exit()
         d.pop('')
         return Config(d)
 
@@ -207,22 +210,32 @@ class Config:
             editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
             packages = config['Packages'] if 'Packages' in self.headers else None
             editor_type = config['Editor-Configuration'][0]['Editor'] if 'Editor-Configuration' in self.headers else None
+
+            command = ''
+            pip_command = ''
+            idx = 1
+
             for package in packages:
-                try:
-                    os.system(f'electric install {list(package.keys())[0]}')
-                except:
-                    if not click.confirm('Would you like to continue configuration installation?'):
-                        exit()
+                if idx == len(packages):
+                    command += list(package.keys())[0]
+                    idx += 1 
+                    continue
+                command += list(package.keys())[0] + ','
+                idx += 1
             
-            if python_packages:
-                for python_package in python_packages:
-                    command = f'electric install --python {list(python_package.keys())[0]}'
-                    try:
-                        os.system(command)
-                    except:
-                        if not click.confirm('Would you like to continue configuration installation?'):
-                            exit()
-            
+            os.system(f'electric install {command} -y')
+
+            for package in python_packages:
+                if idx == len(packages):
+                    pip_command += list(package.keys())[0]
+                    idx += 1 
+                    continue
+                pip_command += list(package.keys())[0] + ','
+                idx += 1
+
+            os.system(f'electric install --python {pip_command}')
+
+
             if editor_type == 'Visual Studio Code' and editor_extensions:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
                 for extension in editor_extensions:
@@ -233,6 +246,29 @@ class Config:
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
                             exit()
+            
+            if editor_type == 'Sublime Text 3' and editor_extensions:                
+                editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
+                for extension in editor_extensions:
+                    extension = list(extension.keys())[0]
+                    command = f'electric install --sublime {extension}'
+                    try:
+                        os.system(command)
+                    except:
+                        if not click.confirm('Would you like to continue configuration installation?'):
+                            exit()
+
+            if editor_type == 'Atom' and editor_extensions:                
+                editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
+                for extension in editor_extensions:
+                    extension = list(extension.keys())[0]
+                    command = f'electric install --atom {extension}'
+                    try:
+                        os.system(command)
+                    except:
+                        if not click.confirm('Would you like to continue configuration installation?'):
+                            exit()
+
             if node_packages:
                 for node_package in node_packages:
                     node_package = list(node_package)[0]
@@ -241,6 +277,7 @@ class Config:
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
                             exit()
+
         else:
             click.echo(click.style('Config installation must be ran as administrator!', fg='red'), err=True)
 

@@ -145,61 +145,286 @@ def install(
     for header in install_debug_headers:
         log_info(header, metadata.logfile)
 
-    index = 0
+    index = 0  
+
+    from itertools import zip_longest
+
+    def grouper(iterable, n, fillvalue=None):
+        "Collect data into fixed-length chunks or blocks"
+        # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
+        args = [iter(iterable)] * n
+        return zip_longest(*args, fillvalue=fillvalue)
 
     if not sync:
-        if len(corrected_package_names) > 5:
-            log_info('Terminating installation!', metadata.logfile)
-            write('electric Doesn\'t Support More Than 5 Parallel Downloads At Once Currently. Use The --sync Flag To Synchronously Download The Packages', 'red', metadata)
         if len(corrected_package_names) > 1:
-            packets = []
-            for package in corrected_package_names:
-                pkg = res[package]
-                custom_dir = None
-                if install_directory:
-                    custom_dir = install_directory + f'\\{pkg["package-name"]}'
-                else:
-                    custom_dir = install_directory
-                packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'])
-                installation = find_existing_installation(
-                    package, packet.display_name)
-                if installation:
-                    write_debug(
-                        f'Aborting Installation As {packet.json_name} is already installed.', metadata)
-                    write_verbose(
-                        f'Found an existing installation of => {packet.json_name}', metadata)
-                    write(
-                        f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
-                    installation_continue = click.confirm(
-                        f'Would you like to reinstall {packet.json_name}')
-                    if installation_continue or yes:
-                        os.system(f'electric uninstall {packet.json_name}')
-                        os.system(f'electric install {packet.json_name}')
-                        return
+            split_package_names = list(grouper(corrected_package_names, 3))
+            if len(split_package_names) == 1:
+                packets = []
+                for package in corrected_package_names:
+                    pkg = res[package]
+                    custom_dir = None
+                    if install_directory:
+                        custom_dir = install_directory + f'\\{pkg["package-name"]}'
                     else:
-                        handle_exit(status, setup_name, metadata)
+                        custom_dir = install_directory
+                    packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'])
+                    installation = find_existing_installation(
+                        package, packet.display_name)
+                    if installation:
+                        write_debug(
+                            f'Aborting Installation As {packet.json_name} is already installed.', metadata)
+                        write_verbose(
+                            f'Found an existing installation of => {packet.json_name}', metadata)
+                        write(
+                            f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
+                        installation_continue = click.confirm(
+                            f'Would you like to reinstall {packet.json_name}')
+                        if installation_continue or yes:
+                            os.system(f'electric uninstall {packet.json_name}')
+                            os.system(f'electric install {packet.json_name}')
+                            return
+                        else:
+                            handle_exit(status, setup_name, metadata)
 
-                write_verbose(
-                    f'Package to be installed: {packet.json_name}', metadata)
+                    write_verbose(
+                        f'Package to be installed: {packet.json_name}', metadata)
+                    log_info(
+                        f'Package to be installed: {packet.json_name}', metadata.logfile)
+
+                    write_verbose(
+                        f'Finding closest match to {packet.json_name}...', metadata)
+                    log_info(
+                        f'Finding closest match to {packet.json_name}...', metadata.logfile)
+                    packets.append(packet)
+
+                    write_verbose('Generating system download path...', metadata)
+                    log_info('Generating system download path...', metadata.logfile)
+                
+                manager = PackageManager(packets, metadata)
+                paths = manager.handle_multi_download()
+                log_info('Finished Rapid Download...', metadata.logfile)
                 log_info(
-                    f'Package to be installed: {packet.json_name}', metadata.logfile)
+                    'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+                manager.handle_multi_install(paths)
+                return
+            elif len(split_package_names) > 1:
+                for package_batch in split_package_names:
+                    package_batch = list(package_batch)
+                    package_batch = [x for x in package_batch if x is not None]
+                    if len(package_batch) == 1:
+                        package = package_batch[0]
+                        pkg = res[package]
+                        log_info('Generating Packet For Further Installation.', metadata.logfile)
+                        packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'])
+                        log_info('Searching for existing installation of package.', metadata.logfile)
+                        
 
-                write_verbose(
-                    f'Finding closest match to {packet.json_name}...', metadata)
-                log_info(
-                    f'Finding closest match to {packet.json_name}...', metadata.logfile)
-                packets.append(packet)
+                        installation = find_existing_installation(package, packet.json_name)
 
-                write_verbose('Generating system download path...', metadata)
-                log_info('Generating system download path...', metadata.logfile)
-            
-            manager = PackageManager(packets, metadata)
-            paths = manager.handle_multi_download()
-            log_info('Finished Rapid Download...', metadata.logfile)
-            log_info(
-                'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
-            manager.handle_multi_install(paths)
-            return
+                        if installation:
+                            write_debug(
+                                f'Found existing installation of {packet.json_name}.', metadata)
+                            write_verbose(
+                                f'Found an existing installation of => {packet.json_name}', metadata)
+                            write(
+                                f'Detected an existing installation {packet.json_name}.', 'bright_yellow', metadata)
+                            installation_continue = click.confirm(
+                                f'Would you like to reinstall {packet.json_name}')
+                            if installation_continue or yes:
+                                os.system(f'electric uninstall {packet.json_name}')
+                                os.system(f'electric install {packet.json_name}')
+                                return
+                            else:
+                                handle_exit(status, setup_name, metadata)
+
+                        if packet.dependencies:
+                            install_dependent_packages(packet, rate_limit, install_directory, metadata)
+
+                        write_verbose(
+                            f'Package to be installed: {packet.json_name}', metadata)
+                        log_info(f'Package to be installed: {packet.json_name}', metadata.logfile)
+
+                        write_verbose(
+                            f'Finding closest match to {packet.json_name}...', metadata)
+                        log_info(f'Finding closest match to {packet.json_name}...', metadata.logfile)
+
+                        if index == 0:
+                            if super_cache:
+                                write_verbose(
+                                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
+                                write_debug(
+                                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
+                                log_info(f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata.logfile)
+                            else:
+                                write_verbose(
+                                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+                                write_debug(
+                                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+                                log_info(
+                                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
+                                
+
+                        write_verbose('Generating system download path...', metadata)
+                        log_info('Generating system download path...', metadata.logfile)
+                        
+                        if not metadata.silent:
+                            if not metadata.no_color:
+                                if super_cache:
+                                    print(f'SuperCached', Fore.GREEN + '=>' + Fore.RESET, '[', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
+                                else:
+                                    print(f'Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
+
+                            else:
+                                print(f'Found => [ {packet.display_name} ]')
+                        start = timer()
+
+                        status = 'Download Path'
+                        download_url = get_download_url(packet)
+                        status = 'Got Download Path'
+                        end = timer()
+
+                        log_info('Initializing Rapid Download...', metadata.logfile)
+
+                        # Downloading The File From Source
+                        write_debug(f'Downloading {packet.display_name} from => {packet.win64}', metadata)
+                        write_verbose(
+                            f"Downloading from '{download_url}'", metadata)
+                        log_info(f"Downloading from '{download_url}'", metadata.logfile)
+                        status = 'Downloading'
+                        
+                        if rate_limit == -1:
+                            start = timer()
+                            path, cached = download(download_url, packet.json_name, metadata, packet.win64_type)
+                            end = timer()
+                        else:
+                            log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
+                            bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
+
+                            limiter = Limiter(
+                                bucket=bucket,
+                                filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
+                            )
+
+                            urlretrieve(
+                                url=download_url,
+                                filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
+                                reporthook=limiter
+                            )
+
+                            path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
+
+                        status = 'Downloaded'
+
+                        log_info('Finished Rapid Download', metadata.logfile)
+
+                        if virus_check:
+                            write('Scanning File For Viruses...', 'blue', metadata)
+                            check_virus(path, metadata)
+                        if not cached:
+                            write(
+                                '\nUsing Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
+                        else:
+                            write(
+                                'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
+                        log_info(
+                            'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+
+                        write_debug(
+                            f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
+                        log_info(
+                            f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
+                        start_snap = get_environment_keys()
+                        status = 'Installing'
+                        # Running The Installer silently And Completing Setup
+                        install_package(path, packet, metadata)
+
+                        status = 'Installed'
+                        final_snap = get_environment_keys()
+                        if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
+                            write('Refreshing Environment Variables...', 'green', metadata)
+                            start = timer()
+                            log_info('Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
+                            write_debug('Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
+                            write_verbose('Refreshing Environment Variables', metadata)
+                            refresh_environment_variables()
+                            end = timer()
+                            write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
+
+                        write(
+                            f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
+                        log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
+
+
+                        if metadata.reduce_package:
+                            
+                            os.remove(path)
+                            try:
+                                os.remove(Rf'{tempfile.gettempdir()}\downloadcache.pickle')
+                            except:
+                                pass
+                                
+                            log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
+                            write('Successfully Cleaned Up Installer From Temp Directory...',
+                                'green', metadata)
+
+                        write_verbose('Installation and setup completed.', metadata)
+                        log_info('Installation and setup completed.', metadata.logfile)
+                        write_debug(
+                            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata)
+                        log_info(
+                            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
+                        closeLog(metadata.logfile, 'Install')
+                        return
+
+                    packets = []
+                    for package in package_batch:
+                        pkg = res[package]
+                        custom_dir = None
+                        if install_directory:
+                            custom_dir = install_directory + f'\\{pkg["package-name"]}'
+                        else:
+                            custom_dir = install_directory
+
+                        packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'])
+                        installation = find_existing_installation(
+                            package, packet.display_name)
+                        if installation:
+                            write_debug(
+                                f'Aborting Installation As {packet.json_name} is already installed.', metadata)
+                            write_verbose(
+                                f'Found an existing installation of => {packet.json_name}', metadata)
+                            write(
+                                f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
+                            installation_continue = click.confirm(
+                                f'Would you like to reinstall {packet.json_name}')
+                            if installation_continue or yes:
+                                os.system(f'electric uninstall {packet.json_name}')
+                                os.system(f'electric install {packet.json_name}')
+                                return
+                            else:
+                                handle_exit(status, setup_name, metadata)
+
+                        write_verbose(
+                            f'Package to be installed: {packet.json_name}', metadata)
+                        log_info(
+                            f'Package to be installed: {packet.json_name}', metadata.logfile)
+
+                        write_verbose(
+                            f'Finding closest match to {packet.json_name}...', metadata)
+                        log_info(
+                            f'Finding closest match to {packet.json_name}...', metadata.logfile)
+                        packets.append(packet)
+
+                        write_verbose('Generating system download path...', metadata)
+                        log_info('Generating system download path...', metadata.logfile)
+                    
+                    manager = PackageManager(packets, metadata)
+                    paths = manager.handle_multi_download()
+                    log_info('Finished Rapid Download...', metadata.logfile)
+                    log_info(
+                        'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+                    manager.handle_multi_install(paths)
+                return
 
     for package in corrected_package_names:
         pkg = res[package]
@@ -780,7 +1005,7 @@ def search(
     approx_name: str,
     starts_with: str,
     exact: str,
-    ):
+    ): # pylint: disable=function-redefined
 
 
     super_cache = check_supercache_valid()
@@ -1002,4 +1227,4 @@ def complete(
 
 
 if __name__ == '__main__':
-    cli()
+    cli() #pylint: disable=no-value-for-parameter

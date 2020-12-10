@@ -165,66 +165,66 @@ def send_req_bundle():
 
 
 def download(url: str, package_name: str, metadata: Metadata, download_type: str):
-        cursor.hide()
-        path = check_existing_download(package_name, download_type)
-        if not os.path.isdir(Rf'{tempfile.gettempdir()}\electric'):
-            os.mkdir(Rf'{tempfile.gettempdir()}\electric')
+    cursor.hide()
+    path = check_existing_download(package_name, download_type)
+    if not os.path.isdir(Rf'{tempfile.gettempdir()}\electric'):
+        os.mkdir(Rf'{tempfile.gettempdir()}\electric')
 
-        if isinstance(path, bool):
-            path = Rf'{tempfile.gettempdir()}\electric\Setup{download_type}'
+    if isinstance(path, bool):
+        path = Rf'{tempfile.gettempdir()}\electric\Setup{download_type}'
+    else:
+        write(f'Found Existing Download At => {tempfile.gettempdir()}', 'blue', metadata)
+        return path, True
+
+    while os.path.isfile(path):
+        path = Rf'{tempfile.gettempdir()}\electric\Setup{random.randint(200, 100000)}'
+
+    size, newpath = check_resume_download(package_name, metadata)
+    if not size:
+        dump_pickle({'path': path, 'url': url, 'name': package_name, 'download-type': download_type}, 'unfinishedcache')
+
+    with open(newpath if newpath else path, 'wb' if not size else 'ab') as f:
+        if size:
+            response = requests.get(url, stream=True, headers={'Range': 'bytes=%d-' % size})
         else:
-            write(f'Found Existing Download At => {tempfile.gettempdir()}', 'blue', metadata)
-            return path, True
-
-        while os.path.isfile(path):
-            path = Rf'{tempfile.gettempdir()}\electric\Setup{random.randint(200, 100000)}'
-
-        size, newpath = check_resume_download(package_name, metadata)
-        if not size:
-            dump_pickle({'path': path, 'url': url, 'name': package_name, 'download-type': download_type}, 'unfinishedcache')
-
-        with open(newpath if newpath else path, 'wb' if not size else 'ab') as f:
-            if size:
-                response = requests.get(url, stream=True, headers={'Range': 'bytes=%d-' % size})
-            else:
-                response = requests.get(url, stream=True)
-            total_length = response.headers.get('content-length')
-            chunk_size = get_chunk_size(total_length)
-            if total_length is None:
-                f.write(response.content)
-            else:
-                dl = 0
-                full_length = int(total_length)
-                # 7096 => 7.48, 8.001
-                # 4096 => 6.87, 6.005, 7.59, 7.35
-                for data in response.iter_content(chunk_size=chunk_size):
-                    dl += len(data)
-                    f.write(data)
-
-                    if metadata.no_progress:
-                        sys.stdout.write(
-                            f'\r{round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
-                        sys.stdout.flush()
-
-                    elif not metadata.no_progress and not metadata.silent:
-                        complete = int(25 * dl / full_length)
-                        fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
-                        # fill_c = click.style('█', fg='bright_black') * complete
-                        unfill_c = Fore.BLACK + '█' * (25 - complete)
-                        # sys.stdout.write(
-                        #     f'\r⚡ {fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ')
-
-                        sys.stdout.write(
-                            f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
-                        # sys.stdout.write(
-                        #     f'\r{fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
-                        sys.stdout.flush()
-        os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
-        dump_pickle(generate_dict(newpath if newpath else path, package_name), 'downloadcache')
-        if not newpath:
-            return path, False
+            response = requests.get(url, stream=True)
+        total_length = response.headers.get('content-length')
+        chunk_size = get_chunk_size(total_length)
+        if total_length is None:
+            f.write(response.content)
         else:
-            return newpath, False
+            dl = 0
+            full_length = int(total_length)
+            # 7096 => 7.48, 8.001
+            # 4096 => 6.87, 6.005, 7.59, 7.35
+            for data in response.iter_content(chunk_size=chunk_size):
+                dl += len(data)
+                f.write(data)
+
+                if metadata.no_progress:
+                    sys.stdout.write(
+                        f'\r{round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
+                    sys.stdout.flush()
+
+                elif not metadata.no_progress and not metadata.silent:
+                    complete = int(25 * dl / full_length)
+                    fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
+                    # fill_c = click.style('█', fg='bright_black') * complete
+                    unfill_c = Fore.BLACK + '█' * (25 - complete)
+                    # sys.stdout.write(
+                    #     f'\r⚡ {fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ')
+
+                    sys.stdout.write(
+                        f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
+                    # sys.stdout.write(
+                    #     f'\r{fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
+                    sys.stdout.flush()
+    os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
+    dump_pickle(generate_dict(newpath if newpath else path, package_name), 'downloadcache')
+    if not newpath:
+        return path, False
+    else:
+        return newpath, False
 
 
 def get_error_cause(error: str, display_name: str, method: str, metadata: Metadata) -> str:
