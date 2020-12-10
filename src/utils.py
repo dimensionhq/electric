@@ -6,11 +6,12 @@ from constants import valid_install_exit_codes, valid_uninstall_exit_codes
 from subprocess import Popen, PIPE, CalledProcessError, check_call, call
 from Classes.PathManager import PathManager
 from timeit import default_timer as timer
+from colorama import Back, Fore, Style
 from Classes.Metadata import Metadata
 import Classes.PackageManager as mgr
 from viruscheck import virus_check
 from Classes.Packet import Packet
-from colorama import Back, Fore, Style
+from googlesearch import search
 from datetime import datetime
 import pyperclip as clipboard
 from decimal import Decimal
@@ -19,7 +20,6 @@ from switch import Switch
 from extension import *
 from registry import *
 from halo import Halo
-from psutil import *
 from logger import *
 from limit import *
 import webbrowser
@@ -41,7 +41,6 @@ import info
 import sys
 import os
 import re
-from googlesearch import search
 
 index = 0
 final_value = None

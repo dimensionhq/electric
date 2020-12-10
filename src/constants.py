@@ -3,7 +3,7 @@
 ######################################################################
 
 
-from Classes.SystemManager import SystemManager
+# from Classes.SystemManager import SystemManager
 from time import strftime
 from utils import *
 import platform
@@ -22,7 +22,7 @@ def get_architecture():
 
     return None
 
-processor = SystemManager.get_pc_config()['cpu-info']
+# processor = SystemManager.get_pc_config()['cpu-info']
 
 # Install Debug Headers
 install_debug_headers = [
@@ -34,7 +34,7 @@ install_debug_headers = [
     f'Current directory: {os.getcwd()}',
     f'Electric version: {__version__}',
     f'System architecture detected: {get_architecture()}',
-    f'Processor detected: {processor}'
+    # f'Processor detected: {processor}'
 ]
 
 # Uninstall Debug Headers
