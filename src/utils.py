@@ -7,13 +7,14 @@ from subprocess import Popen, PIPE, CalledProcessError, check_call, call
 from Classes.PathManager import PathManager
 from timeit import default_timer as timer
 from colorama import Back, Fore, Style
+from urllib.request import urlretrieve
 from Classes.Metadata import Metadata
 import Classes.PackageManager as mgr
 from viruscheck import virus_check
 from Classes.Packet import Packet
 from googlesearch import search
-from datetime import datetime
 import pyperclip as clipboard
+from datetime import datetime
 from decimal import Decimal
 from signal import SIGTERM
 from switch import Switch
@@ -113,20 +114,20 @@ def check_existing_download(package_name: str, download_type) -> bool:
     data = retrieve_data('downloadcache')
     if data:
         if data['package_name'] == package_name:
+            try:
+                filesize = os.stat(data['directory'] + download_type).st_size
+            except FileNotFoundError:
+                
+                if download_type not in data['directory']:
+                    os.rename(data['directory'], data['directory'] + download_type)
                 try:
-                    filesize = os.stat(data['directory'] + download_type).st_size
+                    filesize = os.stat(data['directory']).st_size
                 except FileNotFoundError:
-                    
-                    if download_type not in data['directory']:
-                        os.rename(data['directory'], data['directory'] + download_type)
-                    try:
-                        filesize = os.stat(data['directory']).st_size
-                    except FileNotFoundError:
-                        filesize = os.stat(data['directory'] + download_type).st_size
-                if filesize < data['size']:
-                    # Corrupt Installation
-                    return False
-                return data['directory']
+                    filesize = os.stat(data['directory'] + download_type).st_size
+            if filesize < data['size']:
+                # Corrupt Installation
+                return False
+            return data['directory']
     return False 
 
 
@@ -227,7 +228,6 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
 
 def get_error_cause(error: str, display_name: str, method: str, metadata: Metadata) -> str:
-    # print(error)
     log_info(f'{error} ==> {method}', metadata.logfile)
     if method == 'installation':
         for code in valid_install_exit_codes:
@@ -453,7 +453,7 @@ def get_pid(exe_name):
 
 
 def find_approx_pid(exe_name, display_name) -> str:
-    proc = Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    proc = Popen('tasklist /FI "Status eq RUNNING"', stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, _ = proc.communicate()
     output = output.decode('utf-8')
     lines = output.splitlines()
@@ -461,19 +461,15 @@ def find_approx_pid(exe_name, display_name) -> str:
     cleaned_up_names = []
     for line in lines:
         try:
-            cleaned_up_names.append(line.split()[0].replace('.exe', ''))
+            cleaned_up_names.append(line.split()[0].replace('.exe', '').lower())
         except IndexError:
             continue
 
-    matches = difflib.get_close_matches(exe_name, cleaned_up_names)
-    
-    if matches == []:
-        matches = difflib.get_close_matches(display_name, cleaned_up_names)
-
-    
+    matches = difflib.get_close_matches(exe_name, cleaned_up_names, n=1, cutoff=0.65)
+        
     if matches != []:
         for line in lines:
-            if matches[0] in line:
+            if matches[0] in line.lower():
                 return line.split()[1]
 
     return 1
@@ -868,7 +864,7 @@ def handle_unknown_error(err: str):
     if error_msg:
         print(err)
         print('\n')
-        with Halo('Troubleshooting ', text_color='yellow') as h:
+        with Halo('Troubleshooting ', text_color='yellow'):
             results = search(query=err, stop=3)
             results = [f'\n\t[{index + 1}] <=> {r}' for index, r in enumerate(results)]
 
@@ -876,7 +872,6 @@ def handle_unknown_error(err: str):
             
             if '.google-cookie' in os.listdir('.'):
                 os.remove('.google-cookie')
-            h.close()
 
         print(f'These automatically generated links may help:{results}')
 
@@ -1114,17 +1109,16 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
                         f'Successfully Autocorrected To {corrections[0]}', 'green', metadata)
                     log_info(
                         f'Successfully Autocorrected To {corrections[0]}', metadata.logfile)
-                    corrected_package_names.append(corrections[0])
+                    corrected_names.append(corrections[0])
 
                 else:
                     write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
                     
                     if click.confirm('Would You Like To Continue?'):
                         package_name = corrections[0]
-                        corrected_package_names.append(package_name)
+                        corrected_names.append(package_name)
                     else:
                         handle_exit('ERROR', None, metadata)
             else:
                 write_all(f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
-            
     return corrected_names

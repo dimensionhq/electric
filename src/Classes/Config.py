@@ -24,34 +24,36 @@ class Config:
         headers = dictionary.keys()
         
         if 'Info' in headers:
-           
+        
             click.echo(click.style(f'Publisher => {self.publisher}'))
             click.echo(click.style(f'Description => {self.description}', fg='yellow'))    
         
             if platform == 'win32' and not self.os == 'Windows':
-                
-                if not click.confirm(f'WARNING: This Config Has A Target OS Of {self.os}. Would you like to continue?'):
-                    exit()
+                if self.os:
+                    if not click.confirm(f'WARNING: This Config Has A Target OS Of {self.os}. Would you like to continue?'):
+                        exit()
+
+        packages = self.dictionary['Packages'] if 'Packages' in self.headers else None
 
         if 'Pip-Packages' in headers:
-                try:
-                    Popen('pip', stdin=PIPE, stdout=PIPE, stderr=PIPE)
-                except FileNotFoundError:
-                    
+            try:
+                Popen('pip', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+            except FileNotFoundError:
+                if not any(['python' in package for package in packages]):
                     click.echo(click.style('Pip Not Found, Aborting Config Installation!', fg='red'))
                     exit()
 
         if 'Node-Packages' in headers:
-                try:
-                   Popen('npm', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-                except FileNotFoundError:
-                    
+            try:
+                Popen('npm', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            except FileNotFoundError:
+                if not any(['nodejs' in package for package in packages]):
                     click.echo(click.style('Node Not Found, Aborting Config Installation!', fg='red'))
                     exit()
 
         editor_type = self.dictionary['Editor-Configuration'][0]['Editor'] if 'Editor-Configuration' in self.headers else None
         if editor_type:
-            if not find_existing_installation(editor_type, 'Visual Studio Code'):
+            if not find_existing_installation(editor_type, 'Visual Studio Code') and not any(['vscode' in package for package in packages]):
                 click.echo(click.style('Visual Studio Code Not Found, Aborting Config Installation!', fg='red'))
             else:
                 if editor_type == 'Visual Studio Code':
@@ -223,7 +225,9 @@ class Config:
                 command += list(package.keys())[0] + ','
                 idx += 1
             
-            os.system(f'electric install {command} -y')
+            os.system(f'electric install {command}')
+
+            refresh_environment_variables()
 
             for package in python_packages:
                 if idx == len(packages):
@@ -273,7 +277,7 @@ class Config:
                 for node_package in node_packages:
                     node_package = list(node_package)[0]
                     try:
-                        os.system(f'electric install --node {node_package}')
+                        os.system(f'refreshenv & electric install --node {node_package}')
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
                             exit()

@@ -71,9 +71,9 @@ def get_uninstall_key(package_name : str, display_name: str):
 
                 refined_list.append(name)
                 index += 1
-                
+
             for string in strings:
-                matches = difflib.get_close_matches(string, refined_list)
+                matches = difflib.get_close_matches(string, refined_list, cutoff=0.7)
                 if not matches:
                     possibilities = []
 

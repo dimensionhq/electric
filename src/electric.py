@@ -11,6 +11,7 @@ from urllib.request import urlretrieve
 from limit import Limiter, TokenBucket
 from Classes.Config import Config
 from Classes.Packet import Packet
+from itertools import zip_longest
 from info import __version__
 from constants import *
 from external import *
@@ -147,8 +148,6 @@ def install(
 
     index = 0  
 
-    from itertools import zip_longest
-
     def grouper(iterable, n, fillvalue=None):
         "Collect data into fixed-length chunks or blocks"
         # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
@@ -179,6 +178,7 @@ def install(
                             f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
                         installation_continue = click.confirm(
                             f'Would you like to reinstall {packet.json_name}')
+                        
                         if installation_continue or yes:
                             os.system(f'electric uninstall {packet.json_name}')
                             os.system(f'electric install {packet.json_name}')
@@ -702,8 +702,6 @@ def uninstall(
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
 
-        kill_running_proc(packet.json_name, packet.display_name, metadata)
-
         if super_cache:
             write(
                 f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', 'bright_yellow', metadata)
@@ -788,6 +786,8 @@ def uninstall(
             closeLog(metadata.logfile, 'Uninstall')
             index += 1
             continue
+        
+        kill_running_proc(packet.json_name, packet.display_name, metadata)
 
         write_verbose('Uninstall key found.', metadata)
         log_info('Uninstall key found.', metadata.logfile)
