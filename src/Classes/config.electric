@@ -1,0 +1,29 @@
+[ Info ]
+# Go To https://www.electric.sh/electric-configuration-documentation/ For More Information
+Publisher => "TheBossProSniper"
+Description => "My Python Development Environment"
+
+
+[ Editor-Configuration ]
+Editor => "Visual Studio Code"
+
+[ Packages ]
+
+[ Editor-Extensions ]
+ms-python.vscode-pylance
+electric.electric-language-support
+coenraads.bracket-pair-colorizer-2
+viablelab.bracket-padder
+magicstack.magicpython
+
+[ Pip-Packages ]
+pyperclip
+
+[ Node-Packages ]
+
+# --------------------Checksum Start-------------------------- #
+########################################################################
+# 08f6d33802f0dc414d4927dbea0593d2
+# 5f7d0237ccf84a1622335423e2cc714e0dffc13c35fd3f9836781e5af1ae9529
+########################################################################
+# --------------------Checksum End--------------------------- #
