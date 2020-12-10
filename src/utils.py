@@ -19,7 +19,7 @@ from switch import Switch
 from extension import *
 from registry import *
 from halo import Halo
-from psutil import *
+
 from logger import *
 from limit import *
 import webbrowser
