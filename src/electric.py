@@ -76,7 +76,7 @@ def install(
         logfile = logfile.replace('=', '')
         logfile = logfile.replace('.txt', '.log')
         createConfig(logfile, logging.INFO, 'Install')
-    
+
     log_info('Generating metadata...', logfile)
     metadata = generate_metadata(
         no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit)
@@ -90,21 +90,21 @@ def install(
             handle_python_package(name, 'install', metadata)
 
         sys.exit()
-    
+
     if node:
         package_names = package_name.split(',')
         for name in package_names:
             handle_node_package(name, 'install', metadata)
-        
+
         sys.exit()
 
     if vscode:
         package_names = package_name.split(',')
         for name in package_names:
             handle_vscode_extension(name, 'install', metadata)
-        
+
         sys.exit()
-        
+
     log_info('Checking if supercache exists...', metadata.logfile)
     super_cache = check_supercache_valid()
     if super_cache:
@@ -146,7 +146,7 @@ def install(
     for header in install_debug_headers:
         log_info(header, metadata.logfile)
 
-    index = 0  
+    index = 0
 
     def grouper(iterable, n, fillvalue=None):
         "Collect data into fixed-length chunks or blocks"
@@ -178,7 +178,7 @@ def install(
                             f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
                         installation_continue = click.confirm(
                             f'Would you like to reinstall {packet.json_name}')
-                        
+
                         if installation_continue or yes:
                             os.system(f'electric uninstall {packet.json_name}')
                             os.system(f'electric install {packet.json_name}')
@@ -199,7 +199,7 @@ def install(
 
                     write_verbose('Generating system download path...', metadata)
                     log_info('Generating system download path...', metadata.logfile)
-                
+
                 manager = PackageManager(packets, metadata)
                 paths = manager.handle_multi_download()
                 cursor.show()
@@ -218,7 +218,7 @@ def install(
                         log_info('Generating Packet For Further Installation.', metadata.logfile)
                         packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'])
                         log_info('Searching for existing installation of package.', metadata.logfile)
-                        
+
 
                         installation = find_existing_installation(package, packet.json_name)
 
@@ -263,17 +263,17 @@ def install(
                                     f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
                                 log_info(
                                     f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
-                                
+
 
                         write_verbose('Generating system download path...', metadata)
                         log_info('Generating system download path...', metadata.logfile)
-                        
+
                         if not metadata.silent:
                             if not metadata.no_color:
                                 if super_cache:
-                                    print(f'SuperCached', Fore.GREEN + '=>' + Fore.RESET, '[', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
+                                    print('SuperCached', Fore.GREEN + '=>' + Fore.RESET, '[', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
                                 else:
-                                    print(f'Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
+                                    print('Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
 
                             else:
                                 print(f'Found => [ {packet.display_name} ]')
@@ -292,7 +292,7 @@ def install(
                             f"Downloading from '{download_url}'", metadata)
                         log_info(f"Downloading from '{download_url}'", metadata.logfile)
                         status = 'Downloading'
-                        
+
                         if rate_limit == -1:
                             start = timer()
                             path, cached = download(download_url, packet.json_name, metadata, packet.win64_type)
@@ -357,13 +357,13 @@ def install(
 
 
                         if metadata.reduce_package:
-                            
+
                             os.remove(path)
                             try:
                                 os.remove(Rf'{tempfile.gettempdir()}\downloadcache.pickle')
                             except:
                                 pass
-                                
+
                             log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
                             write('Successfully Cleaned Up Installer From Temp Directory...',
                                 'green', metadata)
@@ -418,7 +418,7 @@ def install(
 
                         write_verbose('Generating system download path...', metadata)
                         log_info('Generating system download path...', metadata.logfile)
-                    
+
                     manager = PackageManager(packets, metadata)
                     paths = manager.handle_multi_download()
                     log_info('Finished Rapid Download...', metadata.logfile)
@@ -432,7 +432,7 @@ def install(
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'])
         log_info('Searching for existing installation of package.', metadata.logfile)
-        
+
 
         installation = find_existing_installation(package, packet.json_name)
 
@@ -477,11 +477,11 @@ def install(
                     f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
                 log_info(
                     f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
-                
+
 
         write_verbose('Generating system download path...', metadata)
         log_info('Generating system download path...', metadata.logfile)
-        
+
         if not metadata.silent:
             if not metadata.no_color:
                 if super_cache:
@@ -506,7 +506,7 @@ def install(
             f"Downloading from '{download_url}'", metadata)
         log_info(f"Downloading from '{download_url}'", metadata.logfile)
         status = 'Downloading'
-        
+
         if rate_limit == -1:
             start = timer()
             path, cached = download(download_url, packet.json_name, metadata, packet.win64_type)
@@ -571,13 +571,13 @@ def install(
 
 
         if metadata.reduce_package:
-            
+
             os.remove(path)
             try:
                 os.remove(Rf'{tempfile.gettempdir()}\downloadcache.pickle')
             except:
                 pass
-                
+
             log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
             write('Successfully Cleaned Up Installer From Temp Directory...',
                   'green', metadata)
@@ -624,7 +624,7 @@ def uninstall(
 
     metadata = generate_metadata(
         None, silent, verbose, debug, no_color, yes, logfile, None, None, None)
-    
+
     log_info('Successfully generated metadata.', logfile)
 
     log_info('Checking if supercache exists...', metadata.logfile)
@@ -654,14 +654,14 @@ def uninstall(
         package_names = package_name.split(',')
         for name in package_names:
             handle_node_package(name, 'uninstall', metadata)
-        
+
         sys.exit()
-    
+
     if vscode:
         package_names = package_name.split(',')
         for name in package_names:
             handle_vscode_extension(name, 'uninstall', metadata)
-        
+
         sys.exit()
 
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
@@ -724,61 +724,8 @@ def uninstall(
 
         start = timer()
         key = get_uninstall_key(packet.json_name, packet.display_name)
-        
+
         end = timer()
-
-        # TODO: Add suggestions to uninstall bundled in dependencies
-
-        # If The UninstallString Or QuietUninstallString Doesn't Exist
-        # if not key:
-        #     write_verbose('No registry keys found', verbose, no_color, silent)
-        #     log_info('No registry keys found', logfile)
-        #     if "uninstall-command" in pkg:
-        #         if pkg['uninstall-command'] == '':
-        #             write(
-        #                 f'Could Not Find Any Existing Installations Of {packet.json_name}', 'yellow', no_color, silent)
-        #             log_error(
-        #                 f'Could Not Find Any Existing Installations Of {packet.json_name}', logfile)
-        #             closeLog(logfile, 'Uninstall')
-        #             index += 1
-        #             continue
-        #         else:
-        #             write_verbose("Executing the uninstall command",
-        #                           verbose, no_color, silent)
-        #             log_info("Executing the uninstall command", logfile)
-
-        #             try:
-        #                 proc = Popen(shlex.split(
-        #                     pkg['uninstall-command']), stdout=PIPE, stdin=PIPE, stderr=PIPE)
-        #                 proc.wait()
-        #                 if proc.returncode != 0:
-        #                     write(f'Installation Failed, Make Sure You Accept All Prompts Asking For Admin permission', 'red', no_color, silent)
-        #                     handle_exit(status, 'None', no_color, silent)
-        #             except FileNotFoundError:
-
-        #                 proc = Popen(shlex.split(
-        #                     pkg['uninstall-command']), stdout=PIPE, stdin=PIPE, stderr=PIPE, shell=True)
-        #                 proc.wait()
-        #                 if proc.returncode != 0:
-        #                     write(f'Installation Failed, Make Sure You Accept All Prompts Asking For Admin permission', 'red', no_color, silent)
-        #                     handle_exit(status, 'None', no_color, silent)
-
-        #             write(
-        #                 f"Successfully Uninstalled {package_name}", "bright_magenta", no_color, silent)
-
-        #             index += 1
-        #             write_debug(
-        #                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', debug, no_color, silent)
-        #             log_info(
-        #                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', logfile)
-        #             closeLog(logfile, 'Uninstall')
-        #             continue
-        #     else:
-        # write(
-        #     f'Could Not Find Any Existing Installations Of {package_name}', 'yellow', no_color, silent)
-        # closeLog(logfile, 'Uninstall')
-        # index += 1
-        # continue
 
         if not key:
             log_info(f'electric didn\'t detect any existing installations of => {packet.display_name}', metadata.logfile)
@@ -787,7 +734,7 @@ def uninstall(
             closeLog(metadata.logfile, 'Uninstall')
             index += 1
             continue
-        
+
         kill_running_proc(packet.json_name, packet.display_name, metadata)
 
         write_verbose('Uninstall key found.', metadata)
@@ -807,7 +754,7 @@ def uninstall(
         if isinstance(key, list):
             if key:
                 key = key[0]
-  
+
         write(f'Uninstalling {packet.display_name}...', 'green', metadata)
 
         # If QuietUninstallString Exists (Preferable)
@@ -893,7 +840,7 @@ def uninstall(
 @click.option('--rate-limit', '-rl', type=int, default=-1)
 @click.pass_context
 def bundle(
-    ctx, 
+    ctx,
     bundle_name: str,
     remove: bool,
     verbose: bool,
@@ -911,7 +858,7 @@ def bundle(
     rate_limit: bool,
     exclude: str,
     ):
-    
+
     metadata = generate_metadata(
             no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit)
 
@@ -942,26 +889,26 @@ def bundle(
         idx = 0
 
         correct_names = get_correct_package_names(res)
-    
+
         corrected_package_names = get_autocorrections([bundle_name], correct_names, metadata)
 
-        
+
         for value in res[corrected_package_names[0]]['dependencies']:
             if idx == 0:
                 package_names += value
                 idx += 1
                 continue
-        
+
             package_names += f',{value}'
 
         if exclude:
             package_names = package_names.replace(exclude, '')
             if package_names[0] == ',':
                 package_names = package_names[1:]
-        
+
         if remove:
             ctx.invoke(
-                uninstall, 
+                uninstall,
                 package_name=package_names,
                 verbose=verbose,
                 debug=debug,
@@ -975,7 +922,7 @@ def bundle(
 
         else:
             ctx.invoke(
-                install, 
+                install,
                 package_name=package_names,
                 verbose=verbose,
                 debug=debug,
@@ -1028,9 +975,9 @@ def search(
         for name in correct_names:
             if name.startswith(approx_name):
                 matches.append(name)
-    elif not exact and not starts_with:    
+    elif not exact and not starts_with:
         matches = difflib.get_close_matches(approx_name, correct_names)
-    
+
     if len(matches) > 0:
         idx = 0
         for match in matches:
@@ -1044,7 +991,7 @@ def search(
             click.echo(click.style(f'{len(matches)} packages found.', fg='green'))
         else:
             click.echo(click.style(f'1 package found.', fg='yellow'))
-    
+
     else:
         click.echo(click.style('0 packages found!', fg='red'))
 
@@ -1133,15 +1080,15 @@ def sign(
         # Read and update hash string value in blocks of 4K
         for byte_block in iter(lambda: f.read(4096),b""):
             sha256_hash.update(byte_block)
-    
+
     sha256 = sha256_hash.hexdigest()
     with open(filepath, 'r') as f:
         l = [line.strip() for line in f.readlines()]
-        
+
         if '# --------------------Checksum Start-------------------------- #' in l and '# --------------------Checksum End--------------------------- #' in l:
             click.echo(click.style(f'File Already Signed, Aborting Signing!', fg='red'))
             exit()
-    
+
     with open(filepath, 'a') as f:
         f.writelines([
             '\n# --------------------Checksum Start-------------------------- #',
@@ -1171,7 +1118,7 @@ def show(package_name: str):
         # write_verbose('Sending GET Request To /packages', metadata)
         # write_debug('Sending GET Request To /packages', metadata)
         # log_info('Sending GET Request To /packages', logfile)
-        res, time = send_req_all()
+        res, _ = send_req_all()
         res = json.loads(res)
         update_supercache(res)
         del res['_id']
@@ -1184,7 +1131,7 @@ def show(package_name: str):
     else:
         corrections = difflib.get_close_matches(package_name, correct_names)
         if corrections:
-            
+
             click.echo(click.style(f'Autocorrecting To {corrections[0]}', fg='bright_magenta'))
             if click.confirm('Would You Like To Continue?'):
                 package_name = corrections[0]
@@ -1210,10 +1157,10 @@ def complete(
         possibilities = []
         if n == 2:
             possibilities = electric_commands
-        
+
         if n == 3:
             appdata_dir = PathManager.get_appdata_directory()
-            
+
             with open(rf'{appdata_dir}\supercache.json', 'r') as f:
                 dictionary = json.loads(f.read())
 
@@ -1221,7 +1168,7 @@ def complete(
 
         if n >= 4:
             command = commandline.split(' ')[1]
-            
+
             if command == 'install' or command == 'bundle' or command == 'i':
                 possibilities = install_flags
             if command == 'uninstall' or command == 'remove' or command == 'u':
@@ -1243,10 +1190,10 @@ def complete(
         if n == 1:
             for completion in electric_commands:
                 click.echo(completion)
-        
+
         if n >= 3:
             command = commandline.split(' ')[1]
-            
+
             if command == 'install':
                 for completion in install_flags:
                     click.echo(completion)

@@ -1,7 +1,11 @@
 # Electric
+
+<img src="https://img.shields.io/github/v/tag/TheBossProSniper/Electric-Windows?color=green&label=electric&sort=semver"> <img src="https://img.shields.io/github/license/TheBossProSniper/Electric-Windows?color=pink"> <img src="https://img.shields.io/tokei/lines/github/TheBossProSniper/Electric-Windows?color=white&label=lines%20of%20code"> <img src="https://img.shields.io/github/languages/top/TheBossProSniper/Electric-Windows?color=%230xfffff"> <img src="https://img.shields.io/github/repo-size/TheBossProSniper/Electric?color=orange">
+***
+
 A package manager for Windows, MacOS And Linux!
 
-Highly optimized for speed and usability, Electric is anywhere from 200% to 700% faster than other market competitors for downloading Applications and Packages, and has incredible speeds for concurrent / parallel downloading.
+Highly optimized for speed and usability, Electric is anywhere from 200% to 1500% faster than other market competitors for downloading Applications and Packages, and has incredible speeds for concurrent / parallel downloading.
 
 Electric, unlike your average package manager believes in incredible effeciency, and officially supports installing packages at the same time (not one after another). 
 
@@ -24,3 +28,8 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 3. Open your command prompt (cmd.exe) or alternatively powershell (powershell.exe) and type `electric` to get a list of help commands.
 
 4. Yaay! Electric is installed on your system!
+
+## Config In Alpha
+A small peek of what's coming up next for electric! `(pssst! don't tell anyone!)`!
+
+![Demonstration](https://github.com/TheBossProSniper/Electric-Windows/blob/master/demostration.gif?raw=true)

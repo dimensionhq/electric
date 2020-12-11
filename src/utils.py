@@ -838,11 +838,11 @@ def get_error_message(code: str, method: str, display_name: str):
             ]
 
         elif code('0011'):
-            clipboard.copy('electric install node')
+            clipboard.copy('electric install nodejs')
             return [
                 '\n[0011] => Node(npm) is not installed on your system.', 
                 '\n\nHow To Fix:\n', 
-                'Run `electric install node` [ Copied To Clipboard ] To Install Node(npm)'
+                'Run `electric install nodejs` [ Copied To Clipboard ] To Install Node(npm)'
             ]
         
         elif code('1603'):
