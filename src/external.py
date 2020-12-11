@@ -2,12 +2,13 @@
 #                              EXTERNAL                              #
 ######################################################################
 
-
+from urllib.request import urlretrieve
 from Classes.Metadata import Metadata
 from subprocess import PIPE, Popen
 from extension import *
 from colorama import *
 from utils import *
+import json as js
 import mslex
 import sys
 
@@ -26,7 +27,7 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
         command = 'python -m pip install --upgrade --no-input'
 
         command += f' {package_name}'
-        
+
         proc = Popen(mslex.split(command), stdin=PIPE,
                         stdout=PIPE, stderr=PIPE)
 
@@ -106,7 +107,7 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
         package_version = None
         for line in proc.stdout:
             line = line.decode()
-            
+
             if 'node install.js' in line:
                 write(f'npm v{version} :: Running `node install.js` for {package_name}', 'green', metadata)
             if package_name in line and '@' in line and 'install' in line or ' postinstall' in line:
@@ -155,13 +156,13 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
         proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         for line in proc.stdout:
             line = line.decode()
-            
+
             if 'Installing extensions' in line:
                 write(f'Code v{version} :: Installing {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
 
             if 'is already installed' in line:
                 write(f'{Fore.GREEN}Code v{version} :: {Fore.MAGENTA}{package_name}{Fore.YELLOW} is already installed!', 'white', metadata)
-            
+
             if 'was successfully installed' in line:
                 write(f'{Fore.GREEN}Code v{version} :: Successfully Installed {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
     if mode == 'uninstall':
@@ -169,15 +170,46 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
         proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         for line in proc.stdout:
             line = line.decode()
-            
+
             if 'Uninstalling' in line:
                 write(f'Code v{version} :: Uninstalling {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
 
             if 'is not installed' in line:
                 write(f'{Fore.GREEN}Code v{version} :: {Fore.MAGENTA}{package_name}{Fore.YELLOW} is not installed!', 'white', metadata)
-            
+
             if 'was successfully uninstalled' in line:
                 write(f'{Fore.GREEN}Code v{version} :: Successfully Uninstalled {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
 
 def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
-    pass
+    if find_existing_installation('sublime-text-3', 'Sublime Text 3'):
+        location = PathManager.get_appdata_directory().replace('\electric', '') + '\Sublime Text 3'
+        if os.path.isdir(location):
+            with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'r') as f:
+                json = js.load(f)
+                current_packages = json['installed_packages']
+                current_packages.append(package_name)
+                print(current_packages)
+            updated_packages = current_packages
+            del json['installed_packages']
+            json['installed_packages'] = updated_packages
+            with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w+') as f:
+                f.write(js.dumps(json, indent=4))
+            click.echo(f'Successfully Added {package_name} to Sublime Text 3')
+        else:
+            os.mkdir(location)
+            os.mkdir(fr'{location}\Installed Packages')
+            # Package Control Not Installed
+            with Halo('Installing Package Control', text_color='cyan'):
+                urlretrieve('https://packagecontrol.io/Package%20Control.sublime-package', fr'{location}\Installed Packages\Package Control.sublime-package')
+            os.mkdir(fr'{location}\Packages')
+            os.mkdir(fr'{location}\Packages\User')
+            with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w+') as f:
+                f.write(js.dumps({
+                    "bootstrapped": True,
+                    "installed_packages": [
+                        "Package Control"
+                    ]
+                    }, indent=4))
+            handle_sublime_extension(package_name, mode, metadata)
+    else:
+        print('Sublime Text 3 is not installed!')

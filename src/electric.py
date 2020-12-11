@@ -71,7 +71,6 @@ def install(
     node: bool,
     vscode: bool,
 ):
-
     if logfile:
         logfile = logfile.replace('=', '')
         logfile = logfile.replace('.txt', '.log')

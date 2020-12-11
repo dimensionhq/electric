@@ -34,6 +34,10 @@ def get_uninstall_key(package_name : str, display_name: str):
                 except EnvironmentError:
                     software['Version'] = 'undefined'
                 try:
+                    software['InstallLocation'] = winreg.QueryValueEx(asubkey, "InstallLocation")[0]
+                except EnvironmentError:
+                    software['InstallLocation'] = 'undefined'
+                try:
                     software['Publisher'] = winreg.QueryValueEx(asubkey, "Publisher")[0]
                 except EnvironmentError:
                     software['Publisher'] = 'undefined'
@@ -44,7 +48,7 @@ def get_uninstall_key(package_name : str, display_name: str):
         return software_list
 
     keys = send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY) + send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY) + send_query(winreg.HKEY_CURRENT_USER, 0)
-    
+
     final_array = []
     total = []
     def get_uninstall_string(package_name : str):
@@ -83,7 +87,7 @@ def get_uninstall_key(package_name : str, display_name: str):
 
                     if possibilities:
                         total.append(possibilities)
-                        
+
                     else:
                         continue
                 else:
@@ -107,7 +111,7 @@ def get_uninstall_key(package_name : str, display_name: str):
                 loc = key['InstallLocation']
             except KeyError:
                 pass
-    
+
             uninstall_string = None if 'UninstallString' not in key else key['UninstallString']
             quiet_uninstall_string = None if 'QuietUninstallString' not in key else key['QuietUninstallString']
             url = None if 'URLInfoAbout' not in key else key['URLInfoAbout']

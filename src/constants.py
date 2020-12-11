@@ -64,7 +64,6 @@ valid_uninstall_exit_codes = [
     2359303,
     2149842956
 ]
-<<<<<<< HEAD
 
 old_processors = [
     'Pentium',
@@ -138,5 +137,3 @@ config_flags = [
     '--remove'
 ]
 
-=======
->>>>>>> c87f361d8975ce0a3bdd355c5f4a90caa4c43965
