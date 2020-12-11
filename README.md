@@ -17,11 +17,6 @@ IMPORTANT: Since electric is in an alpha phase, it might not be completely stabl
 
 IMPORTANT: Currently electric only works on Windows Systems, With Support In Progress For Darwin ( MacOSX ) and Debian Based Systems
 
-## Config In Beta
-A small peek of what's coming up next for electric! `(pssst! don't tell anyone!)`!
-
-![Demonstration](https://github.com/TheBossProSniper/Electric-Windows/blob/master/demostration.gif?raw=true)
-
 #### Steps
 
 1. Download the latest version of the electric Installer from the [Releases Page](https://github.com/TheBossProSniper/electric-windows/releases/tag/v1.0.0-alpha)
@@ -33,3 +28,8 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 3. Open your command prompt (cmd.exe) or alternatively powershell (powershell.exe) and type `electric` to get a list of help commands.
 
 4. Yaay! Electric is installed on your system!
+
+## Config In Alpha
+A small peek of what's coming up next for electric! `(pssst! don't tell anyone!)`!
+
+![Demonstration](https://github.com/TheBossProSniper/Electric-Windows/blob/master/demostration.gif?raw=true)
