@@ -39,7 +39,7 @@ class PackageManager:
             os.mkdir(Rf'{tempfile.gettempdir()}\electric')
 
         path = Rf'{tempfile.gettempdir()}\electric\{download.name}{download.extension}'
-
+        status = 'Downloading'
         with open(path, 'wb') as f:
             response = requests.get(download.url, stream=True)
             total_length = response.headers.get('content-length')
@@ -57,7 +57,7 @@ class PackageManager:
                     fill_c, unfill_c = '█' * complete, ' ' * (20 - complete)
                     try:
                         sys.stdout.write(
-                            f"\r[{fill_c}{unfill_c}] ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)}")
+                            f"\r({fill_c}{unfill_c}) ⚡ {round(dl / full_length * 100)} % ")
                     except UnicodeEncodeError:
                         pass
                     sys.stdout.flush()
@@ -69,7 +69,7 @@ class PackageManager:
                 }
                 })
 
-        cursor.show()
+        # cursor.show()
 
     def install_package(self, install: Install) -> str:
         path = install.path
@@ -99,8 +99,8 @@ class PackageManager:
                 #         f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
             if custom_install_switch == 'None' and install.directory:
-                    click.echo(click.style(
-                        f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
+                click.echo(click.style(
+                    f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
             run_cmd(command, self.metadata, 'installation', install.display_name)
 
@@ -191,12 +191,9 @@ class PackageManager:
 
         self.handle_dependencies()
         metadata = self.metadata
-
-        write(
-            f'Successfully Transferred Electrons', 'cyan', metadata)
-        log_info(f'Electrons Successfully Transferred', metadata.logfile)
-
-        write('Initializing Rapid Download...', 'green', metadata)
+        package_list = [ packet.display_name for packet in  self.packets ]
+        package_list = str(package_list).replace('[', '').replace(']', '').replace('\'', '')
+        write(f'Supercached => [ {Fore.CYAN}{package_list}{Fore.RESET} ]', 'white', metadata)
         log_info('Initializing Rapid Download...', metadata.logfile)
 
         packets = self.packets
@@ -208,6 +205,7 @@ class PackageManager:
                 download_items.append(Download(packet.win64, packet.win64_type,
                                                f'Setup{idx}', packet.display_name, f"{tempfile.gettempdir()}\\Setup{idx}{packet.win64_type}"))
                 idx += 1
+
         elif len(packets) == 1:
             download_items.append(Download(packets[0].win64, packets[0].win64_type, 'Setup0',
                                            packets[0].display_name, f"{tempfile.gettempdir()}\\Setup0{packets[0].win64_type}"))

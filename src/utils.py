@@ -552,6 +552,37 @@ def find_existing_installation(package_name: str, display_name: str):
     return False
 
 
+def get_install_flags(install_dir: str, no_cache: bool, sync: bool, metadata: Metadata):
+    flags = []
+    if metadata.verbose:
+        flags.append('--verbose')
+    if metadata.debug:
+        flags.append('--debug')
+    if metadata.no_color:
+        flags.append('--no-color')
+    if metadata.no_progress:
+        flags.append('--no-progress')
+    if metadata.yes:
+        flags.append('--yes')
+    if metadata.silent:
+        flags.append('--silent')
+    if metadata.logfile:
+        flags.append('--logfile')
+    if metadata.virus_check:
+        flags.append('--virus-check')
+    if metadata.reduce_package:
+        flags.append('--reduce')
+    if metadata.rate_limit:
+        flags.append(f'--rate-limit={metadata.rate_limit}')
+    if install_dir:
+        flags.append(f'--install-dir={install_dir}')
+    if sync:
+        flags.append('--sync')
+    if no_cache:
+        flags.append('--no-cache')
+    
+    return flags
+
 def refresh_environment_variables() -> bool:
     proc = Popen(Rf'{PathManager.get_current_directory()}\scripts\refreshvars.cmd',
                  stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
@@ -561,6 +592,7 @@ def refresh_environment_variables() -> bool:
     else:
         print('An error occurred')
         print(err.decode('utf-8'))
+        return False
 
 
 def check_virus(path: str, metadata: Metadata):

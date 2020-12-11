@@ -204,8 +204,9 @@ class Config:
                     if not '.' in list(package.keys())[0]:
                         click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
 
-    def install(self):
+    def install(self, install_directory: str, no_cache: str, sync: bool, metadata: Metadata):
         if is_admin():
+            flags = get_install_flags(install_directory, no_cache, sync, metadata)
             config = self.dictionary
             python_packages = config['Pip-Packages'] if 'Pip-Packages' in self.headers else None
             node_packages = config['Node-Packages'] if 'Node-Packages' in self.headers else None
@@ -224,10 +225,10 @@ class Config:
                     continue
                 command += list(package.keys())[0] + ','
                 idx += 1
+            for flag in flags:
+                command += ' ' + flag
             
             os.system(f'electric install {command}')
-
-            refresh_environment_variables()
 
             for package in python_packages:
                 if idx == len(packages):
@@ -237,7 +238,7 @@ class Config:
                 pip_command += list(package.keys())[0] + ','
                 idx += 1
 
-            os.system(f'electric install --python {pip_command}')
+            os.system(f'refreshenv & electric install --python {pip_command}')
 
 
             if editor_type == 'Visual Studio Code' and editor_extensions:

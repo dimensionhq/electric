@@ -202,6 +202,7 @@ def install(
                 
                 manager = PackageManager(packets, metadata)
                 paths = manager.handle_multi_download()
+                cursor.show()
                 log_info('Finished Rapid Download...', metadata.logfile)
                 log_info(
                     'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
@@ -1073,17 +1074,46 @@ def new(
 
 @cli.command()
 @click.argument('config_path', required=True)
-@click.option('--remove', '-uninst', is_flag=True, help='Uninstall packages in a bundle installed')
+@click.option('--remove', '-uninst', is_flag=True, help='Uninstall packages in a config installed')
+@click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for config installation')
+@click.option('--debug', '-d', is_flag=True, help='Enable debug mode for config installation')
+@click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for config installation')
+@click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for config installation')
+@click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
+@click.option('--install-dir', '-dir', 'install_directory', help='Specify an installation directory for a package')
+@click.option('--virus-check', '-vc', is_flag=True, help='Check for virus before config installation')
+@click.option('-y', '--yes', is_flag=True, help='Accept all prompts during config installation')
+@click.option('--silent', '-s', is_flag=True, help='Completely silent config installation without any output to console')
+@click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
+@click.option('--sync', '-sc', is_flag=True, help='Force downloads and installations one after another')
+@click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after config installation')
+@click.option('--rate-limit', '-rl', type=int, default=-1)
 def config(
     config_path: str,
     remove: bool,
+    verbose: bool,
+    debug: bool,
+    no_progress: bool,
+    no_color: bool,
+    logfile: str,
+    install_directory: str,
+    virus_check: bool,
+    yes: bool,
+    silent: bool,
+    no_cache: bool,
+    sync: bool,
+    reduce: bool,
+    rate_limit: bool
     ):
+    metadata = generate_metadata(
+            no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit)
+
     config = Config.generate_configuration(config_path)
     config.check_prerequisites()
     if remove:
         config.uninstall()
     else:
-        config.install()
+        config.install(install_directory, no_cache, sync, metadata)
 
 
 @cli.command(aliases=['validate'])
