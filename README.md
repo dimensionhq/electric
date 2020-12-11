@@ -20,7 +20,7 @@ IMPORTANT: Currently electric only works on Windows Systems, With Support In Pro
 ## Config In Beta
 A small peek of what's coming up next for electric! `(pssst! don't tell anyone!)`!
 
-[Demonstration](https://github.com/TheBossProSniper/Electric-Windows/blob/master/demostration.gif?raw=true)
+![Demonstration](https://github.com/TheBossProSniper/Electric-Windows/blob/master/demostration.gif?raw=true)
 
 #### Steps
 
