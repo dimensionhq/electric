@@ -20,10 +20,7 @@ IMPORTANT: Currently electric only works on Windows Systems, With Support In Pro
 ## Config In Beta
 A small peek of what's coming up next for electric! `(pssst! don't tell anyone!)`
 
-![demostration](https://user-images.githubusercontent.com/63039748/101287676-b65ec700-3817-11eb-8b78-a08976032286.gif)
-
-### Tab Completion
-![demostration](https://raw.githubusercontent.com/TheBossProSniper/Electric-Windows/master/tabcompletion.gif)
+![demostration](https://user-images.githubusercontent.com/63039748/101287676-b65ec700-3817-11eb-8b78-a0897603
 
 #### Steps
 
