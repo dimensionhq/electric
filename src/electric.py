@@ -753,7 +753,7 @@ def uninstall(
             if key:
                 key = key[0]
 
-        with Halo(f'Uninstalling {packet.display_name}', text_color='green') as h:
+        with Halo(f'Uninstalling {packet.display_name}', text_color='cyan', color='grey') as h:
             # If QuietUninstallString Exists (Preferable)
             if 'QuietUninstallString' in key:
                 command = key['QuietUninstallString']
