@@ -204,7 +204,7 @@ def install(
                 cursor.show()
                 log_info('Finished Rapid Download...', metadata.logfile)
                 log_info(
-                    'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+                    'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission', metadata.logfile)
                 manager.handle_multi_install(paths)
                 return
             elif len(split_package_names) > 1:
@@ -322,10 +322,10 @@ def install(
                             check_virus(path, metadata)
                         if not cached:
                             write(
-                                '\nUsing Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
+                                f'\nInstalling {packet.display_name}', 'cyan', metadata)
                         else:
                             write(
-                                'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
+                                f'Installing {packet.display_name}', 'cyan', metadata)
                         log_info(
                             'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
@@ -505,7 +505,7 @@ def install(
             f"Downloading from '{download_url}'", metadata)
         log_info(f"Downloading from '{download_url}'", metadata.logfile)
         status = 'Downloading'
-
+        cached = False
         if rate_limit == -1:
             start = timer()
             path, cached = download(download_url, packet.json_name, metadata, packet.win64_type)
@@ -588,7 +588,6 @@ def install(
         closeLog(metadata.logfile, 'Install')
 
         index += 1
-    end = timer()
 
 
 @cli.command(aliases=['remove', 'u'])
