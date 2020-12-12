@@ -283,7 +283,7 @@ def get_error_cause(error: str, display_name: str, method: str, metadata: Metada
 
 def run_cmd(command: str, metadata: Metadata, method: str, display_name: str):
     log_info(f'Running command: {command}', metadata.logfile)
-    command = command.replace('\"\"', '\"')
+    command = command.replace('\"\"', '\"').replace('  ', ' ')
     # print('Running Command => ', command)
     try:
         check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -320,6 +320,9 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
 
                     command += ' ' + custom_install_switch + f'{directory}'
                 else:
+                    for switch in switches:
+                        command += ' ' + switch
+
                     command += ' ' + custom_install_switch + f'"{directory}"'
                 if directory == '':
                     click.echo(click.style( 
@@ -328,7 +331,6 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
         if not directory:
             for switch in switches:
                 command = command + ' ' + switch
-
 
         run_cmd(command, metadata, 'installation', packet.display_name)
 

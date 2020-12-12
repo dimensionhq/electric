@@ -548,8 +548,7 @@ def install(
         start_snap = get_environment_keys()
         status = 'Installing'
         # Running The Installer silently And Completing Setup
-        with Halo(f'Installing {packet.display_name}', color='grey', text_color='cyan'):
-            install_package(path, packet, metadata)
+        install_package(path, packet, metadata)
 
         status = 'Installed'
         final_snap = get_environment_keys()
@@ -1140,6 +1139,7 @@ def show(package_name: str):
 
     pkg_info = res[corrected_package_names[0]]
     click.echo(click.style(display_info(pkg_info), fg='green'))
+
 
 @cli.command()
 @click.option('--word', required=True)
