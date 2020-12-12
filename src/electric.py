@@ -538,10 +538,8 @@ def install(
             write(
                 '\nUsing Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
         else:
-            write(
-                'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
-        log_info(
-            'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+            log_info(
+                'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
         write_debug(
             f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
@@ -550,12 +548,13 @@ def install(
         start_snap = get_environment_keys()
         status = 'Installing'
         # Running The Installer silently And Completing Setup
-        install_package(path, packet, metadata)
+        with Halo(f'Installing {packet.display_name}', color='grey', text_color='cyan'):
+            install_package(path, packet, metadata)
 
         status = 'Installed'
         final_snap = get_environment_keys()
         if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
-            write('Refreshing Environment Variables...', 'green', metadata)
+            write('Refreshing Environment Variables', 'green', metadata)
             start = timer()
             log_info('Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
             write_debug('Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
@@ -754,70 +753,71 @@ def uninstall(
             if key:
                 key = key[0]
 
-        write(f'Uninstalling {packet.display_name}...', 'green', metadata)
+        with Halo(f'Uninstalling {packet.display_name}', text_color='green') as h:
+            # If QuietUninstallString Exists (Preferable)
+            if 'QuietUninstallString' in key:
+                command = key['QuietUninstallString']
+                command = command.replace('/I', '/X')
+                command = command.replace('/quiet', '/qn')
 
-        # If QuietUninstallString Exists (Preferable)
-        if 'QuietUninstallString' in key:
-            command = key['QuietUninstallString']
-            command = command.replace('/I', '/X')
-            command = command.replace('/quiet', '/qn')
+                additional_switches = None
+                if packet.uninstall_switches:
+                    if packet.uninstall_switches != []:
+                        write_verbose(
+                            'Adding additional uninstall switches', metadata)
+                        write_debug('Appending / Adding additional uninstallation switches', metadata)
+                        log_info('Adding additional uninstall switches', metadata.logfile)
+                        additional_switches = packet.uninstall_switches
 
-            additional_switches = None
-            if packet.uninstall_switches:
-                if packet.uninstall_switches != []:
-                    write_verbose(
-                        'Adding additional uninstall switches', metadata)
-                    write_debug('Appending / Adding additional uninstallation switches', metadata)
-                    log_info('Adding additional uninstall switches', metadata.logfile)
-                    additional_switches = packet.uninstall_switches
+                if additional_switches:
+                    for switch in additional_switches:
+                        command += ' ' + switch
 
-            if additional_switches:
-                for switch in additional_switches:
-                    command += ' ' + switch
+                write_verbose('Executing the quiet uninstall command', metadata)
+                log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
+                write_debug(f'Running silent uninstallation command', metadata)
+                run_cmd(command, metadata, 'uninstallation', packet.display_name)
 
-            write_verbose('Executing the quiet uninstall command', metadata)
-            log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
-            write_debug(f'Running silent uninstallation command', metadata)
-            run_cmd(command, metadata, 'uninstallation', packet.display_name)
+                h.stop()
 
-            write(
-                f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                write(
+                    f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
 
-            write_verbose('Uninstallation completed.', metadata)
-            log_info('Uninstallation completed.', metadata.logfile)
+                write_verbose('Uninstallation completed.', metadata)
+                log_info('Uninstallation completed.', metadata.logfile)
 
-            index += 1
-            write_debug(
-                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
-            log_info(
-                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
-            closeLog(metadata.logfile, 'Uninstall')
+                index += 1
+                write_debug(
+                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
+                log_info(
+                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
+                closeLog(metadata.logfile, 'Uninstall')
 
-        # If Only UninstallString Exists (Not Preferable)
-        if 'UninstallString' in key and 'QuietUninstallString' not in key:
-            command = key['UninstallString']
-            command = command.replace('/I', '/X')
-            command = command.replace('/quiet', '/passive')
-            # command = f'"{command}"'
-            for switch in packet.uninstall_switches:
-                command += f' {switch}'
+            # If Only UninstallString Exists (Not Preferable)
+            if 'UninstallString' in key and 'QuietUninstallString' not in key:
+                command = key['UninstallString']
+                command = command.replace('/I', '/X')
+                command = command.replace('/quiet', '/passive')
+                # command = f'"{command}"'
+                for switch in packet.uninstall_switches:
+                    command += f' {switch}'
 
-            # Run The UninstallString
-            write_verbose('Executing the Uninstall Command', metadata)
-            log_info('Executing the silent Uninstall Command', metadata.logfile)
+                # Run The UninstallString
+                write_verbose('Executing the Uninstall Command', metadata)
+                log_info('Executing the silent Uninstall Command', metadata.logfile)
 
-            run_cmd(command, metadata, 'uninstallation', packet.display_name)
-
-            write(
-                f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-            write_verbose('Uninstallation completed.', metadata)
-            log_info('Uninstallation completed.', metadata.logfile)
-            index += 1
-            write_debug(
-                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
-            log_info(
-                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
-            closeLog(metadata.logfile, 'Uninstall')
+                run_cmd(command, metadata, 'uninstallation', packet.display_name)
+                h.stop()
+                write(
+                    f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                write_verbose('Uninstallation completed.', metadata)
+                log_info('Uninstallation completed.', metadata.logfile)
+                index += 1
+                write_debug(
+                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
+                log_info(
+                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
+                closeLog(metadata.logfile, 'Uninstall')
 
 
 @cli.command(aliases=['bdl'])
