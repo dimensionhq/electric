@@ -7,6 +7,7 @@ import pyperclip
 import colorama
 import click
 
+refreshenv = PathManager.get_current_directory() + '\scripts\refreshvars.bat'
 
 class Config:
     def __init__(self, dictionary):
@@ -238,7 +239,7 @@ class Config:
                 pip_command += list(package.keys())[0] + ','
                 idx += 1
 
-            os.system(f'refreshenv & electric install --python {pip_command}')
+            os.system(f'{refreshenv} & electric install --python {pip_command}')
 
 
             if editor_type == 'Visual Studio Code' and editor_extensions:
@@ -278,7 +279,7 @@ class Config:
                 for node_package in node_packages:
                     node_package = list(node_package)[0]
                     try:
-                        os.system(f'refreshenv & electric install --node {node_package}')
+                        os.system(f'{refreshenv} & electric install --node {node_package}')
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
                             exit()

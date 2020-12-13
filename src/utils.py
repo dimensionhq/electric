@@ -228,6 +228,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
 
 def get_error_cause(error: str, display_name: str, method: str, metadata: Metadata) -> str:
+    print(error)
     log_info(f'{error} ==> {method}', metadata.logfile)
     if method == 'installation':
         for code in valid_install_exit_codes:

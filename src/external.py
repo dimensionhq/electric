@@ -13,6 +13,7 @@ import mslex
 import sys
 
 
+
 def handle_python_package(package_name: str, mode: str, metadata: Metadata):
     command = ''
 
@@ -180,16 +181,20 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
             if 'was successfully uninstalled' in line:
                 write(f'{Fore.GREEN}Code v{version} :: Successfully Uninstalled {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
 
+
 def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
     if mode == 'install':
         if find_existing_installation('sublime-text-3', 'Sublime Text 3'):
             location = PathManager.get_appdata_directory().replace('\electric', '') + '\Sublime Text 3'
-            if os.path.isdir(location):
+            if os.path.isdir(location) and os.path.isfile(fr'{location}\Packages\User\Package Control.sublime-settings'):
                 with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'r') as f:
                     json = js.load(f)
                     current_packages = json['installed_packages']
+                    if package_name in current_packages:
+                        print(f'{package_name} is already installed!')
+                        exit()
+
                     current_packages.append(package_name)
-                    print(current_packages)
                 updated_packages = current_packages
                 del json['installed_packages']
                 json['installed_packages'] = updated_packages
@@ -197,22 +202,36 @@ def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
                     f.write(js.dumps(json, indent=4))
                 click.echo(f'Successfully Added {package_name} to Sublime Text 3')
             else:
-                os.mkdir(location)
-                os.mkdir(fr'{location}\Installed Packages')
+                if not os.path.isdir(location):
+                    os.mkdir(location)
+                if not os.path.isdir(fr'{location}\Installed Packages'):
+                    os.mkdir(fr'{location}\Installed Packages')
+
                 # Package Control Not Installed
                 with Halo('Installing Package Control', text_color='cyan'):
                     urlretrieve('https://packagecontrol.io/Package%20Control.sublime-package', fr'{location}\Installed Packages\Package Control.sublime-package')
-                os.mkdir(fr'{location}\Packages')
-                os.mkdir(fr'{location}\Packages\User')
+
+                if not os.path.isdir(fr'{location}\Packages'):
+                    os.mkdir(fr'{location}\Packages')
+                if not os.path.isdir(fr'{location}\Packages\User'):
+                    os.mkdir(fr'{location}\Packages\User')
+
                 with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w+') as f:
-                    f.write(js.dumps({
+                    f.write(
+                        js.dumps({
                         "bootstrapped": True,
                         "installed_packages": [
                             "Package Control"
-                        ]
-                        }, indent=4))
+                        ]}, 
+                        indent=4
+                        ))
+                
                 handle_sublime_extension(package_name, mode, metadata)
         else:
             print('Sublime Text 3 is not installed!')
 
-# handle_sublime_extension('Dracula Color Scheme', 'install', None)
+
+def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
+    pass
+
+
