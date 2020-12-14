@@ -5,11 +5,27 @@ from external import *
 from utils import *
 import pyperclip
 import colorama
+import socket
 import click
+import ssl
 
-refreshenv = PathManager.get_current_directory() + '\scripts\refreshvars.bat'
+
+refreshenv = PathManager.get_current_directory() + r'\scripts\refreshvars.bat'
+
+tags = [
+    '<pip>',
+    '<pip:name>',
+    '<pip:name,version>'
+    '<npm>',
+    '<npm:name>',
+    '<npm:name,version>',
+    '<vscode>',
+    '<vscode:name>',
+    '<vscode:name,version>'
+]
 
 class Config:
+
     def __init__(self, dictionary):
         self.dictionary = dictionary
         self.publisher = dictionary['Info'][0]['Publisher']
@@ -19,6 +35,7 @@ class Config:
         except IndexError:
             self.os = None
         self.headers = dictionary.keys()
+
 
     def check_prerequisites(self):
         dictionary = self.dictionary
@@ -65,12 +82,108 @@ class Config:
 
         click.echo(click.style('All Tests Passed!', 'green'))
 
+
+    @staticmethod
+    def get_repr_packages(packages: list, version: bool):
+        if version:
+            packages = str(packages).replace('\'', '').replace('[', '').replace(']', '').replace(',', '').replace('{', '').replace('}', '\n').replace(':', ' =>').strip()
+            return packages
+        else:
+            packages = str(packages).replace('\'', '').replace('[', '').replace(']', '').replace(',', '').strip().replace(' ', '\n')
+            return packages
+
+   
+    @staticmethod
+    def check_pypi_name(pypi_package_name, pypi_registry_host=None):
+        """
+        Check if a package name exists on pypi.
+
+        TODO: Document the Registry URL construction.
+            It may not be obvious how pypi_package_name and pypi_registry_host are used
+            I'm appending the simple HTTP API parts of the registry standard specification.
+
+        It will return True if the package name, or any equivalent variation as defined by PEP 503 normalisation
+        rules (https://www.python.org/dev/peps/pep-0503/#normalized-names) is registered in the PyPI registry.
+
+        >>> check_pypi_name('pip')
+        True
+        >>> check_pypi_name('Pip')
+        True
+
+        It will return False if the package name, or any equivalent variation as defined by PEP 503 normalisation
+        rules (https://www.python.org/dev/peps/pep-0503/#normalized-names) is not registered in the PyPI registry.
+
+        >>> check_pypi_name('testy_mc-test_case-has.a.cousin_who_should_never_write_a_package')
+        False
+
+        :param pypi_package_name:
+        :param pypi_registry_host:
+        :return:
+        """
+        if pypi_registry_host is None:
+            pypi_registry_host = 'pypi.org'
+
+        # Just a helpful reminder why this bytearray size was chosen.
+        #                            HTTP/1.1 200 OK
+        #                            HTTP/1.1 404 Not Found
+
+        receive_buffer = bytearray(b'------------')
+        context = ssl.create_default_context()
+        ssl_http_socket = context.wrap_socket(socket.socket(socket.AF_INET), server_hostname=pypi_registry_host)
+        ssl_http_socket.connect((pypi_registry_host, 443))
+        ssl_http_socket.send(b''.join([
+            b"HEAD /simple/", pypi_package_name.encode('ascii'), b"/ HTTP/1.0", b"\r\n",
+            b"Host: ", pypi_registry_host.encode('ascii'), b"\r\n",
+            b"\r\n\r\n"
+        ]))
+        ssl_http_socket.recv_into(receive_buffer)
+
+        # Early return when possible.
+        if b'HTTP/1.1 200' in receive_buffer:
+            ssl_http_socket.shutdown(1)
+            ssl_http_socket.close()
+            return True
+        elif b'HTTP/1.1 404' in receive_buffer:
+            ssl_http_socket.shutdown(1)
+            ssl_http_socket.close()
+            return False
+
+        remaining_bytes = ssl_http_socket.recv(2048)
+        redirect_path_location_start = remaining_bytes.find(b'Location:') + 10
+        redirect_path_location_end = remaining_bytes.find(b'\r\n', redirect_path_location_start)
+        # Append the trailing slash to avoid a needless extra redirect.
+        redirect_path = remaining_bytes[redirect_path_location_start:redirect_path_location_end] + b'/'
+
+        ssl_http_socket.shutdown(1)
+        ssl_http_socket.close()
+
+        # Reset the bytearray to empty
+        # receive_buffer = bytearray(b'------------')
+
+        ssl_http_socket = context.wrap_socket(socket.socket(socket.AF_INET), server_hostname=pypi_registry_host)
+        ssl_http_socket.connect((pypi_registry_host, 443))
+
+        ssl_http_socket.send(b''.join([
+            b"HEAD ", redirect_path, b" HTTP/1.0", b"\r\n",
+            b"Host: ", pypi_registry_host.encode('ascii'), b"\r\n",
+            b"\r\n\r\n"]))
+        ssl_http_socket.recv_into(receive_buffer)
+
+        if b'HTTP/1.1 200' in receive_buffer:
+            return True
+        elif b'HTTP/1.1 404' in receive_buffer:
+            return False
+        else:
+            NotImplementedError('A definitive answer was not found by primary or secondary lookups.')
+
+
     @staticmethod
     def generate_configuration(filepath: str, signed=True):
         d = {}
         try:
             with open(f'{filepath}', 'r') as f:
                 chunks = f.read().split("[")
+                
 
                 for chunk in chunks:
                     chunk = chunk.replace("=>", ":").split('\n')
@@ -78,7 +191,7 @@ class Config:
                     d[header] = []
 
                     for line in chunk[1:]:
-                        if line and '#' not in line:
+                        if line and '#' not in line and line not in tags:
                             try:
                                 k, v = line.split(":")
                                 k, v = k.strip(), v.strip()
@@ -116,6 +229,111 @@ class Config:
 
                             d[header].append({ k : v.replace('"', '') })
                 
+                if 'Editor-Extensions' in d:
+                    with open(f'{filepath}', 'r') as f:
+                        
+                        lines = f.readlines()
+
+                    for line in lines:
+                        if '<vscode:name>' in line or '<vscode>' in line:
+                            idx = lines.index(line)
+                            proc = Popen('code --list-extensions'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                            output, _ = proc.communicate()
+                            output = output.decode().splitlines()
+                            vscode_packages = []
+                            vscode_packages = output           
+                            
+                            lines[idx] = Config.get_repr_packages(vscode_packages, False) + '\n'
+                            
+                            with open(f'{filepath}', 'w') as f:
+                                f.writelines(lines)
+                        if '<vscode:name,version>' in line:
+                            idx = lines.index(line)
+                            proc = Popen('code --list-extensions --show-versions'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                            output, _ = proc.communicate()
+                            output = output.decode().splitlines()
+                            vscode_packages = []
+                            vscode_packages = [{line.split('@')[0] : line.split('@')[1]} for line in output]
+                            lines[idx] = Config.get_repr_packages(vscode_packages, True).replace('\n ', '\n') + '\n'
+                             
+                            with open(f'{filepath}', 'w') as f:
+                                f.writelines(lines)
+                                                
+                if 'Pip-Packages' in d:
+                    with open(f'{filepath}', 'r') as f:
+                        
+                        lines = f.readlines()
+                    
+                    for line in lines:
+                        if '<pip:name>' in line or '<pip>' in line:
+                            idx = lines.index(line)
+                            proc = Popen('pip list'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                            output, _ = proc.communicate()
+                            output = output.decode().splitlines()[2:]
+                            pip_packages = []
+                            pip_packages.append([line.split()[0] for line in output])            
+                            pip_packages = pip_packages[0]
+                            
+                            lines[idx] = Config.get_repr_packages(pip_packages, False) + '\n'
+
+                            with open(f'{filepath}', 'w') as f:                                
+                                f.writelines(lines)
+
+                        if '<pip:name,version>' in line:
+                            idx = lines.index(line)
+                            proc = Popen('pip list'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                            output, _ = proc.communicate()
+                            output = output.decode().splitlines()[2:]
+                            pip_packages = []
+                            
+                            pip_packages.append([{line.split()[0] : line.split()[1]} for line in output])
+                            pip_packages = pip_packages[0]
+                            
+                            lines[idx] = Config.get_repr_packages(pip_packages, True).replace('\n ', '\n') + '\n'
+                            with open(f'{filepath}', 'w') as f:                                
+                                f.writelines(lines)
+                            
+                if 'Node-Packages' in d:
+                    with open(f'{filepath}', 'r') as f:
+                        lines = f.readlines()
+   
+                    for line in lines:
+                        if '<npm:name>' in line or '<npm>' in line:
+                            idx = lines.index(line)
+                            proc = Popen('npm list --global --depth=0'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                            output, _ = proc.communicate()
+                            output = output.decode().splitlines()[1:]
+                            refined_output = []
+                            for val in output:
+                                if val:
+                                    refined_output.append(val.replace('+--', '').replace('`--', '').strip())
+                            npm_packages = []
+                            npm_packages.append([line.split('@')[0] for line in refined_output])            
+                            npm_packages = npm_packages[0]
+                            
+                            lines[idx] = Config.get_repr_packages(npm_packages, False) + '\n'
+                            with open(f'{filepath}', 'w') as f:
+                                f.writelines(lines)
+
+                        if '<npm:name,version>' in line:
+                            
+                            idx = lines.index(line)
+                            proc = Popen('npm list --global --depth=0'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                            output, _ = proc.communicate()
+                            output = output.decode().splitlines()[1:]
+                            refined_output = []
+                            for val in output:
+                                if val:
+                                    refined_output.append(val.replace('+--', '').replace('`--', '').strip())
+                            npm_packages = []
+                            
+                            npm_packages.append([{line.split('@')[0] : line.split('@')[1]} for line in refined_output])
+                            npm_packages = npm_packages[0]
+                            
+                            lines[idx] = Config.get_repr_packages(npm_packages, True).replace('\n ', '\n') + '\n'
+                            with open(f'{filepath}', 'w') as f:
+                                f.writelines(lines)
+
                 if signed:
                     with open(f'{filepath}', 'r') as f:
                         lines = f.readlines()
@@ -163,6 +381,7 @@ class Config:
         d.pop('')
         return Config(d)
 
+
     def verify(self):
         config = self.dictionary
         python_packages = config['Pip-Packages'] if 'Pip-Packages' in self.headers else None
@@ -204,6 +423,7 @@ class Config:
                 for package in editor_extensions:
                     if not '.' in list(package.keys())[0]:
                         click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
+
 
     def install(self, install_directory: str, no_cache: str, sync: bool, metadata: Metadata):
         if is_admin():
@@ -286,6 +506,7 @@ class Config:
 
         else:
             click.echo(click.style('Config installation must be ran as administrator!', fg='red'), err=True)
+
 
     def uninstall(self):
         if is_admin():

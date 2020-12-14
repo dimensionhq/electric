@@ -48,7 +48,8 @@ setup(
         'pygments', # TODO: => Add Volt Pretty Print Support Using `pygmentize.exe test.py`
         'halo',
         'cursor',
-        'google'
+        'google',
+        'check-pypi-name'
     ],
     package_dir={'': 'src'},
     entry_points =

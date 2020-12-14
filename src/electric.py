@@ -4,7 +4,6 @@
 
 
 from registry import get_uninstall_key, get_environment_keys
-from cli import SuperChargeCLI
 from Classes.PackageManager import PackageManager
 from timeit import default_timer as timer
 from urllib.request import urlretrieve
@@ -12,6 +11,7 @@ from limit import Limiter, TokenBucket
 from Classes.Config import Config
 from Classes.Packet import Packet
 from itertools import zip_longest
+from cli import SuperChargeCLI
 from info import __version__
 from constants import *
 from external import *
