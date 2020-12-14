@@ -26,7 +26,7 @@
 				},
 				{
 					"name": "entity.name.function",
-					"match": "([a-z\\-]+)(?=\\.)"
+					"match": "([a-zA-Z\\-]+)(?=\\.)"
 				},
 				{
 					"name": "keyword.other",
