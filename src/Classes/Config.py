@@ -353,7 +353,8 @@ class Config:
                         for item in l:
                             if item == '# --------------------Checksum Start-------------------------- #':
                                 idx = list.index(l, item)
-
+                        print(l[idx])
+                        exit()
                         md5 = l[idx + 2].replace('#', '').strip()
                         sha256 = l[idx + 3].replace('#', '').strip()
                         # Generate Temporary Configuration File
@@ -409,10 +410,7 @@ class Config:
         click.echo(click.style('↓ Validating Python or Pip Modules    ↓', 'cyan'))
         
         for package in python_packages:
-            proc = Popen(f'pip search {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
-            output, err = proc.communicate()
-
-            if not output.decode():
+            if not Config.check_pypi_name(list(package.keys())[0].lower()):
                 click.echo(click.style(f'The ( python | pip ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
                 exit()
 

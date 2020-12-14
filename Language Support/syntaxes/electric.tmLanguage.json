@@ -26,15 +26,19 @@
 				},
 				{
 					"name": "entity.name.function",
-					"match": "([a-zA-Z\\-]+)(?=\\.)"
+					"match": "([a-zA-Z0-9\\-]+)(?=\\.)"
 				},
 				{
 					"name": "keyword.other",
 					"match": "\\."
 				},
 				{
-					"name": "comment",
-					"match": "(#\\s?.*)"
+					"name": "comment.line",
+					"match": "\\s*((#).*)$"
+				},
+				{
+					"name": "variable.parameter",
+					"match": "[A-Z][a-zA-Z]+(?= =>)"
 				}
 			]
 		},
@@ -51,7 +55,6 @@
 			]
 		}
 	},
-	
 	"scopeName": "source.electric"
 }
 
