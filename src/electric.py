@@ -46,6 +46,8 @@ def cli(_):
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during installation')
 @click.option('--silent', '-s', is_flag=True, help='Completely silent installation without any output to console')
 @click.option('--vscode', '-vs', is_flag=True, help='Specify a Visual Studio Code extension to install')
+@click.option('--sublime', '-sb', is_flag=True, help='Specify a Sublime Text 3 extension to install')
+@click.option('--atom', '-ato', is_flag=True, help='Specify an Atom extension to install')
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to install')
 @click.option('--node', '-npm', is_flag=True, help='Specify a Python package to install')
 @click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
@@ -70,6 +72,8 @@ def install(
     rate_limit: int,
     node: bool,
     vscode: bool,
+    atom: bool,
+    sublime:bool
 ):
     if logfile:
         logfile = logfile.replace('=', '')
@@ -103,6 +107,11 @@ def install(
             handle_vscode_extension(name, 'install', metadata)
 
         sys.exit()
+
+    if sublime:
+        package_names = package_name.split(',')
+        for name in package_names:
+            handle_sublime_extension(name, 'install', metadata)
 
     log_info('Checking if supercache exists...', metadata.logfile)
     super_cache = check_supercache_valid()
@@ -599,6 +608,8 @@ def install(
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during uninstallation')
 @click.option('--silent', '-s', is_flag=True, help='Completely silent uninstallation without any output to console')
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to uninstall')
+@click.option('--sublime', '-sb', is_flag=True, help='Specify a Sublime Text 3 extension to install')
+@click.option('--atom', '-ato', is_flag=True, help='Specify an Atom extension to install')
 @click.option('--vscode', '-vs', is_flag=True, help='Specify a Visual Studio Code extension to install')
 @click.option('--node', '-npm', is_flag=True, help='Specify a Python package to install')
 @click.option('--no-cache', '-nocache', is_flag=True, help='Prevent cache usage for uninstallation')
@@ -613,7 +624,9 @@ def uninstall(
     python: bool,
     vscode: bool,
     node: bool,
-    no_cache: bool
+    no_cache: bool,
+    atom: bool,
+    sublime: bool
 ):
 
     log_info('Generating metadata...', logfile)
@@ -659,6 +672,16 @@ def uninstall(
             handle_vscode_extension(name, 'uninstall', metadata)
 
         sys.exit()
+
+    if sublime:
+        package_names = package_name.split(',')
+        for name in package_names:
+            handle_sublime_extension(name, 'uninstall', metadata)
+    
+    if atom:
+        package_names = package_name.split(',')
+        for name in package_names:
+            handle_atom_package(name, 'uninstall', metadata)
 
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
     status = 'Initializing'

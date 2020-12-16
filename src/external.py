@@ -7,6 +7,7 @@ from Classes.Metadata import Metadata
 from subprocess import PIPE, Popen
 from extension import *
 from colorama import *
+from halo import Halo
 from utils import *
 import json as js
 import mslex
@@ -232,6 +233,58 @@ def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
 
 
 def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
-    pass
+    if mode == 'install':
+        try:
+            proc = Popen('apm --version --no-color'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            output, err = proc.communicate()
+            version = output.decode().splitlines()[0].split()[1]
+        except FileNotFoundError:
+            print('Atom is not installed')
+            exit()
+        with Halo(f'apm v{version} :: Installing {package_name}', text_color='cyan') as h:
+            proc = Popen(f'apm install {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            for line in proc.stdout:
+                line = line.decode()
+                if 'failed' in line:
+                    h.fail(f' Failed to Install {package_name} to <=> {line.split()[3]}')
 
+                if 'done' in line:
+                    h.stop()
+                    click.echo(click.style(f' Successfully Installed {package_name} to <=> {line.split()[3]}', 'green'))
 
+        if mode == 'uninstall':
+            try:
+                proc = Popen('apm --version --no-color'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                output, err = proc.communicate()
+                version = output.decode().splitlines()[0].split()[1]
+            except FileNotFoundError:
+                print('Atom is not installed')
+                exit()
+            with Halo(f'apm v{version} :: Installing {package_name}', text_color='cyan') as h:
+                proc = Popen(f'apm install {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                for line in proc.stdout:
+                    line = line.decode()
+                    if 'failed' in line:
+                        h.fail(f' Failed to Install {package_name} to <=> {line.split()[3]}')
+
+                    if 'done' in line:
+                        h.stop()
+                        click.echo(click.style(f' Successfully Installed {package_name} to <=> {line.split()[3]}', 'green'))
+    if mode == 'uninstall':
+        try:
+            proc = Popen('apm --version --no-color'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            output, err = proc.communicate()
+            version = output.decode().splitlines()[0].split()[1]
+        except FileNotFoundError:
+            print('Atom is not installed')
+            exit()
+        with Halo(f'apm v{version} :: Uninstalling {package_name}', text_color='cyan') as h:
+            proc = Popen(f'apm deinstall {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            for line in proc.stdout:
+                line = line.decode()
+                if 'failed' in line:
+                    h.fail(f' Failed to Uninstall {package_name}')
+
+                if 'done' in line:
+                    h.stop()
+                    click.echo(click.style(f' Successfully Uninstalled {package_name}', 'green'))
