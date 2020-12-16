@@ -271,7 +271,7 @@ class Config:
                             output, _ = proc.communicate()
                             output = output.decode().splitlines()[2:]
                             pip_packages = []
-                            pip_packages.append([line.split()[0] for line in output])            
+                            pip_packages.append([line.lower().split()[0] for line in output])            
                             pip_packages = pip_packages[0]
                             
                             lines[idx] = Config.get_repr_packages(pip_packages, False) + '\n'
@@ -286,7 +286,7 @@ class Config:
                             output = output.decode().splitlines()[2:]
                             pip_packages = []
                             
-                            pip_packages.append([{line.split()[0] : line.split()[1]} for line in output])
+                            pip_packages.append([{line.lower().split()[0] : line.lower().split()[1]} for line in output])
                             pip_packages = pip_packages[0]
                             
                             lines[idx] = Config.get_repr_packages(pip_packages, True).replace('\n ', '\n') + '\n'
@@ -298,7 +298,7 @@ class Config:
                         lines = f.readlines()
    
                     for line in lines:
-                        if '<npm:name>' in line or '<npm>' in line:
+                        if '<npm:name>' in line or '<npm>' in line or '<node:name>' in line or '<node>' in line:
                             idx = lines.index(line)
                             proc = Popen('npm list --global --depth=0'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
                             output, _ = proc.communicate()
@@ -315,7 +315,7 @@ class Config:
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
 
-                        if '<npm:name,version>' in line:
+                        if '<npm:name,version>' in line or '<node:name,version>' in line:
                             
                             idx = lines.index(line)
                             proc = Popen('npm list --global --depth=0'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
@@ -353,13 +353,13 @@ class Config:
                         for item in l:
                             if item == '# --------------------Checksum Start-------------------------- #':
                                 idx = list.index(l, item)
-                        print(l[idx])
-                        exit()
-                        md5 = l[idx + 2].replace('#', '').strip()
-                        sha256 = l[idx + 3].replace('#', '').strip()
+                        
+                        md5 = l[idx + 1].replace('#', '').strip()
+                        sha256 = l[idx + 2].replace('#', '').strip()
+                        
                         # Generate Temporary Configuration File
                         with open(rf'{gettempdir()}\electric\configuration.electric', 'w+') as f:
-                            f.writelines(lines[:-7])
+                            f.writelines(lines[:-5])
             
                         md5_checksum = hashlib.md5(open(rf'{gettempdir()}\electric\configuration.electric', 'rb').read()).hexdigest()
                         sha256_hash_checksum = hashlib.sha256()
@@ -376,6 +376,7 @@ class Config:
                             os.remove(rf'{gettempdir()}\electric\configuration.electric')
                             exit(1)
                         os.remove(rf'{gettempdir()}\electric\configuration.electric')
+
         except FileNotFoundError:
             click.echo(click.style(f'Could Not Find {Fore.BLUE}{filepath}{Fore.RESET}.', fg='red'), err=True)
             exit()
