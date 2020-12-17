@@ -39,6 +39,10 @@
 				{
 					"name": "variable.parameter",
 					"match": "[A-Z][a-zA-Z]+(?= =>)"
+				},
+				{
+					"name": "constant.language",
+					"match": "^<.*>$"
 				}
 			]
 		},

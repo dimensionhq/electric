@@ -15,13 +15,19 @@ refreshenv = PathManager.get_current_directory() + r'\scripts\refreshvars.bat'
 tags = [
     '<pip>',
     '<pip:name>',
-    '<pip:name,version>'
+    '<pip:name,version>',
+    '<python>',
+    '<python:name>',
+    '<python:name,version>',
     '<npm>',
     '<npm:name>',
     '<npm:name,version>',
+    '<node:name>',
+    '<node>',
+    '<node:name,version',
     '<vscode>',
     '<vscode:name>',
-    '<vscode:name,version>'
+    '<vscode:name,version>',
 ]
 
 class Config:
@@ -265,7 +271,7 @@ class Config:
                         lines = f.readlines()
                     
                     for line in lines:
-                        if '<pip:name>' in line or '<pip>' in line:
+                        if '<pip:name>' in line or '<pip>' in line or '<python>' in line or '<python:name>' in line:
                             idx = lines.index(line)
                             proc = Popen('pip list'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
                             output, _ = proc.communicate()
@@ -279,7 +285,7 @@ class Config:
                             with open(f'{filepath}', 'w') as f:                                
                                 f.writelines(lines)
 
-                        if '<pip:name,version>' in line:
+                        if '<pip:name,version>' in line or '<python:name,version>' in line:
                             idx = lines.index(line)
                             proc = Popen('pip list'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE)
                             output, _ = proc.communicate()
