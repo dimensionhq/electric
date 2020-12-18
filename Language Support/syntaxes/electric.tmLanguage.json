@@ -33,16 +33,24 @@
 					"match": "\\."
 				},
 				{
-					"name": "comment.line",
-					"match": "\\s*((#).*)$"
-				},
-				{
-					"name": "variable.parameter",
+					"name": "entity.other.attribute-name",
 					"match": "[A-Z][a-zA-Z]+(?= =>)"
 				},
 				{
 					"name": "constant.language",
 					"match": "^<.*>$"
+				},
+				{
+					"name": "variable.parameter",
+					"match": "[a-zA-Z0-9\\-\\+]"
+				},
+				{
+					"name": "entity.other.inherited-class",
+					"match": "(# --------------------Checksum Start-------------------------- #|# --------------------Checksum End--------------------------- #)"
+				},
+				{
+					"name": "comment.line",
+					"match": "\\s*((#).*)$"
 				}
 			]
 		},

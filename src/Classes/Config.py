@@ -461,13 +461,21 @@ class Config:
                 click.echo(click.style(f'The ( python | pip ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
                 exit()
 
-        if not editor_type == 'Visual Studio Code':
+        if not editor_type in ['Visual Studio Code', 'Atom']:
             click.echo(click.style(f'The editor => {editor_type} is not supported by electric yet!', 'red'))
         else:
             if editor_extensions:
-                for package in editor_extensions:
-                    if not '.' in list(package.keys())[0]:
-                        click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
+                click.echo(click.style('↓ Validating Editor Extensions        ↓', 'cyan'))
+                if editor_type == 'Visual Studio Code':
+                    for package in editor_extensions:
+                        if not '.' in list(package.keys())[0]:
+                            click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
+                if editor_type == 'Atom':
+                    for package in editor_extensions:
+                        proc = Popen(f'apm show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                        output, err = proc.communicate()
+                        if err:
+                            click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
 
 
     def install(self, install_directory: str, no_cache: str, sync: bool, metadata: Metadata):
@@ -588,6 +596,17 @@ class Config:
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
                             exit()
+            if editor_type == 'Atom' and editor_extensions:
+                editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
+                for extension in editor_extensions:
+                    extension = list(extension.keys())[0]
+                    command = f'atom uninstall --atom {extension}'
+                    try:
+                        os.system(command)
+                    except:
+                        if not click.confirm('Would you like to continue configuration'):
+                            exit()
+
             if node_packages:
                 for node_package in node_packages:
                     node_package = list(node_package)[0]
