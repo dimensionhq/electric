@@ -14,7 +14,6 @@ import mslex
 import sys
 
 
-
 def handle_python_package(package_name: str, mode: str, metadata: Metadata):
     command = ''
 
@@ -273,7 +272,7 @@ def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
     if mode == 'uninstall':
         try:
             proc = Popen('apm --version --no-color'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-            output, err = proc.communicate()
+            output, _ = proc.communicate()
             version = output.decode().splitlines()[0].split()[1]
         except FileNotFoundError:
             print('Atom is not installed')
@@ -288,3 +287,7 @@ def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
                 if 'done' in line:
                     h.stop()
                     click.echo(click.style(f' Successfully Uninstalled {package_name}', 'green'))
+
+
+def handle_visual_studio_package(package_name: str, mode: str, metadata: Metadata):
+    pass

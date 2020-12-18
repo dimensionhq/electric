@@ -28,6 +28,12 @@ tags = [
     '<vscode>',
     '<vscode:name>',
     '<vscode:name,version>',
+    '<atom>',
+    '<atom:name>',
+    '<atom:name,version>',
+    '<apm>',
+    '<apm:name>',
+    '<apm:name,version>'
 ]
 
 class Config:
@@ -264,6 +270,39 @@ class Config:
                              
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
+                    
+                        if '<atom>' in line or '<atom:name>' in line or '<apm>' in line or '<apm:name>' in line:
+                            idx = lines.index(line)
+                            proc = Popen('apm list --installed'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                            output, _ = proc.communicate()
+                            output = output.decode().splitlines()[1:]
+                            atom_packages = []
+                            for val in output:
+                                if val:
+                                    atom_packages.append(val.replace('├──', '').replace('└── ', '').strip().lower()[:-6])
+                            
+                            lines[idx] = Config.get_repr_packages(atom_packages, False) + '\n'
+                            
+                            with open(f'{filepath}', 'w') as f:
+                                f.writelines(lines)
+
+                        if '<atom:name,version>' in line or '<apm:name,version>' in line:
+                            idx = lines.index(line)
+                            proc = Popen('apm list --installed'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                            output, _ = proc.communicate()
+                            output = output.decode().splitlines()[1:]
+                            atom_packages = []
+                            refined_output = []
+                            for val in output:
+                                if val:
+                                    refined_output.append(val.replace('├──', '').replace('└── ', '').strip())
+                            
+                            atom_packages.append([{line.split('@')[0].lower() : line.split('@')[1].lower()} for line in refined_output])
+                            atom_packages = atom_packages[0]
+                            lines[idx] = Config.get_repr_packages(atom_packages, True).replace('\n ', '\n') + '\n'
+                            
+                            with open(f'{filepath}', 'w') as f:
+                                f.writelines(lines)
                                                 
                 if 'Pip-Packages' in d:
                     with open(f'{filepath}', 'r') as f:
@@ -387,6 +426,7 @@ class Config:
             click.echo(click.style(f'Could Not Find {Fore.BLUE}{filepath}{Fore.RESET}.', fg='red'), err=True)
             exit()
         d.pop('')
+
         return Config(d)
 
 

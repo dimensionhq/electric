@@ -112,6 +112,15 @@ def install(
         package_names = package_name.split(',')
         for name in package_names:
             handle_sublime_extension(name, 'install', metadata)
+        sys.exit()
+    
+    
+    if atom:
+        package_names = package_name.split(',')
+        for name in package_names:
+            handle_atom_package(name, 'install', metadata)
+        sys.exit()
+    
 
     log_info('Checking if supercache exists...', metadata.logfile)
     super_cache = check_supercache_valid()

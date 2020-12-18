@@ -3,10 +3,10 @@
 ######################################################################
 
 
+from timeit import default_timer as timer
 from Classes.Metadata import Metadata
 from logger import log_info 
 import click
-
 
 def write(text: str, color: str, metadata: Metadata):
     if metadata.silent:
