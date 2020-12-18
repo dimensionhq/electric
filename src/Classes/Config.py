@@ -110,10 +110,6 @@ class Config:
         """
         Check if a package name exists on pypi.
 
-        TODO: Document the Registry URL construction.
-            It may not be obvious how pypi_package_name and pypi_registry_host are used
-            I'm appending the simple HTTP API parts of the registry standard specification.
-
         It will return True if the package name, or any equivalent variation as defined by PEP 503 normalisation
         rules (https://www.python.org/dev/peps/pep-0503/#normalized-names) is registered in the PyPI registry.
 
@@ -132,12 +128,9 @@ class Config:
         :param pypi_registry_host:
         :return:
         """
+
         if pypi_registry_host is None:
             pypi_registry_host = 'pypi.org'
-
-        # Just a helpful reminder why this bytearray size was chosen.
-        #                            HTTP/1.1 200 OK
-        #                            HTTP/1.1 404 Not Found
 
         receive_buffer = bytearray(b'------------')
         context = ssl.create_default_context()
@@ -168,10 +161,6 @@ class Config:
 
         ssl_http_socket.shutdown(1)
         ssl_http_socket.close()
-
-        # Reset the bytearray to empty
-        # receive_buffer = bytearray(b'------------')
-
         ssl_http_socket = context.wrap_socket(socket.socket(socket.AF_INET), server_hostname=pypi_registry_host)
         ssl_http_socket.connect((pypi_registry_host, 443))
 
@@ -596,6 +585,7 @@ class Config:
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
                             exit()
+
             if editor_type == 'Atom' and editor_extensions:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
                 for extension in editor_extensions:

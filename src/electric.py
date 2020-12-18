@@ -1133,6 +1133,13 @@ def sign(
     click.echo(click.style(f'Successfully Signed {filepath}', fg='green'))
 
 
+@cli.command(aliases=['gen'])
+@click.argument('filepath', required=False)
+def generate(
+        filepath: str
+    ):
+    pass
+
 @cli.command(aliases=['info'])
 @click.argument('package_name', required=True)
 def show(package_name: str):
