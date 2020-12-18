@@ -63,7 +63,7 @@ class HiddenPrints:
 
 def get_recent_logs() -> list:
     with open(Rf'{appdata_dir}\electric-log.log', 'r') as file:
-        data = file.read() 
+        data = file.read()
     return data.splitlines()
 
 
@@ -117,7 +117,7 @@ def check_existing_download(package_name: str, download_type) -> bool:
             try:
                 filesize = os.stat(data['directory'] + download_type).st_size
             except FileNotFoundError:
-                
+
                 if download_type not in data['directory']:
                     os.rename(data['directory'], data['directory'] + download_type)
                 try:
@@ -128,7 +128,7 @@ def check_existing_download(package_name: str, download_type) -> bool:
                 # Corrupt Installation
                 return False
             return data['directory']
-    return False 
+    return False
 
 
 def get_chunk_size(total_size: str):
@@ -153,7 +153,7 @@ def check_resume_download(package_name: str, metadata: Metadata):
             return (None, None)
     except:
         return (None, None)
-    
+
 
 def send_req_bundle():
     REQA = 'https://electric-package-manager.herokuapp.com/bundles/windows'
@@ -234,12 +234,12 @@ def get_error_cause(error: str, display_name: str, method: str, metadata: Metada
         for code in valid_install_exit_codes:
             if f'exit status {code}' in error:
                 return ['no-error']
-    
+
     if method == 'uninstallation':
         for code in valid_uninstall_exit_codes:
             if f'exit status {code}' in error:
                 return ['no-error']
-    
+
     if 'exit status 1603' in error:
         click.echo(click.style('\nAdministrator Elevation Required Or Unknown Error. Exit Code [1603]', fg='red'))
         return get_error_message('1603', 'installation', display_name)
@@ -257,17 +257,17 @@ def get_error_cause(error: str, display_name: str, method: str, metadata: Metada
         # Process Needs Elevation To Execute
         click.echo(click.style(f'\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
         return get_error_message('0001', 'installation', display_name)
-    
+
     if 'exit status 2' in error or 'exit status 1' in error:
         # User Declined Prompt Asking For Permission
         click.echo(click.style(f'\nAdministrative Privileges Declined. Exit Code [0101]', fg='red'))
         return get_error_message('0101', 'installation', display_name)
-    
+
     if 'exit status 4' in error:
         # Fatal Error During Installation
         click.echo(click.style(f'\nFatal Error. Exit Code [1111]', fg='red'))
         return get_error_message('1111', 'installation', display_name)
-    
+
     if '[WinError 87]' in error and 'incorrect' in error:
         click.echo(click.style(f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
         return get_error_message('0002', 'installation', display_name)
@@ -275,7 +275,7 @@ def get_error_cause(error: str, display_name: str, method: str, metadata: Metada
     if 'exit status 3010' or 'exit status 2359301' in error:
         # Installer Requesting Reboot
         return get_error_message('1010', 'installation', display_name)
-    
+
     else:
         click.echo(click.style(f'\nUnknown Error. Exited With Code [0000]', fg='red'))
         handle_unknown_error(error)
@@ -326,7 +326,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
 
                     command += ' ' + custom_install_switch + f'"{directory}"'
                 if directory == '':
-                    click.echo(click.style( 
+                    click.echo(click.style(
                         f'Installing {package_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
         if not directory:
@@ -413,6 +413,38 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
         keyboard.wait()
 
 
+def get_configuration_data(username: str, description: str, uses_editor: bool, include_editor: bool, editor: str, include_python: bool, include_node: bool):
+    base_configuration = [
+        '[ Info ]\n',
+        '# Go To https://www.electric.sh/electric-configuration-documentation/ For More Information\n',
+        f'Publisher => \"{username}\"\n',
+        f'Description => \"{description}\"\n'
+    ]
+
+    required_packages = []
+
+    if uses_editor and include_editor and editor:
+        base_configuration.append('\n[ Editor-Configuration ]\n')
+        if editor == 'Visual Studio Code':
+            base_configuration.append(f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<vscode:name>\n')
+            required_packages.append('vscode')
+        if editor == 'Atom':
+            base_configuration.append(
+                f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<atom:name>\n')
+            required_packages.append('atom')
+
+    if include_python:
+        base_configuration.append('\n[ Pip-Packages ]\n<pip:name>\n')
+        required_packages.append('python')
+
+    if include_node:
+        base_configuration.append('\n[ Node-Packages ]\n<npm:name>\n')
+        required_packages.append('nodejs')
+
+    requirements = str(required_packages).replace('[', '').replace(']', '').replace(',', '\n').replace('\'', '').replace('\n ', '\n')
+    base_configuration.insert(4, f'\n[ Packages ]\n{requirements}\n')
+    return base_configuration
+
 def get_correct_package_names(res: str) -> list:
     package_names = []
     for package in res:
@@ -469,7 +501,7 @@ def find_approx_pid(exe_name, display_name) -> str:
             continue
 
     matches = difflib.get_close_matches(exe_name, cleaned_up_names, n=1, cutoff=0.65)
-        
+
     if matches != []:
         for line in lines:
             if matches[0] in line.lower():
@@ -479,7 +511,7 @@ def find_approx_pid(exe_name, display_name) -> str:
 
 
 def handle_exit(status: str, setup_name: str, metadata: Metadata):
-    if status == 'Downloaded' or status == 'Installing' or status == 'Installed':        
+    if status == 'Downloaded' or status == 'Installing' or status == 'Installed':
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
 
@@ -583,7 +615,7 @@ def get_install_flags(install_dir: str, no_cache: bool, sync: bool, metadata: Me
         flags.append('--sync')
     if no_cache:
         flags.append('--no-cache')
-    
+
     return flags
 
 def refresh_environment_variables() -> bool:
@@ -661,7 +693,7 @@ def check_for_updates():
     js = res.json()
     version_dict = json.loads(js)
 
-    if version_dict:    
+    if version_dict:
         new_version = version_dict['version']
         if check_newer_version(new_version):
             # Implement Version Check
@@ -674,8 +706,8 @@ def check_for_updates():
                         return ctypes.windll.shell32.IsUserAnAdmin()
                     except:
                         return False
-                
-            
+
+
                 if is_admin():
                     with open(Rf'C:\Program Files (x86)\Electric\Update.7z', 'wb') as f:
                         response = requests.get(UPDATEA, stream=True)
@@ -699,7 +731,7 @@ def check_for_updates():
 
 
                     command = R'"C:\Program Files (x86)\Electric\updater\updater.exe"'
-                    
+
                     Popen(command, close_fds=True, shell=True)
                     click.echo(click.style('\nSuccessfully Updated Electric!', fg='green'))
                     sys.exit()
@@ -773,9 +805,9 @@ def disp_error_msg(messages: list, metadata: Metadata):
             break
         else:
             click.echo(msg)
-        
+
         idx += 1
-    
+
     if support_ticket:
         click.echo('By sending a support ticket, you agree to the Terms And Conditions (https://www.electric.sh/support/terms-and-conditions)')
         sending_ticket = click.confirm('Would you like to send the support ticket ?')
@@ -824,10 +856,10 @@ def get_error_message(code: str, method: str, display_name: str):
 
         elif code('0002'):
             return [
-                f'\n[0002] => {method.capitalize()} failed because the installer provided an incorrect command for {attr}.', 
+                f'\n[0002] => {method.capitalize()} failed because the installer provided an incorrect command for {attr}.',
                 '\nWe recommend you raise a support ticket with the data generated below:',
                 generate_report(display_name),
-                '\nHelp:\n', 
+                '\nHelp:\n',
                 'https://www.electric.sh/troubleshoot'
             ]
 
@@ -843,11 +875,11 @@ def get_error_message(code: str, method: str, display_name: str):
         elif code('0011'):
             clipboard.copy('electric install nodejs')
             return [
-                '\n[0011] => Node(npm) is not installed on your system.', 
-                '\n\nHow To Fix:\n', 
+                '\n[0011] => Node(npm) is not installed on your system.',
+                '\n\nHow To Fix:\n',
                 'Run `electric install nodejs` [ Copied To Clipboard ] To Install Node(npm)'
             ]
-        
+
         elif code('1603'):
             return [
                 f'\n[1603] => {method.capitalize()} might have failed because the software you tried to {attr} might require administrator permissions.',
@@ -865,25 +897,25 @@ def get_error_message(code: str, method: str, display_name: str):
                 '\n[1] <=> https://www.educative.io/edpresso/how-to-add-python-to-path-variable-in-windows',
                 '\n[2] <=> https://stackoverflow.com/questions/23708898/pip-is-not-recognized-as-an-internal-or-external-command'
                 ]
-        
+
         elif code('1010'):
             return [
                 f'\n[1010] => Installer Has Requested A Reboot In Order To Complete {method.capitalize()}.\n'
             ]
-        
+
         elif code('1111'):
             return [
-                f'\n[1111] => The {attr.capitalize()}er For This Package Failed Due To A Fatal Error. This is likely not an issue or error with electric.', 
+                f'\n[1111] => The {attr.capitalize()}er For This Package Failed Due To A Fatal Error. This is likely not an issue or error with electric.',
                 '\n\nWe recommend you raise a support ticket with the data generated below:',
                 generate_report(display_name),
                 '\nHelp:\n',
                 '\n[1] <=> https://www.electric.sh/errors/1111',
                 '\n[2] <=> https://www.electric.sh/support',
             ]
-        
+
         elif code('0101'):
             return [
-                f'\n[0101] => The installer / uninstaller was denied of Administrator permissions And failed to initialize successfully.', 
+                f'\n[0101] => The installer / uninstaller was denied of Administrator permissions And failed to initialize successfully.',
                 '\n\nHow To Fix:\n',
                 'Make sure you accept prompt asking for administrator privileges or alternatively: \n',
                 f'Run Your Command Prompt Or Powershell As Administrator And Retry {method.capitalize()}.\n\n\nHelp:',
@@ -891,11 +923,11 @@ def get_error_message(code: str, method: str, display_name: str):
                 '\n[2] <=> https://www.howtogeek.com/194041/how-to-open-the-command-prompt-as-administrator-in-windows-8.1/',
                 '\n[3] <=> https://www.top-password.com/blog/5-ways-to-run-powershell-as-administrator-in-windows-10/\n\n'
             ]
-        
+
 
 def handle_unknown_error(err: str):
     error_msg = click.confirm('Would You Like To See The Error Message?')
-    
+
     if error_msg:
         print(err)
         print('\n')
@@ -904,7 +936,7 @@ def handle_unknown_error(err: str):
             results = [f'\n\t[{index + 1}] <=> {r}' for index, r in enumerate(results)]
 
             results = ''.join(results)
-            
+
             if '.google-cookie' in os.listdir('.'):
                 os.remove('.google-cookie')
 
@@ -927,7 +959,7 @@ def handle_unknown_error(err: str):
     for name in cleaned_up_names:
         if name == 'powershell' or name == 'cmd':
             count += 1
-  
+
     return count >= 2
 
 
@@ -948,7 +980,7 @@ def install_dependent_packages(packet: Packet, rate_limit: int, install_director
         res, _ = handle_cached_request()
         if len(packet.dependencies) > 1 and len(packet.dependencies) <= 5:
             write(f'Using Parallel Installation For Installing Dependencies', 'green', metadata)
-            
+
             packets = []
             for package in packet.dependencies:
 
@@ -958,7 +990,7 @@ def install_dependent_packages(packet: Packet, rate_limit: int, install_director
                     custom_dir = install_directory + f'\\{pkg["package-name"]}'
                 else:
                     custom_dir = install_directory
-                
+
                 packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'])
                 installation = find_existing_installation(
                     package, packet.json_name)
@@ -1045,7 +1077,7 @@ def install_dependent_packages(packet: Packet, rate_limit: int, install_director
                 write_verbose(
                     f"Downloading from '{download_url}'", metadata)
                 log_info(f"Downloading from '{download_url}'", metadata.logfile)
-                
+
                 if rate_limit == -1:
                     path, _ = download(download_url, packet.json_name, metadata, packet.win64_type)
                 else:
@@ -1104,13 +1136,13 @@ def install_dependent_packages(packet: Packet, rate_limit: int, install_director
 
 
                 if metadata.reduce_package:
-                    
+
                     os.remove(path)
                     try:
                         os.remove(Rf'{tempfile.gettempdir()}\downloadcache.pickle')
                     except:
                         pass
-                        
+
                     log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
                     write('Successfully Cleaned Up Installer From Temp Directory...',
                         'green', metadata)
@@ -1135,7 +1167,7 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
                         'Incorrect / Invalid Package Name Entered. Aborting Installation.', fg='red'))
                     log_info(
                         'Incorrect / Invalid Package Name Entered. Aborting Installation', metadata.logfile)
-                    
+
                     handle_exit('ERROR', None, metadata)
 
                 if metadata.yes:
@@ -1148,7 +1180,7 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
 
                 else:
                     write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
-                    
+
                     if click.confirm('Would You Like To Continue?'):
                         package_name = corrections[0]
                         corrected_names.append(package_name)

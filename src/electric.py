@@ -113,14 +113,14 @@ def install(
         for name in package_names:
             handle_sublime_extension(name, 'install', metadata)
         sys.exit()
-    
-    
+
+
     if atom:
         package_names = package_name.split(',')
         for name in package_names:
             handle_atom_package(name, 'install', metadata)
         sys.exit()
-    
+
 
     log_info('Checking if supercache exists...', metadata.logfile)
     super_cache = check_supercache_valid()
@@ -686,7 +686,7 @@ def uninstall(
         package_names = package_name.split(',')
         for name in package_names:
             handle_sublime_extension(name, 'uninstall', metadata)
-    
+
     if atom:
         package_names = package_name.split(',')
         for name in package_names:
@@ -1120,7 +1120,7 @@ def sign(
 
     with open(filepath, 'a') as f:
         f.writelines([
-            
+
             '\n# --------------------Checksum Start-------------------------- #',
             '\n',
             f'# {md5}',
@@ -1138,13 +1138,48 @@ def sign(
 def generate(
         filepath: str
     ):
-    pass
+    username = input('Enter Publisher Name => ')
+    description = input('Enter Configuration Description => ')
+    use_editor = click.confirm('Do You Use A Development Text Editor (Example: Visual Studio Code) => ')
+    include_editor = False
+    editor = ''
+    if use_editor:
+        include_editor = click.confirm('Do You Want To Include Your Editor Extensions And Configuration?')
+        if include_editor:
+            editor = input('Enter The Development Text Editor You Use => ')
+
+    include_python = None
+    try:
+        proc = Popen('pip --version', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        _, err = proc.communicate()
+        if not err:
+            include_python = click.confirm('Would you like to include your Python Configuration?')
+    except FileNotFoundError:
+        pass
+
+    include_npm = None
+    try:
+        proc = Popen('npm --version', stdin=PIPE,
+                     stdout=PIPE, stderr=PIPE, shell=True)
+        _, err = proc.communicate()
+        if not err:
+            include_npm = click.confirm(
+                'Would you like to include your Npm Or Node Configuration?')
+    except FileNotFoundError:
+        pass
+
+
+    with open(f'{PathManager.get_desktop_directory()}\electric-configuration.electric', 'w+') as f:
+        f.writelines(get_configuration_data(username, description,
+                                            use_editor, include_editor, editor, include_python, include_npm))
+
+    os.system(
+        f'electric sign {PathManager.get_desktop_directory()}\electric-configuration.electric')
 
 @cli.command(aliases=['info'])
 @click.argument('package_name', required=True)
 def show(package_name: str):
     super_cache = check_supercache_valid()
-
     if super_cache:
         res, _ = handle_cached_request()
 
@@ -1173,7 +1208,7 @@ def show(package_name: str):
                 corrected_package_names.append(package_name)
         else:
             click.echo(click.style(f'Could Not Find Any Packages Which Match {package_name}', fg='bright_magenta'))
-
+            exit()
     pkg_info = res[corrected_package_names[0]]
     click.echo(click.style(display_info(pkg_info), fg='green'))
 

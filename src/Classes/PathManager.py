@@ -19,4 +19,7 @@ class PathManager:
     @staticmethod
     def get_appdata_directory() -> str:
         return os.environ['APPDATA'] + R'\electric'
-        
+
+    @staticmethod
+    def get_desktop_directory() -> str:
+        return os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')

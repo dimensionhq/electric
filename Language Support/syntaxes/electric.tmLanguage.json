@@ -41,10 +41,6 @@
 					"match": "^<.*>$"
 				},
 				{
-					"name": "variable.parameter",
-					"match": "[a-zA-Z0-9\\-\\+]"
-				},
-				{
 					"name": "entity.other.inherited-class",
 					"match": "(# --------------------Checksum Start-------------------------- #|# --------------------Checksum End--------------------------- #)"
 				},
@@ -54,7 +50,7 @@
 				}
 			]
 		},
-		"strings": 
+		"strings":
 		{
 			"name": "string.quoted.double.electric",
 			"begin": "\"",
