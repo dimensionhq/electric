@@ -939,8 +939,7 @@ def handle_unknown_error(err: str):
     error_msg = click.confirm('Would You Like To See The Error Message?')
 
     if error_msg:
-        print(err)
-        print('\n')
+        print(err + '\n')
         with Halo('Troubleshooting ', text_color='yellow'):
             results = search(query=err, stop=3)
             results = [f'\n\t[{index + 1}] <=> {r}' for index, r in enumerate(results)]

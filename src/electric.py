@@ -28,6 +28,7 @@ import halo
 import sys
 import os
 
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 
 @click.group(cls=SuperChargeCLI)
 @click.version_option(__version__)
@@ -36,7 +37,7 @@ def cli(_):
     pass
 
 
-@cli.command(aliases=['i'])
+@cli.command(aliases=['i'], context_settings=CONTEXT_SETTINGS)
 @click.argument('package_name', required=True)
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for installation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for installation')
@@ -57,7 +58,10 @@ def cli(_):
 @click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after installation')
 @click.option('--rate-limit', '-rl', type=int, default=-1)
 @click.option('--force', '-f', is_flag=True, help='Force install a package, ignoring any existing installations of a package.')
+@click.option('--configuration', '-cf', is_flag=True, help='Specify a config file to install')
+@click.pass_context
 def install(
+    ctx,
     package_name: str,
     verbose: bool,
     debug: bool,
@@ -77,8 +81,32 @@ def install(
     vscode: bool,
     atom: bool,
     sublime:bool,
-    force: bool
+    force: bool,
+    configuration: bool
 ):
+    """
+    Installs a package or a list of packages.
+    """
+    if configuration:
+        ctx.invoke(
+            config,
+            config_path=package_name,
+            remove=False,
+            verbose=verbose,
+            debug=debug,
+            no_progress=no_progress,
+            logfile=logfile,
+            install_directory=install_directory,
+            virus_check=virus_check,
+            yes=yes,
+            silent=silent,
+            no_cache=no_cache,
+            sync=sync,
+            reduce=reduce,
+            rate_limit=rate_limit
+        )
+        exit()
+
     if logfile:
         logfile = logfile.replace('=', '')
         logfile = logfile.replace('.txt', '.log')
@@ -510,7 +538,7 @@ def install(
                 if super_cache:
                     print(f'SuperCached', Fore.GREEN + '=>' + Fore.RESET, '[', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
                 else:
-                    print(f'Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
+                    print('Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
 
             else:
                 print(f'Found => [ {packet.display_name} ]')
@@ -620,7 +648,8 @@ def install(
 
     finish_log()
 
-@cli.command(aliases=['remove', 'u'])
+
+@cli.command(aliases=['remove', 'u'], context_settings=CONTEXT_SETTINGS)
 @click.argument('package_name', required=True)
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for uninstallation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for uninstallation')
@@ -629,12 +658,14 @@ def install(
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during uninstallation')
 @click.option('--silent', '-s', is_flag=True, help='Completely silent uninstallation without any output to console')
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to uninstall')
-@click.option('--sublime', '-sb', is_flag=True, help='Specify a Sublime Text 3 extension to install')
 @click.option('--atom', '-ato', is_flag=True, help='Specify an Atom extension to install')
 @click.option('--vscode', '-vs', is_flag=True, help='Specify a Visual Studio Code extension to install')
 @click.option('--node', '-npm', is_flag=True, help='Specify a Python package to install')
 @click.option('--no-cache', '-nocache', is_flag=True, help='Prevent cache usage for uninstallation')
+@click.option('--configuration', '-cf', is_flag=True, help='Specify a config file to install')
+@click.pass_context
 def uninstall(
+    ctx,
     package_name: str,
     verbose: bool,
     debug: bool,
@@ -647,9 +678,30 @@ def uninstall(
     node: bool,
     no_cache: bool,
     atom: bool,
-    sublime: bool
+    configuration: bool
 ):
-
+    """
+    Uninstalls a package or a list of packages.
+    """
+    if configuration:
+        ctx.invoke(
+            config,
+            config_path=package_name,
+            remove=True,
+            verbose=verbose,
+            debug=debug,
+            no_progress=None,
+            logfile=logfile,
+            install_directory=None,
+            virus_check=None,
+            yes=yes,
+            silent=silent,
+            no_cache=no_cache,
+            sync=None,
+            reduce=None,
+            rate_limit=None
+        )
+        exit()
     log_info('Generating metadata...', logfile)
 
     metadata = generate_metadata(
@@ -693,11 +745,6 @@ def uninstall(
             handle_vscode_extension(name, 'uninstall', metadata)
 
         sys.exit()
-
-    if sublime:
-        package_names = package_name.split(',')
-        for name in package_names:
-            handle_sublime_extension(name, 'uninstall', metadata)
 
     if atom:
         package_names = package_name.split(',')
@@ -863,7 +910,8 @@ def uninstall(
                 closeLog(metadata.logfile, 'Uninstall')
     finish_log()
 
-@cli.command(aliases=['bdl'])
+
+@cli.command(aliases=['bdl'], context_settings=CONTEXT_SETTINGS)
 @click.argument('bundle_name', required=True)
 @click.option('--remove', '-uninst', is_flag=True, help='Uninstall packages in a bundle installed')
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for bundle installation')
@@ -900,7 +948,9 @@ def bundle(
     rate_limit: bool,
     exclude: str,
     ):
-
+    """
+    Installs a bunlde of packages from the official electric repository.
+    """
     metadata = generate_metadata(
             no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit)
 
@@ -987,7 +1037,7 @@ def bundle(
         disp_error_msg(get_error_message('0001', 'installation', 'None'), metadata)
 
 
-@cli.command(aliases=['find'])
+@cli.command(aliases=['find'], context_settings=CONTEXT_SETTINGS)
 @click.argument('approx_name', required=True)
 @click.option('--starts-with', '-sw', is_flag=True, help='Find packages which start with the specified literal')
 @click.option('--exact', '-e', is_flag=True, help='Find packages which exactly match the specified literal')
@@ -996,7 +1046,9 @@ def search(
     starts_with: str,
     exact: str,
     ): # pylint: disable=function-redefined
-
+    """
+    Searches for a package in the official electric package repository.
+    """
 
     super_cache = check_supercache_valid()
     if super_cache:
@@ -1038,11 +1090,14 @@ def search(
         click.echo(click.style('0 packages found!', fg='red'))
 
 
-@cli.command(aliases=['create'])
+@cli.command(aliases=['create'], context_settings=CONTEXT_SETTINGS)
 @click.argument('project_name', required=True)
 def new(
     project_name: str
     ):
+    """
+    Generates a new .electric configuration with a template for ease of development.
+    """
     with open(f'{project_name}.electric', 'w+') as f:
         f.writelines(
             [
@@ -1061,7 +1116,7 @@ def new(
     click.echo(click.style(f'Successfully Created {Fore.LIGHTBLUE_EX}`{project_name}.electric`{Fore.GREEN} at {os.getcwd()}\\', 'green'))
 
 
-@cli.command()
+@cli.command(context_settings=CONTEXT_SETTINGS)
 @click.argument('config_path', required=True)
 @click.option('--remove', '-uninst', is_flag=True, help='Uninstall packages in a config installed')
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for config installation')
@@ -1094,6 +1149,9 @@ def config(
     reduce: bool,
     rate_limit: bool
     ):
+    '''
+    Installs and configures packages from a .electric configuration file.
+    '''
     metadata = generate_metadata(
             no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit)
 
@@ -1105,12 +1163,14 @@ def config(
         config.install(install_directory, no_cache, sync, metadata)
 
 
-@cli.command(aliases=['validate'])
+@cli.command(aliases=['validate'], context_settings=CONTEXT_SETTINGS)
 @click.argument('filepath', required=True)
 def sign(
         filepath: str
     ):
-
+    '''
+    Signs and validates a .electric configuration file.
+    '''
     config = Config.generate_configuration(filepath, False)
     click.echo(click.style('No syntax errors found!', 'green'))
     config.verify()
@@ -1146,7 +1206,7 @@ def sign(
     click.echo(click.style(f'Successfully Signed {filepath}', fg='green'))
 
 
-@cli.command(aliases=['gen'])
+@cli.command(aliases=['gen'], context_settings=CONTEXT_SETTINGS)
 @click.argument('filepath', required=False)
 def generate(
         filepath: str
@@ -1197,9 +1257,12 @@ def generate(
         f'electric sign {PathManager.get_desktop_directory()}\electric-configuration.electric')
 
 
-@cli.command(aliases=['info'])
+@cli.command(aliases=['info'], context_settings=CONTEXT_SETTINGS)
 @click.argument('package_name', required=True)
 def show(package_name: str):
+    '''
+    Displays information about the specified package.
+    '''
     super_cache = check_supercache_valid()
     if super_cache:
         res, _ = handle_cached_request()

@@ -12,6 +12,7 @@
 
 import click
 import difflib
+from colorama import Fore
 
 __version__ = "0.0.3"
 
@@ -48,7 +49,7 @@ class DYMMixin(object):  # pylint: disable=too-few-public-methods
                 error_msg += '\n\nDid you mean one of these?\n    %s' % '\n    '.join(matches)  # pylint: disable=line-too-long
 
             raise click.exceptions.UsageError(error_msg, error.ctx)
-    
+
     def command(self, *args, **kwargs):
         aliases = kwargs.pop('aliases', [])
         decorator = super(DYMMixin, self).command(*args, **kwargs)
@@ -118,10 +119,29 @@ class DYMMixin(object):  # pylint: disable=too-few-public-methods
         if rows:
             with formatter.section('Commands'):
                 formatter.write_dl(rows)
-    
+
     # TODO: Implement Click Help Message!
-    # def format_help(self, ctx, formatter):
-    #     print('Help Message Here!')
+    def format_help(self, ctx, formatter):
+        message = f'''Electric Package Manager v1.0.0 Alpha
+Copyright (c) Electric Inc.
+
+Usage: electric <command> [<options>]
+
+{Fore.GREEN}Commands:{Fore.RESET}
+
+{Fore.CYAN}Software Management{Fore.RESET}
+    * install
+    * uninstall
+    * bundle
+{Fore.CYAN}Explore Packages{Fore.RESET}
+    * search
+    * show
+{Fore.CYAN}Configuration Development And Management{Fore.RESET}
+    * new
+    * config
+    * generate
+    * sign'''
+        print(message)
 
 
 class SuperChargeCLI(DYMMixin, click.Group):  # pylint: disable=too-many-public-methods
@@ -131,7 +151,7 @@ class SuperChargeCLI(DYMMixin, click.Group):  # pylint: disable=too-many-public-
     command is not found in the group.
     """
     # def format_help(self, ctx, formatter):
-    #     # Custom Help Message =>         
+    #     # Custom Help Message =>
     #     click.echo(click.style('Commands :', fg='green'))
     #     click.echo('Next Line')
 
