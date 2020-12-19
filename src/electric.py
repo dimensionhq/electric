@@ -4,6 +4,7 @@
 
 
 from registry import get_uninstall_key, get_environment_keys
+from prompt_toolkit.completion import WordCompleter
 from Classes.PackageManager import PackageManager
 from timeit import default_timer as timer
 from urllib.request import urlretrieve
@@ -55,6 +56,7 @@ def cli(_):
 @click.option('--sync', '-sc', is_flag=True, help='Force downloads and installations one after another')
 @click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after installation')
 @click.option('--rate-limit', '-rl', type=int, default=-1)
+@click.option('--force', '-f', is_flag=True, help='Force install a package, ignoring any existing installations of a package.')
 def install(
     package_name: str,
     verbose: bool,
@@ -74,7 +76,8 @@ def install(
     node: bool,
     vscode: bool,
     atom: bool,
-    sublime:bool
+    sublime:bool,
+    force: bool
 ):
     if logfile:
         logfile = logfile.replace('=', '')
@@ -122,7 +125,6 @@ def install(
             handle_atom_package(name, 'install', metadata)
         sys.exit()
 
-
     log_info('Checking if supercache exists...', metadata.logfile)
     super_cache = check_supercache_valid()
     if super_cache:
@@ -153,8 +155,11 @@ def install(
         log_info('Sending GET Request To /packages', metadata.logfile)
         res, time = send_req_all()
         res = json.loads(res)
-        update_supercache(res)
+        log_info('Updating SuperCache', metadata.logfile)
+        update_supercache(res, metadata)
+        log_info('Successfully updated SuperCache', metadata.logfile)
         del res['_id']
+        log_info('Deleted `_id` from response', metadata.logfile)
         spinner.stop()
 
     correct_names = get_correct_package_names(res)
@@ -451,10 +456,11 @@ def install(
         packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'])
         log_info('Searching for existing installation of package.', metadata.logfile)
 
-
+        log_info('Finding existing installation of package...', metadata.logfile)
         installation = find_existing_installation(package, packet.json_name)
 
-        if installation:
+        if installation and not force:
+            log_info('Found existing installation of package...', metadata.logfile)
             write_debug(
                 f'Found existing installation of {packet.json_name}.', metadata)
             write_verbose(
@@ -496,7 +502,6 @@ def install(
                 log_info(
                     f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
 
-
         write_verbose('Generating system download path...', metadata)
         log_info('Generating system download path...', metadata.logfile)
 
@@ -516,6 +521,7 @@ def install(
         status = 'Got Download Path'
         end = timer()
 
+        log_info(f'Recieved download path => {download_url}', metadata.logfile)
         log_info('Initializing Rapid Download...', metadata.logfile)
 
         # Downloading The File From Source
@@ -551,6 +557,7 @@ def install(
         log_info('Finished Rapid Download', metadata.logfile)
 
         if virus_check:
+            log_info('Running requested virus scanning', metadata.logfile)
             write('Scanning File For Viruses...', 'blue', metadata)
             check_virus(path, metadata)
         if not cached:
@@ -564,13 +571,16 @@ def install(
             f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
         log_info(
             f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
+        log_info('Creating start snapshot of registry...', metadata.logfile)
         start_snap = get_environment_keys()
         status = 'Installing'
         # Running The Installer silently And Completing Setup
         install_package(path, packet, metadata)
 
         status = 'Installed'
+        log_info('Creating final snapshot of registry...', metadata.logfile)
         final_snap = get_environment_keys()
+
         if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
             write('Refreshing Environment Variables', 'green', metadata)
             start = timer()
@@ -608,6 +618,7 @@ def install(
 
         index += 1
 
+    finish_log()
 
 @cli.command(aliases=['remove', 'u'])
 @click.argument('package_name', required=True)
@@ -713,7 +724,7 @@ def uninstall(
         log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
         res, time = send_req_all()
         res = json.loads(res)
-        update_supercache(res)
+        update_supercache(res, metadata)
 
     correct_names = get_correct_package_names(res)
     corrected_package_names = get_autocorrections(packages, correct_names, metadata)
@@ -807,7 +818,8 @@ def uninstall(
                 write_verbose('Executing the quiet uninstall command', metadata)
                 log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
                 write_debug(f'Running silent uninstallation command', metadata)
-                run_cmd(command, metadata, 'uninstallation', packet.display_name)
+                run_cmd(command, metadata, 'uninstallation', packet.display_name, h)
+
 
                 h.stop()
 
@@ -837,7 +849,7 @@ def uninstall(
                 write_verbose('Executing the Uninstall Command', metadata)
                 log_info('Executing the silent Uninstall Command', metadata.logfile)
 
-                run_cmd(command, metadata, 'uninstallation', packet.display_name)
+                run_cmd(command, metadata, 'uninstallation', packet.display_name, h)
                 h.stop()
                 write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
@@ -849,7 +861,7 @@ def uninstall(
                 log_info(
                     f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
                 closeLog(metadata.logfile, 'Uninstall')
-
+    finish_log()
 
 @cli.command(aliases=['bdl'])
 @click.argument('bundle_name', required=True)
@@ -1139,8 +1151,6 @@ def sign(
 def generate(
         filepath: str
     ):
-    from prompt_toolkit.completion import WordCompleter
-
 
     editor_completion = WordCompleter(['Visual Studio Code', 'Sublime Text 3', 'Atom'])
     username = prompt('Enter Publisher Name => ')
@@ -1186,13 +1196,13 @@ def generate(
     os.system(
         f'electric sign {PathManager.get_desktop_directory()}\electric-configuration.electric')
 
+
 @cli.command(aliases=['info'])
 @click.argument('package_name', required=True)
 def show(package_name: str):
     super_cache = check_supercache_valid()
     if super_cache:
         res, _ = handle_cached_request()
-
     else:
         # status = 'Networking'
         # write_verbose('Sending GET Request To /packages', metadata)
@@ -1200,7 +1210,7 @@ def show(package_name: str):
         # log_info('Sending GET Request To /packages', logfile)
         res, _ = send_req_all()
         res = json.loads(res)
-        update_supercache(res)
+        update_supercache(res, None)
         del res['_id']
 
     correct_names = get_correct_package_names(res)

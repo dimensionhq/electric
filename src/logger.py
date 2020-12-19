@@ -17,13 +17,13 @@ def createConfig(logfile : str, level, process : str):
 
     with open(Rf'{appdata_dir}\electric-log.log', 'w+') as f:
         f.write("")
-    
+
     mode = None
     if isfile(logfile):
         mode = 'a+'
     else:
         mode = 'w+'
-    
+
     file = open(logfile, mode)
     try:
         file.write('\n')
@@ -41,7 +41,7 @@ def closeLog(logfile : str, process : str):
         f.write('\n')
         f.write('-' * 75)
         f.write('\n')
-    
+
     if logfile:
         logging.info(f'Terminating RapidLogger On {process} at {strftime("%H:%M:%S")}')
         file = open(logfile, 'a+')
@@ -63,3 +63,7 @@ def log_error(text : str, logfile : str):
         f.write(f'INFO:root:{text}')
     if logfile:
         logging.error(text)
+
+def finish_log():
+    with open(f'{appdata_dir}\\electric-log.log', 'w+') as f:
+        pass

@@ -62,7 +62,7 @@ class PackageManager:
                         pass
                     sys.stdout.flush()
         paths.update({
-            download.display_name: 
+            download.display_name:
                 {
                     'path': path,
                     'display_name': download.display_name
@@ -102,14 +102,14 @@ class PackageManager:
                 click.echo(click.style(
                     f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
-            run_cmd(command, self.metadata, 'installation', install.display_name)
+            run_cmd(command, self.metadata, 'installation', install.display_name, None)
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i' + path + ' '
             for switch in switches:
                 command = command + ' ' + switch
 
-            run_cmd(command, self.metadata, 'installation', install.display_name)
+            run_cmd(command, self.metadata, 'installation', install.display_name, None)
 
         elif download_type == '.zip':
             if not self.metadata.no_color:

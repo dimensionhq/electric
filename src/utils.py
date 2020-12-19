@@ -228,7 +228,6 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
 
 def get_error_cause(error: str, display_name: str, method: str, metadata: Metadata) -> str:
-    print(error)
     log_info(f'{error} ==> {method}', metadata.logfile)
     if method == 'installation':
         for code in valid_install_exit_codes:
@@ -282,13 +281,15 @@ def get_error_cause(error: str, display_name: str, method: str, metadata: Metada
         return get_error_message('0000', 'installation', display_name)
 
 
-def run_cmd(command: str, metadata: Metadata, method: str, display_name: str):
+def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, halo: Halo):
     log_info(f'Running command: {command}', metadata.logfile)
     command = command.replace('\"\"', '\"').replace('  ', ' ')
     # print('Running Command => ', command)
     try:
         check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except (CalledProcessError, OSError, FileNotFoundError) as err:
+        if halo:
+            halo.stop()
         keyboard.add_hotkey(
         'ctrl+c', lambda: os._exit(0))
         disp_error_msg(get_error_cause(str(err), display_name, method, metadata), metadata)
@@ -333,7 +334,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             for switch in switches:
                 command = command + ' ' + switch
 
-        run_cmd(command, metadata, 'installation', packet.display_name)
+        run_cmd(command, metadata, 'installation', packet.display_name, None)
 
     elif download_type == '.msi':
         command = 'msiexec.exe /i ' + path + ' '
@@ -345,7 +346,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
                 '\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
             disp_error_msg(get_error_message('0001', 'installation', packet.display_name), metadata)
             handle_exit('ERROR', None, metadata)
-        run_cmd(command, metadata, 'installation', packet.display_name)
+        run_cmd(command, metadata, 'installation', packet.display_name, None)
 
     elif download_type == '.zip':
         if not metadata.no_color:
@@ -500,7 +501,7 @@ def find_approx_pid(exe_name, display_name) -> str:
         except IndexError:
             continue
 
-    matches = difflib.get_close_matches(exe_name, cleaned_up_names, n=1, cutoff=0.65)
+    matches = difflib.get_close_matches(display_name.lower(), cleaned_up_names, n=1, cutoff=0.65)
 
     if matches != []:
         for line in lines:
@@ -511,6 +512,7 @@ def find_approx_pid(exe_name, display_name) -> str:
 
 
 def handle_exit(status: str, setup_name: str, metadata: Metadata):
+    finish_log()
     if status == 'Downloaded' or status == 'Installing' or status == 'Installed':
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
@@ -663,22 +665,29 @@ def setup_supercache():
     return res, time
 
 
-def update_supercache(res):
+def update_supercache(res, metadata: Metadata):
     if isfile(f'{tempfile.gettempdir()}\electric'):
+        log_info(f'Removing all data in {tempfile.gettempdir()}\electric', metadata.logfile)
         shutil.rmtree(f'{tempfile.gettempdir()}\electric')
+        log_info(f'Deleted all data in {tempfile.gettempdir()}\electric successfully.', metadata.logfile)
 
     if not os.path.isdir(appdata_dir):
+        log_info('Setting up supercache because it doesn\'t exist.', metadata.logfile)
         setup_supercache()
+        log_info('Successfully set up supercache.', metadata.logfile)
 
     filepath = Rf'{appdata_dir}\supercache.json'
     file = open(filepath, 'w+')
+    log_info(f'Dumping json to {filepath}', metadata.logfile)
     file.write(json.dumps(res, indent=4))
     file.close()
     logpath = Rf'{appdata_dir}\superlog.txt'
     logfile = open(logpath, 'w+')
     now = datetime.now()
+    log_info(f'Writing {str(now)} to {logpath}', metadata.logfile)
     logfile.write(str(now))
     logfile.close()
+    log_info(f'Successfully wrote date and time to {logpath}', metadata.logfile)
 
 
 def check_newer_version(new_version) -> bool:
