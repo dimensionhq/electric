@@ -188,6 +188,19 @@ def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
             location = PathManager.get_appdata_directory().replace('\electric', '') + '\Sublime Text 3'
             if os.path.isdir(location) and os.path.isfile(fr'{location}\Packages\User\Package Control.sublime-settings'):
                 with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'r') as f:
+                    lines = f.readlines()
+                    idx = 0
+                    for line in lines:
+                        if '"Package Control",' in line.strip():
+                            idx = lines.index(line)
+
+                    if ']' in lines[idx + 1].strip():
+                        lines[idx] = "        \"Package Control\""
+
+                with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w') as f:
+                    f.writelines(lines)
+
+                with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'r') as f:
                     json = js.load(f)
                     current_packages = json['installed_packages']
                     if package_name in current_packages:
@@ -222,14 +235,13 @@ def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
                         "bootstrapped": True,
                         "installed_packages": [
                             "Package Control"
-                        ]}, 
+                        ]},
                         indent=4
                         ))
-                
+
                 handle_sublime_extension(package_name, mode, metadata)
         else:
             print('Sublime Text 3 is not installed!')
-
 
 def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
     if mode == 'install':
