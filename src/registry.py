@@ -52,7 +52,7 @@ def get_uninstall_key(package_name : str, display_name: str):
 
     final_array = []
     total = []
-    
+
     def get_uninstall_string(package_name : str):
         nonlocal final_array
         string_gen(package_name)
@@ -78,7 +78,9 @@ def get_uninstall_key(package_name : str, display_name: str):
                 index += 1
 
             for string in strings:
-                matches = difflib.get_close_matches(string, refined_list, cutoff=0.7)
+                matches = difflib.get_close_matches(
+                    package_name, refined_list[0], cutoff=0.65)
+
                 if not matches:
                     possibilities = []
 
@@ -89,9 +91,6 @@ def get_uninstall_key(package_name : str, display_name: str):
 
                     if possibilities:
                         total.append(possibilities)
-
-                    else:
-                        continue
                 else:
                     final_array.append(key)
 
@@ -99,7 +98,7 @@ def get_uninstall_key(package_name : str, display_name: str):
 
     def string_gen(package_name : str):
         package_name = package_name.split('-')
-        strings.append(''.join(package_name))
+        strings.append(' '.join(package_name))
         strings.append(display_name.lower())
 
     def get_more_accurate_matches(return_array):
@@ -160,7 +159,6 @@ def get_uninstall_key(package_name : str, display_name: str):
 
 
     get_uninstall_string(package_name)
-
 
     if final_array:
         if len(final_array) > 1:

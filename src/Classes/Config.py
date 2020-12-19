@@ -10,7 +10,7 @@ import click
 import ssl
 
 
-refreshenv = PathManager.get_current_directory() + r'\scripts\refreshvars.bat'
+refreshenv = PathManager.get_current_directory() + r'\scripts\refreshvars.cmd'
 
 tags = [
     '<pip>',
@@ -33,7 +33,10 @@ tags = [
     '<atom:name,version>',
     '<apm>',
     '<apm:name>',
-    '<apm:name,version>'
+    '<apm:name,version>',
+    '<sublime>',
+    '<sublime:name>',
+    '<sublime:name,version>',
 ]
 
 class Config:
@@ -52,12 +55,12 @@ class Config:
     def check_prerequisites(self):
         dictionary = self.dictionary
         headers = dictionary.keys()
-        
+
         if 'Info' in headers:
-        
+
             click.echo(click.style(f'Publisher => {self.publisher}'))
-            click.echo(click.style(f'Description => {self.description}', fg='yellow'))    
-        
+            click.echo(click.style(f'Description => {self.description}', fg='yellow'))
+
             if platform == 'win32' and not self.os == 'Windows':
                 if self.os:
                     if not click.confirm(f'WARNING: This Config Has A Target OS Of {self.os}. Would you like to continue?'):
@@ -104,7 +107,7 @@ class Config:
             packages = str(packages).replace('\'', '').replace('[', '').replace(']', '').replace(',', '').strip().replace(' ', '\n')
             return packages
 
-   
+
     @staticmethod
     def check_pypi_name(pypi_package_name, pypi_registry_host=None):
         """
@@ -184,7 +187,7 @@ class Config:
         try:
             with open(f'{filepath}', 'r') as f:
                 chunks = f.read().split("[")
-                
+
 
                 for chunk in chunks:
                     chunk = chunk.replace("=>", ":").split('\n')
@@ -211,7 +214,7 @@ class Config:
                                     exit()
                             except ValueError:
                                 if header in ['Packages', 'Pip-Packages', 'Editor-Extensions', 'Node-Packages']:
-                                    k, v = line, "latest"           
+                                    k, v = line, "latest"
                                 else:
                                     with open(f'{filepath}', 'r') as f:
                                         lines = f.readlines()
@@ -229,25 +232,54 @@ class Config:
                                     exit()
 
                             d[header].append({ k : v.replace('"', '') })
-                
+
                 if 'Editor-Extensions' in d:
                     with open(f'{filepath}', 'r') as f:
-                        
+
                         lines = f.readlines()
 
                     for line in lines:
+
+                        if '<sublime:name>' in line or '<sublime>' in line or '<sublime:name,version>' in line:
+                            insert_index = lines.index(line)
+                            if find_existing_installation('sublime-text-3', 'Sublime Text 3'):
+                                location = PathManager.get_appdata_directory().replace('\electric', '') + \
+                                    '\Sublime Text 3'
+                                if os.path.isdir(location) and os.path.isfile(fr'{location}\Packages\User\Package Control.sublime-settings'):
+                                    with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'r') as f:
+                                        sublime_lines = f.readlines()
+                                        idx = 0
+                                        for line in sublime_lines:
+                                            if '"Package Control",' in line.strip():
+                                                idx = sublime_lines.index(line)
+
+                                        if ']' in sublime_lines[idx + 1].strip():
+                                            sublime_lines[idx] = "        \"Package Control\"\n"
+
+                                    with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w') as f:
+                                        f.writelines(sublime_lines)
+
+                                    with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'r') as f:
+                                        json = js.load(f)
+                                        current_packages = str(json['installed_packages']).replace('[', '').replace(']', '').replace('\n ', '\n').replace('\'', '').replace(', ', '\n') + '\n'
+                                        lines[insert_index] = current_packages
+
+                                    with open(f'{filepath}', 'w') as f:
+                                        f.writelines(lines)
+
                         if '<vscode:name>' in line or '<vscode>' in line:
                             idx = lines.index(line)
                             proc = Popen('code --list-extensions'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
                             output, _ = proc.communicate()
                             output = output.decode().splitlines()
                             vscode_packages = []
-                            vscode_packages = output           
-                            
+                            vscode_packages = output
+
                             lines[idx] = Config.get_repr_packages(vscode_packages, False) + '\n'
-                            
+
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
+
                         if '<vscode:name,version>' in line:
                             idx = lines.index(line)
                             proc = Popen('code --list-extensions --show-versions'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
@@ -256,10 +288,10 @@ class Config:
                             vscode_packages = []
                             vscode_packages = [{line.split('@')[0] : line.split('@')[1]} for line in output]
                             lines[idx] = Config.get_repr_packages(vscode_packages, True).replace('\n ', '\n') + '\n'
-                             
+
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
-                    
+
                         if '<atom>' in line or '<atom:name>' in line or '<apm>' in line or '<apm:name>' in line:
                             idx = lines.index(line)
                             proc = Popen('apm list --installed'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
@@ -269,9 +301,9 @@ class Config:
                             for val in output:
                                 if val:
                                     atom_packages.append(val.replace('├──', '').replace('└── ', '').strip().lower()[:-6])
-                            
+
                             lines[idx] = Config.get_repr_packages(atom_packages, False) + '\n'
-                            
+
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
 
@@ -285,19 +317,20 @@ class Config:
                             for val in output:
                                 if val:
                                     refined_output.append(val.replace('├──', '').replace('└── ', '').strip())
-                            
+
                             atom_packages.append([{line.split('@')[0].lower() : line.split('@')[1].lower()} for line in refined_output])
                             atom_packages = atom_packages[0]
                             lines[idx] = Config.get_repr_packages(atom_packages, True).replace('\n ', '\n') + '\n'
-                            
+
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
-                                                
+
+
                 if 'Pip-Packages' in d:
                     with open(f'{filepath}', 'r') as f:
-                        
+
                         lines = f.readlines()
-                    
+
                     for line in lines:
                         if '<pip:name>' in line or '<pip>' in line or '<python>' in line or '<python:name>' in line:
                             idx = lines.index(line)
@@ -305,12 +338,12 @@ class Config:
                             output, _ = proc.communicate()
                             output = output.decode().splitlines()[2:]
                             pip_packages = []
-                            pip_packages.append([line.lower().split()[0] for line in output])            
+                            pip_packages.append([line.lower().split()[0] for line in output])
                             pip_packages = pip_packages[0]
-                            
+
                             lines[idx] = Config.get_repr_packages(pip_packages, False) + '\n'
 
-                            with open(f'{filepath}', 'w') as f:                                
+                            with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
 
                         if '<pip:name,version>' in line or '<python:name,version>' in line:
@@ -319,18 +352,18 @@ class Config:
                             output, _ = proc.communicate()
                             output = output.decode().splitlines()[2:]
                             pip_packages = []
-                            
+
                             pip_packages.append([{line.lower().split()[0] : line.lower().split()[1]} for line in output])
                             pip_packages = pip_packages[0]
-                            
+
                             lines[idx] = Config.get_repr_packages(pip_packages, True).replace('\n ', '\n') + '\n'
-                            with open(f'{filepath}', 'w') as f:                                
+                            with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
-                            
+
                 if 'Node-Packages' in d:
                     with open(f'{filepath}', 'r') as f:
                         lines = f.readlines()
-   
+
                     for line in lines:
                         if '<npm:name>' in line or '<npm>' in line or '<node:name>' in line or '<node>' in line:
                             idx = lines.index(line)
@@ -342,15 +375,15 @@ class Config:
                                 if val:
                                     refined_output.append(val.replace('+--', '').replace('`--', '').strip())
                             npm_packages = []
-                            npm_packages.append([line.split('@')[0] for line in refined_output])            
+                            npm_packages.append([line.split('@')[0] for line in refined_output])
                             npm_packages = npm_packages[0]
-                            
+
                             lines[idx] = Config.get_repr_packages(npm_packages, False) + '\n'
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
 
                         if '<npm:name,version>' in line or '<node:name,version>' in line:
-                            
+
                             idx = lines.index(line)
                             proc = Popen('npm list --global --depth=0'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
                             output, _ = proc.communicate()
@@ -360,10 +393,10 @@ class Config:
                                 if val:
                                     refined_output.append(val.replace('+--', '').replace('`--', '').strip())
                             npm_packages = []
-                            
+
                             npm_packages.append([{line.split('@')[0] : line.split('@')[1]} for line in refined_output])
                             npm_packages = npm_packages[0]
-                            
+
                             lines[idx] = Config.get_repr_packages(npm_packages, True).replace('\n ', '\n') + '\n'
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
@@ -377,31 +410,31 @@ class Config:
                         click.echo(click.style(f'File Checksum Not Found! Run `electric sign {filepath}` ( Copied To Clipboard ) to sign your .electric configuration.', fg='red'))
                         pyperclip.copy(f'electric sign {filepath}')
                         exit()
-                    
+
                     if lines[-1] != '# --------------------Checksum End--------------------------- #':
                         click.echo(click.style('DataAfterChecksumError : Comments, Code And New lines Are Not Allowed After The Checksum End Header.', 'red'))
                         exit()
-                    
+
                     if '# --------------------Checksum Start-------------------------- #' in l and '# --------------------Checksum End--------------------------- #' in l:
                         idx = 0
                         for item in l:
                             if item == '# --------------------Checksum Start-------------------------- #':
                                 idx = list.index(l, item)
-                        
+
                         md5 = l[idx + 1].replace('#', '').strip()
                         sha256 = l[idx + 2].replace('#', '').strip()
-                        
+
                         # Generate Temporary Configuration File
                         with open(rf'{gettempdir()}\electric\configuration.electric', 'w+') as f:
                             f.writelines(lines[:-5])
-            
+
                         md5_checksum = hashlib.md5(open(rf'{gettempdir()}\electric\configuration.electric', 'rb').read()).hexdigest()
                         sha256_hash_checksum = hashlib.sha256()
                         with open(rf'{gettempdir()}\electric\configuration.electric', 'rb') as f:
                             # Read and update hash string value in blocks of 4K
                             for byte_block in iter(lambda: f.read(4096),b''):
                                 sha256_hash_checksum.update(byte_block)
-                        
+
                         sha256_checksum = sha256_hash_checksum.hexdigest()
                         if md5 == md5_checksum and sha256 == sha256_checksum:
                             click.echo(click.style('Hashes Match!', 'green'))
@@ -442,15 +475,15 @@ class Config:
             if f'\'{list(package.keys())[0]}\' is not in the npm registry.' in err.decode():
                 click.echo(click.style(f'The ( npm | node ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
                 exit()
-        
+
         click.echo(click.style('↓ Validating Python or Pip Modules    ↓', 'cyan'))
-        
+
         for package in python_packages:
             if not Config.check_pypi_name(list(package.keys())[0].lower()):
                 click.echo(click.style(f'The ( python | pip ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
                 exit()
 
-        if not editor_type in ['Visual Studio Code', 'Atom']:
+        if not editor_type in ['Visual Studio Code', 'Atom', 'Sublime Text 3']:
             click.echo(click.style(f'The editor => {editor_type} is not supported by electric yet!', 'red'))
         else:
             if editor_extensions:
@@ -484,19 +517,19 @@ class Config:
             for package in packages:
                 if idx == len(packages):
                     command += list(package.keys())[0]
-                    idx += 1 
+                    idx += 1
                     continue
                 command += list(package.keys())[0] + ','
                 idx += 1
             for flag in flags:
                 command += ' ' + flag
-            
+
             os.system(f'electric install {command}')
 
             for package in python_packages:
                 if idx == len(packages):
                     pip_command += list(package.keys())[0]
-                    idx += 1 
+                    idx += 1
                     continue
                 pip_command += list(package.keys())[0] + ','
                 idx += 1
@@ -514,19 +547,19 @@ class Config:
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
                             exit()
-            
-            if editor_type == 'Sublime Text 3' and editor_extensions:                
+
+            if editor_type == 'Sublime Text 3' and editor_extensions:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
                 for extension in editor_extensions:
                     extension = list(extension.keys())[0]
-                    command = f'electric install --sublime {extension}'
+                    command = f'electric install --sublime \"{extension}\"'
                     try:
                         os.system(command)
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
                             exit()
 
-            if editor_type == 'Atom' and editor_extensions:                
+            if editor_type == 'Atom' and editor_extensions:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
                 for extension in editor_extensions:
                     extension = list(extension.keys())[0]
@@ -565,7 +598,7 @@ class Config:
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
                             exit()
-            
+
             if python_packages:
                 for python_package in python_packages:
                     command = f'electric uninstall --python {list(python_package.keys())[0]}'
@@ -574,7 +607,7 @@ class Config:
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
                             exit()
-            
+
             if editor_type == 'Visual Studio Code' and editor_extensions:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
                 for extension in editor_extensions:

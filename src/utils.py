@@ -427,7 +427,7 @@ def get_configuration_data(username: str, description: str, uses_editor: bool, i
         base_configuration.append('\n[ Editor-Configuration ]\n')
         if editor == 'Visual Studio Code':
             base_configuration.append(f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<vscode:name>\n')
-            required_packages.append('vscode')
+            required_packages.append('visual-studio-code')
         if editor == 'Atom':
             base_configuration.append(
                 f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<atom:name>\n')
@@ -582,6 +582,7 @@ def assert_cpu_compatible() -> int:
 
 def find_existing_installation(package_name: str, display_name: str):
     key = registry.get_uninstall_key(package_name, display_name)
+
     if key:
         return True
     return False

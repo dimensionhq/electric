@@ -60,5 +60,3 @@ goto main
     :: reset user / architecture
     SET "USERNAME=%OriginalUserName%"
     SET "PROCESSOR_ARCHITECTURE=%OriginalArchitecture%"
-
-    echo .

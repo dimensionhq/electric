@@ -10,6 +10,7 @@ from urllib.request import urlretrieve
 from limit import Limiter, TokenBucket
 from Classes.Config import Config
 from Classes.Packet import Packet
+from prompt_toolkit import prompt
 from itertools import zip_longest
 from cli import SuperChargeCLI
 from info import __version__
@@ -245,9 +246,9 @@ def install(
                             write_verbose(
                                 f'Found an existing installation of => {packet.json_name}', metadata)
                             write(
-                                f'Detected an existing installation {packet.json_name}.', 'bright_yellow', metadata)
+                                f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
                             installation_continue = click.confirm(
-                                f'Would you like to reinstall {packet.json_name}')
+                                f'Would you like to reinstall {packet.display_name}')
                             if installation_continue or yes:
                                 os.system(f'electric uninstall {packet.json_name}')
                                 os.system(f'electric install {packet.json_name}')
@@ -459,9 +460,9 @@ def install(
             write_verbose(
                 f'Found an existing installation of => {packet.json_name}', metadata)
             write(
-                f'Detected an existing installation {packet.json_name}.', 'bright_yellow', metadata)
+                f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
             installation_continue = click.confirm(
-                f'Would you like to reinstall {packet.json_name}')
+                f'Would you like to reinstall {packet.display_name}?')
             if installation_continue or yes:
                 os.system(f'electric uninstall {packet.json_name}')
                 os.system(f'electric install {packet.json_name}')
@@ -1138,15 +1139,20 @@ def sign(
 def generate(
         filepath: str
     ):
-    username = input('Enter Publisher Name => ')
-    description = input('Enter Configuration Description => ')
-    use_editor = click.confirm('Do You Use A Development Text Editor (Example: Visual Studio Code) => ')
+    from prompt_toolkit.completion import WordCompleter
+
+
+    editor_completion = WordCompleter(['Visual Studio Code', 'Sublime Text 3', 'Atom'])
+    username = prompt('Enter Publisher Name => ')
+    description = prompt('Enter Configuration Description => ')
+    use_editor = prompt('Do You Use A Development Text Editor (Example: Visual Studio Code) [y/N]: ')
+    use_editor = use_editor in ('y', 'yes', 'Y', 'YES')
     include_editor = False
     editor = ''
     if use_editor:
         include_editor = click.confirm('Do You Want To Include Your Editor Extensions And Configuration?')
         if include_editor:
-            editor = input('Enter The Development Text Editor You Use => ')
+            editor = prompt('Enter The Development Text Editor You Use => ', completer=editor_completion, complete_while_typing=True)
 
     include_python = None
     try:
@@ -1168,10 +1174,14 @@ def generate(
     except FileNotFoundError:
         pass
 
-
-    with open(f'{PathManager.get_desktop_directory()}\electric-configuration.electric', 'w+') as f:
-        f.writelines(get_configuration_data(username, description,
-                                            use_editor, include_editor, editor, include_python, include_npm))
+    if filepath:
+        with open(f'{filepath}', 'w+') as f:
+            f.writelines(get_configuration_data(username, description,
+                                                use_editor, include_editor, editor, include_python, include_npm))
+    else:
+        with open(f'{PathManager.get_desktop_directory()}\electric-configuration.electric', 'w+') as f:
+            f.writelines(get_configuration_data(username, description,
+                                                use_editor, include_editor, editor, include_python, include_npm))
 
     os.system(
         f'electric sign {PathManager.get_desktop_directory()}\electric-configuration.electric')
