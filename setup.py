@@ -49,7 +49,8 @@ setup(
         'halo',
         'cursor',
         'google',
-        'check-pypi-name'
+        'check-pypi-name',
+        'prompt-toolkit'
     ],
     package_dir={'': 'src'},
     entry_points =

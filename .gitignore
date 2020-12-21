@@ -18,3 +18,5 @@ src/build
 src/electric.spec
 src/dist
 Inno Setup/
+src/Pipfile.lock
+src/Pipfile

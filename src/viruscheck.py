@@ -8,7 +8,6 @@ import hashlib
 
 API_KEY = '776bd8a0f128d2f425b821524dce5b2d43904bff15a467c8b332ac2561e9624b'
 
-
 def virus_check(path : str):
     # Read A .exe File
     with open(rf'{path}', 'rb') as f:

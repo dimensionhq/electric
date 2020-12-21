@@ -182,12 +182,9 @@ def install(
         write_debug('Sending GET Request To /packages', metadata)
         log_info('Sending GET Request To /packages', metadata.logfile)
         res, time = send_req_all()
-        res = json.loads(res)
         log_info('Updating SuperCache', metadata.logfile)
         update_supercache(res, metadata)
         log_info('Successfully updated SuperCache', metadata.logfile)
-        del res['_id']
-        log_info('Deleted `_id` from response', metadata.logfile)
         spinner.stop()
 
     correct_names = get_correct_package_names(res)
@@ -770,7 +767,6 @@ def uninstall(
         write_debug('Sending GET Request To /rapidquery/packages', metadata)
         log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
         res, time = send_req_all()
-        res = json.loads(res)
         update_supercache(res, metadata)
 
     correct_names = get_correct_package_names(res)
@@ -974,7 +970,6 @@ def bundle(
         write_debug('Sending GET Request To /bundles', metadata)
         log_info('Sending GET Request To /bundles', metadata.logfile)
         res, _ = send_req_bundle()
-        res = json.loads(res)
         del res['_id']
         spinner.stop()
         package_names = ''
@@ -1056,7 +1051,6 @@ def search(
 
     else:
         res, _ = send_req_all()
-        res = json.loads(res)
 
     correct_names = get_correct_package_names(res)[1:]
 
@@ -1173,8 +1167,8 @@ def sign(
     '''
     config = Config.generate_configuration(filepath, False)
     click.echo(click.style('No syntax errors found!', 'green'))
+    
     config.verify()
-
 
     md5 = hashlib.md5(open(filepath, 'rb').read()).hexdigest()
     sha256_hash = hashlib.sha256()
@@ -1267,12 +1261,7 @@ def show(package_name: str):
     if super_cache:
         res, _ = handle_cached_request()
     else:
-        # status = 'Networking'
-        # write_verbose('Sending GET Request To /packages', metadata)
-        # write_debug('Sending GET Request To /packages', metadata)
-        # log_info('Sending GET Request To /packages', logfile)
         res, _ = send_req_all()
-        res = json.loads(res)
         update_supercache(res, None)
         del res['_id']
 

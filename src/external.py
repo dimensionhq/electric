@@ -35,6 +35,7 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
         py_version = sys.version.split()
         for line in proc.stdout:
             line = line.decode('utf-8')
+            
             if f'Collecting {package_name}' in line:
                 write(f'Python v{py_version[0]} :: Collecting {package_name}', 'green', metadata)
             if 'Downloading' in line and package_name in line:
@@ -45,9 +46,10 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
                 write(
                     f'Python v{py_version[0]} :: Installing {package_name}', 'green', metadata)
 
-            if f'Requirement already satisfied: {package_name} ' in line and package_name in line:
+            if f'Requirement ' in line and package_name in line:
                 write(
                     f'Python v{py_version[0]} :: {package_name} Is Already Installed And On The Latest Version ==> {line.split()[-1]}', 'yellow', metadata)
+                break
 
             if 'Successfully installed' in line and package_name in line:
                 ver = line.split('-')[1]

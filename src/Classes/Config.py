@@ -439,7 +439,7 @@ class Config:
                         if md5 == md5_checksum and sha256 == sha256_checksum:
                             click.echo(click.style('Hashes Match!', 'green'))
                         else:
-                            click.echo(click.style('Hashes Don\'t Match! Aborting Installation!', 'red'))
+                            click.echo(click.style('Hashes Don\'t Match!', 'red'))
                             os.remove(rf'{gettempdir()}\electric\configuration.electric')
                             exit(1)
                         os.remove(rf'{gettempdir()}\electric\configuration.electric')
@@ -452,52 +452,116 @@ class Config:
         return Config(d)
 
 
-    def verify(self):
+    def verify(self, server=False, socket=None):
         config = self.dictionary
         python_packages = config['Pip-Packages'] if 'Pip-Packages' in self.headers else None
         node_packages = config['Node-Packages'] if 'Node-Packages' in self.headers else None
         editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
         packages = config['Packages'] if 'Packages' in self.headers else None
         editor_type = config['Editor-Configuration'][0]['Editor'] if 'Editor-Configuration' in self.headers else None
-        click.echo(click.style('↓ Validating Electric Packages        ↓', 'cyan'))
-        for package in packages:
-            proc = Popen(f'electric show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
-            output, err = proc.communicate()
-            if 'Could Not Find Any Packages' in output.decode():
-                click.echo(click.style(f'`{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
-                exit()
+        if packages:
+            click.echo(click.style('↓ Validating Electric Packages        ↓', 'cyan'))
+            if socket and server:
+                socket.send(b'Validating Electric Packages')
+            for package in packages:
+                proc = Popen(f'electric show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                output, err = proc.communicate()
+                if 'Could Not Find Any Packages' in output.decode():
+                    if socket and server:
+                        error = f'Electric Package => `{list(package.keys())[0]}` does not exist or has been removed.ERROR'
+                        socket.send(error.encode())
+                        return
+                    else:
+                        click.echo(click.style(f'`{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
+                        return
 
-        click.echo(click.style('↓ Validating Node or Npm Modules      ↓', 'cyan'))
-
-        for package in node_packages:
-            proc = Popen(f'npm show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-            output, err = proc.communicate()
-            if f'\'{list(package.keys())[0]}\' is not in the npm registry.' in err.decode():
-                click.echo(click.style(f'The ( npm | node ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
-                exit()
+        if node_packages:
+            click.echo(click.style('↓ Validating Node or Npm Modules      ↓', 'cyan'))
+            if socket and server:
+                socket.send(b'Validating Node or Npm Modules')
+            for package in node_packages:
+                proc = Popen(f'npm show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                output, err = proc.communicate()
+                if f'\'{list(package.keys())[0]}\' is not in the npm registry.' in err.decode():
+                    if socket and server:
+                        error = f'The ( npm | node ) module => `{list(package.keys())[0]}` does not exist or has been removed.ERROR'
+                        socket.send(error.encode())
+                        socket.close()
+                        return
+                    click.echo(click.style(f'The ( npm | node ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
+                    return
 
         click.echo(click.style('↓ Validating Python or Pip Modules    ↓', 'cyan'))
 
-        for package in python_packages:
-            if not Config.check_pypi_name(list(package.keys())[0].lower()):
-                click.echo(click.style(f'The ( python | pip ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
-                exit()
+        if python_packages:
+            if socket and server:
+                socket.send(b'Validating Python Or Pip Modules')
+            for package in python_packages:
+                if not Config.check_pypi_name(list(package.keys())[0].lower()):
+                    if socket and server:
+                        error = f'The ( python | pip ) module => `{list(package.keys())[0]}`.ERROR'
+                        socket.send(error.encode())
+                        socket.close()
+                        return
+                    click.echo(click.style(f'The ( python | pip ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
+                    return
 
-        if not editor_type in ['Visual Studio Code', 'Atom', 'Sublime Text 3']:
-            click.echo(click.style(f'The editor => {editor_type} is not supported by electric yet!', 'red'))
-        else:
-            if editor_extensions:
-                click.echo(click.style('↓ Validating Editor Extensions        ↓', 'cyan'))
-                if editor_type == 'Visual Studio Code':
-                    for package in editor_extensions:
-                        if not '.' in list(package.keys())[0]:
-                            click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
-                if editor_type == 'Atom':
-                    for package in editor_extensions:
-                        proc = Popen(f'apm show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-                        output, err = proc.communicate()
-                        if err:
-                            click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
+        if editor_type:
+            if not editor_type in ['Visual Studio Code', 'Atom', 'Sublime Text 3']:
+                click.echo(click.style(f'The editor => {editor_type} is not supported by electric yet!', 'red'))
+                if socket and server:
+                    error = f'The editor => {editor_type} is not supported by electric yet!ERROR'
+                    socket.send(error.encode())
+                    socket.close()
+                    return
+            else:
+                if editor_extensions:
+                    click.echo(click.style('↓ Validating Editor Extensions        ↓', 'cyan'))
+                    if socket and server:
+                        socket.send(b'Validating Editor Extensions')
+                    if editor_type == 'Visual Studio Code':
+                        for package in editor_extensions:
+                            if not '.' in list(package.keys())[0]:
+                                if socket and server:
+                                    error = f'Invalid Extension Name => {list(package.keys())[0]}.ERROR'
+                                    socket.send(error.encode())
+                                    socket.close()
+                                    return
+                                click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
+                                return
+
+                    if editor_type == 'Atom':
+                        for package in editor_extensions:
+                            proc = Popen(f'apm show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                            output, err = proc.communicate()
+                            
+                            if err != b'':
+                                if err == b'\x1b[31mread ECONNRESET\x1b[39m\n':
+                                    if socket and server:
+                                        error = f'Read Timed-Out => {list(package.keys())[0]}. Retrying In 7 Seconds.'
+                                        time.sleep(7)
+                                        socket.send(error.encode())
+                                        proc = Popen(f'apm show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                                        output, err = proc.communicate()
+                                        if err != b'':
+                                            if socket and server:
+                                                error = f'Invalid Extension Name Or Failed To Validate => {list(package.keys())[0]}.ERROR'
+                                                socket.send(error.encode())
+                                                socket.close()
+                                                return
+                                            click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
+                                            return            
+                                        
+                                if socket and server:
+                                    error = f'Invalid Extension Name => {list(package.keys())[0]}.ERROR'
+                                    socket.send(error.encode())
+                                    socket.close()
+                                    return
+                                click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
+                                return
+        if socket and server:
+            socket.send(b'Valid Configuration, Signing Config!')
+            socket.close()
 
 
     def install(self, install_directory: str, no_cache: str, sync: bool, metadata: Metadata):

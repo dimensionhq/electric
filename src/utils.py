@@ -59,8 +59,6 @@ class HiddenPrints:
         sys.stdout = self._original_stdout
 
 
-
-
 def get_recent_logs() -> list:
     with open(Rf'{appdata_dir}\electric-log.log', 'r') as file:
         data = file.read()
@@ -159,9 +157,8 @@ def send_req_bundle():
     REQA = 'https://electric-package-manager.herokuapp.com/bundles/windows'
     time = 0.0
     response = requests.get(REQA, timeout=15)
-    res = response.json()
     time = response.elapsed.total_seconds()
-    return res, time
+    return response.json(), time
 
 
 def download(url: str, package_name: str, metadata: Metadata, download_type: str):
@@ -210,7 +207,10 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                     complete = int(25 * dl / full_length)
                     fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
                     # fill_c = click.style('█', fg='bright_black') * complete
-                    unfill_c = Fore.BLACK + '█' * (25 - complete)
+                    unfill_c = Fore.BLACK + '█' * (25 - complete)   
+                    # fill_c =  Fore.GREEN + Style.DIM + '=' * complete
+                    # unfill_c = Fore.LIGHTBLACK_EX + '-' * (25 - complete)
+
                     # sys.stdout.write(
                     #     f'\r⚡ {fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ')
 
@@ -218,6 +218,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                         f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
                     # sys.stdout.write(
                     #     f'\r{fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
+                    
                     sys.stdout.flush()
     os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
     dump_pickle(generate_dict(newpath if newpath else path, package_name), 'downloadcache')
@@ -473,9 +474,8 @@ def send_req_all() -> dict:
     REQA = 'https://electric-package-manager.herokuapp.com/packages/windows'
     time = 0.0
     response = requests.get(REQA, timeout=15)
-    res = response.json()
     time = response.elapsed.total_seconds()
-    return res, time
+    return response.json(), time
 
 
 def get_pid(exe_name):
@@ -657,7 +657,6 @@ def setup_supercache():
     if not os.path.isdir(Rf'{appdata_dir}\supercache.json'):
         os.mkdir(appdata_dir)
     res, time = send_req_all()
-    res = json.loads(res)
     with open(Rf'{appdata_dir}\supercache.json', 'w+') as file:
         del res['_id']
         file.write(json.dumps(res, indent=4))
@@ -678,16 +677,16 @@ def update_supercache(res, metadata: Metadata):
 
     filepath = Rf'{appdata_dir}\supercache.json'
     file = open(filepath, 'w+')
-    log_info(f'Dumping json to {filepath}', metadata.logfile)
+    log_info(f'Dumping json to {filepath}', metadata.logfile if metadata else None)
     file.write(json.dumps(res, indent=4))
     file.close()
     logpath = Rf'{appdata_dir}\superlog.txt'
     logfile = open(logpath, 'w+')
     now = datetime.now()
-    log_info(f'Writing {str(now)} to {logpath}', metadata.logfile)
+    log_info(f'Writing {str(now)} to {logpath}', metadata.logfile if metadata else None)
     logfile.write(str(now))
     logfile.close()
-    log_info(f'Successfully wrote date and time to {logpath}', metadata.logfile)
+    log_info(f'Successfully wrote date and time to {logpath}', metadata.logfile if metadata else None)
 
 
 def check_newer_version(new_version) -> bool:
