@@ -1,9 +1,8 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "JSON Schema for electric-settings.json",
-    "$id": "electric-settings",
+    "$id": "https://raw.githubusercontent.com/TheBossProSniper/Electric-Windows/dev/settings-schema.json",
     "version": 1.0,
-    "required": ["version"],
     "type": "object",
     "description": "Provides autocompletion and validation for electric-settings.json files",
     "definitions": {
