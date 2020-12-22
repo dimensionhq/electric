@@ -368,8 +368,8 @@ def install(
                         log_info('Finished Rapid Download', metadata.logfile)
 
                         if virus_check:
-                            write('Scanning File For Viruses...', 'blue', metadata)
-                            check_virus(path, metadata)
+                            with Halo('\nScanning File For Viruses...', text_color='blue'):
+                                check_virus(path, metadata)
                         if not cached:
                             write(
                                 f'\nInstalling {packet.display_name}', 'cyan', metadata)
