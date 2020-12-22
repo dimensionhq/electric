@@ -1,36 +1,51 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "JSON Schema for electric-settings.json",
-    "$id": "https://raw.githubusercontent.com/TheBossProSniper/Electric-Windows/dev/settings-schema.json",
-    "version": 1.0,
-    "type": "object",
-    "description": "Provides autocompletion and validation for electric-settings.json files",
-    "definitions": {
-        "showProgressBar": {
-            "type": "boolean",
-            "description": "Whether or not electric should show a progress bar during installation"
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/product.schema.json",
+  "title": "Product",
+  "description": "A product from Acme's catalog",
+  "type": "object",
+  "properties": {
+    "productId": {
+      "description": "The unique identifier for a product",
+      "type": "integer"
+    },
+    "productName": {
+      "description": "Name of the product",
+      "type": "string"
+    },
+    "price": {
+      "description": "The price of the product",
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "tags": {
+      "description": "Tags for the product",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "dimensions": {
+      "type": "object",
+      "properties": {
+        "length": {
+          "type": "number"
         },
-        "progressBarType": {
-            "type": "string",
-            "description": "Type of progress bar to display during installation",
-            "oneOf": [
-                {   
-                    "const": "rainbow",
-                    "description": "Display a rainbow progress bar"
-                },
-                {
-                    "const": "accented",
-                    "description": "Display a clean progress bar with accents"
-                },
-                {
-                    "const": "electrified",
-                    "description": "Display an electrified progress bar"
-                },
-                {
-                    "const": "zippy",
-                    "description": "Display a fast and zippy looking progress bar"
-                }
-            ]
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
         }
+      },
+      "required": [ "length", "width", "height" ]
+    },
+    "warehouseLocation": {
+      "description": "Coordinates of the warehouse where the product is located.",
+      "$ref": "https://example.com/geographical-location.schema.json"
     }
+  },
+  "required": [ "productId", "productName", "price" ]
 }
