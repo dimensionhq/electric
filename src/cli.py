@@ -140,7 +140,9 @@ Usage: electric <command> [<options>]
     * new
     * config
     * generate
-    * sign'''
+    * sign
+{Fore.CYAN}Customization{Fore.RESET}
+    * settings'''
         print(message)
 
 

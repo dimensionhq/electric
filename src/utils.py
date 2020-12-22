@@ -177,6 +177,8 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         path = Rf'{tempfile.gettempdir()}\electric\Setup{random.randint(200, 100000)}'
 
     size, newpath = check_resume_download(package_name, metadata)
+    # TODO: Display Progress Bar If Already Downloaded
+
     if not size:
         dump_pickle({'path': path, 'url': url, 'name': package_name, 'download-type': download_type}, 'unfinishedcache')
 
@@ -205,11 +207,11 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
                 elif not metadata.no_progress and not metadata.silent:
                     complete = int(25 * dl / full_length)
-                    fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
+                    # fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
                     # fill_c = click.style('█', fg='bright_black') * complete
-                    unfill_c = Fore.BLACK + '█' * (25 - complete)   
-                    # fill_c =  Fore.GREEN + Style.DIM + '=' * complete
-                    # unfill_c = Fore.LIGHTBLACK_EX + '-' * (25 - complete)
+                    # unfill_c = Fore.BLACK + '█' * (25 - complete)   
+                    fill_c =  Fore.GREEN + Style.DIM + '=' * complete
+                    unfill_c = Fore.LIGHTBLACK_EX + '-' * (25 - complete)
 
                     # sys.stdout.write(
                     #     f'\r⚡ {fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ')
@@ -821,10 +823,13 @@ def disp_error_msg(messages: list, metadata: Metadata):
         click.echo('By sending a support ticket, you agree to the Terms And Conditions (https://www.electric.sh/support/terms-and-conditions)')
         sending_ticket = click.confirm('Would you like to send the support ticket ?')
         if sending_ticket:
-            res = requests.post('http://electric-package-manager.herokuapp.com/windows/support-ticket', json={'Logs': get_recent_logs()})
-            if res.status_code == 200:
-                click.echo(click.style('Successfully Sent Support Ticket!', fg='green'))
-
+            with Halo('', spinner='bounce') as h:
+                res = requests.post('http://electric-package-manager.herokuapp.com/windows/support-ticket/', json={'Logs': get_recent_logs()})
+                if res.status_code == 200:
+                    h.stop()
+                    click.echo(click.style('Successfully Sent Support Ticket!', fg='green'))
+                else:
+                    h.fail('Failed To Send Support Ticket')
 
     if reboot:
         reboot = click.confirm('Would you like to reboot?')

@@ -17,6 +17,7 @@ from cli import SuperChargeCLI
 from info import __version__
 from constants import *
 from external import *
+from settings import *
 from colorama import *
 from logger import *
 from utils import *
@@ -253,7 +254,7 @@ def install(
                 cursor.show()
                 log_info('Finished Rapid Download...', metadata.logfile)
                 log_info(
-                    'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission', metadata.logfile)
+                    f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
                 manager.handle_multi_install(paths)
                 return
             elif len(split_package_names) > 1:
@@ -376,7 +377,7 @@ def install(
                             write(
                                 f'Installing {packet.display_name}', 'cyan', metadata)
                         log_info(
-                            'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+                            f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
 
                         write_debug(
                             f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
@@ -587,7 +588,7 @@ def install(
             check_virus(path, metadata)
         if not cached:
             write(
-                '\nUsing Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
+                f'\nRunning {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', 'cyan', metadata)
         else:
             log_info(
                 'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
@@ -622,15 +623,11 @@ def install(
 
 
         if metadata.reduce_package:
-
             os.remove(path)
-            try:
-                os.remove(Rf'{tempfile.gettempdir()}\downloadcache.pickle')
-            except:
-                pass
+            os.remove(Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle')    
 
             log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
-            write('Successfully Cleaned Up Installer From Temp Directory...',
+            write('Successfully Cleaned Up Installer From Temp Directory',
                   'green', metadata)
 
         write_verbose('Installation and setup completed.', metadata)
@@ -826,7 +823,7 @@ def uninstall(
         write_debug('Successfully Recieved UninstallString from Windows Registry', metadata)
 
         write(
-            f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', 'cyan', metadata)
+            f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', 'green', metadata)
         log_info(
             f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', metadata.logfile)
 
@@ -1283,6 +1280,17 @@ def show(package_name: str):
             exit()
     pkg_info = res[corrected_package_names[0]]
     click.echo(click.style(display_info(pkg_info), fg='green'))
+
+
+@cli.command(context_settings=CONTEXT_SETTINGS)
+def settings():
+    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\electric-settings.json'):
+        click.echo(click.style(f'Creating electric-settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
+        initialize_settings()
+    cursor.hide()
+    with Halo('Opening Settings... ', text_color='blue'):
+        open_settings()
+    cursor.show()
 
 
 @cli.command()
