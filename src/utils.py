@@ -560,25 +560,29 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
 
-        print(Fore.RESET, '', Fore.RESET)
+        print(Fore.RESET, '')
         write('SafetyHarness Successfully Created Clean Exit Gateway',
               'green', metadata)
         write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0',
               'light_blue', metadata)
+        print(Fore.RESET, '')
         os._exit(0)
 
     if status == 'Got Download Path':
-        print(Fore.RESET, '', Fore.RESET)
+        print(Fore.RESET, '')
         write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
+        print(Fore.RESET, '')
         os._exit(0)
 
     if status == 'Downloading':
-        print(Fore.RESET, '', Fore.RESET)
+        print(Fore.RESET, '')
         write('\n\nRapidExit Successfully Exited With Code 0', 'green', metadata)
+        print(Fore.RESET, '')
         os._exit(0)
     else:
-        print(Fore.RESET, '', Fore.RESET)
+        print(Fore.RESET, '')
         write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
+        print(Fore.RESET, '')
         os._exit(0)
 
 

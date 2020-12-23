@@ -30,12 +30,12 @@
         },
         "useCustomProgressBar": {
             "type": "boolean",
-            "description": "Whether or not to use a custom progress bar defined"
+            "description": "Whether or not to use a custom progress bar defined",
+            "required": ["customProgressBar"]
         },
         "customProgressBar": {
             "type": "object",
-            "description": "A custom progress bar to be displayed by electric",
-            "required": ["customProgressBar"]
+            "description": "A custom progress bar to be displayed by electric"
         }
     }
 }
