@@ -56,6 +56,9 @@ class Setting:
         try:
             settings['customProgressBar']['unfill_character']
         except KeyError:
-            settings['customProgressBar']['unfill_character'] = ' '
-    
+            try:
+                settings['customProgressBar']['unfill_character'] = ' '
+            except KeyError:
+                use_custom_progress_bar = False
+
         return Setting(settings, progress_bar_type, show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar)
