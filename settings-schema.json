@@ -30,8 +30,7 @@
         },
         "useCustomProgressBar": {
             "type": "boolean",
-            "description": "Whether or not to use a custom progress bar defined",
-            "required": ["customProgressBar"]
+            "description": "Whether or not to use a custom progress bar defined by the \"customProgressBar\" object"
         },
         "customProgressBar": {
             "type": "object",
