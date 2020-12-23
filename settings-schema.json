@@ -30,12 +30,118 @@
         },
         "useCustomProgressBar": {
             "type": "boolean",
-            "description": "Whether or not to use a custom progress bar defined"
+            "description": "Whether or not to use a custom progress bar defined",
+            "required": ["customProgressBar"]
         },
         "customProgressBar": {
             "type": "object",
             "description": "A custom progress bar to be displayed by electric",
-            "required": ["customProgressBar"]
+            "properties": {
+                "fill_character": {
+                    "type": "string",
+                    "description": "A custom character for the progress bar to fill whitespaces with."
+                },
+                "unfill_character": {
+                    "type": "string",
+                    "description": "A custom character for the progress bar to display instead of whitespaces."
+                },
+                "fill_character_color": {
+                    "type": "string",
+                    "description": "A custom color for the fill character.",
+                    "oneOf": [
+                        {
+                            "const": "red"
+                        },
+                        {
+                            "const": "green"
+                        },
+                        {
+                            "const": "blue"
+                        },
+                        {
+                            "const": "magenta"
+                        },
+                        {
+                            "const": "cyan"
+                        },
+                        {
+                            "const": "white"
+                        },
+                        {
+                            "const": "lightblack_ex"
+                        },
+                        {
+                            "const": "lightred_ex"
+                        },
+                        {
+                            "const": "lightgreen_ex"   
+                        },
+                        {
+                            "const": "lightyellow_ex"
+                        },
+                        {
+                            "const": "lightblue_ex"
+                        },
+                        {
+                            "const": "lightmagenta_ex"
+                        },
+                        {
+                            "const": "lightcyan_ex"
+                        },
+                        {
+                            "const": "lightwhite_ex"
+                        }
+                    ]
+                },
+                "unfill_character_color": {
+                    "type": "string",
+                    "description": "A custom color for the unfill character.",
+                    "oneOf": [
+                        {
+                            "const": "red"
+                        },
+                        {
+                            "const": "green"
+                        },
+                        {
+                            "const": "blue"
+                        },
+                        {
+                            "const": "magenta"
+                        },
+                        {
+                            "const": "cyan"
+                        },
+                        {
+                            "const": "white"
+                        },
+                        {
+                            "const": "lightblack_ex"
+                        },
+                        {
+                            "const": "lightred_ex"
+                        },
+                        {
+                            "const": "lightgreen_ex"   
+                        },
+                        {
+                            "const": "lightyellow_ex"
+                        },
+                        {
+                            "const": "lightblue_ex"
+                        },
+                        {
+                            "const": "lightmagenta_ex"
+                        },
+                        {
+                            "const": "lightcyan_ex"
+                        },
+                        {
+                            "const": "lightwhite_ex"
+                        }
+                    ]
+                }
+            }
         }
     }
 }
