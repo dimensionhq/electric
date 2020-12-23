@@ -8,7 +8,8 @@ def initialize_settings():
     default_electric_settings = {
         "$schema": "http://electric-package-manager.herokuapp.com/schemas/settings",
         "progressBarType": "accented",
-        "showProgressBar": True
+        "showProgressBar": True,
+        "electrifyProgressBar": False
     }
 
     with open(settings_dir, 'w+') as f:

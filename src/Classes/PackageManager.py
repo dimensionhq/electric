@@ -4,7 +4,7 @@
 
 
 import multiprocessing
-from logger import log_info, closeLog
+from logger import log_info, close_log
 from Classes.Download import Download
 from Classes.Install import Install
 from subprocess import PIPE
@@ -359,4 +359,4 @@ class PackageManager:
             f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', self.metadata.logfile)
 
         if self.metadata.logfile:
-            closeLog(self.metadata.logfile, 'Install')
+            close_log(self.metadata.logfile, 'Install')

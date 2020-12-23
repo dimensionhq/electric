@@ -9,6 +9,7 @@ from Classes.PackageManager import PackageManager
 from timeit import default_timer as timer
 from urllib.request import urlretrieve
 from limit import Limiter, TokenBucket
+from Classes.Setting import Setting
 from Classes.Config import Config
 from Classes.Packet import Packet
 from prompt_toolkit import prompt
@@ -17,7 +18,6 @@ from cli import SuperChargeCLI
 from info import __version__
 from constants import *
 from external import *
-from settings import *
 from colorama import *
 from logger import *
 from utils import *
@@ -36,7 +36,6 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 @click.pass_context
 def cli(_):
     pass
-
 
 @cli.command(aliases=['i'], context_settings=CONTEXT_SETTINGS)
 @click.argument('package_name', required=True)
@@ -88,6 +87,7 @@ def install(
     """
     Installs a package or a list of packages.
     """
+
     if configuration:
         ctx.invoke(
             config,
@@ -111,11 +111,11 @@ def install(
     if logfile:
         logfile = logfile.replace('=', '')
         logfile = logfile.replace('.txt', '.log')
-        createConfig(logfile, logging.INFO, 'Install')
+        create_config(logfile, logging.INFO, 'Install')
 
     log_info('Generating metadata...', logfile)
     metadata = generate_metadata(
-        no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit)
+        no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new())
     log_info('Successfully generated metadata.', metadata.logfile)
 
     if python:
@@ -146,7 +146,6 @@ def install(
         for name in package_names:
             handle_sublime_extension(name, 'install', metadata)
         sys.exit()
-
 
     if atom:
         package_names = package_name.split(',')
@@ -224,7 +223,7 @@ def install(
                         write_verbose(
                             f'Found an existing installation of => {packet.json_name}', metadata)
                         write(
-                            f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
+                            f'Found an existing installation {packet.display_name}.', 'yellow', metadata)
                         installation_continue = click.confirm(
                             f'Would you like to reinstall {packet.json_name}')
 
@@ -257,6 +256,7 @@ def install(
                     f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
                 manager.handle_multi_install(paths)
                 return
+
             elif len(split_package_names) > 1:
                 for package_batch in split_package_names:
                     package_batch = list(package_batch)
@@ -277,7 +277,7 @@ def install(
                             write_verbose(
                                 f'Found an existing installation of => {packet.json_name}', metadata)
                             write(
-                                f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
+                                f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
                             installation_continue = click.confirm(
                                 f'Would you like to reinstall {packet.display_name}')
                             if installation_continue or yes:
@@ -423,7 +423,7 @@ def install(
                             f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata)
                         log_info(
                             f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
-                        closeLog(metadata.logfile, 'Install')
+                        close_log(metadata.logfile, 'Install')
                         return
 
                     packets = []
@@ -492,7 +492,7 @@ def install(
             write_verbose(
                 f'Found an existing installation of => {packet.json_name}', metadata)
             write(
-                f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
+                f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
             installation_continue = click.confirm(
                 f'Would you like to reinstall {packet.display_name}?')
             if installation_continue or yes:
@@ -636,7 +636,7 @@ def install(
             f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata)
         log_info(
             f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
-        closeLog(metadata.logfile, 'Install')
+        close_log(metadata.logfile, 'Install')
 
         index += 1
 
@@ -699,7 +699,7 @@ def uninstall(
     log_info('Generating metadata...', logfile)
 
     metadata = generate_metadata(
-        None, silent, verbose, debug, no_color, yes, logfile, None, None, None)
+        None, silent, verbose, debug, no_color, yes, logfile, None, None, None, Setting.new())
 
     log_info('Successfully generated metadata.', logfile)
 
@@ -715,7 +715,7 @@ def uninstall(
 
     if logfile:
         logfile = logfile.replace('.txt', '.log')
-        createConfig(logfile, logging.INFO, 'Install')
+        create_config(logfile, logging.INFO, 'Install')
 
     if python:
 
@@ -811,7 +811,7 @@ def uninstall(
             log_info(f'electric didn\'t detect any existing installations of => {packet.display_name}', metadata.logfile)
             write(
                 f'Could Not Find Any Existing Installations Of {packet.display_name}', 'yellow', metadata)
-            closeLog(metadata.logfile, 'Uninstall')
+            close_log(metadata.logfile, 'Uninstall')
             index += 1
             continue
 
@@ -874,7 +874,7 @@ def uninstall(
                     f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
                 log_info(
                     f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
-                closeLog(metadata.logfile, 'Uninstall')
+                close_log(metadata.logfile, 'Uninstall')
 
             # If Only UninstallString Exists (Not Preferable)
             if 'UninstallString' in key and 'QuietUninstallString' not in key:
@@ -900,7 +900,7 @@ def uninstall(
                     f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
                 log_info(
                     f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
-                closeLog(metadata.logfile, 'Uninstall')
+                close_log(metadata.logfile, 'Uninstall')
     finish_log()
 
 
@@ -945,13 +945,13 @@ def bundle(
     Installs a bunlde of packages from the official electric repository.
     """
     metadata = generate_metadata(
-            no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit)
+            no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new())
 
     if is_admin():
         if logfile:
             logfile = logfile.replace('=', '')
             logfile = logfile.replace('.txt', '.log')
-            createConfig(logfile, logging.INFO, 'Install')
+            create_config(logfile, logging.INFO, 'Install')
 
         log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
         status = 'Initializing'
@@ -1144,7 +1144,7 @@ def config(
     Installs and configures packages from a .electric configuration file.
     '''
     metadata = generate_metadata(
-            no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit)
+            no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new())
 
     config = Config.generate_configuration(config_path)
     config.check_prerequisites()
@@ -1291,7 +1291,6 @@ def settings():
     with Halo('Opening Settings... ', text_color='blue'):
         open_settings()
     cursor.show()
-
 
 @cli.command()
 @click.option('--word', required=True)

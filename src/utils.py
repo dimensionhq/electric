@@ -43,6 +43,7 @@ import sys
 import os
 import re
 
+
 index = 0
 final_value = None
 path = ''
@@ -161,6 +162,35 @@ def send_req_bundle():
     return response.json(), time
 
 
+def get_init_char(start, metadata):
+    if start:
+        try:
+            start_char = metadata.settings.raw_dictionary['customProgressBar']['start_character']
+        except:
+            return ''
+        return start_char if start_char else ''
+    else:
+        try:
+            end_char = metadata.settings.raw_dictionary['customProgressBar']['end_character']
+        except:
+            return ''
+        return end_char if end_char else ''
+
+def get_character_color(fill, metadata):
+    if fill:
+        try:
+            fill_char_color = metadata.settings.raw_dictionary['customProgressBar']['fill_character_color']
+        except:
+            return 'Fore.RESET'
+        return f'Fore.{fill_char_color.upper()}'if fill_char_color else f'Fore.RESET'
+    else:
+        try:
+            unfill_char_color = metadata.settings.raw_dictionary['customProgressBar']['unfill_character_color']
+        except:
+            return 'Fore.RESET'
+        return f'Fore.{unfill_char_color.upper()}' if unfill_char_color else f'Fore.RESET'
+
+
 def download(url: str, package_name: str, metadata: Metadata, download_type: str):
     cursor.hide()
     path = check_existing_download(package_name, download_type)
@@ -177,7 +207,6 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         path = Rf'{tempfile.gettempdir()}\electric\Setup{random.randint(200, 100000)}'
 
     size, newpath = check_resume_download(package_name, metadata)
-    # TODO: Display Progress Bar If Already Downloaded
 
     if not size:
         dump_pickle({'path': path, 'url': url, 'name': package_name, 'download-type': download_type}, 'unfinishedcache')
@@ -189,6 +218,9 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
             response = requests.get(url, stream=True)
         total_length = response.headers.get('content-length')
         chunk_size = get_chunk_size(total_length)
+        
+        progress_type = metadata.settings.progress_bar_type
+
         if total_length is None:
             f.write(response.content)
         else:
@@ -200,24 +232,33 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                 dl += len(data)
                 f.write(data)
 
-                if metadata.no_progress:
+                if metadata.no_progress == True or metadata.settings.show_progress_bar == False:
                     sys.stdout.write(
                         f'\r{round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
                     sys.stdout.flush()
 
+                
                 elif not metadata.no_progress and not metadata.silent:
                     complete = int(25 * dl / full_length)
-                    # fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
-                    # fill_c = click.style('█', fg='bright_black') * complete
-                    # unfill_c = Fore.BLACK + '█' * (25 - complete)   
-                    fill_c =  Fore.GREEN + Style.DIM + '=' * complete
-                    unfill_c = Fore.LIGHTBLACK_EX + '-' * (25 - complete)
+                    if progress_type == 'custom' or metadata.settings.use_custom_progress_bar:
+                        fill_c = eval(get_character_color(True, metadata))  + metadata.settings.raw_dictionary['customProgressBar']['fill_character'] * complete
+                        unfill_c = eval(get_character_color(False, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['unfill_character']  * (25 - complete)
+                    elif progress_type == 'accented':
+                        fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
+                        unfill_c = Fore.BLACK + '█' * (25 - complete)   
+                    elif progress_type == 'zippy':
+                        fill_c =  Fore.GREEN + '=' * complete
+                        unfill_c = Fore.LIGHTBLACK_EX + '-' * (25 - complete)
+                    elif progress_type not in ['custom', 'accented', 'zippy'] and metadata.settings.use_custom_progress_bar == False or progress_type == 'default':
+                        fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
+                        unfill_c = Fore.BLACK + '█' * (25 - complete)
 
-                    # sys.stdout.write(
-                    #     f'\r⚡ {fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ')
-
-                    sys.stdout.write(
-                        f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
+                    if metadata.settings.electrify_progress_bar == True and not metadata.settings.use_custom_progress_bar:
+                        sys.stdout.write(
+                        f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}⚡')
+                    else:
+                        sys.stdout.write(
+                            f'\r{get_init_char(True, metadata)}{fill_c}{unfill_c}{get_init_char(False, metadata)} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
                     # sys.stdout.write(
                     #     f'\r{fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
                     
@@ -519,6 +560,7 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
 
+        print(Fore.RESET, '', Fore.RESET)
         write('SafetyHarness Successfully Created Clean Exit Gateway',
               'green', metadata)
         write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0',
@@ -526,13 +568,16 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
         os._exit(0)
 
     if status == 'Got Download Path':
+        print(Fore.RESET, '', Fore.RESET)
         write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
         os._exit(0)
 
     if status == 'Downloading':
+        print(Fore.RESET, '', Fore.RESET)
         write('\n\nRapidExit Successfully Exited With Code 0', 'green', metadata)
         os._exit(0)
     else:
+        print(Fore.RESET, '', Fore.RESET)
         write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
         os._exit(0)
 
@@ -782,8 +827,8 @@ def handle_cached_request():
         return res, time
 
 
-def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit):
-    return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce, rate_limit)
+def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, settings):
+    return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce, rate_limit, settings)
 
 
 def disp_error_msg(messages: list, metadata: Metadata):
