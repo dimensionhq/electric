@@ -14,23 +14,28 @@
             "type": "string",
             "description": "Type of progress bar to display during installation",
             "oneOf": [
-                {   
-                    "const": "rainbow",
-                    "description": "Display a rainbow progress bar"
-                },
                 {
                     "const": "accented",
                     "description": "Display a clean progress bar with accents"
-                },
-                {
-                    "const": "electrified",
-                    "description": "Display an electrified progress bar"
                 },
                 {
                     "const": "zippy",
                     "description": "Display a fast and zippy looking progress bar"
                 }
             ]
+        },
+        "electrifyProgressBar": {
+            "type": "boolean",
+            "description": "Whether or not to electrify the electric progress bar"
+        },
+        "useCustomProgressBar": {
+            "type": "boolean",
+            "description": "Whether or not to use a custom progress bar defined"
+        },
+        "customProgressBar": {
+            "type": "object",
+            "description": "A custom progress bar to be displayed by electric",
+            "required": ["customProgressBar"]
         }
     }
 }
