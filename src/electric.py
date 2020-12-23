@@ -4,6 +4,7 @@
 
 
 from registry import get_uninstall_key, get_environment_keys
+from settings import open_settings, initialize_settings
 from prompt_toolkit.completion import WordCompleter
 from Classes.PackageManager import PackageManager
 from timeit import default_timer as timer
