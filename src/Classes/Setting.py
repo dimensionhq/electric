@@ -51,7 +51,6 @@ class Setting:
             settings['customProgressBar']['fill_character']
         except KeyError:
             use_custom_progress_bar = False
-            
 
         try:
             settings['customProgressBar']['unfill_character']
