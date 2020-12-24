@@ -679,8 +679,6 @@ def refresh_environment_variables() -> bool:
     if 'Finished' in output.decode('utf-8'):
         return True
     else:
-        print('An error occurred')
-        print(err.decode('utf-8'))
         return False
 
 

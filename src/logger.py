@@ -53,7 +53,11 @@ def close_log(logfile : str, process : str):
             file.close()
 
 def log_info(text : str, logfile : str):
-    with open(f'{appdata_dir}\\electric-log.log', 'a+') as f:
+    mode = 'a+'
+    if not os.path.isdir(f'{appdata_dir}\\electric-log.log'):
+        mode = 'w+'
+
+    with open(f'{appdata_dir}\\electric-log.log', mode) as f:
         f.write(f'\nINFO:root:{text}')
     if logfile:
         logging.info(text)
