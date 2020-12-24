@@ -672,16 +672,11 @@ def get_install_flags(install_dir: str, no_cache: bool, sync: bool, metadata: Me
 
     return flags
 
-def refresh_environment_variables() -> bool:
-    proc = Popen(Rf'{PathManager.get_current_directory()}\scripts\refreshvars.cmd',
+def refresh_environment_variables():
+    Popen(Rf'{PathManager.get_current_directory()}\scripts\refreshvars.cmd',
                  stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-    output, err = proc.communicate()
-    if 'Finished' in output.decode('utf-8'):
-        return True
-    else:
-        return False
 
-
+    
 def check_virus(path: str, metadata: Metadata):
     detected = virus_check(path)
     if detected:
