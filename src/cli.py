@@ -128,22 +128,22 @@ Copyright (c) Electric Inc.
 Usage: electric <command> [<options>]
 
 {Fore.GREEN}Commands:{Fore.RESET}
-
-{Fore.CYAN}Software Management{Fore.RESET}
-    * install
-    * uninstall
-    * bundle
-{Fore.CYAN}Explore Packages{Fore.RESET}
-    * search
-    * show
-{Fore.CYAN}Configuration Development And Management{Fore.RESET}
-    * new
-    * config
-    * generate
-    * sign
-{Fore.CYAN}Customization{Fore.RESET}
-    * settings'''
-        print(message)
+  {Fore.CYAN}Software Management{Fore.RESET}
+    {Fore.MAGENTA}*{Fore.RESET} install
+    {Fore.MAGENTA}*{Fore.RESET} uninstall
+    {Fore.MAGENTA}*{Fore.RESET} bundle
+  {Fore.CYAN}Explore Packages{Fore.RESET}
+    {Fore.MAGENTA}*{Fore.RESET} search
+    {Fore.MAGENTA}*{Fore.RESET} show
+  {Fore.CYAN}Configuration Development And Management{Fore.RESET}
+    {Fore.MAGENTA}*{Fore.RESET} new
+    {Fore.MAGENTA}*{Fore.RESET} config
+    {Fore.MAGENTA}*{Fore.RESET} generate
+    {Fore.MAGENTA}*{Fore.RESET} sign
+  {Fore.CYAN}Customization And Cleanup{Fore.RESET}
+    {Fore.MAGENTA}*{Fore.RESET} settings
+    {Fore.MAGENTA}*{Fore.RESET} cleanup'''
+        click.echo(message)
 
 
 class SuperChargeCLI(DYMMixin, click.Group):  # pylint: disable=too-many-public-methods

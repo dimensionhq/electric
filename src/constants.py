@@ -53,7 +53,7 @@ valid_install_exit_codes = [
     0,
     1641,
     2359302,
-    2149842956,
+    2149842956
 ]
 
 valid_uninstall_exit_codes = [
