@@ -10,7 +10,6 @@ import winreg
 keys = []
 
 def get_uninstall_key(package_name : str, display_name: str):
-
     def send_query(hive, flag):
         aReg = winreg.ConnectRegistry(None, hive)
         aKey = winreg.OpenKey(aReg, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
@@ -69,18 +68,25 @@ def get_uninstall_key(package_name : str, display_name: str):
             refined_list = []
 
             for item in final_list:
-                if item is None:
+                if not item:
                     final_list.pop(index)
                 else:
                     name = item.lower()
-
+                
                 refined_list.append(name)
                 index += 1
 
+            temp_list = []
+            old = ''
+            for val in refined_list:
+                if val != old:
+                    temp_list.append(val)
+                    old = val
+            
             for string in strings:
                 matches = difflib.get_close_matches(
-                    package_name, refined_list[0], cutoff=0.65)
-
+                    package_name, temp_list, cutoff=0.65)
+                
                 if not matches:
                     possibilities = []
 
@@ -159,7 +165,6 @@ def get_uninstall_key(package_name : str, display_name: str):
 
 
     get_uninstall_string(package_name)
-
     if final_array:
         if len(final_array) > 1:
             return get_more_accurate_matches(final_array)
