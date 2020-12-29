@@ -97,7 +97,6 @@ def install(
     """
     Installs a package or a list of packages.
     """
-
     if configuration:
         ctx.invoke(
             config,
@@ -170,6 +169,8 @@ def install(
     if no_cache:
         log_info('Overriding SuperCache To FALSE', metadata.logfile)
         super_cache = False
+    if not super_cache:
+        update_supercache(metadata)
 
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
     status = 'Initializing'
@@ -225,7 +226,7 @@ def install(
                     keys = list(pkg.keys())
                     idx = 0
                     for key in keys:
-                        if key not in ['package-name', 'nightly']:
+                        if key not in ['package-name', 'nightly', 'display-name']:
                             idx = keys.index(key)
                             break
                     version = keys[idx]
@@ -302,7 +303,7 @@ def install(
                         keys = list(pkg.keys())
                         idx = 0
                         for key in keys:
-                            if key not in ['package-name', 'nightly']:
+                            if key not in ['package-name', 'nightly', 'display-name']:
                                 idx = keys.index(key)
                                 break
                         version = keys[idx]
@@ -500,7 +501,7 @@ def install(
                         keys = list(pkg.keys())
                         idx = 0
                         for key in keys:
-                            if key not in ['package-name', 'nightly']:
+                            if key not in ['package-name', 'nightly', 'display-name']:
                                 idx = keys.index(key)
                                 break
                         version = keys[idx]
@@ -550,12 +551,12 @@ def install(
                 return
 
     for package in corrected_package_names:
-        if super_cache:
+        supercache_availiable = check_supercache_availiable(package)
+
+        if super_cache and supercache_availiable:
             log_info('Handling SuperCache Request.', metadata.logfile)
             res, time = handle_cached_request(package)
-            if res == 'NOT FOUND':
-                res, time = send_req_package(package)
-
+        
         else:
             spinner = halo.Halo(color='grey')
             spinner.start()
@@ -565,8 +566,7 @@ def install(
             write_debug('Sending GET Request To /packages', metadata)
             log_info('Sending GET Request To /packages', metadata.logfile)
             log_info('Updating SuperCache', metadata.logfile)
-            update_supercache(metadata)
-            res, time = handle_cached_request(package)
+            res, time = send_req_package(package)
             log_info('Successfully Updated SuperCache', metadata.logfile)
             spinner.stop()
 
@@ -577,7 +577,7 @@ def install(
         
         if not version:
             for key in keys:
-                if key not in ['package-name', 'nightly']:
+                if key not in ['package-name', 'nightly', 'display-name']:
                     idx = keys.index(key)
                     break
             version = keys[idx]
@@ -893,7 +893,7 @@ def uninstall(
         keys = list(pkg.keys())
         idx = 0
         for key in keys:
-                if key not in ['package-name', 'nightly']:
+                if key not in ['package-name', 'nightly', 'display-name']:
                     idx = keys.index(key)
                     break
 
@@ -1397,37 +1397,15 @@ def generate(
 
 
 @cli.command(aliases=['info'], context_settings=CONTEXT_SETTINGS)
+@click.option('--nightly', '--pre-release', is_flag=True, help='Install a nightly or pre-release build of a package')
 @click.argument('package_name', required=True)
-def show(package_name: str):
+def show(package_name: str, nightly: bool):
     '''
     Displays information about the specified package.
     '''
-    super_cache = check_supercache_valid()
-    if super_cache:
-        res, _ = handle_cached_request()
-    else:
-        res, _ = send_req_all()
-        update_supercache(res, None)
-        del res['_id']
+    res, _ = send_req_package(package_name)
 
-    correct_names = get_correct_package_names(res)
-    corrected_package_names = []
-
-    if package_name in correct_names:
-        corrected_package_names.append(package_name)
-    else:
-        corrections = difflib.get_close_matches(package_name, correct_names)
-        if corrections:
-
-            click.echo(click.style(f'Autocorrecting To {corrections[0]}', fg='bright_magenta'))
-            if click.confirm('Would You Like To Continue?'):
-                package_name = corrections[0]
-                corrected_package_names.append(package_name)
-        else:
-            click.echo(click.style(f'Could Not Find Any Packages Which Match {package_name}', fg='bright_magenta'))
-            exit()
-    pkg_info = res[corrected_package_names[0]]
-    click.echo(click.style(display_info(pkg_info), fg='green'))
+    click.echo(click.style(display_info(res, nightly=nightly), fg='green'))
 
 
 @cli.command(context_settings=CONTEXT_SETTINGS)

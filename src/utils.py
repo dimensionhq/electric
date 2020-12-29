@@ -548,7 +548,7 @@ def send_req_package(package_name: str) -> dict:
     REQA = 'http://electric-package-manager.herokuapp.com/packages/windows/'
     response = requests.get(REQA + package_name, timeout=15)
     time = response.elapsed.total_seconds()
-    return response.json(), time
+    return json.loads(response.text), time
 
 
 def get_pid(exe_name):
@@ -850,13 +850,15 @@ def check_supercache_valid():
         date = datetime.strptime(contents, '%Y-%m-%d %H:%M:%S.%f')
         if (datetime.now() - date).days < 7:
             return True
-
-        if (datetime.now() - date).days > 4:
-            # check_for_updates()
-            pass
-
     return False
 
+
+def check_supercache_availiable(package_name: str) -> bool:
+    supercache_dir = PathManager.get_appdata_directory() + R'\SuperCache'
+    files = os.listdir(supercache_dir)
+    if f'{package_name}.json' in files:
+        return True
+    return False
 
 def handle_cached_request(package_name: str):
     start = timer()
@@ -1063,11 +1065,29 @@ def handle_unknown_error(err: str):
     return count >= 2
 
 
-def display_info(json: dict) -> str:
+def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
+    pkg = res
+    keys = list(pkg.keys())
+    idx = 0
+    
+    if not version:
+        for key in keys:
+            if key not in ['package-name', 'nightly', 'display-name']:
+                idx = keys.index(key)
+                break
+        version = keys[idx]
+    if nightly:
+        version = 'nightly'
+    try:
+        pkg = pkg[version]
+    except KeyError:
+        name = res['display-name']
+        click.echo(click.style(f'\nCannot Find {name}::v{version}', 'red'))
+        exit()
     return f'''
-| Name => {json['package-name']}
-| Version => Coming Soon!
-| Url(Windows) => {json['win64']}
+ Name {Fore.MAGENTA}=>{Fore.GREEN}{Fore.YELLOW} {res['display-name']}{Fore.GREEN}
+ Latest Version {Fore.MAGENTA}=> {Fore.BLUE}{version}{Fore.GREEN}
+ Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{pkg['win64']}{Fore.CYAN}
     '''
 
 

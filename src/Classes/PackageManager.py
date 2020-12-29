@@ -370,7 +370,7 @@ class PackageManager:
                     keys = list(pkg.keys())
                     idx = 0
                     for key in keys:
-                        if key not in ['package-name', 'nightly']:
+                        if key not in ['package-name', 'nightly', 'display-name']:
                             idx = keys.index(key)
                             break
                     version = keys[idx]
