@@ -1106,10 +1106,16 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
 '''
 
 
-def get_correct_package_names() -> list:
-    with open(rf'{PathManager.get_appdata_directory()}\SuperCache\packages.json', 'r') as f:
-        dictionary = json.load(f)
-        packages = dictionary['packages']
+def get_correct_package_names(all=False) -> list:
+    if not all:
+        with open(rf'{PathManager.get_appdata_directory()}\SuperCache\packages.json', 'r') as f:
+            dictionary = json.load(f)
+            packages = dictionary['packages']
+    else:
+        req = requests.get('https://electric-package-manager.herokuapp.com/setup/name-list')
+        res = json.loads(req.text)
+        packages = res['packages']
+
     return packages
 
 

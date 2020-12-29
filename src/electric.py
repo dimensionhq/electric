@@ -1197,7 +1197,7 @@ def search(
     """
 
     
-    correct_names = get_correct_package_names()
+    correct_names = get_correct_package_names(all=True)
 
     matches = []
     if exact:
@@ -1397,7 +1397,7 @@ def generate(
 
 
 @cli.command(aliases=['info'], context_settings=CONTEXT_SETTINGS)
-@click.option('--nightly', '--pre-release', is_flag=True, help='Install a nightly or pre-release build of a package')
+@click.option('--nightly', '--pre-release', is_flag=True, help='Show a nightly or pre-release build of a package')
 @click.argument('package_name', required=True)
 def show(package_name: str, nightly: bool):
     '''
