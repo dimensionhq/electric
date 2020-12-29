@@ -1132,5 +1132,11 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
                     else:
                         handle_exit('ERROR', None, metadata)
             else:
-                write_all(f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
+                req = requests.get('https://electric-package-manager.herokuapp.com/setup/name-list')
+                res = json.loads(req.text)
+                if name not in res['packages']:                
+                    write_all(f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
+                else:
+                    corrected_names.append(name)
+
     return corrected_names

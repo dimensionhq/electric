@@ -872,14 +872,14 @@ def uninstall(
     for header in install_debug_headers:
         log_info(header, metadata.logfile)
 
-    index = 0
+    index = 0   
 
     for package in corrected_package_names:
-        if super_cache:
+        supercache_availiable = check_supercache_availiable(package)
+        if super_cache and supercache_availiable:
             log_info('Handling SuperCache Request.', metadata.logfile)
             res, time = handle_cached_request(package)
             time = Decimal(time)
-
         else:
             log_info('Handling Network Request...', metadata.logfile)
             status = 'Networking'
