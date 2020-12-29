@@ -67,12 +67,12 @@ def get_recent_logs() -> list:
     return data.splitlines()
 
 
-def generate_report(name: str):
+def generate_report(name: str, version: str):
     return f'''
 {{
-NAME :: {name}
-VERSION :: Coming Soon!
-LOGFILE :: <--attachment-->
+NAME :: {Fore.YELLOW}{name}{Fore.YELLOW}
+VERSION :: {Fore.BLUE}{version}{Fore.GREEN}
+LOGFILE :: <--attachment-->{Fore.RESET}
 }}
     '''
 
@@ -299,7 +299,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         return newpath, False
 
 
-def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: list, display_name: str, method: str, metadata: Metadata) -> str:
+def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: list, display_name: str, method: str, metadata: Metadata, packet: Packet) -> str:
     log_info(f'{error} ==> {method}', metadata.logfile)
     valid_i_exit_codes = valid_install_exit_codes
     valid_u_exit_codes = valid_uninstall_exit_codes
@@ -324,44 +324,44 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
 
     if 'exit status 1603' in error:
         click.echo(click.style('\nAdministrator Elevation Required Or Unknown Error. Exit Code [1603]', fg='red'))
-        return get_error_message('1603', 'installation', display_name)
+        return get_error_message('1603', 'installation', display_name, packet.version)
 
     if 'exit status 1639' in error:
         click.echo(click.style(f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
-        return get_error_message('0002', 'installation', display_name)
+        return get_error_message('0002', 'installation', display_name, packet.version)
 
     if 'exit status 1' in error:
         click.echo(click.style(f'\nUnknown Error. Exited With Code [0000]', fg='red'))
         handle_unknown_error(error)
-        return get_error_message('0000', 'installation', display_name)
+        return get_error_message('0000', 'installation', display_name, packet.version)
 
     if '[WinError 740]' in error and 'elevation' in error:
         # Process Needs Elevation To Execute
         click.echo(click.style(f'\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
-        return get_error_message('0001', 'installation', display_name)
+        return get_error_message('0001', 'installation', display_name, packet.version)
 
     if 'exit status 2' in error or 'exit status 1' in error:
         # User Declined Prompt Asking For Permission
         click.echo(click.style(f'\nAdministrative Privileges Declined. Exit Code [0101]', fg='red'))
-        return get_error_message('0101', 'installation', display_name)
+        return get_error_message('0101', 'installation', display_name, packet.version)
 
     if 'exit status 4' in error:
         # Fatal Error During Installation
         click.echo(click.style(f'\nFatal Error. Exit Code [1111]', fg='red'))
-        return get_error_message('1111', 'installation', display_name)
+        return get_error_message('1111', 'installation', display_name, packet.version)
 
     if '[WinError 87]' in error and 'incorrect' in error:
         click.echo(click.style(f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
-        return get_error_message('0002', 'installation', display_name)
+        return get_error_message('0002', 'installation', display_name, packet.version)
 
     if 'exit status 3010' or 'exit status 2359301' in error:
         # Installer Requesting Reboot
-        return get_error_message('1010', 'installation', display_name)
+        return get_error_message('1010', 'installation', display_name, packet.version)
 
     else:
         click.echo(click.style(f'\nUnknown Error. Exited With Code [0000]', fg='red'))
         handle_unknown_error(error)
-        return get_error_message('0000', 'installation', display_name)
+        return get_error_message('0000', 'installation', display_name, packet.version)
 
 
 def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo):
@@ -426,7 +426,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
         if not is_admin():
             click.echo(click.style(
                 '\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
-            disp_error_msg(get_error_message('0001', 'installation', packet.display_name), metadata)
+            disp_error_msg(get_error_message('0001', 'installation', packet.display_name, packet.version), metadata)
             handle_exit('ERROR', None, metadata)
         run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None)
 
@@ -951,7 +951,7 @@ def disp_error_msg(messages: list, metadata: Metadata):
     handle_exit('ERROR', None, metadata)
 
 
-def get_error_message(code: str, method: str, display_name: str):
+def get_error_message(code: str, method: str, display_name: str, version: str):
     attr = method.strip('ation')
     with Switch(code) as code:
         if code('0001'):
@@ -967,7 +967,7 @@ def get_error_message(code: str, method: str, display_name: str):
             return [
                 f'\n[0002] => {method.capitalize()} failed because the installer provided an incorrect command for {attr}.',
                 '\nWe recommend you raise a support ticket with the data generated below:',
-                generate_report(display_name),
+                generate_report(display_name, version),
                 '\nHelp:\n',
                 'https://www.electric.sh/troubleshoot'
             ]
@@ -976,7 +976,7 @@ def get_error_message(code: str, method: str, display_name: str):
             return [
                 f'\n[0000] => {method.capitalize()} failed due to an unknown reason.',
                 '\nWe recommend you raise a support ticket with the data generated below:',
-                generate_report(display_name),
+                generate_report(display_name, version),
                 '\nHelp:',
                 f'\n[1] <=> https://www.electric.sh/troubleshoot'
             ]
@@ -1016,7 +1016,7 @@ def get_error_message(code: str, method: str, display_name: str):
             return [
                 f'\n[1111] => The {attr.capitalize()}er For This Package Failed Due To A Fatal Error. This is likely not an issue or error with electric.',
                 '\n\nWe recommend you raise a support ticket with the data generated below:',
-                generate_report(display_name),
+                generate_report(display_name, version),
                 '\nHelp:\n',
                 '\n[1] <=> https://www.electric.sh/errors/1111',
                 '\n[2] <=> https://www.electric.sh/support',
