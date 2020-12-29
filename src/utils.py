@@ -6,6 +6,7 @@ import ctypes
 import difflib
 import hashlib
 import json
+from json.decoder import JSONDecodeError
 import os
 import pickle
 import random
@@ -548,7 +549,12 @@ def send_req_package(package_name: str) -> dict:
     REQA = 'http://electric-package-manager.herokuapp.com/packages/windows/'
     response = requests.get(REQA + package_name, timeout=15)
     time = response.elapsed.total_seconds()
-    return json.loads(response.text), time
+    try:
+        res = json.loads(response.text)
+    except JSONDecodeError:
+        click.echo(click.style(f'{package_name} not found!', 'red'))
+        sys.exit()
+    return res, time
 
 
 def get_pid(exe_name):
@@ -1084,11 +1090,20 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
         name = res['display-name']
         click.echo(click.style(f'\nCannot Find {name}::v{version}', 'red'))
         exit()
+    url = pkg['win64']
+    display_name = res['display-name']
+    calc_length = len(f'{Fore.MAGENTA}| {Fore.GREEN}Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}|') - 30
+    name_line = len(f'{Fore.MAGENTA}| {Fore.GREEN}Name {Fore.MAGENTA}=>{display_name}{Fore.GREEN}{Fore.YELLOW}{Fore.MAGENTA}') - 30
+    version_line = len(f'{Fore.MAGENTA}|{Fore.GREEN}Latest Version {Fore.MAGENTA}=>{Fore.BLUE}{version}{Fore.GREEN}{Fore.MAGENTA}|') - 30
+    url_line = len(f'{Fore.MAGENTA}| {Fore.GREEN}Url(Windows){Fore.MAGENTA}=>{Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}|') - 30
+    base = '─'
     return f'''
- Name {Fore.MAGENTA}=>{Fore.GREEN}{Fore.YELLOW} {res['display-name']}{Fore.GREEN}
- Latest Version {Fore.MAGENTA}=> {Fore.BLUE}{version}{Fore.GREEN}
- Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{pkg['win64']}{Fore.CYAN}
-    '''
+{Fore.MAGENTA}┌{base * calc_length}{Fore.MAGENTA}┐
+{Fore.MAGENTA}| {Fore.GREEN}Name {Fore.MAGENTA}=>{Fore.GREEN}{Fore.YELLOW} {display_name}{Fore.MAGENTA}{' ' * (calc_length - name_line)}| 
+{Fore.MAGENTA}| {Fore.GREEN}Latest Version {Fore.MAGENTA}=> {Fore.BLUE}{version}{Fore.GREEN}{Fore.MAGENTA}{' ' * (calc_length - version_line)}|  
+{Fore.MAGENTA}| {Fore.GREEN}Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}{' ' * (calc_length - url_line)}|
+{Fore.MAGENTA}└{base * calc_length}{Fore.MAGENTA}┘
+'''
 
 
 def get_correct_package_names() -> list:
