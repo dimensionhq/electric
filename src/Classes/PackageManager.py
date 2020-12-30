@@ -98,14 +98,14 @@ class PackageManager:
                 click.echo(click.style(
                     f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
-            run_cmd(command, self.metadata, 'installation', install.display_name, install.install_exit_codes, [], None)
+            run_cmd(command, self.metadata, 'installation', install.display_name, install.install_exit_codes, [], None, install)
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i' + path + ' '
             for switch in switches:
                 command = command + ' ' + switch
 
-            run_cmd(command, self.metadata, 'installation', install.display_name, install.install_exit_codes, [], None)
+            run_cmd(command, self.metadata, 'installation', install.display_name, install.install_exit_codes, [], None, install)
 
         elif download_type == '.zip':
             if not self.metadata.no_color:
@@ -267,9 +267,9 @@ class PackageManager:
                 for path in paths.items():
                     if pack.display_name == path[1]['display_name']:
                         install_items.append(Install(
-                            pack.display_name, path[1]['path'], pack.install_switches, pack.win64_type, pack.directory, pack.custom_location, pack.install_exit_codes, pack.uninstall_exit_codes, self.metadata))
+                            pack.display_name, path[1]['path'], pack.install_switches, pack.win64_type, pack.directory, pack.custom_location, pack.install_exit_codes, pack.uninstall_exit_codes, self.metadata, pack.version))
         else:
-            return Install(packets[0].display_name, paths[0][1]['display_name'], packets[0].install_switches, packets[0].win64_type, packets[0].directory, packets[0].custom_location, packets[0].install_exit_codes, packets[0].uninstall_exit_codes, self.metadata)
+            return Install(packets[0].display_name, paths[0][1]['display_name'], packets[0].install_switches, packets[0].win64_type, packets[0].directory, packets[0].custom_location, packets[0].install_exit_codes, packets[0].uninstall_exit_codes, self.metadata, pack.version)
 
         return self.generate_split(install_items)
 

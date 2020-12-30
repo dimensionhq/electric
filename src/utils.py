@@ -364,7 +364,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
         return get_error_message('0000', 'installation', display_name, packet.version)
 
 
-def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo):
+def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo, packet):
     log_info(f'Running command: {command}', metadata.logfile)
     command = command.replace('\"\"', '\"').replace('  ', ' ')
     try:
@@ -374,7 +374,7 @@ def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, in
             halo.stop()
         keyboard.add_hotkey(
         'ctrl+c', lambda: os._exit(0))
-        disp_error_msg(get_error_cause(str(err), install_exit_codes, uninstall_exit_codes, display_name, method, metadata), metadata)
+        disp_error_msg(get_error_cause(str(err), install_exit_codes, uninstall_exit_codes, display_name, method, metadata, packet), metadata)
 
 
 def install_package(path, packet: Packet, metadata: Metadata) -> str:
@@ -416,7 +416,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             for switch in switches:
                 command = command + ' ' + switch
  
-        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None)
+        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None, packet)
 
     elif download_type == '.msi':
         command = 'msiexec.exe /i ' + path + ' '
@@ -428,7 +428,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
                 '\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
             disp_error_msg(get_error_message('0001', 'installation', packet.display_name, packet.version), metadata)
             handle_exit('ERROR', None, metadata)
-        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None)
+        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None, packet)
 
     elif download_type == '.zip':
         if not metadata.no_color:
