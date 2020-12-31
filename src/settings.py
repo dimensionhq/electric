@@ -6,7 +6,7 @@ settings_dir = PathManager.get_appdata_directory() + R'\electric-settings.json'
 
 def initialize_settings():
     default_electric_settings = {
-        "$schema": "http://electric-package-manager.herokuapp.com/schemas/settings",
+        "$schema": "http://electric-299317.uc.r.appspot.com/schemas/settings",
         "progressBarType": "accented",
         "showProgressBar": True,
         "electrifyProgressBar": False

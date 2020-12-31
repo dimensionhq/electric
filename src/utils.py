@@ -156,7 +156,7 @@ def check_resume_download(package_name: str, download_url: str, metadata: Metada
 
 
 def send_req_bundle():
-    REQA = 'https://electric-package-manager.herokuapp.com/bundles/windows'
+    REQA = 'http://electric-299317.uc.r.appspot.com/bundles/windows'
     time = 0.0
     response = requests.get(REQA, timeout=15)
     time = response.elapsed.total_seconds()
@@ -546,7 +546,7 @@ def get_checksum(bytecode: bytes, hash_algorithm: str):
 
 
 def send_req_package(package_name: str) -> dict:
-    REQA = 'http://electric-package-manager.herokuapp.com/packages/windows/'
+    REQA = 'http://electric-299317.uc.r.appspot.com/packages/windows/'
     response = requests.get(REQA + package_name, timeout=15)
     time = response.elapsed.total_seconds()
     try:
@@ -750,12 +750,12 @@ def setup_supercache(call: bool = False):
         with Halo('Setting Up SuperCache ', text_color='green') as h:
             if not os.path.isdir(supercache_dir):
                 os.mkdir(supercache_dir)
-            res = requests.get('http://electric-package-manager.herokuapp.com/setup/name-list', timeout=15)
+            res = requests.get('http://electric-299317.uc.r.appspot.com/setup/name-list', timeout=15)
             name_list = json.loads(res.text)
             with open(rf'{supercache_dir}\packages.json', 'w+') as f:
                 f.write(json.dumps(name_list, indent=4))
             h.stop()
-            loc = download_other('http://electric-package-manager.herokuapp.com/setup/supercache')
+            loc = download_other('http://electric-299317.uc.r.appspot.com/setup/supercache')
             with open(loc, 'rb') as f:
                 data = eval(JSONCompress.load_compressed_file(f))
                 keys = data.keys()
@@ -798,7 +798,7 @@ def check_newer_version(new_version) -> bool:
 
 
 def check_for_updates():
-    res = requests.get('http://electric-package-manager.herokuapp.com/version/windows', timeout=10)
+    res = requests.get('http://electric-299317.uc.r.appspot.com/version/windows', timeout=10)
     js = res.json()
     version_dict = json.loads(js)
 
@@ -808,7 +808,7 @@ def check_for_updates():
             # Implement Version Check
             if click.confirm('A new update for electric is available, would you like to proceed with the update?'):
                 click.echo(click.style('Updating Electric..', fg='green'))
-                UPDATEA = 'https://electric-package-manager.herokuapp.com/update/windows'
+                UPDATEA = 'http://electric-299317.uc.r.appspot.com/update/windows'
 
                 def is_admin():
                     try:
@@ -919,7 +919,7 @@ def disp_error_msg(messages: list, metadata: Metadata):
         sending_ticket = click.confirm('Would you like to send the support ticket ?')
         if sending_ticket:
             with Halo('', spinner='bounce') as h:
-                res = requests.post('http://electric-package-manager.herokuapp.com/windows/support-ticket/', json={'Logs': get_recent_logs()})
+                res = requests.post('http://electric-299317.uc.r.appspot.com/windows/support-ticket/', json={'Logs': get_recent_logs()})
                 if res.status_code == 200:
                     h.stop()
                     click.echo(click.style('Successfully Sent Support Ticket!', fg='green'))
@@ -1112,7 +1112,7 @@ def get_correct_package_names(all=False) -> list:
             dictionary = json.load(f)
             packages = dictionary['packages']
     else:
-        req = requests.get('https://electric-package-manager.herokuapp.com/setup/name-list')
+        req = requests.get('http://electric-299317.uc.r.appspot.com/setup/name-list')
         res = json.loads(req.text)
         packages = res['packages']
 
@@ -1153,7 +1153,7 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
                     else:
                         handle_exit('ERROR', None, metadata)
             else:
-                req = requests.get('https://electric-package-manager.herokuapp.com/setup/name-list')
+                req = requests.get('http://electric-299317.uc.r.appspot.com/setup/name-list')
                 res = json.loads(req.text)
                 if name not in res['packages']:                
                     write_all(f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
