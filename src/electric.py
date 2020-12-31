@@ -234,7 +234,7 @@ def install(
                     install_exit_codes = None
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
-                    packet = Packet(package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version)
+                    packet = Packet(pkg, package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version)
                     installation = find_existing_installation(
                         package, packet.display_name)
                     if installation:
@@ -314,7 +314,7 @@ def install(
                         if 'valid-install-exit-codes' in list(pkg.keys()):
                             install_exit_codes = pkg['valid-install-exit-codes']
                         
-                        packet = Packet(package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
+                        packet = Packet(pkg, package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
                         log_info('Searching for existing installation of package.', metadata.logfile)
 
                         installation = find_existing_installation(package, packet.json_name)
@@ -509,7 +509,7 @@ def install(
                         install_exit_codes = None
                         if 'valid-install-exit-codes' in list(pkg.keys()):
                             install_exit_codes = pkg['valid-install-exit-codes']    
-                        packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version)
+                        packet = Packet(pkg, package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version)
                         installation = find_existing_installation(
                             package, packet.display_name)
                         if installation:
@@ -597,7 +597,7 @@ def install(
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
         
-        packet = Packet(package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
+        packet = Packet(pkg, package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
         log_info('Searching for existing installation of package.', metadata.logfile)
 
         log_info('Finding existing installation of package...', metadata.logfile)
@@ -907,7 +907,7 @@ def uninstall(
         name = pkg['package-name']
         pkg = pkg[version]
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        packet = Packet(package, name, pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
+        packet = Packet(pkg, package, name, pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
         proc = None
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
@@ -1006,10 +1006,11 @@ def uninstall(
                 close_log(metadata.logfile, 'Uninstall')
 
             # If Only UninstallString Exists (Not Preferable)
-            if 'UninstallString' in key and 'QuietUninstallString' not in key:
+            if 'UninstallString' in key:
                 command = key['UninstallString']
                 command = command.replace('/I', '/X')
-                command = command.replace('/quiet', '/passive')
+                if 'msiexec.exe' in command.lower():
+                    command += ' /quiet'
                 # command = f'"{command}"'
                 for switch in packet.uninstall_switches:
                     command += f' {switch}'

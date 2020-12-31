@@ -285,6 +285,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                         sys.stdout.write(
                         f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}⚡')
                     else:
+                        print('The init char is :', get_init_char(True, metadata))
                         sys.stdout.write(
                             f'\r{get_init_char(True, metadata)}{fill_c}{unfill_c}{get_init_char(False, metadata)} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
                     # sys.stdout.write(
@@ -364,7 +365,21 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
         return get_error_message('0000', 'installation', display_name, packet.version)
 
 
+def get_file_type(command: str) -> str:
+    if 'msiexec.exe' in command.lower():
+        return '.msi'
+    return '.exe'
+
 def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo, packet):
+    
+    file_type = get_file_type(command)
+    if 'append-uninstall-switches-if' in list(packet.raw.keys()):
+        if packet.raw['append-uninstall-switches-if']['file-type'] != file_type:
+            for switch in packet.uninstall_switches:
+                print('removing', switch)
+                command = command.replace(switch, '')
+    print(command)
+
     log_info(f'Running command: {command}', metadata.logfile)
     command = command.replace('\"\"', '\"').replace('  ', ' ')
     try:
