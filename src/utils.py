@@ -198,7 +198,7 @@ def download_other(url: str):
     total_length = response.headers.get('content-length')
     chunk_size = 4096
     
-    with open(f'{PathManager.get_appdata_directory()}\SuperCache\supercache.txt', 'wb') as f:
+    with open(fR'{PathManager.get_appdata_directory()}\SuperCache\supercache.txt', 'wb') as f:
         if total_length is None:
             f.write(response.content)
         else:
@@ -217,7 +217,7 @@ def download_other(url: str):
                     f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} {round(dl / 10000, 1)} / {round(full_length / 10000, 1)} KB {Fore.RESET}')
                 sys.stdout.flush()
     
-    return f'{PathManager.get_appdata_directory()}\SuperCache\supercache.txt'
+    return fR'{PathManager.get_appdata_directory()}\SuperCache\supercache.txt'
 
 def download(url: str, package_name: str, metadata: Metadata, download_type: str):
     cursor.hide()
@@ -432,12 +432,12 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
         run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None, packet)
 
     elif download_type == '.zip':
-        if not metadata.no_color:
-            click.echo(click.style(
-                f'Unzipping File At {path}', fg='green'))
         if metadata.no_color:
             click.echo(click.style(
                 f'Unzipping File At {path}'))
+        else:
+            click.echo(click.style(
+                f'Unzipping File At {path}', fg='green'))
 
         zip_directory = fR'{tempfile.gettempdir()}\\{package_name}'
         with zipfile.ZipFile(path, 'r') as zip_ref:
@@ -753,7 +753,7 @@ def setup_supercache(call: bool = False):
                 os.mkdir(supercache_dir)
             res = requests.get('http://electric-299317.uc.r.appspot.com/setup/name-list', timeout=15)
             name_list = json.loads(res.text)
-            with open(rf'{supercache_dir}\packages.json', 'w+') as f:
+            with open(fR'{supercache_dir}\packages.json', 'w+') as f:
                 f.write(json.dumps(name_list, indent=4))
             h.stop()
             loc = download_other('http://electric-299317.uc.r.appspot.com/setup/supercache')

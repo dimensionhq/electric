@@ -183,12 +183,18 @@ def get_environment_keys() -> RegSnapshot:
     sys_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, R'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 0, winreg.KEY_READ)
     sys_idx = 0
     while True:
-        if winreg.EnumValue(env_key, sys_idx)[0] == 'Path':
+        try:
+            if winreg.EnumValue(env_key, sys_idx)[0] == 'Path':
+                break
+        except OSError:
             break
         sys_idx += 1
     env_idx = 0
     while True:
-        if winreg.EnumValue(sys_key, env_idx)[0] == 'Path':
+        try:
+            if winreg.EnumValue(sys_key, env_idx)[0].lower() == 'path':
+                break
+        except OSError:
             break
         env_idx += 1
     snap = RegSnapshot(str(winreg.EnumValue(env_key, sys_idx)[1]), len(str(winreg.EnumValue(env_key, sys_idx)[1]).split(';')), str(winreg.EnumValue(sys_key, env_idx)[1]), len(str(winreg.EnumValue(sys_key, env_idx)[1]).split(';')))

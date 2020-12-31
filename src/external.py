@@ -5,8 +5,6 @@
 from urllib.request import urlretrieve
 from Classes.Metadata import Metadata
 from subprocess import PIPE, Popen
-from extension import *
-from colorama import *
 from halo import Halo
 from utils import *
 import json as js
