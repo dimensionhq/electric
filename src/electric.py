@@ -40,6 +40,9 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 @click.version_option(__version__)
 @click.pass_context
 def cli(_):
+    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\electric-settings.json'):
+        click.echo(click.style(f'Creating electric-settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
+        initialize_settings()
     setup_supercache()
 
 
@@ -175,8 +178,8 @@ def install(
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
     status = 'Initializing'
     setup_name = ''
-    keyboard.add_hotkey(
-        'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
+    # keyboard.add_hotkey(
+    #     'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
 
     packages = package_name.strip(' ').split(',')
 
@@ -1485,3 +1488,4 @@ def complete(
 
 if __name__ == '__main__':
     cli() #pylint: disable=no-value-for-parameter
+    

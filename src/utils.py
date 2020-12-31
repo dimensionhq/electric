@@ -365,8 +365,9 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
 
 
 def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo, packet):
-    log_info(f'Running command: {command}', metadata.logfile)
     command = command.replace('\"\"', '\"').replace('  ', ' ')
+    log_info(f'Running command: {command}', metadata.logfile)
+    write_debug(f'{command}', metadata, newline=True)
     try:
         check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except (CalledProcessError, OSError, FileNotFoundError) as err:

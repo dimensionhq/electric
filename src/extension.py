@@ -31,14 +31,16 @@ def write_verbose(log: str, metadata: Metadata):
             click.echo(click.style(HEADER + log))
 
 
-def write_debug(log: str, metadata: Metadata):
+def write_debug(log: str, metadata: Metadata, newline=False):
     if metadata.silent:
         return
     if metadata.debug:
         if isinstance(log, list):
             log = "\nDEBUG: ".join(log)
-
-        HEADER = "DEBUG: "
+        if not newline:
+            HEADER = "DEBUG: "
+        else:
+            HEADER = "\nDEBUG: "
         if not metadata.no_color:
             click.echo(click.style(HEADER + log, fg="bright_yellow"))
         else:
