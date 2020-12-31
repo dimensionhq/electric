@@ -371,6 +371,7 @@ def get_file_type(command: str) -> str:
     return '.exe'
 
 def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo, packet):
+<<<<<<< HEAD
     
     file_type = get_file_type(command)
     if 'append-uninstall-switches-if' in list(packet.raw.keys()):
@@ -381,7 +382,11 @@ def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, in
     print(command)
 
     log_info(f'Running command: {command}', metadata.logfile)
+=======
+>>>>>>> d0420a15169a78b0b7a263425f5925fb5b3f02f1
     command = command.replace('\"\"', '\"').replace('  ', ' ')
+    log_info(f'Running command: {command}', metadata.logfile)
+    write_debug(f'{command}', metadata, newline=True)
     try:
         check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except (CalledProcessError, OSError, FileNotFoundError) as err:
