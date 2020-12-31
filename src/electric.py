@@ -234,7 +234,7 @@ def install(
                     install_exit_codes = None
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
-                    packet = Packet(package, res['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None)
+                    packet = Packet(package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version)
                     installation = find_existing_installation(
                         package, packet.display_name)
                     if installation:
@@ -314,7 +314,7 @@ def install(
                         if 'valid-install-exit-codes' in list(pkg.keys()):
                             install_exit_codes = pkg['valid-install-exit-codes']
                         
-                        packet = Packet(package, res['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None)
+                        packet = Packet(package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
                         log_info('Searching for existing installation of package.', metadata.logfile)
 
                         installation = find_existing_installation(package, packet.json_name)
@@ -509,7 +509,7 @@ def install(
                         install_exit_codes = None
                         if 'valid-install-exit-codes' in list(pkg.keys()):
                             install_exit_codes = pkg['valid-install-exit-codes']    
-                        packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None)
+                        packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version)
                         installation = find_existing_installation(
                             package, packet.display_name)
                         if installation:
@@ -553,13 +553,14 @@ def install(
     for package in corrected_package_names:
         supercache_availiable = check_supercache_availiable(package)
 
-        if super_cache and supercache_availiable:
+        if super_cache and supercache_availiable and not no_cache:
             log_info('Handling SuperCache Request.', metadata.logfile)
             res, time = handle_cached_request(package)
         
         else:
-            spinner = halo.Halo(color='grey')
-            spinner.start()
+            if not silent:
+                spinner = halo.Halo(color='grey' if not no_color else 'white')
+                spinner.start()
             log_info('Handling Network Request...', metadata.logfile)
             status = 'Networking'
             write_verbose(f'Sending GET Request To /packages/', metadata)
@@ -568,7 +569,8 @@ def install(
             log_info('Updating SuperCache', metadata.logfile)
             res, time = send_req_package(package)
             log_info('Successfully Updated SuperCache', metadata.logfile)
-            spinner.stop()
+            if not silent:
+                spinner.stop()
 
         pkg = res
         log_info('Generating Packet For Further Installation.', metadata.logfile)
@@ -587,7 +589,7 @@ def install(
         try:
             pkg = pkg[version]
         except KeyError:
-            name = res['package-name']
+            name = res['display-name']
             write(f'\nCannot Find {name}::v{version}', 'red', metadata)
             handle_exit('ERROR', None, metadata)
         install_exit_codes = None
@@ -595,7 +597,7 @@ def install(
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
         
-        packet = Packet(package, res['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None)
+        packet = Packet(package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
         log_info('Searching for existing installation of package.', metadata.logfile)
 
         log_info('Finding existing installation of package...', metadata.logfile)
@@ -876,7 +878,7 @@ def uninstall(
 
     for package in corrected_package_names:
         supercache_availiable = check_supercache_availiable(package)
-        if super_cache and supercache_availiable:
+        if super_cache and supercache_availiable and not no_cache:
             log_info('Handling SuperCache Request.', metadata.logfile)
             res, time = handle_cached_request(package)
             time = Decimal(time)
@@ -905,7 +907,7 @@ def uninstall(
         name = pkg['package-name']
         pkg = pkg[version]
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        packet = Packet(package, name, pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes)
+        packet = Packet(package, name, pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
         proc = None
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
@@ -985,7 +987,7 @@ def uninstall(
                 write_verbose('Executing the quiet uninstall command', metadata)
                 log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
                 write_debug(f'Running silent uninstallation command', metadata)
-                run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h)
+                run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet)
 
 
                 h.stop()
@@ -1016,7 +1018,7 @@ def uninstall(
                 write_verbose('Executing the Uninstall Command', metadata)
                 log_info('Executing the silent Uninstall Command', metadata.logfile)
 
-                run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h)
+                run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet)
                 h.stop()
                 write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
@@ -1180,7 +1182,7 @@ def bundle(
                 )
     else:
         click.echo(click.style('\nAdministrator Elevation Required. Exit Code [0001]', 'red'), err=True)
-        disp_error_msg(get_error_message('0001', 'installation', 'None'), metadata)
+        disp_error_msg(get_error_message('0001', 'installation', 'None', None), metadata)
 
 
 @cli.command(aliases=['find'], context_settings=CONTEXT_SETTINGS)

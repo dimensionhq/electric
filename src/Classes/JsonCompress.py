@@ -33,3 +33,10 @@ class JSONCompress():
                 compressor.close()
                 return stream.getvalue()
             compressor.write(chunk)
+
+# For Deployment To Servers
+# import json
+# with open('supercache.json', 'r') as f:
+#     data = str(json.load(f))
+# with open('supercache.txt', 'wb') as f:
+#     f.write(JSONCompress.compress_json_to_bytes(data))

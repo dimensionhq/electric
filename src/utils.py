@@ -67,12 +67,12 @@ def get_recent_logs() -> list:
     return data.splitlines()
 
 
-def generate_report(name: str):
+def generate_report(name: str, version: str):
     return f'''
 {{
-NAME :: {name}
-VERSION :: Coming Soon!
-LOGFILE :: <--attachment-->
+NAME :: {Fore.YELLOW}{name}{Fore.YELLOW}
+VERSION :: {Fore.BLUE}{version}{Fore.GREEN}
+LOGFILE :: <--attachment-->{Fore.RESET}
 }}
     '''
 
@@ -156,7 +156,7 @@ def check_resume_download(package_name: str, download_url: str, metadata: Metada
 
 
 def send_req_bundle():
-    REQA = 'https://electric-package-manager.herokuapp.com/bundles/windows'
+    REQA = 'http://electric-299317.uc.r.appspot.com/bundles/windows'
     time = 0.0
     response = requests.get(REQA, timeout=15)
     time = response.elapsed.total_seconds()
@@ -299,7 +299,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         return newpath, False
 
 
-def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: list, display_name: str, method: str, metadata: Metadata) -> str:
+def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: list, display_name: str, method: str, metadata: Metadata, packet: Packet) -> str:
     log_info(f'{error} ==> {method}', metadata.logfile)
     valid_i_exit_codes = valid_install_exit_codes
     valid_u_exit_codes = valid_uninstall_exit_codes
@@ -324,47 +324,47 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
 
     if 'exit status 1603' in error:
         click.echo(click.style('\nAdministrator Elevation Required Or Unknown Error. Exit Code [1603]', fg='red'))
-        return get_error_message('1603', 'installation', display_name)
+        return get_error_message('1603', 'installation', display_name, packet.version)
 
     if 'exit status 1639' in error:
         click.echo(click.style(f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
-        return get_error_message('0002', 'installation', display_name)
+        return get_error_message('0002', 'installation', display_name, packet.version)
 
     if 'exit status 1' in error:
         click.echo(click.style(f'\nUnknown Error. Exited With Code [0000]', fg='red'))
         handle_unknown_error(error)
-        return get_error_message('0000', 'installation', display_name)
+        return get_error_message('0000', 'installation', display_name, packet.version)
 
     if '[WinError 740]' in error and 'elevation' in error:
         # Process Needs Elevation To Execute
         click.echo(click.style(f'\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
-        return get_error_message('0001', 'installation', display_name)
+        return get_error_message('0001', 'installation', display_name, packet.version)
 
     if 'exit status 2' in error or 'exit status 1' in error:
         # User Declined Prompt Asking For Permission
         click.echo(click.style(f'\nAdministrative Privileges Declined. Exit Code [0101]', fg='red'))
-        return get_error_message('0101', 'installation', display_name)
+        return get_error_message('0101', 'installation', display_name, packet.version)
 
     if 'exit status 4' in error:
         # Fatal Error During Installation
         click.echo(click.style(f'\nFatal Error. Exit Code [1111]', fg='red'))
-        return get_error_message('1111', 'installation', display_name)
+        return get_error_message('1111', 'installation', display_name, packet.version)
 
     if '[WinError 87]' in error and 'incorrect' in error:
         click.echo(click.style(f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
-        return get_error_message('0002', 'installation', display_name)
+        return get_error_message('0002', 'installation', display_name, packet.version)
 
     if 'exit status 3010' or 'exit status 2359301' in error:
         # Installer Requesting Reboot
-        return get_error_message('1010', 'installation', display_name)
+        return get_error_message('1010', 'installation', display_name, packet.version)
 
     else:
         click.echo(click.style(f'\nUnknown Error. Exited With Code [0000]', fg='red'))
         handle_unknown_error(error)
-        return get_error_message('0000', 'installation', display_name)
+        return get_error_message('0000', 'installation', display_name, packet.version)
 
 
-def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo):
+def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo, packet):
     log_info(f'Running command: {command}', metadata.logfile)
     command = command.replace('\"\"', '\"').replace('  ', ' ')
     try:
@@ -374,7 +374,7 @@ def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, in
             halo.stop()
         keyboard.add_hotkey(
         'ctrl+c', lambda: os._exit(0))
-        disp_error_msg(get_error_cause(str(err), install_exit_codes, uninstall_exit_codes, display_name, method, metadata), metadata)
+        disp_error_msg(get_error_cause(str(err), install_exit_codes, uninstall_exit_codes, display_name, method, metadata, packet), metadata)
 
 
 def install_package(path, packet: Packet, metadata: Metadata) -> str:
@@ -416,7 +416,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             for switch in switches:
                 command = command + ' ' + switch
  
-        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None)
+        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None, packet)
 
     elif download_type == '.msi':
         command = 'msiexec.exe /i ' + path + ' '
@@ -426,9 +426,9 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
         if not is_admin():
             click.echo(click.style(
                 '\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
-            disp_error_msg(get_error_message('0001', 'installation', packet.display_name), metadata)
+            disp_error_msg(get_error_message('0001', 'installation', packet.display_name, packet.version), metadata)
             handle_exit('ERROR', None, metadata)
-        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None)
+        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None, packet)
 
     elif download_type == '.zip':
         if metadata.no_color:
@@ -546,7 +546,7 @@ def get_checksum(bytecode: bytes, hash_algorithm: str):
 
 
 def send_req_package(package_name: str) -> dict:
-    REQA = 'http://electric-package-manager.herokuapp.com/packages/windows/'
+    REQA = 'http://electric-299317.uc.r.appspot.com/packages/windows/'
     response = requests.get(REQA + package_name, timeout=15)
     time = response.elapsed.total_seconds()
     try:
@@ -750,12 +750,12 @@ def setup_supercache(call: bool = False):
         with Halo('Setting Up SuperCache ', text_color='green') as h:
             if not os.path.isdir(supercache_dir):
                 os.mkdir(supercache_dir)
-            res = requests.get('http://electric-package-manager.herokuapp.com/setup/name-list', timeout=15)
+            res = requests.get('http://electric-299317.uc.r.appspot.com/setup/name-list', timeout=15)
             name_list = json.loads(res.text)
             with open(fR'{supercache_dir}\packages.json', 'w+') as f:
                 f.write(json.dumps(name_list, indent=4))
             h.stop()
-            loc = download_other('http://electric-package-manager.herokuapp.com/setup/supercache')
+            loc = download_other('http://electric-299317.uc.r.appspot.com/setup/supercache')
             with open(loc, 'rb') as f:
                 data = eval(JSONCompress.load_compressed_file(f))
                 keys = data.keys()
@@ -798,7 +798,7 @@ def check_newer_version(new_version) -> bool:
 
 
 def check_for_updates():
-    res = requests.get('http://electric-package-manager.herokuapp.com/version/windows', timeout=10)
+    res = requests.get('http://electric-299317.uc.r.appspot.com/version/windows', timeout=10)
     js = res.json()
     version_dict = json.loads(js)
 
@@ -808,7 +808,7 @@ def check_for_updates():
             # Implement Version Check
             if click.confirm('A new update for electric is available, would you like to proceed with the update?'):
                 click.echo(click.style('Updating Electric..', fg='green'))
-                UPDATEA = 'https://electric-package-manager.herokuapp.com/update/windows'
+                UPDATEA = 'http://electric-299317.uc.r.appspot.com/update/windows'
 
                 def is_admin():
                     try:
@@ -919,7 +919,7 @@ def disp_error_msg(messages: list, metadata: Metadata):
         sending_ticket = click.confirm('Would you like to send the support ticket ?')
         if sending_ticket:
             with Halo('', spinner='bounce') as h:
-                res = requests.post('http://electric-package-manager.herokuapp.com/windows/support-ticket/', json={'Logs': get_recent_logs()})
+                res = requests.post('http://electric-299317.uc.r.appspot.com/windows/support-ticket/', json={'Logs': get_recent_logs()})
                 if res.status_code == 200:
                     h.stop()
                     click.echo(click.style('Successfully Sent Support Ticket!', fg='green'))
@@ -951,7 +951,7 @@ def disp_error_msg(messages: list, metadata: Metadata):
     handle_exit('ERROR', None, metadata)
 
 
-def get_error_message(code: str, method: str, display_name: str):
+def get_error_message(code: str, method: str, display_name: str, version: str):
     attr = method.strip('ation')
     with Switch(code) as code:
         if code('0001'):
@@ -967,7 +967,7 @@ def get_error_message(code: str, method: str, display_name: str):
             return [
                 f'\n[0002] => {method.capitalize()} failed because the installer provided an incorrect command for {attr}.',
                 '\nWe recommend you raise a support ticket with the data generated below:',
-                generate_report(display_name),
+                generate_report(display_name, version),
                 '\nHelp:\n',
                 'https://www.electric.sh/troubleshoot'
             ]
@@ -976,7 +976,7 @@ def get_error_message(code: str, method: str, display_name: str):
             return [
                 f'\n[0000] => {method.capitalize()} failed due to an unknown reason.',
                 '\nWe recommend you raise a support ticket with the data generated below:',
-                generate_report(display_name),
+                generate_report(display_name, version),
                 '\nHelp:',
                 f'\n[1] <=> https://www.electric.sh/troubleshoot'
             ]
@@ -1016,7 +1016,7 @@ def get_error_message(code: str, method: str, display_name: str):
             return [
                 f'\n[1111] => The {attr.capitalize()}er For This Package Failed Due To A Fatal Error. This is likely not an issue or error with electric.',
                 '\n\nWe recommend you raise a support ticket with the data generated below:',
-                generate_report(display_name),
+                generate_report(display_name, version),
                 '\nHelp:\n',
                 '\n[1] <=> https://www.electric.sh/errors/1111',
                 '\n[2] <=> https://www.electric.sh/support',
@@ -1112,7 +1112,7 @@ def get_correct_package_names(all=False) -> list:
             dictionary = json.load(f)
             packages = dictionary['packages']
     else:
-        req = requests.get('https://electric-package-manager.herokuapp.com/setup/name-list')
+        req = requests.get('http://electric-299317.uc.r.appspot.com/setup/name-list')
         res = json.loads(req.text)
         packages = res['packages']
 
@@ -1153,7 +1153,7 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
                     else:
                         handle_exit('ERROR', None, metadata)
             else:
-                req = requests.get('https://electric-package-manager.herokuapp.com/setup/name-list')
+                req = requests.get('http://electric-299317.uc.r.appspot.com/setup/name-list')
                 res = json.loads(req.text)
                 if name not in res['packages']:                
                     write_all(f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
