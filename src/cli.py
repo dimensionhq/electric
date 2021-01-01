@@ -120,7 +120,6 @@ class DYMMixin(object):  # pylint: disable=too-few-public-methods
             with formatter.section('Commands'):
                 formatter.write_dl(rows)
 
-    # TODO: Implement Click Help Message!
     def format_help(self, ctx, formatter):
         message = f'''Electric Package Manager v1.0.0 Alpha
 Copyright (c) Electric Inc.
