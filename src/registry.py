@@ -10,7 +10,6 @@ import winreg
 keys = []
 
 def get_uninstall_key(package_name : str, display_name: str):
-
     def send_query(hive, flag):
         aReg = winreg.ConnectRegistry(None, hive)
         aKey = winreg.OpenKey(aReg, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
@@ -69,18 +68,25 @@ def get_uninstall_key(package_name : str, display_name: str):
             refined_list = []
 
             for item in final_list:
-                if item is None:
+                if not item:
                     final_list.pop(index)
                 else:
                     name = item.lower()
-
+                
                 refined_list.append(name)
                 index += 1
 
+            temp_list = []
+            old = ''
+            for val in refined_list:
+                if val != old:
+                    temp_list.append(val)
+                    old = val
+            
             for string in strings:
                 matches = difflib.get_close_matches(
-                    package_name, refined_list[0], cutoff=0.65)
-
+                    package_name, temp_list, cutoff=0.65)
+                
                 if not matches:
                     possibilities = []
 
@@ -159,7 +165,6 @@ def get_uninstall_key(package_name : str, display_name: str):
 
 
     get_uninstall_string(package_name)
-
     if final_array:
         if len(final_array) > 1:
             return get_more_accurate_matches(final_array)
@@ -178,12 +183,18 @@ def get_environment_keys() -> RegSnapshot:
     sys_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, R'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 0, winreg.KEY_READ)
     sys_idx = 0
     while True:
-        if winreg.EnumValue(env_key, sys_idx)[0] == 'Path':
+        try:
+            if winreg.EnumValue(env_key, sys_idx)[0] == 'Path':
+                break
+        except OSError:
             break
         sys_idx += 1
     env_idx = 0
     while True:
-        if winreg.EnumValue(sys_key, env_idx)[0] == 'Path':
+        try:
+            if winreg.EnumValue(sys_key, env_idx)[0].lower() == 'path':
+                break
+        except OSError:
             break
         env_idx += 1
     snap = RegSnapshot(str(winreg.EnumValue(env_key, sys_idx)[1]), len(str(winreg.EnumValue(env_key, sys_idx)[1]).split(';')), str(winreg.EnumValue(sys_key, env_idx)[1]), len(str(winreg.EnumValue(sys_key, env_idx)[1]).split(';')))

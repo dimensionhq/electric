@@ -5,8 +5,6 @@
 from urllib.request import urlretrieve
 from Classes.Metadata import Metadata
 from subprocess import PIPE, Popen
-from extension import *
-from colorama import *
 from halo import Halo
 from utils import *
 import json as js
@@ -22,7 +20,7 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
 
     if err:
         click.echo(click.style('Python Is Not Installed. Exit Code [0011]', fg='red'))
-        disp_error_msg(get_error_message('0011', 'install', package_name), metadata)
+        disp_error_msg(get_error_message('0011', 'install', package_name, None), metadata)
         handle_exit('ERROR', None, metadata)
     if mode == 'install':
         command = 'python -m pip install --upgrade --no-input'
@@ -35,6 +33,7 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
         py_version = sys.version.split()
         for line in proc.stdout:
             line = line.decode('utf-8')
+            
             if f'Collecting {package_name}' in line:
                 write(f'Python v{py_version[0]} :: Collecting {package_name}', 'green', metadata)
             if 'Downloading' in line and package_name in line:
@@ -45,9 +44,10 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
                 write(
                     f'Python v{py_version[0]} :: Installing {package_name}', 'green', metadata)
 
-            if f'Requirement already satisfied: {package_name} ' in line and package_name in line:
+            if f'Requirement ' in line and package_name in line:
                 write(
                     f'Python v{py_version[0]} :: {package_name} Is Already Installed And On The Latest Version ==> {line.split()[-1]}', 'yellow', metadata)
+                break
 
             if 'Successfully installed' in line and package_name in line:
                 ver = line.split('-')[1]
@@ -98,7 +98,7 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
 
     if err:
         click.echo(click.style('npm Or node Is Not Installed. Exit Code [0011]', fg='bright_yellow'))
-        disp_error_msg(get_error_message('0011', 'install', package_name), metadata)
+        disp_error_msg(get_error_message('0011', 'install', package_name, None), metadata)
         handle_exit('ERROR', None, metadata)
 
 
@@ -141,7 +141,7 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
         version_proc = Popen(mslex.split('code --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     except FileNotFoundError:
         click.echo(click.style('Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
-        disp_error_msg(get_error_message('0111', 'install', package_name), metadata)
+        disp_error_msg(get_error_message('0111', 'install', package_name, None), metadata)
         handle_exit('ERROR', None, metadata)
 
     version, err = version_proc.communicate()
@@ -149,7 +149,7 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
 
     if err:
         click.echo(click.style('Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
-        disp_error_msg(get_error_message('0111', 'install', package_name), metadata)
+        disp_error_msg(get_error_message('0111', 'install', package_name, None), metadata)
         handle_exit('ERROR', None, metadata)
 
     if mode == 'install':

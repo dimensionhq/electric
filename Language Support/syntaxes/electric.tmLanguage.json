@@ -45,6 +45,10 @@
 					"match": "(# --------------------Checksum Start-------------------------- #|# --------------------Checksum End--------------------------- #)"
 				},
 				{
+					"name": "variable.parameter",
+					"match": "[a-zA-Z]+"
+				},
+				{
 					"name": "comment.line",
 					"match": "\\s*((#).*)$"
 				}

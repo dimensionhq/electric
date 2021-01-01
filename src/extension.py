@@ -3,17 +3,16 @@
 ######################################################################
 
 
-from timeit import default_timer as timer
 from Classes.Metadata import Metadata
-from logger import log_info 
 import click
+
 
 def write(text: str, color: str, metadata: Metadata):
     if metadata.silent:
         return
     if not metadata.no_color:
         if color:
-            click.echo(click.style(text, fg=f"{color}"))
+            click.echo(click.style(text, fg=color))
         else:
             click.echo(text)
     if metadata.no_color:
@@ -32,14 +31,16 @@ def write_verbose(log: str, metadata: Metadata):
             click.echo(click.style(HEADER + log))
 
 
-def write_debug(log: str, metadata: Metadata):
+def write_debug(log: str, metadata: Metadata, newline=False):
     if metadata.silent:
         return
     if metadata.debug:
         if isinstance(log, list):
             log = "\nDEBUG: ".join(log)
-
-        HEADER = "DEBUG: "
+        if not newline:
+            HEADER = "DEBUG: "
+        else:
+            HEADER = "\nDEBUG: "
         if not metadata.no_color:
             click.echo(click.style(HEADER + log, fg="bright_yellow"))
         else:
@@ -50,4 +51,3 @@ def write_all(text: str, color: str, metadata: Metadata):
     write(text, color, metadata)
     write_verbose(text, metadata)
     write_debug(text, metadata)
-    log_info(text, metadata.logfile)

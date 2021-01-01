@@ -1,0 +1,21 @@
+{
+    "display-name": "7-Zip",
+    "package-name": "7-Zip",
+    "19.00": {
+        "win64": "https://www.7-zip.org/a/7z1900-x64.msi",
+        "win64-type": ".msi",
+        "install-switches": [
+            "/passive",
+            "/quiet",
+            "/norestart"
+        ],
+        "uninstall-switches": [
+            "/S"
+        ],
+        "append-uninstall-switches-if": {
+            "file-type": ".exe"
+        },
+        "custom-location": "/TARGETDIR=",
+        "dependencies": []
+    }
+}
