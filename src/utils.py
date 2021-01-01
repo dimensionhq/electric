@@ -197,7 +197,7 @@ def download_other(url: str):
     response = requests.get(url, stream=True)
     total_length = response.headers.get('content-length')
     chunk_size = 4096
-    
+
     with open(fR'{PathManager.get_appdata_directory()}\SuperCache\supercache.txt', 'wb') as f:
         if total_length is None:
             f.write(response.content)
@@ -209,14 +209,14 @@ def download_other(url: str):
             for data in response.iter_content(chunk_size=chunk_size):
                 dl += len(data)
                 f.write(data)
-            
+
                 complete = int(25 * dl / full_length)
                 fill_c =  Fore.GREEN + '=' * complete
                 unfill_c = Fore.LIGHTBLACK_EX + '-' * (25 - complete)
                 sys.stdout.write(
                     f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} {round(dl / 10000, 1)} / {round(full_length / 10000, 1)} KB {Fore.RESET}')
                 sys.stdout.flush()
-    
+
     return fR'{PathManager.get_appdata_directory()}\SuperCache\supercache.txt'
 
 def download(url: str, package_name: str, metadata: Metadata, download_type: str):
@@ -246,7 +246,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
             response = requests.get(url, stream=True)
         total_length = response.headers.get('content-length')
         chunk_size = get_chunk_size(total_length)
-        
+
         progress_type = metadata.settings.progress_bar_type
 
         if total_length is None:
@@ -265,7 +265,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                         f'\r{round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
                     sys.stdout.flush()
 
-                
+
                 elif not metadata.no_progress and not metadata.silent:
                     complete = int(25 * dl / full_length)
                     if progress_type == 'custom' or metadata.settings.use_custom_progress_bar:
@@ -273,7 +273,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                         unfill_c = eval(get_character_color(False, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['unfill_character']  * (25 - complete)
                     elif progress_type == 'accented':
                         fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
-                        unfill_c = Fore.BLACK + '█' * (25 - complete)   
+                        unfill_c = Fore.BLACK + '█' * (25 - complete)
                     elif progress_type == 'zippy':
                         fill_c =  Fore.GREEN + '=' * complete
                         unfill_c = Fore.LIGHTBLACK_EX + '-' * (25 - complete)
@@ -285,12 +285,11 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                         sys.stdout.write(
                         f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}⚡')
                     else:
-                        print('The init char is :', get_init_char(True, metadata))
                         sys.stdout.write(
                             f'\r{get_init_char(True, metadata)}{fill_c}{unfill_c}{get_init_char(False, metadata)} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
                     # sys.stdout.write(
                     #     f'\r{fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
-                    
+
                     sys.stdout.flush()
     os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
     dump_pickle(generate_dict(newpath if newpath else path, package_name), 'downloadcache')
@@ -312,7 +311,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     if uninstall_exit_codes:
         for i in uninstall_exit_codes:
             valid_u_exit_codes.append(i)
-    
+
     if method == 'installation':
         for code in valid_i_exit_codes:
             if f'exit status {code}' in error:
@@ -371,19 +370,15 @@ def get_file_type(command: str) -> str:
     return '.exe'
 
 def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo, packet):
-<<<<<<< HEAD
-    
+
     file_type = get_file_type(command)
     if 'append-uninstall-switches-if' in list(packet.raw.keys()):
         if packet.raw['append-uninstall-switches-if']['file-type'] != file_type:
             for switch in packet.uninstall_switches:
                 print('removing', switch)
                 command = command.replace(switch, '')
-    print(command)
 
     log_info(f'Running command: {command}', metadata.logfile)
-=======
->>>>>>> d0420a15169a78b0b7a263425f5925fb5b3f02f1
     command = command.replace('\"\"', '\"').replace('  ', ' ')
     log_info(f'Running command: {command}', metadata.logfile)
     write_debug(f'{command}', metadata, newline=True)
@@ -435,7 +430,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
         if not directory:
             for switch in switches:
                 command = command + ' ' + switch
- 
+
         run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None, packet)
 
     elif download_type == '.msi':
@@ -734,7 +729,7 @@ def refresh_environment_variables():
     Popen(Rf'{PathManager.get_current_directory()}\scripts\refreshvars.cmd',
                  stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
 
-    
+
 def check_virus(path: str, metadata: Metadata):
     detected = virus_check(path)
     if detected:
@@ -766,7 +761,7 @@ def setup_supercache(call: bool = False):
         shutil.rmtree(supercache_dir)
 
     if not os.path.isdir(supercache_dir) or not exist or call:
-               
+
         with Halo('Setting Up SuperCache ', text_color='green') as h:
             if not os.path.isdir(supercache_dir):
                 os.mkdir(supercache_dir)
@@ -1095,7 +1090,7 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
     pkg = res
     keys = list(pkg.keys())
     idx = 0
-    
+
     if not version:
         for key in keys:
             if key not in ['package-name', 'nightly', 'display-name']:
@@ -1119,8 +1114,8 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
     base = '─'
     return f'''
 {Fore.MAGENTA}┌{base * calc_length}{Fore.MAGENTA}┐
-{Fore.MAGENTA}| {Fore.GREEN}Name {Fore.MAGENTA}=>{Fore.GREEN}{Fore.YELLOW} {display_name}{Fore.MAGENTA}{' ' * (calc_length - name_line)}| 
-{Fore.MAGENTA}| {Fore.GREEN}Latest Version {Fore.MAGENTA}=> {Fore.BLUE}{version}{Fore.GREEN}{Fore.MAGENTA}{' ' * (calc_length - version_line)}|  
+{Fore.MAGENTA}| {Fore.GREEN}Name {Fore.MAGENTA}=>{Fore.GREEN}{Fore.YELLOW} {display_name}{Fore.MAGENTA}{' ' * (calc_length - name_line)}|
+{Fore.MAGENTA}| {Fore.GREEN}Latest Version {Fore.MAGENTA}=> {Fore.BLUE}{version}{Fore.GREEN}{Fore.MAGENTA}{' ' * (calc_length - version_line)}|
 {Fore.MAGENTA}| {Fore.GREEN}Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}{' ' * (calc_length - url_line)}|
 {Fore.MAGENTA}└{base * calc_length}{Fore.MAGENTA}┘
 '''
@@ -1175,7 +1170,7 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
             else:
                 req = requests.get('http://electric-299317.uc.r.appspot.com/setup/name-list')
                 res = json.loads(req.text)
-                if name not in res['packages']:                
+                if name not in res['packages']:
                     write_all(f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
                 else:
                     corrected_names.append(name)
