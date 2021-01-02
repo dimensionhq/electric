@@ -12,7 +12,7 @@ import mslex
 import sys
 
 
-def handle_python_package(package_name: str, mode: str, metadata: Metadata):
+def handle_python_package(package_name: str, version: str, mode: str, metadata: Metadata):
     command = ''
 
     valid = Popen(mslex.split('pip --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -26,6 +26,8 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
         command = 'python -m pip install --upgrade --no-input'
 
         command += f' {package_name}'
+        if version != 'latest':
+            command += f'=={version}'
 
         proc = Popen(mslex.split(command), stdin=PIPE,
                         stdout=PIPE, stderr=PIPE)
@@ -33,7 +35,7 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
         py_version = sys.version.split()
         for line in proc.stdout:
             line = line.decode('utf-8')
-            
+
             if f'Collecting {package_name}' in line:
                 write(f'Python v{py_version[0]} :: Collecting {package_name}', 'green', metadata)
             if 'Downloading' in line and package_name in line:

@@ -36,6 +36,14 @@
             "type": "object",
             "description": "A custom progress bar to be displayed by electric",
             "properties": {
+                "start_character": {
+                    "type": "string",
+                    "description": "A custom character which appears at the beginning of the progress bar"
+                },
+                "end_character": {
+                    "type": "string",
+                    "description": "A custom character which appears at the end of the progress bar"
+                },
                 "fill_character": {
                     "type": "string",
                     "description": "A custom character for the progress bar to fill whitespaces with."
@@ -73,7 +81,7 @@
                             "const": "lightred_ex"
                         },
                         {
-                            "const": "lightgreen_ex"   
+                            "const": "lightgreen_ex"
                         },
                         {
                             "const": "lightyellow_ex"
@@ -121,7 +129,7 @@
                             "const": "lightred_ex"
                         },
                         {
-                            "const": "lightgreen_ex"   
+                            "const": "lightgreen_ex"
                         },
                         {
                             "const": "lightyellow_ex"

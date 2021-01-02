@@ -534,7 +534,7 @@ class Config:
                         for package in editor_extensions:
                             proc = Popen(f'apm show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
                             output, err = proc.communicate()
-                            
+
                             if err != b'':
                                 if err == b'\x1b[31mread ECONNRESET\x1b[39m\n':
                                     if socket and server:
@@ -550,8 +550,8 @@ class Config:
                                                 socket.close()
                                                 return
                                             click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
-                                            return            
-                                        
+                                            return
+
                                 if socket and server:
                                     error = f'Invalid Extension Name => {list(package.keys())[0]}.ERROR'
                                     socket.send(error.encode())
@@ -564,7 +564,7 @@ class Config:
             socket.close()
 
 
-    def install(self, install_directory: str, no_cache: str, sync: bool, metadata: Metadata):
+    def install(self, exclude_versions: bool, install_directory: str, no_cache: str, sync: bool, metadata: Metadata):
         if is_admin():
             flags = get_install_flags(install_directory, no_cache, sync, metadata)
             config = self.dictionary
@@ -590,15 +590,26 @@ class Config:
 
             os.system(f'electric install {command}')
 
+            versions = []
+            package_names = []
             for package in python_packages:
                 if idx == len(packages):
+                    versions.append(package[list(package.keys())[0]])
+                    package_names.append(list(package.keys())[0])
                     pip_command += list(package.keys())[0]
                     idx += 1
                     continue
+                versions.append(package[list(package.keys())[0]])
+                package_names.append(list(package.keys())[0])
                 pip_command += list(package.keys())[0] + ','
                 idx += 1
 
-            os.system(f'{refreshenv} & electric install --python {pip_command}')
+            os.system(refreshenv)
+
+            idx = 0
+            for package_name in package_names:
+                os.system(f'electric install --python {package_name} --version {versions[idx]}')
+                idx += 1
 
 
             if editor_type == 'Visual Studio Code' and editor_extensions:

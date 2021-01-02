@@ -33,6 +33,10 @@
 					"match": "\\."
 				},
 				{
+					"name": "keyword.other",
+					"match": "\\-"
+				},
+				{
 					"name": "entity.other.attribute-name",
 					"match": "[A-Z][a-zA-Z]+(?= =>)"
 				},
@@ -46,7 +50,7 @@
 				},
 				{
 					"name": "variable.parameter",
-					"match": "[a-zA-Z]+"
+					"match": "[a-zA-Z0-9]+"
 				},
 				{
 					"name": "comment.line",
