@@ -3,18 +3,14 @@
 <img src="https://img.shields.io/github/v/tag/TheBossProSniper/Electric-Windows?color=green&label=electric&sort=semver"> <img src="https://img.shields.io/github/license/TheBossProSniper/Electric-Windows?color=pink"> <img src="https://img.shields.io/tokei/lines/github/TheBossProSniper/Electric-Windows?color=white&label=lines%20of%20code"> <img src="https://img.shields.io/github/languages/top/TheBossProSniper/Electric-Windows?color=%230xfffff"> <img src="https://img.shields.io/github/repo-size/TheBossProSniper/Electric?color=orange">
 ***
 
-![Installing 7-Zip Through Electric]('https://github.com/XtremeDevX/Electric-Windows/blob/dev/assets/installation.gif?raw=true')
+![Installing 7-Zip Through Electric](https://github.com/XtremeDevX/Electric-Windows/blob/dev/assets/installation.gif?raw=true)
 
 
 A package manager for Windows!
 
 Highly optimized for speed and usability, Electric is anywhere from 200% to 1500% faster than other market competitors for downloading Applications and Packages, and has incredible speeds for concurrent / parallel downloading.
 
-<<<<<<< HEAD
-Electric, unlike your average package manager, believes in incredible effeciency, and officially supports installing packages at the same time (not one after another).
-=======
-Electric, unlike your average package manager believes in incredible effeciency, and officially supports installing packages at the same time (not one after another). 
->>>>>>> 1251e3ffe20ecfbf8da462064f0b266d3900c5d4
+Electric, unlike your average package manager believes in incredible effeciency, and officially supports installing packages concurrently (not one after another).
 
 Built for today's systems and with good support for lower specced systems, Electric runs smoothly even on systems with as little as 2 GB of ram!
 
@@ -39,8 +35,4 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 ## Config In Alpha
 A small peek of what's coming up next for electric! `(pssst! don't tell anyone!)`!
 
-<<<<<<< HEAD
-![Electric Language Extension](https://github.com/TheBossProSniper/Electric-Windows/blob/master/demostration.gif?raw=true)
-=======
 ![Demonstration](https://github.com/XtremeDevX/Electric-Windows/blob/dev/assets/config-extension.gif?raw=true)
->>>>>>> 1251e3ffe20ecfbf8da462064f0b266d3900c5d4
