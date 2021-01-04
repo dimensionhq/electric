@@ -222,7 +222,7 @@ def install(
                         spinner.start()
                         log_info('Handling Network Request...', metadata.logfile)
                         status = 'Networking'
-                        write_verbose(f'Sending GET Request To /packages/', metadata)
+                        write_verbose('Sending GET Request To /packages/', metadata)
                         write_debug('Sending GET Request To /packages', metadata)
                         log_info('Sending GET Request To /packages', metadata.logfile)
                         res, time = send_req_package(package)
@@ -304,7 +304,7 @@ def install(
                             spinner.start()
                             log_info('Handling Network Request...', metadata.logfile)
                             status = 'Networking'
-                            write_verbose(f'Sending GET Request To /packages/', metadata)
+                            write_verbose('Sending GET Request To /packages/', metadata)
                             write_debug('Sending GET Request To /packages', metadata)
                             log_info('Sending GET Request To /packages', metadata.logfile)
                             res, time = send_req_package(package)
@@ -497,7 +497,7 @@ def install(
                             spinner.start()
                             log_info('Handling Network Request...', metadata.logfile)
                             status = 'Networking'
-                            write_verbose(f'Sending GET Request To /packages/', metadata)
+                            write_verbose('Sending GET Request To /packages/', metadata)
                             write_debug('Sending GET Request To /packages', metadata)
                             log_info('Sending GET Request To /packages', metadata.logfile)
                             res, time = send_req_package(package)
@@ -577,7 +577,7 @@ def install(
                 spinner.start()
             log_info('Handling Network Request...', metadata.logfile)
             status = 'Networking'
-            write_verbose(f'Sending GET Request To /packages/', metadata)
+            write_verbose('Sending GET Request To /packages/', metadata)
             write_debug('Sending GET Request To /packages', metadata)
             log_info('Sending GET Request To /packages', metadata.logfile)
             log_info('Updating SuperCache', metadata.logfile)
@@ -666,7 +666,7 @@ def install(
         if not metadata.silent:
             if not metadata.no_color:
                 if super_cache:
-                    print(f'SuperCached', Fore.GREEN + '=>' + Fore.RESET, '[', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
+                    print('SuperCached', Fore.GREEN + '=>' + Fore.RESET, '[', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
                 else:
                     print('Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
 
@@ -908,9 +908,9 @@ def uninstall(
         keys = list(pkg.keys())
         idx = 0
         for key in keys:
-                if key not in ['package-name', 'nightly', 'display-name']:
-                    idx = keys.index(key)
-                    break
+            if key not in ['package-name', 'nightly', 'display-name']:
+                idx = keys.index(key)
+                break
 
         version = keys[idx]
         uninstall_exit_codes = None
@@ -999,7 +999,7 @@ def uninstall(
 
                 write_verbose('Executing the quiet uninstall command', metadata)
                 log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
-                write_debug(f'Running silent uninstallation command', metadata)
+                write_debug('Running silent uninstallation command', metadata)
                 run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet)
 
 
@@ -1239,7 +1239,7 @@ def search(
         if len(matches) != 1:
             click.echo(click.style(f'{len(matches)} packages found.', fg='green'))
         else:
-            click.echo(click.style(f'1 package found.', fg='yellow'))
+            click.echo(click.style('1 package found.', fg='yellow'))
 
     else:
         click.echo(click.style('0 packages found!', fg='red'))
@@ -1346,7 +1346,7 @@ def sign(
         l = [line.strip() for line in f.readlines()]
 
         if '# --------------------Checksum Start-------------------------- #' in l and '# --------------------Checksum End--------------------------- #' in l:
-            click.echo(click.style(f'File Already Signed, Aborting Signing!', fg='red'))
+            click.echo(click.style('File Already Signed, Aborting Signing!', fg='red'))
             exit()
 
     with open(filepath, 'a') as f:

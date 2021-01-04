@@ -166,16 +166,18 @@ def send_req_bundle():
 def get_init_char(start, metadata):
     if start:
         try:
-            start_char = metadata.settings.raw_dictionary['customProgressBar']['start_character']
+            start_char = Fore.RESET + metadata.settings.raw_dictionary['customProgressBar']['start_character']
         except:
             return ''
         return start_char if start_char else ''
     else:
         try:
-            end_char = metadata.settings.raw_dictionary['customProgressBar']['end_character']
+            end_char = Fore.RESET + \
+                metadata.settings.raw_dictionary['customProgressBar']['end_character']
         except:
             return ''
         return end_char if end_char else ''
+
 
 def get_character_color(fill, metadata):
     if fill:
@@ -183,13 +185,13 @@ def get_character_color(fill, metadata):
             fill_char_color = metadata.settings.raw_dictionary['customProgressBar']['fill_character_color']
         except:
             return 'Fore.RESET'
-        return f'Fore.{fill_char_color.upper()}'if fill_char_color else f'Fore.RESET'
+        return f'Fore.{fill_char_color.upper()}'if fill_char_color else 'Fore.RESET'
     else:
         try:
             unfill_char_color = metadata.settings.raw_dictionary['customProgressBar']['unfill_character_color']
         except:
             return 'Fore.RESET'
-        return f'Fore.{unfill_char_color.upper()}' if unfill_char_color else f'Fore.RESET'
+        return f'Fore.{unfill_char_color.upper()}' if unfill_char_color else 'Fore.RESET'
 
 
 def download_other(url: str):
@@ -218,6 +220,7 @@ def download_other(url: str):
                 sys.stdout.flush()
 
     return fR'{PathManager.get_appdata_directory()}\SuperCache\supercache.txt'
+
 
 def download(url: str, package_name: str, metadata: Metadata, download_type: str):
     cursor.hide()
