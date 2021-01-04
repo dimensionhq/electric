@@ -32,4 +32,4 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 ## Config In Alpha
 A small peek of what's coming up next for electric! `(pssst! don't tell anyone!)`!
 
-![Demonstration](https://github.com/TheBossProSniper/Electric-Windows/blob/master/demostration.gif?raw=true)
+![Demonstration](https://github.com/XtremeDevX/Electric-Windows/blob/dev/assets/config-extension.gif?raw=true)
