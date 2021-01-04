@@ -3,10 +3,10 @@ from colorama import Fore
 import hashlib
 import socket
 
-HOST = '127.0.0.1'  
-PORT = 65432        
+HOST = '127.0.0.1'
+PORT = 65432
 
-filepath = fr'C:\Users\tejas\Desktop\test.electric'
+filepath = r'C:\Users\tejas\Desktop\test.electric'
 configuration = Config.generate_configuration(filepath, False)
 print(Fore.GREEN + 'No Syntax Errors Found!' + Fore.RESET)
 str_dict = f'{configuration.dictionary}'
