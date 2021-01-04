@@ -32,6 +32,23 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 
 4. Yaay! Electric is installed on your system!
 
+#### Tab Completion
+    When using the official Electric installer, tab completion is setup for you out of the box, however, it is possible to manually add tab completion for electric.
+    Add the below lines to your powershell profile:
+    ```powershell
+        Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
+        param($wordToComplete, $commandAst, $cursorPosition)
+        [Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
+        $Local:word = $wordToComplete.Replace('"', '""')
+        $Local:ast = $commandAst.ToString().Replace('"', '""')
+        electric complete --word="$Local:word" --commandline "$Local:ast" --position $cursorPosition | ForEach-Object {
+            [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+        }
+    }
+    ```
+    Then, restart your powershell and viola, you've setup tab completion!
+
+
 ## Config In Alpha
 A small peek of what's coming up next for electric! `(pssst! don't tell anyone!)`!
 
