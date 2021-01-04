@@ -20,3 +20,4 @@ src/dist
 Inno Setup/
 src/Pipfile.lock
 src/Pipfile
+tests/__pycache__
