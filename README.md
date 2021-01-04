@@ -16,13 +16,22 @@ Built for today's systems and with good support for lower specced systems, Elect
 
 IMPORTANT: Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at [issues](https://github.com/TheBossProSniper/electric-windows/issues).
 
-## Installation
+# Installation
 
-IMPORTANT: Currently electric only works on Windows Systems, With Support In Progress For Darwin ( MacOSX ) and Debian Based Systems
+First you'll need to set your execution policy to RemoteSigned if not done so:
+```powershell
+Set-ExecutionPolicy RemoteSigned
+```
 
+## Method 1: Powershell
+Run the following command on your poweshell window:
+
+```powershell
+iwr -useb https://raw.githubusercontent.com/XtremeDevX/Electric-Windows/dev/src/electricInstall.ps1 | iex
+```
 #### Steps
 
-1. Download the latest version of the electric Installer from the [Releases Page](https://github.com/TheBossProSniper/electric-windows/releases/tag/v1.0.0-alpha)
+1. Download the latest version of the electric Installer from the [Releases Page](https://github.com/TheBossProSniper/electric-windows/releases/)
 
 2. After completing the download, start the installer (double-click) and follow the simple installation prompts.
 
@@ -36,7 +45,7 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 When using the official Electric installer, tab completion is setup for you out of the box, however, it is possible to manually add tab completion for electric.
 Add the below lines to your powershell profile:
 ```powershell
-    Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
+Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
     [Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
     $Local:word = $wordToComplete.Replace('"', '""')
