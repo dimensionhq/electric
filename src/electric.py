@@ -1423,7 +1423,6 @@ def show(package_name: str, nightly: bool):
     Displays information about the specified package.
     '''
     res, _ = send_req_package(package_name)
-
     click.echo(click.style(display_info(res, nightly=nightly), fg='green'))
 
 

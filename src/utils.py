@@ -89,7 +89,6 @@ def get_download_url(packet):
     return packet.win64
 
 
-
 def generate_dict(path: str, package_name: str):
     return {
         'directory': path,
@@ -138,6 +137,7 @@ def get_chunk_size(total_size: str):
         return 4096
     else:
         return 7096
+
 
 def get_color_escape(r, g, b, background=False):
     return '\033[{};2;{};{};{}m'.format(48 if background else 38, r, g, b)
@@ -729,6 +729,7 @@ def get_install_flags(install_dir: str, no_cache: bool, sync: bool, metadata: Me
 
     return flags
 
+
 def refresh_environment_variables():
     Popen(Rf'{PathManager.get_current_directory()}\scripts\refreshvars.cmd',
                  stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
@@ -885,6 +886,7 @@ def check_supercache_availiable(package_name: str) -> bool:
         return True
     return False
 
+
 def handle_cached_request(package_name: str):
     start = timer()
     supercache_dir = PathManager.get_appdata_directory() + R'\SuperCache'
@@ -895,6 +897,7 @@ def handle_cached_request(package_name: str):
         return 'NOT FOUND', 1
     end = timer()
     return res, (end - start)
+
 
 def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, settings):
     return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce, rate_limit, settings)
@@ -1147,13 +1150,15 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
         else:
             corrections = difflib.get_close_matches(name, corrected_package_names)
             if corrections:
-                if metadata.silent:
+                if metadata.silent and not metadata.yes:
                     click.echo(click.style(
                         'Incorrect / Invalid Package Name Entered. Aborting Installation.', fg='red'))
                     log_info(
                         'Incorrect / Invalid Package Name Entered. Aborting Installation', metadata.logfile)
 
                     handle_exit('ERROR', None, metadata)
+                else:
+                    corrected_names.append(corrections[0])
 
                 if metadata.yes:
                     write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)

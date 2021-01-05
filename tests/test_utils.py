@@ -1,41 +1,50 @@
 import unittest
 import utils
-from Classes.Setting import Setting
-
-
 
 class TestUtil(unittest.TestCase):
 
     def test_is_admin(self):
         self.assertIsNotNone(utils.is_admin())
-    
+
     def test_send_req_bundle(self):
         res, _ = utils.send_req_bundle()
         pkg_data = res['atom']
         self.assertIsNotNone(pkg_data, msg="Package is missing or Request Failed")
-    
-    # def test_download(self):
-    #     metadata = utils.generate_metadata(
-    #     False, False, False, False, False, False, '', False, False, 0, Setting.new())
-    # #     metadata = Metadata(False, False, False, False, False, False, '', False, False, 0, Setting({
-    # #     "$schema": "http://electric-package-manager.herokuapp.com/schemas/settings",
-    # #     "progressBarType": "accented",
-    # #     "showProgressBar": True,
-    # #     "electrifyProgressBar": False,
-    # #     "customProgressBar":{
-    # #         "unfill_character": ' ',
-    # #     }
-    # # },
-    # # progress_bar_type = 'default',
-    # # show_progress_bar = False,
-    # # electrify_progress_bar = False,
-    # # use_custom_progress_bar = False,
-    # # custom_progress_bar = None
-    # # ))
-    #     res = utils.download('abcdef', 'atom', metadata,'')
-    #     print(res)
+
+    def test_package_request(self):
+        res, time  = utils.send_req_package('atom')
+        self.assertIsNotNone(time)
+        self.assertIsNotNone(res)
+
+    def test_version_check(self):
+        newer_version = utils.check_newer_version('9.0.1')
+        self.assertIs(newer_version, True)
 
 
+    def test_gen_metadata(self):
+        meta = utils.generate_metadata(None, None, None, None, None, None, None, None, None, None, None)
+        self.assertIsInstance(meta, utils.Metadata)
+
+    def test_check_supercache_availiable(self):
+        availiable = utils.check_supercache_availiable('atom')
+        self.assertIsInstance(availiable, bool)
+
+    def test_display_info(self):
+        res, _ = utils.send_req_package('atom')
+        text = utils.display_info(res)
+        self.assertIsInstance(text, str)
+        res, _ = utils.send_req_package('atom')
+        text = utils.display_info(res, nightly=True)
+        self.assertIsInstance(text, str)
+
+    def test_get_correct_package_names(self):
+        packages = utils.get_correct_package_names()
+        self.assertIsInstance(packages, list)
+
+    def test_autocorrections(self):
+        corrections = utils.get_autocorrections(
+            ['ato', 'sublime-text'], utils.get_correct_package_names(all=True), utils.Metadata(None, None, True, True, None, None, None, None, None, None, None))
+        self.assertIsInstance(corrections, list)
 
 if __name__ == "__main__":
     unittest.main()
