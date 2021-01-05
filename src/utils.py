@@ -389,6 +389,7 @@ def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, in
     try:
         check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except (CalledProcessError, OSError, FileNotFoundError) as err:
+        print(err)
         if halo:
             halo.stop()
         keyboard.add_hotkey(
