@@ -876,8 +876,11 @@ def check_supercache_valid():
         date = datetime.strptime(contents, '%Y-%m-%d %H:%M:%S.%f')
         if (datetime.now() - date).days < 7:
             return True
-    return False
-
+        else:
+            return False
+    with open(filepath, 'w+') as f:
+        f.write(str(datetime.strptime(str(datetime.now()), '%Y-%m-%d %H:%M:%S.%f')))
+    return True
 
 def check_supercache_availiable(package_name: str) -> bool:
     supercache_dir = PathManager.get_appdata_directory() + R'\SuperCache'

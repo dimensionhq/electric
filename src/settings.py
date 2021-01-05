@@ -1,6 +1,7 @@
 from Classes.PathManager import PathManager
 from subprocess import Popen, PIPE
 import json
+import os
 
 settings_dir = PathManager.get_appdata_directory() + R'\electric-settings.json'
 
@@ -12,6 +13,8 @@ def initialize_settings():
         "electrifyProgressBar": False
     }
 
+    if not os.path.isdir(PathManager.get_appdata_directory()):
+        os.mkdir(PathManager.get_appdata_directory()) 
     with open(settings_dir, 'w+') as f:
         f.write(json.dumps(default_electric_settings, indent=4))
 
