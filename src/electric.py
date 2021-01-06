@@ -824,7 +824,8 @@ def uninstall(
             reduce=None,
             rate_limit=None
         )
-        exit()
+        sys.exit()
+
     log_info('Generating metadata...', logfile)
 
     metadata = generate_metadata(
@@ -1310,6 +1311,15 @@ def config(
     '''
     Installs and configures packages from a .electric configuration file.
     '''
+    if not is_admin():
+        config_path = config_path.replace('.\\', '\\')
+        if not '\\' in config_path:
+            config_path = '\\' + config_path
+        config_path = os.getcwd() + config_path
+        print(config_path)
+        os.system(fr'{PathManager.get_current_directory()}\scripts\context-elevate.cmd {config_path}')
+        sys.exit()
+
     metadata = generate_metadata(
             no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new())
 

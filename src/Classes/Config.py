@@ -183,6 +183,7 @@ class Config:
 
     @staticmethod
     def generate_configuration(filepath: str, signed=True):
+        time.sleep(10)
         d = {}
         try:
             with open(f'{filepath}', 'r') as f:
@@ -243,8 +244,7 @@ class Config:
                         if '<sublime:name>' in line or '<sublime>' in line or '<sublime:name,version>' in line:
                             insert_index = lines.index(line)
                             if find_existing_installation('sublime-text-3', 'Sublime Text 3'):
-                                location = PathManager.get_appdata_directory().replace('\electric', '') + \
-                                    '\Sublime Text 3'
+                                location = PathManager.get_appdata_directory().replace('\electric', '') + '\Sublime Text 3'
                                 if os.path.isdir(location) and os.path.isfile(fr'{location}\Packages\User\Package Control.sublime-settings'):
                                     with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'r') as f:
                                         sublime_lines = f.readlines()
@@ -443,9 +443,10 @@ class Config:
                             os.remove(rf'{gettempdir()}\electric\configuration.electric')
                             exit(1)
                         os.remove(rf'{gettempdir()}\electric\configuration.electric')
-
-        except FileNotFoundError:
+        except FileNotFoundError as e:
+            print(filepath)
             click.echo(click.style(f'Could Not Find {Fore.BLUE}{filepath}{Fore.RESET}.', fg='red'), err=True)
+            time.sleep(2)
             exit()
         d.pop('')
 
