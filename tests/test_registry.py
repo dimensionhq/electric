@@ -8,7 +8,6 @@ class TestRegistry(unittest.TestCase):
         self.assertIsInstance(ans, list)
 
     def test_get_environment_keys(self):
-        #TODO: work on this og function...
         ans = registry.get_environment_keys()
         self.assertIsNotNone(ans)
 
