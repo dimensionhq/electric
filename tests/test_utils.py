@@ -45,6 +45,12 @@ class TestUtil(unittest.TestCase):
         corrections = utils.get_autocorrections(
             ['ato', 'sublime-text'], utils.get_correct_package_names(all=True), utils.Metadata(None, None, True, True, None, None, None, None, None, None, None))
         self.assertIsInstance(corrections, list)
+    
+    def test_send_req_package(self):
+        package = 'atom'
+        response, time = utils.send_req_package(package)
+        self.assertIsNotNone(response)
+        self.assertIsNotNone(time)
 
 if __name__ == "__main__":
     unittest.main()
