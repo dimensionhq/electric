@@ -24,7 +24,7 @@ Set-ExecutionPolicy RemoteSigned
 ```
 
 ## Method 1: Powershell
-Run the following command on your poweshell window:
+Run the following command on your powershell window:
 
 ```powershell
 iwr -useb https://raw.githubusercontent.com/XtremeDevX/Electric-Windows/dev/bin/electricInstall.ps1 | iex
