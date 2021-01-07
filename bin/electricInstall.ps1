@@ -1,7 +1,7 @@
 Import-Module BitsTransfer
 
 $ErrorActionPreference = "Stop"
-Start-BitsTransfer 'https://electric-package-manager.herokuapp.com/install/windows' "${Env:\TEMP}\ElectricSetup.exe" -Description 'Downloading Electric Alpha v1.0.0 Setup from https://electric-package-manager.herokuapp.com/install/windows' -DisplayName 'Downloading Electric' -TransferType Download
+Start-BitsTransfer 'https://srv-store6.gofile.io/download/mwopq6/Electric%20v1.0.0%20Alpha%20Setup.exe' "${Env:\TEMP}\ElectricSetup.exe" -Description 'Downloading Electric Alpha v1.0.0 Setup from https://electric-package-manager.herokuapp.com/install/windows' -DisplayName 'Downloading Electric' -TransferType Download
 
 Write-Host 'Installing Electric' -ForegroundColor cyan
 & "${Env:\TEMP}\ElectricSetup.exe" /VERYSILENT
