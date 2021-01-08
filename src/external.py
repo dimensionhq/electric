@@ -2,29 +2,32 @@
 #                              EXTERNAL                              #
 ######################################################################
 
-
+from urllib.request import urlretrieve
 from Classes.Metadata import Metadata
 from subprocess import PIPE, Popen
-from extension import *
+from halo import Halo
 from utils import *
+import json as js
 import mslex
 import sys
 
 
-def handle_python_package(package_name: str, mode: str, metadata: Metadata):
+def handle_python_package(package_name: str, version: str, mode: str, metadata: Metadata):
     command = ''
 
     valid = Popen(mslex.split('pip --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE)
     _, err = valid.communicate()
 
     if err:
-        click.echo(click.style('npm Or node Is Not Installed. Exit Code [0011]', fg='red'))
-        disp_error_msg(get_error_message('0011', 'install'))
+        click.echo(click.style('Python Is Not Installed. Exit Code [0011]', fg='red'))
+        disp_error_msg(get_error_message('0011', 'install', package_name, None), metadata)
         handle_exit('ERROR', None, metadata)
     if mode == 'install':
         command = 'python -m pip install --upgrade --no-input'
 
         command += f' {package_name}'
+        if version != 'latest':
+            command += f'=={version}'
 
         proc = Popen(mslex.split(command), stdin=PIPE,
                         stdout=PIPE, stderr=PIPE)
@@ -33,6 +36,8 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
         for line in proc.stdout:
             line = line.decode('utf-8')
 
+            if f'Collecting {package_name}' in line:
+                write(f'Python v{py_version[0]} :: Collecting {package_name}', 'green', metadata)
             if 'Downloading' in line and package_name in line:
                 write(
                     f'Python v{py_version[0]} :: Downloading {package_name}', 'green', metadata)
@@ -41,9 +46,10 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
                 write(
                     f'Python v{py_version[0]} :: Installing {package_name}', 'green', metadata)
 
-            if 'Requirement already up-to-date:' in line and package_name in line:
+            if f'Requirement ' in line and package_name in line:
                 write(
-                    f'Python v{py_version[0]} :: {package_name} Is Already Installed And On The Latest Version ==> {line.split()[6]}', 'yellow', metadata)
+                    f'Python v{py_version[0]} :: {package_name} Is Already Installed And On The Latest Version ==> {line.split()[-1]}', 'yellow', metadata)
+                break
 
             if 'Successfully installed' in line and package_name in line:
                 ver = line.split('-')[1]
@@ -69,7 +75,6 @@ def handle_python_package(package_name: str, mode: str, metadata: Metadata):
 
         for line in proc.stdout:
             line = line.decode('utf-8')
-
             if 'Uninstalling' in line and package_name in line:
                 write(
                     f'Python v{py_version[0]} :: Uninstalling {package_name}', 'green', metadata)
@@ -95,7 +100,7 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
 
     if err:
         click.echo(click.style('npm Or node Is Not Installed. Exit Code [0011]', fg='bright_yellow'))
-        disp_error_msg(get_error_message('0011', 'install'))
+        disp_error_msg(get_error_message('0011', 'install', package_name, None), metadata)
         handle_exit('ERROR', None, metadata)
 
 
@@ -105,10 +110,14 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
         package_version = None
         for line in proc.stdout:
             line = line.decode()
-            if package_name in line and '@' in line and 'install' in line or 'postinstall' in line:
+
+            if 'node install.js' in line:
+                write(f'npm v{version} :: Running `node install.js` for {package_name}', 'green', metadata)
+            if package_name in line and '@' in line and 'install' in line or ' postinstall' in line:
                 package_version = line.split()[1]
                 write(f'npm v{version} :: {package_version} Installing To <=> "{line.split()[3]}"', 'green', metadata)
-            if 'Success' in line and package_name in line:
+
+            if 'Success' in line and package_name in line or 'added' in line:
                 write(f'npm v{version} :: Successfully Installed {package_version}', 'green', metadata)
             if 'updated' in line:
                 if package_version:
@@ -118,5 +127,181 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
 
 
     else:
-        proc = Popen(mslex.split(f'npm uninstall {package_name}'), stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        _, err = proc.communicate()
+        proc = Popen(mslex.split(f'npm uninstall -g {package_name}'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        for line in proc.stdout:
+            line = line.decode()
+            if 'up to date' in line:
+                write(f'npm v{version} :: Could Not Find Any Existing Installations Of {package_name}', 'yellow', metadata)
+            if 'removed' in line:
+                number = line.split(' ')[1].strip()
+                time = line.split(' ')[4].strip()
+                write(f'npm v{version} :: Sucessfully Uninstalled {package_name} And {number} Other Dependencies in {time}', 'green', metadata)
+
+
+def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
+    try:
+        version_proc = Popen(mslex.split('code --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    except FileNotFoundError:
+        click.echo(click.style('Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
+        disp_error_msg(get_error_message('0111', 'install', package_name, None), metadata)
+        handle_exit('ERROR', None, metadata)
+
+    version, err = version_proc.communicate()
+    version = version.decode().strip().split('\n')[0]
+
+    if err:
+        click.echo(click.style('Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
+        disp_error_msg(get_error_message('0111', 'install', package_name, None), metadata)
+        handle_exit('ERROR', None, metadata)
+
+    if mode == 'install':
+        command = f'code --install-extension {package_name} --force'
+        proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        for line in proc.stdout:
+            line = line.decode()
+
+            if 'Installing extensions' in line:
+                write(f'Code v{version} :: Installing {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+
+            if 'is already installed' in line:
+                write(f'{Fore.GREEN}Code v{version} :: {Fore.MAGENTA}{package_name}{Fore.YELLOW} is already installed!', 'white', metadata)
+
+            if 'was successfully installed' in line:
+                write(f'{Fore.GREEN}Code v{version} :: Successfully Installed {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+    if mode == 'uninstall':
+        command = f'code --uninstall-extension {package_name} --force'
+        proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        for line in proc.stdout:
+            line = line.decode()
+
+            if 'Uninstalling' in line:
+                write(f'Code v{version} :: Uninstalling {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+
+            if 'is not installed' in line:
+                write(f'{Fore.GREEN}Code v{version} :: {Fore.MAGENTA}{package_name}{Fore.YELLOW} is not installed!', 'white', metadata)
+
+            if 'was successfully uninstalled' in line:
+                write(f'{Fore.GREEN}Code v{version} :: Successfully Uninstalled {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+
+
+def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
+    if mode == 'install':
+        if find_existing_installation('sublime-text-3', 'Sublime Text 3'):
+            location = PathManager.get_appdata_directory().replace('\electric', '') + '\Sublime Text 3'
+            if os.path.isdir(location) and os.path.isfile(fr'{location}\Packages\User\Package Control.sublime-settings'):
+                with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'r') as f:
+                    lines = f.readlines()
+                    idx = 0
+                    for line in lines:
+                        if '"Package Control",' in line.strip():
+                            idx = lines.index(line)
+
+                    if ']' in lines[idx + 1].strip():
+                        lines[idx] = "        \"Package Control\""
+
+                with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w') as f:
+                    f.writelines(lines)
+
+                with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'r') as f:
+                    json = js.load(f)
+                    current_packages = json['installed_packages']
+                    if package_name in current_packages:
+                        print(f'{package_name} is already installed!')
+                        exit()
+
+                    current_packages.append(package_name)
+                updated_packages = current_packages
+                del json['installed_packages']
+                json['installed_packages'] = updated_packages
+                with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w+') as f:
+                    f.write(js.dumps(json, indent=4))
+                click.echo(f'Successfully Added {package_name} to Sublime Text 3')
+            else:
+                if not os.path.isdir(location):
+                    os.mkdir(location)
+                if not os.path.isdir(fr'{location}\Installed Packages'):
+                    os.mkdir(fr'{location}\Installed Packages')
+
+                # Package Control Not Installed
+                with Halo('Installing Package Control', text_color='cyan'):
+                    urlretrieve('https://packagecontrol.io/Package%20Control.sublime-package', fr'{location}\Installed Packages\Package Control.sublime-package')
+
+                if not os.path.isdir(fr'{location}\Packages'):
+                    os.mkdir(fr'{location}\Packages')
+                if not os.path.isdir(fr'{location}\Packages\User'):
+                    os.mkdir(fr'{location}\Packages\User')
+
+                with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w+') as f:
+                    f.write(
+                        js.dumps({
+                        "bootstrapped": True,
+                        "installed_packages": [
+                            "Package Control"
+                        ]},
+                        indent=4
+                        ))
+
+                handle_sublime_extension(package_name, mode, metadata)
+        else:
+            print('Sublime Text 3 is not installed!')
+
+def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
+    if mode == 'install':
+        try:
+            proc = Popen('apm --version --no-color'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            output, err = proc.communicate()
+            version = output.decode().splitlines()[0].split()[1]
+        except FileNotFoundError:
+            print('Atom is not installed')
+            exit()
+        with Halo(f'apm v{version} :: Installing {package_name}', text_color='cyan') as h:
+            proc = Popen(f'apm install {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            for line in proc.stdout:
+                line = line.decode()
+                if 'failed' in line:
+                    h.fail(f' Failed to Install {package_name} to <=> {line.split()[3]}')
+
+                if 'done' in line:
+                    h.stop()
+                    click.echo(click.style(f' Successfully Installed {package_name} to <=> {line.split()[3]}', 'green'))
+
+        if mode == 'uninstall':
+            try:
+                proc = Popen('apm --version --no-color'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                output, err = proc.communicate()
+                version = output.decode().splitlines()[0].split()[1]
+            except FileNotFoundError:
+                print('Atom is not installed')
+                exit()
+            with Halo(f'apm v{version} :: Installing {package_name}', text_color='cyan') as h:
+                proc = Popen(f'apm install {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                for line in proc.stdout:
+                    line = line.decode()
+                    if 'failed' in line:
+                        h.fail(f' Failed to Install {package_name} to <=> {line.split()[3]}')
+
+                    if 'done' in line:
+                        h.stop()
+                        click.echo(click.style(f' Successfully Installed {package_name} to <=> {line.split()[3]}', 'green'))
+    if mode == 'uninstall':
+        try:
+            proc = Popen('apm --version --no-color'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            output, _ = proc.communicate()
+            version = output.decode().splitlines()[0].split()[1]
+        except FileNotFoundError:
+            print('Atom is not installed')
+            exit()
+        with Halo(f'apm v{version} :: Uninstalling {package_name}', text_color='cyan') as h:
+            proc = Popen(f'apm deinstall {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            for line in proc.stdout:
+                line = line.decode()
+                if 'failed' in line:
+                    h.fail(f' Failed to Uninstall {package_name}')
+
+                if 'done' in line:
+                    h.stop()
+                    click.echo(click.style(f' Successfully Uninstalled {package_name}', 'green'))
+
+
+def handle_visual_studio_package(package_name: str, mode: str, metadata: Metadata):
+    pass

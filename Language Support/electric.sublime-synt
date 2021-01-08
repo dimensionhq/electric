@@ -1,0 +1,34 @@
+%YAML 1.2
+---
+name: Electric
+file_extensions: [electric]
+scope: source.electric
+
+contexts:
+  main:
+    - include: strings
+    - include: keywords
+
+  strings:
+    - match: \"
+      scope: punctuation.definition.string.begin.electric
+      push:
+        - meta_scope: string.quoted.double.electric
+        - match: \"
+          scope: punctuation.definition.string.end.electric
+          pop: true
+        - match: \\.
+          scope: constant.character.escape.electric
+  keywords:
+    - match: \b(\d[\d.]+)\b
+      scope: constant.numeric.version.electric
+    - match: =>
+      scope: keyword.operator.assignment.electric
+    - match: \[\s*([\w-]+)\s*\]
+      scope: entity.name.class
+    - match: ([a-z\-]+)(?=\.)
+      scope: entity.name.function
+    - match: \#.*$
+      scope: comment.line.electric
+    - match: \.
+      scope: keyword.other.electric

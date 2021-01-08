@@ -18,4 +18,6 @@ src/build
 src/electric.spec
 src/dist
 Inno Setup/
-Server/
+src/Pipfile.lock
+src/Pipfile
+tests/__pycache__

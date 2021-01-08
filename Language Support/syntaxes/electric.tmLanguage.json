@@ -1,0 +1,76 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Electric-Config",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [
+				{
+					"name": "constant.version.electric",
+					"match": "\\b(\\d[\\d\\.]+)\\b"
+				},
+				{
+					"name": "keyword.operator.assignment.electric",
+					"match": "=>"
+				},
+				{
+    				"name": "entity.name.class",
+					"match": "\\[ ([a-zA-Z\\-]+) \\]"
+				},
+				{
+					"name": "entity.name.function",
+					"match": "([a-zA-Z0-9\\-]+)(?=\\.)"
+				},
+				{
+					"name": "keyword.other",
+					"match": "\\."
+				},
+				{
+					"name": "keyword.other",
+					"match": "\\-"
+				},
+				{
+					"name": "entity.other.attribute-name",
+					"match": "[A-Z][a-zA-Z]+(?= =>)"
+				},
+				{
+					"name": "constant.language",
+					"match": "^<.*>$"
+				},
+				{
+					"name": "entity.other.inherited-class",
+					"match": "(# --------------------Checksum Start-------------------------- #|# --------------------Checksum End--------------------------- #)"
+				},
+				{
+					"name": "variable.parameter",
+					"match": "[a-zA-Z0-9]+"
+				},
+				{
+					"name": "comment.line",
+					"match": "\\s*((#).*)$"
+				}
+			]
+		},
+		"strings":
+		{
+			"name": "string.quoted.double.electric",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.electric",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.electric"
+}
+

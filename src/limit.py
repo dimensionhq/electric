@@ -2,12 +2,9 @@
 #                          DOWNLOAD LIMITER                          #
 ######################################################################
 
-
-from timeit import default_timer as timer
 import threading
 import time
 from typing import Any
-from urllib.request import urlretrieve
 from progress.bar import Bar
 
 

@@ -1,0 +1,17 @@
+{
+    "info": {
+        "prefix": "[ Info ]",
+        "body": [
+            "[ Info ]",
+            "# Go To https://www.electric.sh/electric-configuration-documentation/ For More Information",
+            "Publisher => \"${1}\"",
+            "Description => \"${2}\"",
+            "\n[ Editor-Configuration ]",
+            "Editor => \"${3}\"",
+            "\n[ Packages ]",
+            "\n[ Editor-Extensions ]",
+            "\n[ Pip-Packages ]",
+            "\n[ Node-Packages ]\n"
+        ]
+    }
+}

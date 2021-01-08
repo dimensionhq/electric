@@ -4,7 +4,7 @@
 
 import shutil
 import py7zr
-import os   
+import os
 
 
 archive = py7zr.SevenZipFile(R'C:\Program Files (x86)\Electric\Update.7z', 'r')

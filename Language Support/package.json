@@ -1,0 +1,52 @@
+{
+	"name": "electric-language-support",
+	"publisher": "Electric",
+	"displayName": "Electric Config Language Support",
+	"description": "Official syntax highlighting and autocompletion support for .electric configuration files.",
+	"repository": {
+		"url": "https://github.com/TheBossProSniper/Electric-Windows"
+	},
+	"version": "0.0.4",
+	"engines": {
+		"vscode": "^1.51.0"
+	},
+	"categories": [
+		"Programming Languages"
+	],
+	"contributes": {
+		"snippets": [
+			{
+				"language": "electric",
+				"path": "./snippets/snippets.json"
+			}
+		],
+		"languages": [
+			{
+				"id": "electric",
+				"aliases": [
+					"Electric-Config",
+					"electric"
+				],
+				"extensions": [
+					".electric"
+				],
+				"configuration": "./syntaxes/language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "electric",
+				"scopeName": "source.electric",
+				"path": "./syntaxes/electric.tmLanguage.json"
+			}
+		]
+	},
+	"devDependencies": {
+		"js-yaml": "^3.14.0"
+	},
+	"__metadata": {
+		"id": "30b07d36-810f-49d6-80ae-9a154815c8f7",
+		"publisherDisplayName": "Electric",
+		"publisherId": "dff58d0a-a5b9-4673-a0df-e1d0c6bda585"
+	}
+}

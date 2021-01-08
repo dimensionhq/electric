@@ -22,9 +22,9 @@ setup(
     name = 'electric',
     version = '1.0.0',
     description= 'The Official Package Manager For Windows, MacOS and Linux!',
-    url='https://github.com/TheBossProSniper/Electric',
-    author = 'TheBossProSniper',
-    author_email = 'thebossprosniper@gmail.com',
+    url='https://github.com/XtremeDevX/Electric-Windows',
+    author = 'XtremeDevX',
+    author_email = 'xtremedevx@gmail.com',
     py_modules=['electric'],
     packages=find_packages(),
     scripts=[os.path.join(os.path.abspath(os.getcwd()), 'src', 'electric.py')],
@@ -47,7 +47,11 @@ setup(
         'mslex',
         'pygments', # TODO: => Add Volt Pretty Print Support Using `pygmentize.exe test.py`
         'halo',
-        'cursor'
+        'cursor',
+        'google',
+        'check-pypi-name',
+        'prompt-toolkit',
+        'py7zr'
     ],
     package_dir={'': 'src'},
     entry_points =

@@ -12,6 +12,7 @@
 
 import click
 import difflib
+from colorama import Fore
 
 __version__ = "0.0.3"
 
@@ -48,7 +49,7 @@ class DYMMixin(object):  # pylint: disable=too-few-public-methods
                 error_msg += '\n\nDid you mean one of these?\n    %s' % '\n    '.join(matches)  # pylint: disable=line-too-long
 
             raise click.exceptions.UsageError(error_msg, error.ctx)
-    
+
     def command(self, *args, **kwargs):
         aliases = kwargs.pop('aliases', [])
         decorator = super(DYMMixin, self).command(*args, **kwargs)
@@ -119,6 +120,30 @@ class DYMMixin(object):  # pylint: disable=too-few-public-methods
             with formatter.section('Commands'):
                 formatter.write_dl(rows)
 
+    def format_help(self, ctx, formatter):
+        message = f'''Electric Package Manager v1.0.0 Alpha
+Copyright (c) Electric Inc.
+
+Usage: electric <command> [<options>]
+
+{Fore.GREEN}Commands:{Fore.RESET}
+  {Fore.CYAN}Software Management{Fore.RESET}
+    {Fore.MAGENTA}*{Fore.RESET} install
+    {Fore.MAGENTA}*{Fore.RESET} uninstall
+    {Fore.MAGENTA}*{Fore.RESET} bundle
+  {Fore.CYAN}Explore Packages{Fore.RESET}
+    {Fore.MAGENTA}*{Fore.RESET} search
+    {Fore.MAGENTA}*{Fore.RESET} show
+  {Fore.CYAN}Configuration Development And Management{Fore.RESET}
+    {Fore.MAGENTA}*{Fore.RESET} new
+    {Fore.MAGENTA}*{Fore.RESET} config
+    {Fore.MAGENTA}*{Fore.RESET} generate
+    {Fore.MAGENTA}*{Fore.RESET} sign
+  {Fore.CYAN}Customization And Cleanup{Fore.RESET}
+    {Fore.MAGENTA}*{Fore.RESET} settings
+    {Fore.MAGENTA}*{Fore.RESET} cleanup'''
+        click.echo(message)
+
 
 class SuperChargeCLI(DYMMixin, click.Group):  # pylint: disable=too-many-public-methods
     """
@@ -127,7 +152,7 @@ class SuperChargeCLI(DYMMixin, click.Group):  # pylint: disable=too-many-public-
     command is not found in the group.
     """
     # def format_help(self, ctx, formatter):
-    #     # Custom Help Message =>         
+    #     # Custom Help Message =>
     #     click.echo(click.style('Commands :', fg='green'))
     #     click.echo('Next Line')
 

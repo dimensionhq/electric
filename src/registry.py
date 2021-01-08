@@ -34,6 +34,10 @@ def get_uninstall_key(package_name : str, display_name: str):
                 except EnvironmentError:
                     software['Version'] = 'undefined'
                 try:
+                    software['InstallLocation'] = winreg.QueryValueEx(asubkey, "InstallLocation")[0]
+                except EnvironmentError:
+                    software['InstallLocation'] = 'undefined'
+                try:
                     software['Publisher'] = winreg.QueryValueEx(asubkey, "Publisher")[0]
                 except EnvironmentError:
                     software['Publisher'] = 'undefined'
@@ -44,9 +48,10 @@ def get_uninstall_key(package_name : str, display_name: str):
         return software_list
 
     keys = send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY) + send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY) + send_query(winreg.HKEY_CURRENT_USER, 0)
-    
+
     final_array = []
     total = []
+
     def get_uninstall_string(package_name : str):
         nonlocal final_array
         string_gen(package_name)
@@ -63,16 +68,25 @@ def get_uninstall_key(package_name : str, display_name: str):
             refined_list = []
 
             for item in final_list:
-                if item is None:
+                if not item:
                     final_list.pop(index)
                 else:
                     name = item.lower()
-
+                
                 refined_list.append(name)
                 index += 1
-                
+
+            temp_list = []
+            old = ''
+            for val in refined_list:
+                if val != old:
+                    temp_list.append(val)
+                    old = val
+            
             for string in strings:
-                matches = difflib.get_close_matches(string, refined_list)
+                matches = difflib.get_close_matches(
+                    package_name, temp_list, cutoff=0.65)
+                
                 if not matches:
                     possibilities = []
 
@@ -83,9 +97,6 @@ def get_uninstall_key(package_name : str, display_name: str):
 
                     if possibilities:
                         total.append(possibilities)
-                        
-                    else:
-                        continue
                 else:
                     final_array.append(key)
 
@@ -93,7 +104,7 @@ def get_uninstall_key(package_name : str, display_name: str):
 
     def string_gen(package_name : str):
         package_name = package_name.split('-')
-        strings.append(''.join(package_name))
+        strings.append(' '.join(package_name))
         strings.append(display_name.lower())
 
     def get_more_accurate_matches(return_array):
@@ -107,7 +118,7 @@ def get_uninstall_key(package_name : str, display_name: str):
                 loc = key['InstallLocation']
             except KeyError:
                 pass
-    
+
             uninstall_string = None if 'UninstallString' not in key else key['UninstallString']
             quiet_uninstall_string = None if 'QuietUninstallString' not in key else key['QuietUninstallString']
             url = None if 'URLInfoAbout' not in key else key['URLInfoAbout']
@@ -154,8 +165,6 @@ def get_uninstall_key(package_name : str, display_name: str):
 
 
     get_uninstall_string(package_name)
-
-
     if final_array:
         if len(final_array) > 1:
             return get_more_accurate_matches(final_array)
@@ -174,12 +183,18 @@ def get_environment_keys() -> RegSnapshot:
     sys_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, R'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 0, winreg.KEY_READ)
     sys_idx = 0
     while True:
-        if winreg.EnumValue(env_key, sys_idx)[0] == 'Path':
+        try:
+            if winreg.EnumValue(env_key, sys_idx)[0] == 'Path':
+                break
+        except OSError:
             break
         sys_idx += 1
     env_idx = 0
     while True:
-        if winreg.EnumValue(sys_key, env_idx)[0] == 'Path':
+        try:
+            if winreg.EnumValue(sys_key, env_idx)[0].lower() == 'path':
+                break
+        except OSError:
             break
         env_idx += 1
     snap = RegSnapshot(str(winreg.EnumValue(env_key, sys_idx)[1]), len(str(winreg.EnumValue(env_key, sys_idx)[1]).split(';')), str(winreg.EnumValue(sys_key, env_idx)[1]), len(str(winreg.EnumValue(sys_key, env_idx)[1]).split(';')))
