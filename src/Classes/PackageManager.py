@@ -98,14 +98,14 @@ class PackageManager:
                 click.echo(click.style(
                     f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
-            run_cmd(command, self.metadata, 'installation', install.display_name, install.install_exit_codes, [], None, install)
+            run_cmd(command, self.metadata, 'installation', install.display_name, install.install_exit_codes, [], None, install, None, None)
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i' + path + ' '
             for switch in switches:
                 command = command + ' ' + switch
 
-            run_cmd(command, self.metadata, 'installation', install.display_name, install.install_exit_codes, [], None, install)
+            run_cmd(command, self.metadata, 'installation', install.display_name, install.install_exit_codes, [], None, install, None, None)
 
         elif download_type == '.zip':
             if not self.metadata.no_color:
@@ -516,7 +516,7 @@ class PackageManager:
                     start_snap = get_environment_keys()
 
                     # Running The Installer silently And Completing Setup
-                    install_package(path, packet, metadata)
+                    install_package(path, packet, metadata, None, None)
 
                     final_snap = get_environment_keys()
                     if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:

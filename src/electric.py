@@ -447,7 +447,7 @@ def install(
                         start_snap = get_environment_keys()
                         status = 'Installing'
                         # Running The Installer silently And Completing Setup
-                        install_package(path, packet, metadata)
+                        install_package(path, packet, metadata, no_cache, sync)
 
                         status = 'Installed'
                         final_snap = get_environment_keys()
@@ -731,7 +731,7 @@ def install(
         start_snap = get_environment_keys()
         status = 'Installing'
         # Running The Installer silently And Completing Setup
-        install_package(path, packet, metadata)
+        install_package(path, packet, metadata, no_cache, sync)
 
         status = 'Installed'
         log_info('Creating final snapshot of registry...', metadata.logfile)
@@ -1001,7 +1001,7 @@ def uninstall(
                 write_verbose('Executing the quiet uninstall command', metadata)
                 log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
                 write_debug('Running silent uninstallation command', metadata)
-                run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet)
+                run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet, no_cache, None)
 
 
                 h.stop()
@@ -1033,7 +1033,7 @@ def uninstall(
                 write_verbose('Executing the Uninstall Command', metadata)
                 log_info('Executing the silent Uninstall Command', metadata.logfile)
 
-                run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet)
+                run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet, no_cache, None)
                 h.stop()
                 write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)

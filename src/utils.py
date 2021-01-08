@@ -302,7 +302,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         return newpath, False
 
 
-def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: list, display_name: str, method: str, metadata: Metadata, packet: Packet) -> str:
+def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: list, display_name: str, method: str, metadata: Metadata, packet: Packet, no_cache: bool, sync: bool) -> str:
     log_info(f'{error} ==> {method}', metadata.logfile)
     valid_i_exit_codes = valid_install_exit_codes
     valid_u_exit_codes = valid_uninstall_exit_codes
@@ -326,6 +326,22 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
                 return ['no-error']
 
     if 'exit status 1603' in error:
+        if method == 'installation':
+            flags = ''
+            for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
+                flags += f' {flag}'
+            
+            os.system(rf'{PathManager.get_current_directory()}\scripts\elevate-installation.cmd {packet.json_name} {flags}')
+            sys.exit()
+        if method == 'uninstallation':
+            flags = ''
+            for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
+                flags += f' {flag}'
+            flags = flags.replace(' --sync', '')
+            flags = flags.replace(' --install-dir', '')
+            flags = flags.replace(' --reduce', '')
+            os.system(rf'{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd {packet.json_name} {flags}')
+            sys.exit()
         click.echo(click.style('\nAdministrator Elevation Required Or Unknown Error. Exit Code [1603]', fg='red'))
         return get_error_message('1603', 'installation', display_name, packet.version)
 
@@ -340,11 +356,27 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
 
     if '[WinError 740]' in error and 'elevation' in error:
         # Process Needs Elevation To Execute
-        click.echo(click.style(f'\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
-        return get_error_message('0001', 'installation', display_name, packet.version)
+        if method == 'installation':
+            flags = ''
+            for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
+                flags += f' {flag}'
+            
+            os.system(rf'{PathManager.get_current_directory()}\scripts\elevate-installation.cmd {packet.json_name} {flags}')
+            sys.exit()
+        if method == 'uninstallation':
+            flags = ''
+            for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
+                flags += f' {flag}'
+            flags = flags.replace(' --sync', '')
+            flags = flags.replace(' --install-dir', '')
+            flags = flags.replace(' --reduce', '')
+            os.system(rf'{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd {packet.json_name} {flags}')
+            sys.exit()
+        # click.echo(click.style(f'\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
+        # return get_error_message('0001', 'installation', display_name, packet.version)
+        
 
     if 'exit status 2' in error or 'exit status 1' in error:
-        # User Declined Prompt Asking For Permission
         click.echo(click.style(f'\nAdministrative Privileges Declined. Exit Code [0101]', fg='red'))
         return get_error_message('0101', 'installation', display_name, packet.version)
 
@@ -373,7 +405,7 @@ def get_file_type(command: str) -> str:
     return '.exe'
 
 
-def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo, packet):
+def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo, packet, no_cache: bool, sync: bool):
 
     if method == 'uninstallation':
         file_type = get_file_type(command)
@@ -393,10 +425,10 @@ def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, in
             halo.stop()
         keyboard.add_hotkey(
         'ctrl+c', lambda: os._exit(0))
-        disp_error_msg(get_error_cause(str(err), install_exit_codes, uninstall_exit_codes, display_name, method, metadata, packet), metadata)
+        disp_error_msg(get_error_cause(str(err), install_exit_codes, uninstall_exit_codes, display_name, method, metadata, packet, no_cache, sync), metadata)
 
 
-def install_package(path, packet: Packet, metadata: Metadata) -> str:
+def install_package(path, packet: Packet, metadata: Metadata, no_cache: bool, sync: bool) -> str:
     download_type = packet.win64_type
     custom_install_switch = packet.custom_location
     directory = packet.directory
@@ -435,7 +467,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             for switch in switches:
                 command = command + ' ' + switch
 
-        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None, packet)
+        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None, packet, no_cache, sync)
 
     elif download_type == '.msi':
         command = 'msiexec.exe /i ' + path + ' '
@@ -443,11 +475,17 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             command = command + ' ' + switch
 
         if not is_admin():
-            click.echo(click.style(
-                '\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
-            disp_error_msg(get_error_message('0001', 'installation', packet.display_name, packet.version), metadata)
-            handle_exit('ERROR', None, metadata)
-        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None, packet)
+            flags = ''
+            for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
+                flags += f' {flag}'
+            print(rf'{PathManager.get_current_directory()}\scripts\elevate-installation.cmd {packet.json_name} {flags}')
+            os.system(rf'{PathManager.get_current_directory()}\scripts\elevate-installation.cmd {packet.json_name} {flags}')
+            sys.exit()
+            # click.echo(click.style(
+            #     '\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
+            # disp_error_msg(get_error_message('0001', 'installation', packet.display_name, packet.version), metadata)
+            # handle_exit('ERROR', None, metadata)
+        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None, packet, no_cache, sync)
 
     elif download_type == '.zip':
         if metadata.no_color:
@@ -718,7 +756,7 @@ def get_install_flags(install_dir: str, no_cache: bool, sync: bool, metadata: Me
         flags.append('--virus-check')
     if metadata.reduce_package:
         flags.append('--reduce')
-    if metadata.rate_limit:
+    if metadata.rate_limit != -1 and metadata.rate_limit:
         flags.append(f'--rate-limit={metadata.rate_limit}')
     if install_dir:
         flags.append(f'--install-dir={install_dir}')
