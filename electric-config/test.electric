@@ -1,0 +1,27 @@
+[ Info ]
+Publisher => "TheBossProSniper"
+Description => "My Python Development Environment!"
+
+[ Editor-Configuration ]
+Type => "vscode"
+
+[ Packages ]
+vscode
+python => 3.9
+
+[ Editor-Extensions ]
+dracula-theme.theme-dracula
+ms-python.python
+ms-python.vscode-pylance
+pkief.material-icon-theme
+ms-toolsai.jupyter
+icrawl.discord-vscode
+viablelab.bracket-padder
+
+[ Pip-Packages ]
+click => 7.1.2
+beautifulsoup4 => 4.9.3
+colorama => 0.4.4
+dnspython => 1.16.0
+numpy => 1.19.3
+pyinstaller => 4.1
