@@ -55,7 +55,7 @@ Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
     }
 }
 ```
-Then, restart your powershell and viola, you've setup tab completion!
+Then, restart your powershell and voila, you've setup tab completion!
 
 
 ## Config In Alpha
