@@ -34,8 +34,8 @@ def install(data: dict):
         print(f'{Fore.GREEN}\nRefreshing Environment Variables{Fore.RESET}')
         os.system(r'C:\Users\tejas\Desktop\Electric\Electric-Windows\src\scripts\refreshvars.cmd')
 
-import json
-with open('zip-test.json', 'r') as f:
-    data = json.load(f)
+# import json
+# with open('zip-test.json', 'r') as f:
+#     data = json.load(f)
 
-install(data)
+# install(data)
