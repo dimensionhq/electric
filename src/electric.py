@@ -797,7 +797,6 @@ def update(
     node: bool,
     force: bool,
     version: str,
-
 ):
     """
     Updates an existing package
@@ -1129,15 +1128,7 @@ def uninstall(
             res, time = handle_cached_request(package)
 
         pkg = res
-        keys = list(pkg.keys())
-        idx = 0
-        for key in keys:
-            if key not in ['package-name', 'nightly', 'display-name']:
-                idx = keys.index(key)
-                break
-
-        version = keys[idx]
-        uninstall_exit_codes = None
+        version = pkg['latest-version']
         if 'valid-uninstall-exit-codes' in list(pkg.keys()):
             uninstall_exit_codes = pkg['valid-install-exit-codes']
 
