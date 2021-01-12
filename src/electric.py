@@ -9,6 +9,7 @@ import os
 import sys
 from timeit import default_timer as timer
 from urllib.request import urlretrieve
+from itertools import zip_longest
 
 import click
 import halo
