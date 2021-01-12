@@ -33,6 +33,8 @@ from logger import *
 from registry import get_environment_keys, get_uninstall_key
 from settings import initialize_settings, open_settings
 from utils import *
+from zip_install import *
+from zip_uninstall import *
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 
@@ -50,6 +52,7 @@ def cli(_):
 @click.argument('package_name', required=True)
 @click.option('--version', '-v', type=str, help='Install a certain version of a package')
 @click.option('--nightly', '--pre-release', is_flag=True, help='Install a nightly or pre-release build of a package')
+@click.option('--portable', '--non-admin', '-p', is_flag=True, help='Install a portable version of a package')
 @click.option('--verbose', '-vb', is_flag=True, help='Enable verbose mode for installation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for installation')
 @click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for installation')
@@ -97,7 +100,8 @@ def install(
     configuration: bool,
     version: str,
     nightly: bool,
-    plugin: bool
+    portable: bool,
+    plugin: bool,
 ):
     """
     Installs a package or a list of packages.
@@ -193,8 +197,9 @@ def install(
     #     'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
 
     packages = package_name.strip(' ').split(',')
-
+    
     corrected_package_names = get_autocorrections(packages, get_correct_package_names(), metadata)
+    corrected_package_names = list(set(corrected_package_names))
 
     write_debug(install_debug_headers, metadata)
     for header in install_debug_headers:
@@ -237,13 +242,10 @@ def install(
                         custom_dir = install_directory + f'\\{pkg["package-name"]}'
                     else:
                         custom_dir = install_directory
-                    keys = list(pkg.keys())
-                    idx = 0
-                    for key in keys:
-                        if key not in ['package-name', 'nightly', 'display-name']:
-                            idx = keys.index(key)
-                            break
-                    version = keys[idx]
+                    
+                    if not version:
+                        version = res['latest-version']
+                    
                     pkg = pkg[version]
                     install_exit_codes = None
                     if 'valid-install-exit-codes' in list(pkg.keys()):
@@ -314,13 +316,10 @@ def install(
                             spinner.stop()
 
                         pkg = res
-                        keys = list(pkg.keys())
-                        idx = 0
-                        for key in keys:
-                            if key not in ['package-name', 'nightly', 'display-name']:
-                                idx = keys.index(key)
-                                break
-                        version = keys[idx]
+                        
+                        if not version:
+                            version = res['latest-version']
+                        
                         pkg = pkg[version]
                         log_info('Generating Packet For Further Installation.', metadata.logfile)
 
@@ -514,11 +513,8 @@ def install(
                             custom_dir = install_directory
                         keys = list(pkg.keys())
                         idx = 0
-                        for key in keys:
-                            if key not in ['package-name', 'nightly', 'display-name']:
-                                idx = keys.index(key)
-                                break
-                        version = keys[idx]
+                        if not version:
+                            version = res['latest-version']
                         pkg = pkg[version]
                         install_exit_codes = None
                         if 'valid-install-exit-codes' in list(pkg.keys()):
@@ -588,16 +584,11 @@ def install(
 
         pkg = res
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        keys = list(pkg.keys())
-        idx = 0
-
+        
         if not version:
-            for key in keys:
-                if key not in ['package-name', 'nightly', 'display-name']:
-                    idx = keys.index(key)
-                    break
-            version = keys[idx]
-
+            version = pkg['latest-version']
+        if portable:
+            version = 'portable'
         if nightly:
             version = 'nightly'
         try:
@@ -607,7 +598,7 @@ def install(
             write(f'\nCannot Find {name}::v{version}', 'red', metadata)
             handle_exit('ERROR', None, metadata)
         install_exit_codes = None
-
+        
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
 
