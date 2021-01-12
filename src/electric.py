@@ -1105,6 +1105,7 @@ def uninstall(
     packages = package_name.split(',')
 
     corrected_package_names = get_autocorrections(packages, get_correct_package_names(), metadata)
+    corrected_package_names = list(set(corrected_package_names))
 
     write_debug(install_debug_headers, metadata)
     for header in install_debug_headers:
@@ -1129,12 +1130,14 @@ def uninstall(
 
         pkg = res
         version = pkg['latest-version']
+        uninstall_exit_codes = []
         if 'valid-uninstall-exit-codes' in list(pkg.keys()):
             uninstall_exit_codes = pkg['valid-install-exit-codes']
 
         name = pkg['package-name']
         pkg = pkg[version]
         log_info('Generating Packet For Further Installation.', metadata.logfile)
+        
         packet = Packet(pkg, package, name, pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
         proc = None
         keyboard.add_hotkey(
