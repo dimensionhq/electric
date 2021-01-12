@@ -206,6 +206,12 @@ def install(
 
         index = 0
 
+    def grouper(iterable, n, fillvalue=None):
+        "Collect data into fixed-length chunks or blocks"
+        # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
+        args = [iter(iterable)] * n
+        return zip_longest(*args, fillvalue=fillvalue)
+
     if not sync:
         if len(corrected_package_names) > 1:
             split_package_names = list(grouper(corrected_package_names, 3))
