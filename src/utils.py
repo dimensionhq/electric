@@ -331,7 +331,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
                 flags += f' {flag}'
             click.echo(click.style(f'The {packet.display_name} Installer Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
-            os.system(rf'{PathManager.get_current_directory()}\scripts\elevate-installation.cmd {packet.json_name} {flags}')
+            os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
         if method == 'uninstallation':
             flags = ''
@@ -341,7 +341,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             flags = flags.replace(' --install-dir', '')
             flags = flags.replace(' --reduce', '')
             click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
-            os.system(rf'{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd {packet.json_name} {flags}')
+            os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
             sys.exit()
         click.echo(click.style('\nAdministrator Elevation Required Or Unknown Error. Exit Code [1603]', fg='red'))
         return get_error_message('1603', 'installation', display_name, packet.version)
@@ -363,7 +363,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
                 flags += f' {flag}'
             
             click.echo(click.style(f'The {packet.display_name} Installater Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
-            os.system(rf'{PathManager.get_current_directory()}\scripts\elevate-installation.cmd {packet.json_name} {flags}')
+            os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
         if method == 'uninstallation':
             flags = ''
@@ -373,7 +373,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             flags = flags.replace(' --install-dir', '')
             flags = flags.replace(' --reduce', '')
             click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
-            os.system(rf'{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd {packet.json_name} {flags}')
+            os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
             sys.exit()
         # click.echo(click.style(f'\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
         # return get_error_message('0001', 'installation', display_name, packet.version)
@@ -481,8 +481,8 @@ def install_package(path, packet: Packet, metadata: Metadata, no_cache: bool, sy
             flags = ''
             for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
                 flags += f' {flag}'
-            print(rf'{PathManager.get_current_directory()}\scripts\elevate-installation.cmd {packet.json_name} {flags}')
-            os.system(rf'{PathManager.get_current_directory()}\scripts\elevate-installation.cmd {packet.json_name} {flags}')
+            print(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
+            os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
             # click.echo(click.style(
             #     '\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
