@@ -27,7 +27,7 @@ Set-ExecutionPolicy RemoteSigned
 Run the following command on your powershell window:
 
 ```powershell
-iwr -useb https://raw.githubusercontent.com/XtremeDevX/Electric-Windows/dev/bin/electricInstall.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/XtremeDevX/electric/dev/bin/electricInstall.ps1 | iex
 ```
 #### Steps
 
@@ -55,7 +55,7 @@ Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
     }
 }
 ```
-Then, restart your powershell and viola, you've setup tab completion!
+Then, restart your powershell and voila, you've setup tab completion!
 
 
 ## Config In Alpha
