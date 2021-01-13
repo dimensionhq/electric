@@ -51,7 +51,8 @@ setup(
         'google',
         'check-pypi-name',
         'prompt-toolkit',
-        'py7zr'
+        'py7zr',
+        'pywin32'
     ],
     package_dir={'': 'src'},
     entry_points =

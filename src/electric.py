@@ -7,9 +7,9 @@ import difflib
 import logging
 import os
 import sys
-from itertools import zip_longest
 from timeit import default_timer as timer
 from urllib.request import urlretrieve
+from itertools import zip_longest
 
 import click
 import halo
@@ -33,6 +33,8 @@ from logger import *
 from registry import get_environment_keys, get_uninstall_key
 from settings import initialize_settings, open_settings
 from utils import *
+from zip_install import *
+from zip_uninstall import *
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 
@@ -50,6 +52,7 @@ def cli(_):
 @click.argument('package_name', required=True)
 @click.option('--version', '-v', type=str, help='Install a certain version of a package')
 @click.option('--nightly', '--pre-release', is_flag=True, help='Install a nightly or pre-release build of a package')
+@click.option('--portable', '--non-admin', '-p', is_flag=True, help='Install a portable version of a package')
 @click.option('--verbose', '-vb', is_flag=True, help='Enable verbose mode for installation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for installation')
 @click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for installation')
@@ -97,7 +100,8 @@ def install(
     configuration: bool,
     version: str,
     nightly: bool,
-    plugin: bool
+    portable: bool,
+    plugin: bool,
 ):
     """
     Installs a package or a list of packages.
@@ -189,12 +193,13 @@ def install(
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
     status = 'Initializing'
     setup_name = ''
-    # keyboard.add_hotkey(
-    #     'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
+    keyboard.add_hotkey(
+        'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
 
     packages = package_name.strip(' ').split(',')
-
+    
     corrected_package_names = get_autocorrections(packages, get_correct_package_names(), metadata)
+    corrected_package_names = list(set(corrected_package_names))
 
     write_debug(install_debug_headers, metadata)
     for header in install_debug_headers:
@@ -237,13 +242,10 @@ def install(
                         custom_dir = install_directory + f'\\{pkg["package-name"]}'
                     else:
                         custom_dir = install_directory
-                    keys = list(pkg.keys())
-                    idx = 0
-                    for key in keys:
-                        if key not in ['package-name', 'nightly', 'display-name']:
-                            idx = keys.index(key)
-                            break
-                    version = keys[idx]
+                    
+                    if not version:
+                        version = res['latest-version']
+                    
                     pkg = pkg[version]
                     install_exit_codes = None
                     if 'valid-install-exit-codes' in list(pkg.keys()):
@@ -314,13 +316,10 @@ def install(
                             spinner.stop()
 
                         pkg = res
-                        keys = list(pkg.keys())
-                        idx = 0
-                        for key in keys:
-                            if key not in ['package-name', 'nightly', 'display-name']:
-                                idx = keys.index(key)
-                                break
-                        version = keys[idx]
+                        
+                        if not version:
+                            version = res['latest-version']
+                        
                         pkg = pkg[version]
                         log_info('Generating Packet For Further Installation.', metadata.logfile)
 
@@ -514,11 +513,8 @@ def install(
                             custom_dir = install_directory
                         keys = list(pkg.keys())
                         idx = 0
-                        for key in keys:
-                            if key not in ['package-name', 'nightly', 'display-name']:
-                                idx = keys.index(key)
-                                break
-                        version = keys[idx]
+                        if not version:
+                            version = res['latest-version']
                         pkg = pkg[version]
                         install_exit_codes = None
                         if 'valid-install-exit-codes' in list(pkg.keys()):
@@ -588,16 +584,11 @@ def install(
 
         pkg = res
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        keys = list(pkg.keys())
-        idx = 0
-
+        
         if not version:
-            for key in keys:
-                if key not in ['package-name', 'nightly', 'display-name']:
-                    idx = keys.index(key)
-                    break
-            version = keys[idx]
-
+            version = pkg['latest-version']
+        if portable:
+            version = 'portable'
         if nightly:
             version = 'nightly'
         try:
@@ -607,7 +598,7 @@ def install(
             write(f'\nCannot Find {name}::v{version}', 'red', metadata)
             handle_exit('ERROR', None, metadata)
         install_exit_codes = None
-
+        
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
 
@@ -772,6 +763,237 @@ def install(
     finish_log()
 
 
+@cli.command()
+@click.argument('package_name', required =True)
+@click.option('--verbose', '-v', is_flag=True, help="Enable verbose mode for updation")
+@click.option('--version', '-v', type=str, help='Install a certain version of a package')
+@click.option('--debug', '-d', is_flag=True, help = "Enable debug mode for updation")
+@click.option('--no-color', '-nc', is_flag=True, help='Disable colored output')
+@click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for updation')
+@click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
+@click.option('--virus-check', '-vc', is_flag=True, help='Check for virus before installation')
+@click.option('-y', '--yes', is_flag=True, help='Accept all prompts during installation')
+@click.option('--silent', '-s', is_flag=True, help='Completely silent updation without any output to console')
+@click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
+@click.option('--sync', '-sc', is_flag=True, help='Force downloads and installations one after another')
+@click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after installation')
+@click.option('--rate-limit', '-rl', type=int, default=-1)
+@click.option('--force', '-f', is_flag=True, help='Force install a package, ignoring any existing installations of a package.')
+def update(
+    ctx,
+    package_name: str,
+    verbose: bool,
+    debug: bool,
+    no_progress: bool,
+    no_color: bool,
+    logfile: str,
+    yes: bool,
+    silent: bool,
+    virus_check: bool,
+    no_cache: bool,
+    sync: bool,
+    reduce: bool,
+    rate_limit: int,
+    node: bool,
+    force: bool,
+    version: str,
+):
+    """
+    Updates an existing package
+    """
+
+    if logfile:
+        logfile = logfile.replace('=', '')
+        logfile = logfile.replace('.txt', '.log')
+        create_config(logfile, logging.INFO, 'Install')
+
+    log_info('Generating metadata...', logfile)
+
+    metadata = generate_metadata(
+        None, silent, verbose, debug, no_color, yes, logfile, None, None, None, Setting.new())
+
+    log_info('Successfully generated metadata.', logfile)
+
+    log_info('Checking if supercache exists...', metadata.logfile)
+    super_cache = check_supercache_valid()
+
+    if super_cache:
+        log_info('SuperCache detected.', metadata.logfile)
+
+    if no_cache:
+        log_info('Overriding SuperCache To FALSE', metadata.logfile)
+        super_cache = False
+
+    if logfile:
+        logfile = logfile.replace('.txt', '.log')
+        create_config(logfile, logging.INFO, 'Install')
+
+    packages = package_name.split(',')
+
+    corrected_package_names = get_autocorrections(packages, get_correct_package_names(), metadata)
+
+    index = 0
+
+    for package in corrected_package_names:
+        supercache_availiable = check_supercache_availiable(package)
+        if super_cache and supercache_availiable and not no_cache:
+            log_info('Handling SuperCache Request.', metadata.logfile)
+            res, time = handle_cached_request(package)
+            time = Decimal(time)
+        else:
+            log_info('Handling Network Request...', metadata.logfile)
+            status = 'Networking'
+            write_verbose('Sending GET Request To /rapidquery/packages', metadata)
+            write_debug('Sending GET Request To /rapidquery/packages', metadata)
+            log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
+            update_supercache(metadata)
+            res, time = handle_cached_request(package)
+
+        pkg = res
+        keys = list(pkg.keys())
+        idx = 0
+        for key in keys:
+            if key not in ['package-name', 'nightly', 'display-name']:
+                idx = keys.index(key)
+                break
+
+        version = keys[idx]
+        uninstall_exit_codes = None
+        if 'valid-uninstall-exit-codes' in list(pkg.keys()):
+            uninstall_exit_codes = pkg['valid-install-exit-codes']
+
+        name = pkg['package-name']
+        pkg = pkg[version]
+        log_info('Generating Packet For Further Installation.', metadata.logfile)
+        packet = Packet(pkg, package, name, pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
+        proc = None
+        keyboard.add_hotkey(
+            'ctrl+c', lambda: kill_proc(proc, metadata))
+
+        if super_cache:
+            write(
+                f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', 'bright_yellow', metadata)
+            write_debug(
+                f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 9)}s', metadata)
+            log_info(
+                f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
+        else:
+            write(
+                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_green', metadata)
+            log_info(
+                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
+
+        # Getting UninstallString or QuietUninstallString From The Registry Search Algorithm
+        write_verbose(
+            'Fetching uninstall key from the registry...', metadata)
+        write_debug('Sending query (uninstall-string) to Registry', metadata)
+        log_info('Fetching uninstall key from the registry...', metadata.logfile)
+
+        start = timer()
+        key = get_uninstall_key(packet.json_name, packet.display_name)
+
+        end = timer()
+
+        if not key:
+            log_info(f'electric didn\'t detect any existing installations of => {packet.display_name}', metadata.logfile)
+            write(
+                f'Could Not Find Any Existing Installations Of {packet.display_name}', 'yellow', metadata)
+            close_log(metadata.logfile, 'Uninstall')
+            index += 1
+            continue
+
+        kill_running_proc(packet.json_name, packet.display_name, metadata)
+
+        write_verbose('Uninstall key found.', metadata)
+        log_info('Uninstall key found.', metadata.logfile)
+        log_info(key, metadata.logfile)
+        write_debug('Successfully Recieved UninstallString from Windows Registry', metadata)
+
+        write(
+            f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', 'green', metadata)
+        log_info(
+            f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', metadata.logfile)
+
+        command = ''
+
+        # Key Can Be A List Or A Dictionary Based On Results
+
+        if isinstance(key, list):
+            if key:
+                key = key[0]
+
+        with Halo(f'Uninstalling {packet.display_name}', text_color='cyan', color='grey') as h:
+            # If QuietUninstallString Exists (Preferable)
+            if 'QuietUninstallString' in key:
+                command = key['QuietUninstallString']
+                command = command.replace('/I', '/X')
+                command = command.replace('/quiet', '/qn')
+
+                additional_switches = None
+                if packet.uninstall_switches:
+                    if packet.uninstall_switches != []:
+                        write_verbose(
+                            'Adding additional uninstall switches', metadata)
+                        write_debug('Appending / Adding additional uninstallation switches', metadata)
+                        log_info('Adding additional uninstall switches', metadata.logfile)
+                        additional_switches = packet.uninstall_switches
+
+                if additional_switches:
+                    for switch in additional_switches:
+                        command += ' ' + switch
+
+                write_verbose('Executing the quiet uninstall command', metadata)
+                log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
+                write_debug('Running silent uninstallation command', metadata)
+                run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet, no_cache, None)
+
+
+                h.stop()
+
+                write(
+                    f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+
+                write_verbose('Uninstallation completed.', metadata)
+                log_info('Uninstallation completed.', metadata.logfile)
+
+                index += 1
+                write_debug(
+                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
+                log_info(
+                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
+                close_log(metadata.logfile, 'Uninstall')
+
+            # If Only UninstallString Exists (Not Preferable)
+            if 'UninstallString' in key:
+                command = key['UninstallString']
+                command = command.replace('/I', '/X')
+                if 'msiexec.exe' in command.lower():
+                    command += ' /quiet'
+                # command = f'"{command}"'
+                for switch in packet.uninstall_switches:
+                    command += f' {switch}'
+
+                # Run The UninstallString
+                write_verbose('Executing the Uninstall Command', metadata)
+                log_info('Executing the silent Uninstall Command', metadata.logfile)
+
+                run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet, no_cache, None)
+                h.stop()
+                write(
+                    f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                write_verbose('Uninstallation completed.', metadata)
+                log_info('Uninstallation completed.', metadata.logfile)
+                index += 1
+                write_debug(
+                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
+                log_info(
+                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
+                close_log(metadata.logfile, 'Uninstall')
+    finish_log()
+
+
+
+
 @cli.command(aliases=['remove', 'u'], context_settings=CONTEXT_SETTINGS)
 @click.argument('package_name', required=True)
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for uninstallation')
@@ -883,6 +1105,7 @@ def uninstall(
     packages = package_name.split(',')
 
     corrected_package_names = get_autocorrections(packages, get_correct_package_names(), metadata)
+    corrected_package_names = list(set(corrected_package_names))
 
     write_debug(install_debug_headers, metadata)
     for header in install_debug_headers:
@@ -906,21 +1129,15 @@ def uninstall(
             res, time = handle_cached_request(package)
 
         pkg = res
-        keys = list(pkg.keys())
-        idx = 0
-        for key in keys:
-            if key not in ['package-name', 'nightly', 'display-name']:
-                idx = keys.index(key)
-                break
-
-        version = keys[idx]
-        uninstall_exit_codes = None
+        version = pkg['latest-version']
+        uninstall_exit_codes = []
         if 'valid-uninstall-exit-codes' in list(pkg.keys()):
             uninstall_exit_codes = pkg['valid-install-exit-codes']
 
         name = pkg['package-name']
         pkg = pkg[version]
         log_info('Generating Packet For Further Installation.', metadata.logfile)
+        
         packet = Packet(pkg, package, name, pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
         proc = None
         keyboard.add_hotkey(

@@ -1,0 +1,18 @@
+{
+    "package-name": "1-password",
+    "display-name": "1 Password",
+    "latest-version": "1.53.0",
+    "1.53.0": {
+        "url": "https://github.com/atom/atom/releases/download/v1.53.0/atom-x64-windows.zip",
+        "file-type": ".zip",
+        "extract-dir": "atom",
+        "chdir": "Atom x64",
+        "bin": "atom.exe",
+        "shortcuts": [
+            {
+                "shortcut-name": "Atom",
+                "file-name": "atom.exe"
+            }
+        ]
+    }
+}
