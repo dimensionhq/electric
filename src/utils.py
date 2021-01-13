@@ -481,7 +481,7 @@ def install_package(path, packet: Packet, metadata: Metadata, no_cache: bool, sy
             flags = ''
             for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
                 flags += f' {flag}'
-            print(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
+            click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
             # click.echo(click.style(
