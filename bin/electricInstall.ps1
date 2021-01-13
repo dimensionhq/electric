@@ -1,7 +1,7 @@
 Import-Module BitsTransfer
 
 $ErrorActionPreference = "Stop"
-Start-BitsTransfer 'https://srv-store2.gofile.io/download/9QJdMl/Electric%20v1.0.0%20Alpha%20Setup.exe' "${Env:\TEMP}\ElectricSetup.exe" -Description 'Downloading Electric Alpha v1.0.0 Setup from https://srv-store6.gofile.io/download' -DisplayName 'Downloading Electric' -TransferType Download
+Start-BitsTransfer 'https://srv-store6.gofile.io/download/dwUl8b/Electric%20v1.0.0%20Alpha%20Setup.exe' "${Env:\TEMP}\ElectricSetup.exe" -Description 'Downloading Electric Alpha v1.0.0 Setup from https://srv-store6.gofile.io/download' -DisplayName 'Downloading Electric' -TransferType Download
 
 Write-Host 'Installing Electric' -ForegroundColor cyan
 & "${Env:\TEMP}\ElectricSetup.exe" /VERYSILENT | Out-Null
