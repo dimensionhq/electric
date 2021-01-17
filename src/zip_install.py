@@ -49,7 +49,7 @@ def install(data: dict, metadata: Metadata):
         os.system(rf'{home}\Desktop\Electric\Electric-Windows\src\scripts\refreshvars.cmd')
 
 
-with open('zip-test.json', 'r') as f:
-    data = json.load(f)
+# with open('zip-test.json', 'r') as f:
+#     data = json.load(f)
 
-install(data, Metadata(None, None, None, None, None, None, None, None, None, None, None))
+# install(data, Metadata(None, None, None, None, None, None, None, None, None, None, None))

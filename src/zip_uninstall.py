@@ -24,7 +24,7 @@ def uninstall(data: dict):
     for shortcut in shortcuts:
         delete_start_menu_shortcut(shortcut['shortcut-name'])
 
-with open('zip-test.json', 'r') as f:
-    data = json.load(f)
+# with open('zip-test.json', 'r') as f:
+#     data = json.load(f)
 
-uninstall(data)
+# uninstall(data)

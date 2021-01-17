@@ -33,8 +33,8 @@ from logger import *
 from registry import get_environment_keys, get_uninstall_key
 from settings import initialize_settings, open_settings
 from utils import *
-from zip_install import *
-from zip_uninstall import *
+# from zip_install import *
+# from zip_uninstall import *
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 
@@ -601,162 +601,164 @@ def install(
 
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
+        if portable:
+            pass
+        else:
+            packet = Packet(pkg, package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
+            log_info('Searching for existing installation of package.', metadata.logfile)
 
-        packet = Packet(pkg, package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
-        log_info('Searching for existing installation of package.', metadata.logfile)
+            log_info('Finding existing installation of package...', metadata.logfile)
+            installation = find_existing_installation(package, packet.json_name)
 
-        log_info('Finding existing installation of package...', metadata.logfile)
-        installation = find_existing_installation(package, packet.json_name)
-
-        if installation and not force:
-            log_info('Found existing installation of package...', metadata.logfile)
-            write_debug(
-                f'Found existing installation of {packet.json_name}.', metadata)
-            write_verbose(
-                f'Found an existing installation of => {packet.json_name}', metadata)
-            write(
-                f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
-            installation_continue = click.confirm(
-                f'Would you like to reinstall {packet.display_name}?')
-            if installation_continue or yes:
-                os.system(f'electric uninstall {packet.json_name}')
-                os.system(f'electric install {packet.json_name}')
-                return
-            else:
-                handle_exit(status, setup_name, metadata)
-
-        if packet.dependencies:
-            PackageManager.install_dependent_packages(packet, rate_limit, install_directory, metadata)
-
-        write_verbose(
-            f'Package to be installed: {packet.json_name}', metadata)
-        log_info(f'Package to be installed: {packet.json_name}', metadata.logfile)
-
-        write_verbose(
-            f'Finding closest match to {packet.json_name}...', metadata)
-        log_info(f'Finding closest match to {packet.json_name}...', metadata.logfile)
-
-        if index == 0:
-            if super_cache:
-                write_verbose(
-                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
+            if installation and not force:
+                log_info('Found existing installation of package...', metadata.logfile)
                 write_debug(
-                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
-                log_info(f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata.logfile)
-            else:
+                    f'Found existing installation of {packet.json_name}.', metadata)
                 write_verbose(
-                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                write_debug(
-                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                log_info(
-                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
-
-        write_verbose('Generating system download path...', metadata)
-        log_info('Generating system download path...', metadata.logfile)
-
-        if not metadata.silent:
-            if not metadata.no_color:
-                if super_cache:
-                    print('SuperCached', Fore.GREEN + '=>' + Fore.RESET, '[', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
+                    f'Found an existing installation of => {packet.json_name}', metadata)
+                write(
+                    f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
+                installation_continue = click.confirm(
+                    f'Would you like to reinstall {packet.display_name}?')
+                if installation_continue or yes:
+                    os.system(f'electric uninstall {packet.json_name}')
+                    os.system(f'electric install {packet.json_name}')
+                    return
                 else:
-                    print('Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
+                    handle_exit(status, setup_name, metadata)
 
+            if packet.dependencies:
+                PackageManager.install_dependent_packages(packet, rate_limit, install_directory, metadata)
+
+            write_verbose(
+                f'Package to be installed: {packet.json_name}', metadata)
+            log_info(f'Package to be installed: {packet.json_name}', metadata.logfile)
+
+            write_verbose(
+                f'Finding closest match to {packet.json_name}...', metadata)
+            log_info(f'Finding closest match to {packet.json_name}...', metadata.logfile)
+
+            if index == 0:
+                if super_cache:
+                    write_verbose(
+                        f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
+                    write_debug(
+                        f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
+                    log_info(f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata.logfile)
+                else:
+                    write_verbose(
+                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+                    write_debug(
+                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+                    log_info(
+                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
+
+            write_verbose('Generating system download path...', metadata)
+            log_info('Generating system download path...', metadata.logfile)
+
+            if not metadata.silent:
+                if not metadata.no_color:
+                    if super_cache:
+                        print('SuperCached', Fore.GREEN + '=>' + Fore.RESET, '[', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
+                    else:
+                        print('Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
+
+                else:
+                    print(f'Found => [ {packet.display_name} ]')
+
+            status = 'Download Path'
+            download_url = get_download_url(packet)
+            status = 'Got Download Path'
+
+            log_info(f'Recieved download path => {download_url}', metadata.logfile)
+            log_info('Initializing Rapid Download...', metadata.logfile)
+
+            # Downloading The File From Source
+            write_debug(f'Downloading {packet.display_name} from => {packet.win64}', metadata)
+            write_verbose(
+                f"Downloading from '{download_url}'", metadata)
+            log_info(f"Downloading from '{download_url}'", metadata.logfile)
+            status = 'Downloading'
+            cached = False
+            if rate_limit == -1:
+                start = timer()
+                path, cached = download(download_url, packet.json_name, metadata, packet.win64_type)
+                end = timer()
             else:
-                print(f'Found => [ {packet.display_name} ]')
+                log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
+                bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
 
-        status = 'Download Path'
-        download_url = get_download_url(packet)
-        status = 'Got Download Path'
+                limiter = Limiter(
+                    bucket=bucket,
+                    filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
+                )
 
-        log_info(f'Recieved download path => {download_url}', metadata.logfile)
-        log_info('Initializing Rapid Download...', metadata.logfile)
+                urlretrieve(
+                    url=download_url,
+                    filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
+                    reporthook=limiter
+                )
 
-        # Downloading The File From Source
-        write_debug(f'Downloading {packet.display_name} from => {packet.win64}', metadata)
-        write_verbose(
-            f"Downloading from '{download_url}'", metadata)
-        log_info(f"Downloading from '{download_url}'", metadata.logfile)
-        status = 'Downloading'
-        cached = False
-        if rate_limit == -1:
-            start = timer()
-            path, cached = download(download_url, packet.json_name, metadata, packet.win64_type)
-            end = timer()
-        else:
-            log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
-            bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
+                path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
 
-            limiter = Limiter(
-                bucket=bucket,
-                filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
-            )
+            status = 'Downloaded'
 
-            urlretrieve(
-                url=download_url,
-                filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
-                reporthook=limiter
-            )
+            log_info('Finished Rapid Download', metadata.logfile)
 
-            path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
+            if virus_check:
+                log_info('Running requested virus scanning', metadata.logfile)
+                write('Scanning File For Viruses...', 'blue', metadata)
+                check_virus(path, metadata)
+            if not cached:
+                write(
+                    f'\nInstalling {packet.display_name}', 'cyan', metadata)
+            else:
+                log_info(
+                    'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
-        status = 'Downloaded'
-
-        log_info('Finished Rapid Download', metadata.logfile)
-
-        if virus_check:
-            log_info('Running requested virus scanning', metadata.logfile)
-            write('Scanning File For Viruses...', 'blue', metadata)
-            check_virus(path, metadata)
-        if not cached:
-            write(
-                f'\nInstalling {packet.display_name}', 'cyan', metadata)
-        else:
+            write_debug(
+                f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
             log_info(
-                'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+                f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
+            log_info('Creating start snapshot of registry...', metadata.logfile)
+            start_snap = get_environment_keys()
+            status = 'Installing'
+            # Running The Installer silently And Completing Setup
+            install_package(path, packet, metadata, no_cache, sync)
 
-        write_debug(
-            f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
-        log_info(
-            f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
-        log_info('Creating start snapshot of registry...', metadata.logfile)
-        start_snap = get_environment_keys()
-        status = 'Installing'
-        # Running The Installer silently And Completing Setup
-        install_package(path, packet, metadata, no_cache, sync)
+            status = 'Installed'
+            log_info('Creating final snapshot of registry...', metadata.logfile)
+            final_snap = get_environment_keys()
 
-        status = 'Installed'
-        log_info('Creating final snapshot of registry...', metadata.logfile)
-        final_snap = get_environment_keys()
+            if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
+                write('Refreshing Environment Variables', 'green', metadata)
+                start = timer()
+                log_info('Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
+                write_debug('Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
+                write_verbose('Refreshing Environment Variables', metadata)
+                refresh_environment_variables()
+                end = timer()
+                write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
 
-        if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
-            write('Refreshing Environment Variables', 'green', metadata)
-            start = timer()
-            log_info('Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
-            write_debug('Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
-            write_verbose('Refreshing Environment Variables', metadata)
-            refresh_environment_variables()
-            end = timer()
-            write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
+            write(
+                f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
+            log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
 
-        write(
-            f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
-        log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
+            if metadata.reduce_package:
+                os.remove(path)
+                os.remove(Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle')
 
-        if metadata.reduce_package:
-            os.remove(path)
-            os.remove(Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle')
+                log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
+                write('Successfully Cleaned Up Installer From Temp Directory',
+                    'green', metadata)
 
-            log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
-            write('Successfully Cleaned Up Installer From Temp Directory',
-                  'green', metadata)
-
-        write_verbose('Installation and setup completed.', metadata)
-        log_info('Installation and setup completed.', metadata.logfile)
-        write_debug(
-            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata)
-        log_info(
-            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
-        close_log(metadata.logfile, 'Install')
+            write_verbose('Installation and setup completed.', metadata)
+            log_info('Installation and setup completed.', metadata.logfile)
+            write_debug(
+                f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata)
+            log_info(
+                f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
+            close_log(metadata.logfile, 'Install')
 
         index += 1
 
