@@ -484,10 +484,6 @@ def install_package(path, packet: Packet, metadata: Metadata, no_cache: bool, sy
             click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
-            # click.echo(click.style(
-            #     '\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
-            # disp_error_msg(get_error_message('0001', 'installation', packet.display_name, packet.version), metadata)
-            # handle_exit('ERROR', None, metadata)
         run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None, packet, no_cache, sync)
 
     elif download_type == '.zip':

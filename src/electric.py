@@ -197,7 +197,7 @@ def install(
         'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
 
     packages = package_name.strip(' ').split(',')
-    
+
     corrected_package_names = get_autocorrections(packages, get_correct_package_names(), metadata)
     corrected_package_names = list(set(corrected_package_names))
 
@@ -242,10 +242,10 @@ def install(
                         custom_dir = install_directory + f'\\{pkg["package-name"]}'
                     else:
                         custom_dir = install_directory
-                    
+
                     if not version:
                         version = res['latest-version']
-                    
+
                     pkg = pkg[version]
                     install_exit_codes = None
                     if 'valid-install-exit-codes' in list(pkg.keys()):
@@ -316,10 +316,10 @@ def install(
                             spinner.stop()
 
                         pkg = res
-                        
+
                         if not version:
                             version = res['latest-version']
-                        
+
                         pkg = pkg[version]
                         log_info('Generating Packet For Further Installation.', metadata.logfile)
 
@@ -584,7 +584,7 @@ def install(
 
         pkg = res
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        
+
         if not version:
             version = pkg['latest-version']
         if portable:
@@ -598,7 +598,7 @@ def install(
             write(f'\nCannot Find {name}::v{version}', 'red', metadata)
             handle_exit('ERROR', None, metadata)
         install_exit_codes = None
-        
+
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
 
@@ -862,7 +862,7 @@ def update(
         if 'valid-uninstall-exit-codes' in list(pkg.keys()):
             uninstall_exit_codes = pkg['valid-install-exit-codes']
 
-        name = pkg['package-name']
+        name = pkg['display-name']
         pkg = pkg[version]
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         packet = Packet(pkg, package, name, pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
@@ -1137,7 +1137,7 @@ def uninstall(
         name = pkg['package-name']
         pkg = pkg[version]
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        
+
         packet = Packet(pkg, package, name, pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
         proc = None
         keyboard.add_hotkey(

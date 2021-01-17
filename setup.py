@@ -52,7 +52,8 @@ setup(
         'check-pypi-name',
         'prompt-toolkit',
         'py7zr',
-        'pywin32'
+        'pywin32',
+        'patool'
     ],
     package_dir={'': 'src'},
     entry_points =
