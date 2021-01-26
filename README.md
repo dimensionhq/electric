@@ -23,12 +23,14 @@ First you'll need to set your execution policy to RemoteSigned if not done so:
 Set-ExecutionPolicy RemoteSigned
 ```
 
-## Method 1: Powershell
+## Method 1: Install Using Powershell
 Run the following command on your powershell window:
 
 ```powershell
 iwr -useb https://raw.githubusercontent.com/XtremeDevX/electric/dev/bin/electricInstall.ps1 | iex
 ```
+
+## Method 2: Install Using Official Installer
 #### Steps
 
 1. Download the latest version of the electric Installer from the [Releases Page](https://github.com/TheBossProSniper/electric-windows/releases/)
