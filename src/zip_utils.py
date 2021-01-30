@@ -26,7 +26,7 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str):
     os.chdir(rf'{home}\electric')
     if file_type == '.zip':
         with zipfile.ZipFile(download_dir, 'r') as zf:
-            for member in tqdm(zf.infolist(), desc='Extracting ', bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}'):
+            for member in tqdm(zf.infolist(), desc='Extracting Files', bar_format='{l_bar}{bar:20}{r_bar}{bar:-20b}', unit='files'):
                 try:
                     zf.extract(member, download_dir.replace('.zip', ''))
                 except zipfile.error:
@@ -172,7 +172,7 @@ def download(url: str, download_extension: str, file_path: str, show_progress_ba
                         sys.stdout.write(
                             f'\r{fill_c}{unfill_c} {Fore.RESET} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
                         sys.stdout.flush()
-
+        print(f'\n{Fore.GREEN}Initializing Unzipper{Fore.RESET}')
     except KeyboardInterrupt:
         print(f'\n{Fore.RED}Download Was Interrupted!{Fore.RESET}')
         sys.exit()
@@ -201,3 +201,13 @@ def generate_shim(shim_command: str, shim_name: str, shim_extension: str):
     with open(rf'{home}\electric\shims\{shim_name}.bat', 'w+') as f:
         f.write(f'@echo off\n"{shim_command}.{shim_extension}"')
 
+# Scoop logs
+# Installing 'atom' (1.54.0) [64bit]
+# atom-x64-1.54.0-full.nupkg (182.7 MB) [==========================================================================================================================] 100%
+# Checking hash of atom-x64-1.54.0-full.nupkg ... ok.
+# Extracting atom-x64-1.54.0-full.nupkg ... done.
+# Linking ~\scoop\apps\atom\current => ~\scoop\apps\atom\1.54.0
+# Creating shim for 'atom'.
+# Creating shim for 'apm'.
+# Creating shortcut for Atom (atom.exe)
+# 'atom' (1.54.0) was installed successfully!

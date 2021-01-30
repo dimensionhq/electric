@@ -9,12 +9,12 @@ import os
 home = os.path.expanduser('~')
 
 def install_portable(packet: PortablePacket, metadata: Metadata):
+    print(f'Installing [ {Fore.CYAN}{packet.display_name}{Fore.RESET} ]')
     changes_environment = False
     shortcuts = packet.shortcuts
     extract_dir = packet.extract_dir
     write_debug(f'Downloading {packet.json_name}{packet.file_type} from {packet.url}', metadata)
     download(packet.url, '.zip', rf'{home}\electric\\' + extract_dir)
-    # write('Unzipp')
     unzip_dir = unzip_file(extract_dir + '.zip', extract_dir, packet.file_type)
     if packet.chdir:
         dir = packet.chdir

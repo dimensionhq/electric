@@ -10,7 +10,7 @@ class TestElectricCli(unittest.TestCase):
     def test_electric_search(self):
         proc = Popen('electric search atom'.split(),
                     stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        output, err2 = proc.communicate()
+        output, _ = proc.communicate()
         self.assertIn('atom', output.decode().splitlines())
     
     def test_electric_cleanup(self):

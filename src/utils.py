@@ -420,7 +420,6 @@ def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, in
     try:
         check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except (CalledProcessError, OSError, FileNotFoundError) as err:
-        print(err)
         if halo:
             halo.stop()
         keyboard.add_hotkey(
@@ -654,25 +653,25 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
               'green', metadata)
         write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0',
               'light_blue', metadata)
-        print(Fore.RESET, '')
+        # print(Fore.RESET, '')
         sys.exit()
 
     if status == 'Got Download Path':
         print(Fore.RESET, '')
         write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
-        print(Fore.RESET, '')
+        # print(Fore.RESET, '')
         sys.exit()
 
     if status == 'Downloading':
         print(Fore.RESET, '')
         write('\n\nRapidExit Successfully Exited With Code 0', 'green', metadata)
-        print(Fore.RESET, '')
+        # print(Fore.RESET, '')
         sys.exit()
 
     else:
         print(Fore.RESET, '')
         write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
-        print(Fore.RESET, '')
+        # print(Fore.RESET, '')
         sys.exit()
 
 def kill_running_proc(package_name: str, display_name: str, metadata: Metadata):

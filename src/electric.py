@@ -38,6 +38,7 @@ from registry import get_environment_keys, get_uninstall_key
 from settings import initialize_settings, open_settings
 from utils import *
 from zip_install import install_portable
+from zip_uninstall import uninstall_portable
 
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
@@ -473,7 +474,8 @@ def install(
                                 log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
                             else:
                                 h.fail()
-                                write(f'Failed => Registry Check', 'red', metadata)
+                                print(f'[  {Fore.GREEN}ERROR{Fore.RESET}  ]  Registry Check')
+                                write(f'Failed To Install {packet.display_name}', 'red', metadata)
                                 sys.exit()
 
                         if metadata.reduce_package:
@@ -715,7 +717,7 @@ def install(
             if not metadata.silent:
                 if not metadata.no_color:
                     if super_cache:
-                        print('SuperCached', Fore.GREEN + '=>' + Fore.RESET, '[', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
+                        print('SuperCached [', Fore.CYAN + f'{packet.display_name}' + Fore.RESET + ' ]')
                     else:
                         print('Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
 
@@ -795,12 +797,12 @@ def install(
                 refresh_environment_variables()
                 end = timer()
                 write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
-            write(f'Running Tests For {packet.display_name}', 'yellow', metadata)
+            write(f'Running Tests For {packet.display_name}', 'white', metadata)
             if find_existing_installation(packet.json_name, packet.display_name):
-                write(f'Passed: Registry Check', 'green', metadata)
+                write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
                 write(
-                    f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
-                log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
+                    f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
+                log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
             else:
                 write(f'Failed: Registry Check', 'red', metadata)
                 sys.exit()
@@ -1070,7 +1072,9 @@ def update(
 @click.option('--vscode', '-vs', is_flag=True, help='Specify a Visual Studio Code extension to install')
 @click.option('--node', '-npm', is_flag=True, help='Specify a Python package to install')
 @click.option('--no-cache', '-nocache', is_flag=True, help='Prevent cache usage for uninstallation')
+@click.option('--portable', '--non-admin', '-p', is_flag=True, help='Install a portable version of a package')
 @click.option('--configuration', '-cf', is_flag=True, help='Specify a config file to install')
+@click.option('--ae', is_flag=True)
 @click.pass_context
 def uninstall(
     ctx,
@@ -1086,7 +1090,9 @@ def uninstall(
     node: bool,
     no_cache: bool,
     atom: bool,
-    configuration: bool
+    configuration: bool,
+    portable: bool,
+    ae: bool
 ):
     """
     Uninstalls a package or a list of packages.
@@ -1193,26 +1199,79 @@ def uninstall(
 
         pkg = res
         version = pkg['latest-version']
+
+        if portable:
+            version = 'portable'
         uninstall_exit_codes = []
         if 'valid-uninstall-exit-codes' in list(pkg.keys()):
             uninstall_exit_codes = pkg['valid-install-exit-codes']
 
-        name = pkg['package-name']
+        name = pkg['display-name']
         pkg = pkg[version]
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-
+        if portable:
+            try:
+                data = {
+                    'display-name': res['display-name'],
+                    'package-name': res['package-name'],
+                    'latest-version': res['latest-version'],
+                    'url': pkg[res['latest-version']]['url'],
+                    'file-type': pkg[res['latest-version']]['file-type'],
+                    'extract-dir': pkg[res['latest-version']]['extract-dir'],
+                    'chdir': pkg[res['latest-version']]['chdir'],
+                    'bin': pkg[res['latest-version']]['bin'],
+                    'shortcuts': pkg[res['latest-version']]['shortcuts']
+                }
+            except KeyError:
+                try:
+                    data = {
+                        'display-name': res['display-name'],
+                        'package-name': res['package-name'],
+                        'latest-version': res['latest-version'],
+                        'url': pkg[res['latest-version']]['url'],
+                        'file-type': pkg[res['latest-version']]['file-type'],
+                        'extract-dir': pkg[res['latest-version']]['extract-dir'],
+                        'bin': pkg[res['latest-version']]['bin'],
+                        'shortcuts': pkg[res['latest-version']]['shortcuts']
+                    }
+                except KeyError:
+                    try:
+                        data = {
+                            'display-name': res['display-name'],
+                            'package-name': res['package-name'],
+                            'latest-version': res['latest-version'],
+                            'url': pkg[res['latest-version']]['url'],
+                            'file-type': pkg[res['latest-version']]['file-type'],
+                            'extract-dir': pkg[res['latest-version']]['extract-dir'],
+                            'bin': pkg[res['latest-version']]['bin'],
+                        }
+                    except KeyError:
+                        data = {
+                            'display-name': res['display-name'],
+                            'package-name': res['package-name'],
+                            'latest-version': res['latest-version'],
+                            'url': pkg[res['latest-version']]['url'],
+                            'file-type': pkg[res['latest-version']]['file-type'],
+                            'extract-dir': pkg[res['latest-version']]['extract-dir'],
+                        }
+            portable_packet = PortablePacket(data)
+            start = timer()
+            uninstall_portable(portable_packet, metadata)
+            end = timer()
+            sys.exit()
         packet = Packet(pkg, package, name, pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
         proc = None
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
 
         if super_cache:
-            write(
-                f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', 'bright_yellow', metadata)
-            write_debug(
-                f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 9)}s', metadata)
-            log_info(
-                f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
+            if not ae:
+                write(
+                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', 'bright_yellow', metadata)
+                write_debug(
+                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 9)}s', metadata)
+                log_info(
+                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
         else:
             write(
                 f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_green', metadata)
@@ -1239,16 +1298,17 @@ def uninstall(
             continue
 
         kill_running_proc(packet.json_name, packet.display_name, metadata)
+        
+        if not ae:
+            write_verbose('Uninstall key found.', metadata)
+            log_info('Uninstall key found.', metadata.logfile)
+            log_info(key, metadata.logfile)
+            write_debug('Successfully Recieved UninstallString from Windows Registry', metadata)
 
-        write_verbose('Uninstall key found.', metadata)
-        log_info('Uninstall key found.', metadata.logfile)
-        log_info(key, metadata.logfile)
-        write_debug('Successfully Recieved UninstallString from Windows Registry', metadata)
-
-        write(
-            f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', 'green', metadata)
-        log_info(
-            f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', metadata.logfile)
+            write(
+                f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', 'green', metadata)
+            log_info(
+                f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', metadata.logfile)
 
         command = ''
 
@@ -1259,7 +1319,6 @@ def uninstall(
                 key = key[0]
 
         with Halo(f'Uninstalling {packet.display_name}', text_color='cyan', color='grey') as h:
-            # If QuietUninstallString Exists (Preferable)
             if 'QuietUninstallString' in key:
                 command = key['QuietUninstallString']
                 command = command.replace('/I', '/X')
@@ -1283,11 +1342,9 @@ def uninstall(
                 write_debug('Running silent uninstallation command', metadata)
                 run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet, no_cache, None)
 
-
                 h.stop()
 
-                write(
-                    f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                
 
                 write_verbose('Uninstallation completed.', metadata)
                 log_info('Uninstallation completed.', metadata.logfile)
@@ -1315,8 +1372,6 @@ def uninstall(
 
                 run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet, no_cache, None)
                 h.stop()
-                write(
-                    f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                 write_verbose('Uninstallation completed.', metadata)
                 log_info('Uninstallation completed.', metadata.logfile)
                 index += 1
@@ -1325,6 +1380,16 @@ def uninstall(
                 log_info(
                     f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
                 close_log(metadata.logfile, 'Uninstall')
+        write(f'Running Tests For {packet.display_name}', 'white', metadata)
+        if not find_existing_installation(packet.json_name, packet.display_name):
+            print(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check')
+            write(
+                    f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+        else:
+            print(f'[ {Fore.GREEN}ERROR{Fore.RESET} ] Registry Check')
+            write(
+                    f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
+    
     finish_log()
 
 
