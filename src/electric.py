@@ -1808,14 +1808,26 @@ def complete(
         if n == 2:
             possibilities = electric_commands
 
-        if n == 3:
-
+        if n == 3 and not word.startswith('--') and not (word[0] == '-' and word[1] != '-'):
             appdata_dir = PathManager.get_appdata_directory() + r'\SuperCache'
 
             with open(rf'{appdata_dir}\packages.json', 'r') as f:
                 packages = json.load(f)['packages']
 
             possibilities = difflib.get_close_matches(word, packages)
+        elif word.startswith('--') or (word[0] == '-' and word[1] != '-'):
+            if word.startswith('--'):
+                command = commandline.split(' ')[1]
+                if command == 'install' or command == 'bundle' or command == 'i':
+                    possibilities = install_flags
+                if command == 'uninstall' or command == 'remove' or command == 'u':
+                    possibilities = uninstall_flags
+                if command == 'search' or command == 'find':
+                    possibilities = search_flags
+                if command == 'config':
+                    possibilities = config_flags
+            else:
+                pass
 
         if n >= 4:
             command = commandline.split(' ')[1]
