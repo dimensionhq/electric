@@ -2,21 +2,20 @@ from Classes.Metadata import Metadata
 from Classes.PortablePacket import PortablePacket
 from timeit import default_timer as timer
 from colorama import Fore
+from extension import write, write_debug
 from zip_utils import *
-import json
 import os
 
 home = os.path.expanduser('~')
 
-def install(data: dict, metadata: Metadata):
-    packet = PortablePacket(data)
+def install_portable(packet: PortablePacket, metadata: Metadata):
     changes_environment = False
     shortcuts = packet.shortcuts
     extract_dir = packet.extract_dir
+    write_debug(f'Downloading {packet.json_name}{packet.file_type} from {packet.url}', metadata)
     download(packet.url, '.zip', rf'{home}\electric\\' + extract_dir)
-    print(f'\n{Fore.GREEN}Unzipping {packet.display_name}{Fore.RESET}')
+    # write('Unzipp')
     unzip_dir = unzip_file(extract_dir + '.zip', extract_dir, packet.file_type)
-    
     if packet.chdir:
         dir = packet.chdir
         unzip_dir += f'\\{dir}\\'

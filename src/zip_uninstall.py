@@ -5,12 +5,11 @@ import os
 
 home = os.path.expanduser('~')
 
-def uninstall(data: dict):
+def uninstall_portable(data: dict):
     packet = PortablePacket(data)
     loc = rf'{home}\electric\\'
     package_directory = loc + packet.extract_dir
-    os.system(f'del /f/s/q {package_directory} > nul')
-    os.system(f'rmdir /s/q {package_directory}')
+    os.system(f'powershell -c $fso = New-Object -ComObject scripting.filesystemobject;$fso.DeleteFolder("{package_directory}", $true);')
     loc = rf'{home}\electric\shims'
 
     for sh in packet.bin:

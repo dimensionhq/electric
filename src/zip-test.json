@@ -1,17 +1,16 @@
 {
-    "package-name": "atom",
-    "display-name": "Atom",
-    "latest-version": "1.53.0",
-    "1.53.0": {
-        "url": "https://github.com/atom/atom/releases/download/v1.53.0/atom-x64-windows.zip",
+    "package-name": "sublime-text-3",
+    "display-name": "Sublime Text 3",
+    "latest-version": "3211",
+    "3211": {
+        "url": "https://download.sublimetext.com/Sublime%20Text%20Build%203211%20x64.zip",
         "file-type": ".zip",
-        "extract-dir": "atom",
-        "chdir": "Atom x64",
-        "bin": ["atom.exe", "resources\\cli\\apm.cmd"],
+        "extract-dir": "sublime-text-3",
+        "bin": ["subl.exe"],
         "shortcuts": [
             {
-                "shortcut-name": "Atom",
-                "file-name": "atom.exe"
+                "shortcut-name": "Sublime Text 3",
+                "file-name": "sublime_text.exe"
             }
         ]
     }

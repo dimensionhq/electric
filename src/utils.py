@@ -1,7 +1,3 @@
-######################################################################
-#                           HELPERS / UTILS                          #
-######################################################################
-
 import ctypes
 import difflib
 import hashlib
@@ -38,7 +34,7 @@ import registry
 from Classes.Metadata import Metadata
 from Classes.Packet import Packet
 from Classes.PathManager import PathManager
-from constants import valid_install_exit_codes, valid_uninstall_exit_codes
+from headers import *
 from extension import *
 from limit import *
 from logger import *
@@ -409,21 +405,22 @@ def get_file_type(command: str) -> str:
 
 
 def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo, packet, no_cache: bool, sync: bool):
+    # if method == 'uninstallation':
+    #     file_type = get_file_type(command)
+    #     if 'append-uninstall-switches-if' in list(packet.raw.keys()):
+    #         if packet.raw['append-uninstall-switches-if']['file-type'] != file_type:
+    #             for switch in packet.uninstall_switches:
+    #                 command = command.replace(switch, '')
 
-    if method == 'uninstallation':
-        file_type = get_file_type(command)
-        if 'append-uninstall-switches-if' in list(packet.raw.keys()):
-            if packet.raw['append-uninstall-switches-if']['file-type'] != file_type:
-                for switch in packet.uninstall_switches:
-                    command = command.replace(switch, '')
-
-    log_info(f'Running command: {command}', metadata.logfile)
+    # log_info(f'Running command: {command}', metadata.logfile)
     command = command.replace('\"\"', '\"').replace('  ', ' ')
     log_info(f'Running command: {command}', metadata.logfile)
     write_debug(f'{command}', metadata, newline=True)
+    
     try:
         check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except (CalledProcessError, OSError, FileNotFoundError) as err:
+        print(err)
         if halo:
             halo.stop()
         keyboard.add_hotkey(

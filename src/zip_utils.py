@@ -9,6 +9,7 @@ import zipfile
 import tarfile
 import py7zr
 import patoolib
+from tqdm import tqdm
 
 home = os.path.expanduser('~')
 
@@ -25,10 +26,11 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str):
     os.chdir(rf'{home}\electric')
     if file_type == '.zip':
         with zipfile.ZipFile(download_dir, 'r') as zf:
-            try:
-                zf.extractall(download_dir.replace('.zip', ''))
-            except:
-                return 1
+            for member in tqdm(zf.infolist(), desc='Extracting ', bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}'):
+                try:
+                    zf.extract(member, download_dir.replace('.zip', ''))
+                except zipfile.error:
+                 pass
     if file_type == '.tar':
         tar = tarfile.open(download_dir)
         tar.extractall(unzip_dir_name)

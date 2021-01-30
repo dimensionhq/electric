@@ -1,6 +1,9 @@
 ######################################################################
-#                            ELECTRIC CLI                            #
+#                      Copyright 2021 XtremeDevX                     #
+#                 SPDX-License-Identifier: Apache-2.0                #
 ######################################################################
+
+# Install .msixbundle file => Add-AppxPackage Microsoft.WindowsTerminal_0.11.1191.0_8wekyb3d8bbwe.msixbundle
 
 
 import difflib
@@ -20,12 +23,13 @@ from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
 
 from decimal import Decimal
+from Classes.PortablePacket import PortablePacket
 from Classes.Config import Config
 from Classes.PackageManager import PackageManager
 from Classes.Packet import Packet
 from Classes.Setting import Setting
 from cli import SuperChargeCLI
-from constants import *
+from headers import *
 from external import *
 from info import __version__
 from limit import Limiter, TokenBucket
@@ -33,8 +37,8 @@ from logger import *
 from registry import get_environment_keys, get_uninstall_key
 from settings import initialize_settings, open_settings
 from utils import *
-# from zip_install import *
-# from zip_uninstall import *
+from zip_install import install_portable
+
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 
@@ -112,7 +116,7 @@ def install(
             os.system('pip install -e .')
             click.echo(f'{Fore.GREEN}Successfully Installed eel Plugin, {Fore.CYAN}Refreshing Environment Variables.{Fore.RESET}')
             refresh_environment_variables()
-            sys.exit()
+        sys.exit()
 
     if configuration:
         ctx.invoke(
@@ -430,6 +434,7 @@ def install(
                         if virus_check:
                             with Halo('\nScanning File For Viruses...', text_color='blue'):
                                 check_virus(path, metadata)
+                        
                         if not cached:
                             write(
                                 f'\nInstalling {packet.display_name}', 'cyan', metadata)
@@ -460,13 +465,18 @@ def install(
                             end = timer()
                             write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
 
-                        write(
-                            f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
-                        log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
-
+                        with Halo(f'Verifying Successful Installation', text_color='green') as h:
+                            if find_existing_installation(packet.json_name, packet.display_name):
+                                h.stop()
+                                write(
+                                    f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
+                                log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
+                            else:
+                                h.fail()
+                                write(f'Failed => Registry Check', 'red', metadata)
+                                sys.exit()
 
                         if metadata.reduce_package:
-
                             os.remove(path)
                             try:
                                 os.remove(Rf'{tempfile.gettempdir()}\downloadcache.pickle')
@@ -595,14 +605,60 @@ def install(
             pkg = pkg[version]
         except KeyError:
             name = res['display-name']
-            write(f'\nCannot Find {name}::v{version}', 'red', metadata)
+            write(f'\nCannot Find {name}::{version}', 'red', metadata)
             handle_exit('ERROR', None, metadata)
         install_exit_codes = None
 
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
         if portable:
-            pass
+            try:
+                data = {
+                    'display-name': res['display-name'],
+                    'package-name': res['package-name'],
+                    'latest-version': res['latest-version'],
+                    'url': pkg[res['latest-version']]['url'],
+                    'file-type': pkg[res['latest-version']]['file-type'],
+                    'extract-dir': pkg[res['latest-version']]['extract-dir'],
+                    'chdir': pkg[res['latest-version']]['chdir'],
+                    'bin': pkg[res['latest-version']]['bin'],
+                    'shortcuts': pkg[res['latest-version']]['shortcuts']
+                }
+            except KeyError:
+                try:
+                    data = {
+                        'display-name': res['display-name'],
+                        'package-name': res['package-name'],
+                        'latest-version': res['latest-version'],
+                        'url': pkg[res['latest-version']]['url'],
+                        'file-type': pkg[res['latest-version']]['file-type'],
+                        'extract-dir': pkg[res['latest-version']]['extract-dir'],
+                        'bin': pkg[res['latest-version']]['bin'],
+                        'shortcuts': pkg[res['latest-version']]['shortcuts']
+                    }
+                except KeyError:
+                    try:
+                        data = {
+                            'display-name': res['display-name'],
+                            'package-name': res['package-name'],
+                            'latest-version': res['latest-version'],
+                            'url': pkg[res['latest-version']]['url'],
+                            'file-type': pkg[res['latest-version']]['file-type'],
+                            'extract-dir': pkg[res['latest-version']]['extract-dir'],
+                            'bin': pkg[res['latest-version']]['bin'],
+                        }
+                    except KeyError:
+                        data = {
+                            'display-name': res['display-name'],
+                            'package-name': res['package-name'],
+                            'latest-version': res['latest-version'],
+                            'url': pkg[res['latest-version']]['url'],
+                            'file-type': pkg[res['latest-version']]['file-type'],
+                            'extract-dir': pkg[res['latest-version']]['extract-dir'],
+                        }
+            portable_packet = PortablePacket(data)
+            install_portable(portable_packet, metadata)
+            sys.exit()
         else:
             packet = Packet(pkg, package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
             log_info('Searching for existing installation of package.', metadata.logfile)
@@ -739,10 +795,15 @@ def install(
                 refresh_environment_variables()
                 end = timer()
                 write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
-
-            write(
-                f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
-            log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
+            write(f'Running Tests For {packet.display_name}', 'yellow', metadata)
+            if find_existing_installation(packet.json_name, packet.display_name):
+                write(f'Passed: Registry Check', 'green', metadata)
+                write(
+                    f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
+                log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
+            else:
+                write(f'Failed: Registry Check', 'red', metadata)
+                sys.exit()
 
             if metadata.reduce_package:
                 os.remove(path)
