@@ -8,6 +8,8 @@ import os
 
 home = os.path.expanduser('~')
 
+
+
 def install_portable(packet: PortablePacket, metadata: Metadata):
     print(f'Installing [ {Fore.CYAN}{packet.display_name}{Fore.RESET} ]')
     changes_environment = False

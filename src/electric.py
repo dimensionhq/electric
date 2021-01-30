@@ -4,6 +4,8 @@
 ######################################################################
 
 # Install .msixbundle file => Add-AppxPackage Microsoft.WindowsTerminal_0.11.1191.0_8wekyb3d8bbwe.msixbundle
+# Refresh Environment Variables
+# $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
 
 
 import difflib

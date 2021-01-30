@@ -200,14 +200,3 @@ def generate_shim(shim_command: str, shim_name: str, shim_extension: str):
     
     with open(rf'{home}\electric\shims\{shim_name}.bat', 'w+') as f:
         f.write(f'@echo off\n"{shim_command}.{shim_extension}"')
-
-# Scoop logs
-# Installing 'atom' (1.54.0) [64bit]
-# atom-x64-1.54.0-full.nupkg (182.7 MB) [==========================================================================================================================] 100%
-# Checking hash of atom-x64-1.54.0-full.nupkg ... ok.
-# Extracting atom-x64-1.54.0-full.nupkg ... done.
-# Linking ~\scoop\apps\atom\current => ~\scoop\apps\atom\1.54.0
-# Creating shim for 'atom'.
-# Creating shim for 'apm'.
-# Creating shortcut for Atom (atom.exe)
-# 'atom' (1.54.0) was installed successfully!
