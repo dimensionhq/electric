@@ -4,8 +4,6 @@
 ######################################################################
 
 # Install .msixbundle file => Add-AppxPackage Microsoft.WindowsTerminal_0.11.1191.0_8wekyb3d8bbwe.msixbundle
-# Refresh Environment Variables
-# $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
 
 
 import difflib
@@ -1388,7 +1386,7 @@ def uninstall(
             write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
         else:
-            print(f'[ {Fore.GREEN}ERROR{Fore.RESET} ] Registry Check')
+            print(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check')
             write(
                     f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
     
@@ -1418,7 +1416,7 @@ def cleanup():
             with Bar(f'{Fore.CYAN}Deleting Temporary Files{Fore.RESET}', max=len(files), bar_prefix=' [ ', bar_suffix=' ] ', fill=f'{Fore.GREEN}={Fore.RESET}', empty_fill=f'{Fore.LIGHTBLACK_EX}-{Fore.RESET}') as b:
                 for f in files:
                     os.remove(rf'{tempfile.gettempdir()}\electric\{f}')
-                    time.sleep(0.0075)
+                    time.sleep(0.0002)
                     b.next()
 
 

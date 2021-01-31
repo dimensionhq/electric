@@ -11,26 +11,46 @@ import py7zr
 import patoolib
 from tqdm import tqdm
 
+from Classes.Metadata import Metadata
+from extension import write
+
 home = os.path.expanduser('~')
+
+class HiddenPrints:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
 
 def delete_start_menu_shortcut(shortcut_name):
     start_menu = os.environ['APPDATA'] + R'\Microsoft\Windows\Start Menu\Programs\Electric'
     path = os.path.join(start_menu, f'{shortcut_name}.lnk')
     os.remove(path)
 
-def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str):
+def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata: Metadata):
     if not unzip_dir_name:
         unzip_dir_name = download_dir.replace('.zip', '')
     if not os.path.isdir(rf'{home}\electric'):
         os.mkdir(rf'{home}\electric')
     os.chdir(rf'{home}\electric')
-    if file_type == '.zip':
+
+    if metadata.silent and file_type == '.zip':
+        with zipfile.ZipFile(download_dir, 'r') as zf:
+            try:
+                zf.extractall(download_dir.replace('.zip', ''))
+            except:
+                pass
+    elif not metadata.silent and file_type == '.zip':
         with zipfile.ZipFile(download_dir, 'r') as zf:
             for member in tqdm(zf.infolist(), desc='Extracting Files', bar_format='{l_bar}{bar:20}{r_bar}{bar:-20b}', unit='files'):
                 try:
                     zf.extract(member, download_dir.replace('.zip', ''))
                 except zipfile.error:
                  pass
+
     if file_type == '.tar':
         tar = tarfile.open(download_dir)
         tar.extractall(unzip_dir_name)
@@ -42,7 +62,7 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str):
         patoolib.extract_archive(download_dir, outdir=unzip_dir_name)
   
     os.remove(download_dir)
-    return rf'{home}\electric\\' + unzip_dir_name.replace(file_type, '')
+    return rf'{home}\electric\\' + download_dir.replace(file_type, '')
 
 def install_font(src_path: str):
         from ctypes import wintypes
@@ -131,7 +151,8 @@ def install_font(src_path: str):
         ) as key:
             winreg.SetValueEx(key, fontname, 0, winreg.REG_SZ, filename)
 
-def download(url: str, download_extension: str, file_path: str, show_progress_bar=True):
+
+def download(url: str, download_extension: str, file_path: str, metadata: Metadata, show_progress_bar=True):
     '''
     Downloads A File from a URL And Saves It To A location
     url `(str)`:  Link or URL to download the file from.
@@ -172,7 +193,7 @@ def download(url: str, download_extension: str, file_path: str, show_progress_ba
                         sys.stdout.write(
                             f'\r{fill_c}{unfill_c} {Fore.RESET} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
                         sys.stdout.flush()
-        print(f'\n{Fore.GREEN}Initializing Unzipper{Fore.RESET}')
+        write(f'\n{Fore.GREEN}Initializing Unzipper{Fore.RESET}', 'white', metadata)
     except KeyboardInterrupt:
         print(f'\n{Fore.RED}Download Was Interrupted!{Fore.RESET}')
         sys.exit()
@@ -181,13 +202,12 @@ def create_start_menu_shortcut(unzip_dir, file_name, shortcut_name):
     start_menu = os.environ['APPDATA'] + R'\Microsoft\Windows\Start Menu\Programs\Electric'
     if not os.path.isdir(start_menu):
         os.mkdir(start_menu)
-    
     path = os.path.join(start_menu, f'{shortcut_name}.lnk')
     os.chdir(unzip_dir)
     icon = unzip_dir + '\\' + file_name
     shell = win32com.client.Dispatch("WScript.Shell")
     shortcut = shell.CreateShortCut(path)
-    shortcut.Targetpath = unzip_dir + '\\' + file_name
+    shortcut.Targetpath = icon
     shortcut.IconLocation = icon
     shortcut.WindowStyle = 7 # 7 - Minimized, 3 - Maximized, 1 - Normal
     shortcut.save()
@@ -200,3 +220,10 @@ def generate_shim(shim_command: str, shim_name: str, shim_extension: str):
     
     with open(rf'{home}\electric\shims\{shim_name}.bat', 'w+') as f:
         f.write(f'@echo off\n"{shim_command}.{shim_extension}"')
+
+def find_existing_installation(dir_name: str) -> bool:
+    loc = f'{home}\electric'
+    files = os.listdir(loc)
+    if dir_name in files:
+        return True
+    return False

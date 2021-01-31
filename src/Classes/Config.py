@@ -183,7 +183,6 @@ class Config:
 
     @staticmethod
     def generate_configuration(filepath: str, signed=True):
-        time.sleep(10)
         d = {}
         try:
             with open(f'{filepath}', 'r') as f:
@@ -328,7 +327,6 @@ class Config:
 
                 if 'Pip-Packages' in d:
                     with open(f'{filepath}', 'r') as f:
-
                         lines = f.readlines()
 
                     for line in lines:
@@ -383,23 +381,23 @@ class Config:
                                 f.writelines(lines)
 
                         if '<npm:name,version>' in line or '<node:name,version>' in line:
-
                             idx = lines.index(line)
                             proc = Popen('npm list --global --depth=0'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
                             output, _ = proc.communicate()
-                            output = output.decode().splitlines()[1:]
-                            refined_output = []
-                            for val in output:
-                                if val:
-                                    refined_output.append(val.replace('+--', '').replace('`--', '').strip())
-                            npm_packages = []
+                            if not 'empty' in  output.decode():
+                                output = output.decode().splitlines()[1:]
+                                refined_output = []
+                                for val in output:
+                                    if val:
+                                        refined_output.append(val.replace('+--', '').replace('`--', '').strip())
+                                npm_packages = []
 
-                            npm_packages.append([{line.split('@')[0] : line.split('@')[1]} for line in refined_output])
-                            npm_packages = npm_packages[0]
+                                npm_packages.append([{line.split('@')[0] : line.split('@')[1]} for line in refined_output])
+                                npm_packages = npm_packages[0]
 
-                            lines[idx] = Config.get_repr_packages(npm_packages, True).replace('\n ', '\n') + '\n'
-                            with open(f'{filepath}', 'w') as f:
-                                f.writelines(lines)
+                                lines[idx] = Config.get_repr_packages(npm_packages, True).replace('\n ', '\n') + '\n'
+                                with open(f'{filepath}', 'w') as f:
+                                    f.writelines(lines)
 
                 if signed:
                     with open(f'{filepath}', 'r') as f:

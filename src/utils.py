@@ -762,8 +762,8 @@ def get_install_flags(install_dir: str, no_cache: bool, sync: bool, metadata: Me
 
 
 def refresh_environment_variables():
-    Popen(Rf'{PathManager.get_current_directory()}\scripts\refreshvars.cmd',
-                 stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    proc = Popen('powershell -c "$env:Path = [System.Environment]::GetEnvironmentVariable(\'Path\',\'Machine\') + \';\' + [System.Environment]::GetEnvironmentVariable(\'Path\',\'User\')"'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    proc.communicate()
 
 
 def check_virus(path: str, metadata: Metadata):
@@ -1149,11 +1149,11 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
     url = pkg['win64']
     display_name = res['display-name']
     package_name = res['package-name']
-    calc_length = len(f'{Fore.MAGENTA}| {Fore.GREEN}Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}|') - 30
-    name_line = len(f'{Fore.MAGENTA}| {Fore.GREEN}Name {Fore.MAGENTA}=>{display_name}{Fore.GREEN}{Fore.YELLOW}{Fore.MAGENTA}') - 30
-    version_line = len(f'{Fore.MAGENTA}|{Fore.GREEN}Latest Version {Fore.MAGENTA}=>{Fore.BLUE}{version}{Fore.GREEN}{Fore.MAGENTA}|') - 30
-    url_line = len(f'{Fore.MAGENTA}| {Fore.GREEN}Url(Windows){Fore.MAGENTA}=>{Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}|') - 30
-    command_line = len(f'{Fore.MAGENTA}| {Fore.GREEN}Install Command{Fore.MAGENTA}=>{Fore.CYAN}{package_name}{Fore.CYAN}{Fore.MAGENTA}|') - 13
+    calc_length = len(f'{Fore.MAGENTA}│ {Fore.GREEN}Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}│') - 30
+    name_line = len(f'{Fore.MAGENTA}│ {Fore.GREEN}Name {Fore.MAGENTA}=>{display_name}{Fore.GREEN}{Fore.YELLOW}{Fore.MAGENTA}') - 30
+    version_line = len(f'{Fore.MAGENTA}│{Fore.GREEN}Latest Version {Fore.MAGENTA}=>{Fore.BLUE}{version}{Fore.GREEN}{Fore.MAGENTA}│') - 30
+    url_line = len(f'{Fore.MAGENTA}│ {Fore.GREEN}Url(Windows){Fore.MAGENTA}=>{Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}│') - 30
+    command_line = len(f'{Fore.MAGENTA}│ {Fore.GREEN}Install Command{Fore.MAGENTA}=>{Fore.CYAN}{package_name}{Fore.CYAN}{Fore.MAGENTA}│') - 13
     base = '─'
     return f'''
 {Fore.MAGENTA}┌{base * calc_length}{Fore.MAGENTA}┐

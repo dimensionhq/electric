@@ -4,20 +4,29 @@ from timeit import default_timer as timer
 from colorama import Fore
 from extension import write, write_debug
 from zip_utils import *
+import click
 import os
 
 home = os.path.expanduser('~')
 
 
-
 def install_portable(packet: PortablePacket, metadata: Metadata):
-    print(f'Installing [ {Fore.CYAN}{packet.display_name}{Fore.RESET} ]')
+    if find_existing_installation(f'{packet.extract_dir}{packet.latest_version}'):
+        write(f'Found Existing Installation Of {packet.display_name}', 'yellow', metadata)
+        continue_installation = click.confirm(f'Would you like to reinstall {packet.display_name}?')
+        if continue_installation:
+            pass
+        else:
+            sys.exit()
+
+    write(f'Installing [ {Fore.CYAN}{packet.display_name}{Fore.RESET} ]', 'white', metadata)
     changes_environment = False
     shortcuts = packet.shortcuts
     extract_dir = packet.extract_dir
     write_debug(f'Downloading {packet.json_name}{packet.file_type} from {packet.url}', metadata)
-    download(packet.url, '.zip', rf'{home}\electric\\' + extract_dir)
-    unzip_dir = unzip_file(extract_dir + '.zip', extract_dir, packet.file_type)
+    download(packet.url, '.zip', rf'{home}\electric\\' + f'{packet.extract_dir}{packet.latest_version}', metadata, show_progress_bar= True if not metadata.silent and not metadata.no_progress else False)
+    unzip_dir = unzip_file(f'{packet.extract_dir}{packet.latest_version}' + '.zip', extract_dir, packet.file_type, metadata)
+    
     if packet.chdir:
         dir = packet.chdir
         unzip_dir += f'\\{dir}\\'
@@ -37,7 +46,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                 start = timer()
                 generate_shim(f'{shim_dir}', shim, shim_ext)
                 end = timer()
-                print(f'{Fore.CYAN}Successfully Generated {shim} Shim In {round(end - start, 5)} seconds{Fore.RESET}')
+                write(f'{Fore.CYAN}Successfully Generated {shim} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)
     
 
     for shortcut in shortcuts:
@@ -46,11 +55,5 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
         create_start_menu_shortcut(unzip_dir, file_name, shortcut_name)
 
     if changes_environment:
-        print(f'{Fore.GREEN}\nRefreshing Environment Variables{Fore.RESET}')
+        write(f'{Fore.GREEN}\nRefreshing Environment Variables{Fore.RESET}', 'white', metadata)
         os.system(rf'{home}\Desktop\Electric\Electric-Windows\src\scripts\refreshvars.cmd')
-
-
-# with open('zip-test.json', 'r') as f:
-#     data = json.load(f)
-
-# install(data, Metadata(None, None, None, None, None, None, None, None, None, None, None))
