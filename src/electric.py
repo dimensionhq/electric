@@ -255,7 +255,7 @@ def install(
                     install_exit_codes = None
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
-                    packet = Packet(pkg, package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version)
+                    packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version)
                     installation = find_existing_installation(
                         package, packet.display_name)
                     if installation:
@@ -332,7 +332,7 @@ def install(
                         if 'valid-install-exit-codes' in list(pkg.keys()):
                             install_exit_codes = pkg['valid-install-exit-codes']
 
-                        packet = Packet(pkg, package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
+                        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
                         log_info('Searching for existing installation of package.', metadata.logfile)
 
                         installation = find_existing_installation(package, packet.json_name)
@@ -531,7 +531,7 @@ def install(
                         install_exit_codes = None
                         if 'valid-install-exit-codes' in list(pkg.keys()):
                             install_exit_codes = pkg['valid-install-exit-codes']
-                        packet = Packet(pkg, package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version)
+                        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version)
                         installation = find_existing_installation(
                             package, packet.display_name)
                         if installation:
@@ -662,7 +662,7 @@ def install(
             install_portable(portable_packet, metadata)
             sys.exit()
         else:
-            packet = Packet(pkg, package, res['display-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
+            packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
             log_info('Searching for existing installation of package.', metadata.logfile)
 
             log_info('Finding existing installation of package...', metadata.logfile)
@@ -930,7 +930,7 @@ def update(
         name = pkg['display-name']
         pkg = pkg[version]
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        packet = Packet(pkg, package, name, pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
+        packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
         proc = None
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
@@ -1259,7 +1259,7 @@ def uninstall(
             uninstall_portable(portable_packet, metadata)
             end = timer()
             sys.exit()
-        packet = Packet(pkg, package, name, pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
+        packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
         proc = None
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))

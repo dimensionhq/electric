@@ -1146,7 +1146,7 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
         name = res['display-name']
         click.echo(click.style(f'\nCannot Find {name}::v{version}', 'red'))
         exit()
-    url = pkg['win64']
+    url = pkg['url']
     display_name = res['display-name']
     package_name = res['package-name']
     calc_length = len(f'{Fore.MAGENTA}│ {Fore.GREEN}Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}│') - 30
