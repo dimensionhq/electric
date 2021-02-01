@@ -111,6 +111,7 @@ def install(
     """
     Installs a package or a list of packages.
     """
+    start_log()
     if plugin:
         if package_name == 'eel':
             os.chdir(PathManager.get_current_directory() + r'\eel')
@@ -825,7 +826,7 @@ def install(
 
         index += 1
 
-    finish_log()
+    # finish_log()
 
 
 @cli.command()
@@ -1097,6 +1098,7 @@ def uninstall(
     """
     Uninstalls a package or a list of packages.
     """
+    start_log()
     if configuration:
         ctx.invoke(
             config,
@@ -1865,6 +1867,11 @@ def complete(
                 for completion in uninstall_flags:
                     click.echo(completion)
 
+
+@cli.command()
+@click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
+def logtest(logfile):
+    print(logfile)
 
 if __name__ == '__main__':
     cli() #pylint: disable=no-value-for-parameter
