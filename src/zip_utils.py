@@ -12,6 +12,7 @@ import patoolib
 from tqdm import tqdm
 
 from Classes.Metadata import Metadata
+from Classes.PortablePacket import PortablePacket
 from extension import write
 
 home = os.path.expanduser('~')
@@ -227,3 +228,9 @@ def find_existing_installation(dir_name: str) -> bool:
     if dir_name in files:
         return True
     return False
+
+def display_notes(packet: PortablePacket, metadata: Metadata):
+    write('\n----Notes----', 'white', metadata)
+    for line in packet.notes:
+        write(line, 'white', metadata)
+

@@ -615,63 +615,20 @@ def install(
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
         if portable:
-            try:
-                data = {
-                    'display-name': res['display-name'],
-                    'package-name': res['package-name'],
-                    'latest-version': res['latest-version'],
-                    'url': pkg[res['latest-version']]['url'],
-                    'file-type': pkg[res['latest-version']]['file-type'],
-                    'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                    'chdir': pkg[res['latest-version']]['chdir'],
-                    'bin': pkg[res['latest-version']]['bin'],
-                    'shortcuts': pkg[res['latest-version']]['shortcuts'],
-                    'post-install': pkg[res['latest-version']]['post-install'],
-                }
-            except KeyError:
-                try:
-                    data = {
-                        'display-name': res['display-name'],
-                        'package-name': res['package-name'],
-                        'latest-version': res['latest-version'],
-                        'url': pkg[res['latest-version']]['url'],
-                        'file-type': pkg[res['latest-version']]['file-type'],
-                        'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                        'bin': pkg[res['latest-version']]['bin'],
-                        'shortcuts': pkg[res['latest-version']]['shortcuts']
-                    }
-                except KeyError:
-                    try:
-                        data = {
-                            'display-name': res['display-name'],
-                            'package-name': res['package-name'],
-                            'latest-version': res['latest-version'],
-                            'url': pkg[res['latest-version']]['url'],
-                            'file-type': pkg[res['latest-version']]['file-type'],
-                            'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                            'bin': pkg[res['latest-version']]['bin'],
-                            'shortcuts': pkg[res['latest-version']]['shortcuts']
-                        }
-                    except KeyError:
-                        try:
-                            data = {
-                                'display-name': res['display-name'],
-                                'package-name': res['package-name'],
-                                'latest-version': res['latest-version'],
-                                'url': pkg[res['latest-version']]['url'],
-                                'file-type': pkg[res['latest-version']]['file-type'],
-                                'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                                'bin': pkg[res['latest-version']]['bin'],
-                            }
-                        except KeyError:
-                            data = {
-                                'display-name': res['display-name'],
-                                'package-name': res['package-name'],
-                                'latest-version': res['latest-version'],
-                                'url': pkg[res['latest-version']]['url'],
-                                'file-type': pkg[res['latest-version']]['file-type'],
-                                'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                            }
+            keys = list(pkg[res['latest-version']].keys())
+            data = {
+                'display-name': res['display-name'],
+                'package-name': res['package-name'],
+                'latest-version': res['latest-version'],
+                'url': pkg[res['latest-version']]['url'],
+                'file-type': pkg[res['latest-version']]['file-type'],
+                'extract-dir': pkg[res['latest-version']]['extract-dir'],
+                'chdir': pkg[res['latest-version']]['chdir'] if 'chdir' in keys else [],
+                'bin': pkg[res['latest-version']]['bin'] if 'bin' in keys else [],
+                'shortcuts': pkg[res['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
+                'post-install': pkg[res['latest-version']]['post-install'] if 'post-install' in keys else [],
+                'notes': pkg[res['latest-version']]['notes'] if 'notes' in keys else []
+            }
             portable_packet = PortablePacket(data)
             install_portable(portable_packet, metadata)
             sys.exit()

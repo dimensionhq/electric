@@ -779,6 +779,9 @@ def check_virus(path: str, metadata: Metadata):
 
 
 def setup_supercache(call: bool = False):
+    home = os.path.expanduser('~')
+    if not os.path.isdir(f'{home}\\electric'):
+        os.mkdir(f'{home}\\electric')
     supercache_dir = PathManager.get_appdata_directory() + R'\SuperCache'
     try:
         exist = len(os.listdir(supercache_dir)) != 0

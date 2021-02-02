@@ -60,3 +60,6 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
     if packet.post_install:
         for line in packet.post_install:
             eval(line)
+
+    if packet.notes:
+        display_notes(packet, metadata)
