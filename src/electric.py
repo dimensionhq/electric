@@ -1235,7 +1235,8 @@ def uninstall(
                     'extract-dir': pkg[res['latest-version']]['extract-dir'],
                     'chdir': pkg[res['latest-version']]['chdir'],
                     'bin': pkg[res['latest-version']]['bin'],
-                    'shortcuts': pkg[res['latest-version']]['shortcuts']
+                    'shortcuts': pkg[res['latest-version']]['shortcuts'],
+                    'post-install': pkg[res['latest-version']]['post-install'],
                 }
             except KeyError:
                 try:
@@ -1259,16 +1260,28 @@ def uninstall(
                             'file-type': pkg[res['latest-version']]['file-type'],
                             'extract-dir': pkg[res['latest-version']]['extract-dir'],
                             'bin': pkg[res['latest-version']]['bin'],
+                            'shortcuts': pkg[res['latest-version']]['shortcuts']
                         }
                     except KeyError:
-                        data = {
-                            'display-name': res['display-name'],
-                            'package-name': res['package-name'],
-                            'latest-version': res['latest-version'],
-                            'url': pkg[res['latest-version']]['url'],
-                            'file-type': pkg[res['latest-version']]['file-type'],
-                            'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                        }
+                        try:
+                            data = {
+                                'display-name': res['display-name'],
+                                'package-name': res['package-name'],
+                                'latest-version': res['latest-version'],
+                                'url': pkg[res['latest-version']]['url'],
+                                'file-type': pkg[res['latest-version']]['file-type'],
+                                'extract-dir': pkg[res['latest-version']]['extract-dir'],
+                                'bin': pkg[res['latest-version']]['bin'],
+                            }
+                        except KeyError:
+                            data = {
+                                'display-name': res['display-name'],
+                                'package-name': res['package-name'],
+                                'latest-version': res['latest-version'],
+                                'url': pkg[res['latest-version']]['url'],
+                                'file-type': pkg[res['latest-version']]['file-type'],
+                                'extract-dir': pkg[res['latest-version']]['extract-dir'],
+                            }
             portable_packet = PortablePacket(data)
             start = timer()
             uninstall_portable(portable_packet, metadata)
