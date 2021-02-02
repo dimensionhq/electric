@@ -33,22 +33,21 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
     
     if packet.bin:
         if isinstance(packet.bin, list):
-            for sh in packet.bin:
+            for bin in packet.bin:
                 shim_dir = unzip_dir 
-                shim = ''.join(sh.split('.')[:-1])
-                shim_ext = sh.split('.')[-1]
-                if '\\' in sh:
-                    shim = ''.join(sh.split('\\')[-1])
+                shim = ''.join(bin.split('.')[:-1])
+                shim_ext = bin.split('.')[-1]
+                if '\\' in bin:
+                    shim = ''.join(bin.split('\\')[-1])
                     shim = ''.join(shim.split('.')[:-1])
-                    shim_ext = sh.split('.')[-1]
-                    shim_dir += ' '.join(sh.split('\\')[:-1]).replace(' ', '\\')
+                    shim_ext = bin.split('.')[-1]
+                    shim_dir += ' '.join(bin.split('\\')[:-1]).replace(' ', '\\')
                 
                 start = timer()
                 generate_shim(f'{shim_dir}', shim, shim_ext)
                 end = timer()
                 write(f'{Fore.CYAN}Successfully Generated {shim} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)
-    
-
+                
     for shortcut in shortcuts:
         shortcut_name = shortcut['shortcut-name']
         file_name = shortcut['file-name']
@@ -57,3 +56,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
     if changes_environment:
         write(f'{Fore.GREEN}\nRefreshing Environment Variables{Fore.RESET}', 'white', metadata)
         os.system(rf'{home}\Desktop\Electric\Electric-Windows\src\scripts\refreshvars.cmd')
+
+    if packet.post_install:
+        for line in packet.post_install:
+            eval(line)

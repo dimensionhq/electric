@@ -212,13 +212,13 @@ def create_start_menu_shortcut(unzip_dir, file_name, shortcut_name):
     shortcut.WindowStyle = 7 # 7 - Minimized, 3 - Maximized, 1 - Normal
     shortcut.save()
 
-def generate_shim(shim_command: str, shim_name: str, shim_extension: str):
+def generate_shim(shim_command: str, shim_name: str, shim_extension: str, overridefilename: str = ''):
     shim_command += f'\\{shim_name}'
     shim_command = shim_command.replace('\\\\', '\\')
     if not os.path.isdir(rf'{home}\electric\shims'):
         os.mkdir(rf'{home}\electric\shims')
     
-    with open(rf'{home}\electric\shims\{shim_name}.bat', 'w+') as f:
+    with open(rf'{home}\electric\shims\{shim_name if not overridefilename else overridefilename}.bat', 'w+') as f:
         f.write(f'@echo off\n"{shim_command}.{shim_extension}"')
 
 def find_existing_installation(dir_name: str) -> bool:

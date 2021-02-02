@@ -19,3 +19,7 @@ class PortablePacket:
             self.shortcuts = data['shortcuts']
         except KeyError:
             self.shortcuts = None
+        try:
+            self.post_install = data['post-install']
+        except KeyError:
+            self.post_install = None
