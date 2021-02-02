@@ -59,7 +59,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
 
     if packet.post_install:
         for line in packet.post_install:
-            eval(line)
+            eval(line.replace('<dir>', unzip_dir))
 
     if packet.notes:
         display_notes(packet, metadata)
