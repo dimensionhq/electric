@@ -405,14 +405,6 @@ def get_file_type(command: str) -> str:
 
 
 def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo, packet, no_cache: bool, sync: bool):
-    # if method == 'uninstallation':
-    #     file_type = get_file_type(command)
-    #     if 'append-uninstall-switches-if' in list(packet.raw.keys()):
-    #         if packet.raw['append-uninstall-switches-if']['file-type'] != file_type:
-    #             for switch in packet.uninstall_switches:
-    #                 command = command.replace(switch, '')
-
-    # log_info(f'Running command: {command}', metadata.logfile)
     command = command.replace('\"\"', '\"').replace('  ', ' ')
     log_info(f'Running command: {command}', metadata.logfile)
     write_debug(f'{command}', metadata, newline=True)
