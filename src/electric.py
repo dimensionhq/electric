@@ -50,6 +50,8 @@ def cli(_):
     if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\electric-settings.json'):
         click.echo(click.style(f'Creating electric-settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
         initialize_settings()
+    if not os.path.isdir(PathManager.get_appdata_directory() + r'\Current'):
+        os.mkdir(PathManager.get_appdata_directory() + r'\Current')
     setup_supercache()
 
 

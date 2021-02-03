@@ -835,7 +835,16 @@ def update_supercache(metadata: Metadata):
     log_info(f'Successfully wrote date and time to {logpath}', metadata.logfile if metadata else None)
 
 
-def check_newer_version(new_version) -> bool:
+def check_newer_version(package_name: str, packet: Packet):
+    install_dir = PathManager.get_appdata_directory() + r'\Current'
+    with open(rf'{install_dir}\{package_name}.json', 'r') as f:
+        data = json.load(f)
+    installed_version = data['version']    
+    if installed_version != packet.latest_version:
+        print('Newer Version Availiable')
+
+
+def check_newer_version_local(new_version) -> bool:
     current_version = int(info.__version__.replace('.', '').replace('a', '').replace('b', ''))
     new_version = int(new_version.replace('.', ''))
     if current_version < new_version:
@@ -850,7 +859,7 @@ def check_for_updates():
 
     if version_dict:
         new_version = version_dict['version']
-        if check_newer_version(new_version):
+        if check_newer_version_local(new_version):
             # Implement Version Check
             if click.confirm('A new update for electric is available, would you like to proceed with the update?'):
                 click.echo(click.style('Updating Electric..', fg='green'))
@@ -1182,10 +1191,11 @@ def register_package_success(packet: Packet, install_dir: str, no_cache, sync, m
         'custom-install-directory': packet.directory if packet.directory else '',
         'flags': get_install_flags(install_dir, no_cache, sync, metadata)
     }
-    appdata_dir = PathManager.get_appdata_directory()
+    pkg_dir = PathManager.get_appdata_directory() + r'\Current'
+    with open(rf'{pkg_dir}\{packet.json_name}.json', 'w+') as f:
+        f.write(json.dumps(data, indent=4))
     
-    pass
-
+    
 def get_autocorrections(package_names: list, corrected_package_names: list, metadata: Metadata) -> list:
     corrected_names = []
 
