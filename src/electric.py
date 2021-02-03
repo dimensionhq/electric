@@ -804,11 +804,31 @@ def install(
 @cli.command()
 @click.argument('package_name', required =True)
 @click.option('--no-cache', '-nocache', is_flag=True, help='Update Supercache While Updating')
-@click.option('--all', '-a', is_flag=True, help='Update all packages which require an update')
+@click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for bundle installation')
+@click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for bundle installation')
+@click.option('--verbose', '-vb', is_flag=True, help='Enable verbose mode for installation')
+@click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
+@click.option('--debug', '-d', is_flag=True, help='Enable debug mode for installation')
+@click.option('--silent', '-s', is_flag=True, help='Completely silent uninstallation without any output to console')
+@click.option('--virus-check', '-vc', is_flag=True, help='Check for virus before bundle installation')
+@click.option('--rate-limit', '-rl', type=int, default=-1)
+@click.option('-y', '--yes', is_flag=True, help='Accept all prompts during uninstallation')
+@click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after bundle installation')
+@click.pass_context
 def update(
+    ctx,
     package_name: str,
     no_cache: bool,
-    all: bool,
+    verbose: bool,
+    debug: bool,
+    no_color: bool,
+    logfile: str,
+    yes: bool,
+    silent: bool,
+    no_progress: bool,
+    rate_limit: int,
+    reduce: bool,
+    virus_check: bool,
 ):
     """
     Updates an existing package
@@ -864,12 +884,51 @@ def update(
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
         if package in installed_packages:
-            check_newer_version(package, packet)
+            if check_newer_version(package, packet):
+                print(f'Updating {package}')
+                install_dir = PathManager.get_appdata_directory() + r'\Current'
+                with open(rf'{install_dir}\{package_name}.json', 'r') as f:
+                    data = json.load(f)
+                installed_version = data['version']    
+                continue_update = click.confirm(f'{package} would be updated from version {installed_version} to {packet.version}')
+                if continue_update:
+                    ctx.invoke(
+                        uninstall,
+                        package_name=package,
+                        verbose=verbose,
+                        debug=debug,
+                        no_color=no_color,
+                        logfile=logfile,
+                        yes=yes,
+                        silent=silent,
+                        python=None,
+                        no_cache=no_cache,
+                    )
+                    ctx.invoke(
+                        install,
+                        package_name=package,
+                        verbose=verbose,
+                        debug=debug,
+                        no_progress=no_progress,
+                        no_color=no_color,
+                        logfile=logfile,
+                        virus_check=virus_check,
+                        yes=yes,
+                        silent=silent,
+                        python=None,
+                        node=None,
+                        no_cache=no_cache,
+                        reduce=reduce,
+                        rate_limit=rate_limit
+                        )
+                    print(f'Successfully Updated {package} to latest version.')
+                else:
+                    handle_exit('Error', '', metadata)
+                
+            else:
+                print(f'{package} is already on the latest version')
         else:
             write(f'{package} Is Not Installed', 'red', metadata)
-        # TODO: Check For Latest Version Of Package
-        # TODO: If Newer Version Availiable, Prompt If Update Is Required By The User
-        # TODO: Uninstall Current Version Of Software
         # TODO: Install Newer Version Of Software
         pass
 
@@ -1694,11 +1753,6 @@ def complete(
                 for completion in uninstall_flags:
                     click.echo(completion)
 
-
-@cli.command()
-@click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
-def logtest(logfile):
-    print(logfile)
 
 if __name__ == '__main__':
     cli() #pylint: disable=no-value-for-parameter

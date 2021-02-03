@@ -835,15 +835,14 @@ def update_supercache(metadata: Metadata):
     log_info(f'Successfully wrote date and time to {logpath}', metadata.logfile if metadata else None)
 
 
-def check_newer_version(package_name: str, packet: Packet):
+def check_newer_version(package_name: str, packet: Packet) -> bool:
     install_dir = PathManager.get_appdata_directory() + r'\Current'
     with open(rf'{install_dir}\{package_name}.json', 'r') as f:
         data = json.load(f)
     installed_version = data['version']    
     if installed_version != packet.version:
-        print('Newer Version Availiable')
-    else:
-        print('Latest Version Already Installed')
+        return True
+    return False    
 
 def check_newer_version_local(new_version) -> bool:
     current_version = int(info.__version__.replace('.', '').replace('a', '').replace('b', ''))
