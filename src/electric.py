@@ -4,7 +4,7 @@
 ######################################################################
 
 # Install .msixbundle file => Add-AppxPackage Microsoft.WindowsTerminal_0.11.1191.0_8wekyb3d8bbwe.msixbundle
-
+# TODO: Add Conflict-With Field For Json To Differentiate Between Microsoft Visual Studio Code and Microsoft Visual Studio Code Insiders 
 
 import difflib
 import logging
@@ -71,8 +71,8 @@ def cli(_):
 @click.option('--sublime', '-sb', is_flag=True, help='Specify a Sublime Text 3 extension to install')
 @click.option('--atom', '-ato', is_flag=True, help='Specify an Atom extension to install')
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to install')
-@click.option('--node', '-npm', is_flag=True, help='Specify a Python package to install')
-@click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
+@click.option('--node', '-npm', is_flag=True, help='Specify a Npm package to install')
+@click.option('--no-cache', '-nocache', is_flag=True, help='Update SuperCaches')
 @click.option('--sync', '-sc', is_flag=True, help='Force downloads and installations one after another')
 @click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after installation')
 @click.option('--rate-limit', '-rl', type=int, default=-1)
@@ -186,7 +186,7 @@ def install(
             handle_atom_package(name, 'install', metadata)
         sys.exit()
 
-    log_info('Checking if supercache exists...', metadata.logfile)
+    log_info('Checking if supercache exists', metadata.logfile)
     super_cache = check_supercache_valid()
     if super_cache:
         log_info('Supercache detected.', metadata.logfile)
@@ -215,7 +215,6 @@ def install(
 
     def grouper(iterable, n, fillvalue=None):
         "Collect data into fixed-length chunks or blocks"
-        # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
         args = [iter(iterable)] * n
         return zip_longest(*args, fillvalue=fillvalue)
 
@@ -796,238 +795,116 @@ def install(
 
         index += 1
 
-    # finish_log()
 
 
 @cli.command()
 @click.argument('package_name', required =True)
-@click.option('--verbose', '-v', is_flag=True, help="Enable verbose mode for updation")
-@click.option('--version', '-v', type=str, help='Install a certain version of a package')
-@click.option('--debug', '-d', is_flag=True, help = "Enable debug mode for updation")
-@click.option('--no-color', '-nc', is_flag=True, help='Disable colored output')
-@click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for updation')
-@click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
-@click.option('--virus-check', '-vc', is_flag=True, help='Check for virus before installation')
-@click.option('-y', '--yes', is_flag=True, help='Accept all prompts during installation')
-@click.option('--silent', '-s', is_flag=True, help='Completely silent updation without any output to console')
-@click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
-@click.option('--sync', '-sc', is_flag=True, help='Force downloads and installations one after another')
-@click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after installation')
-@click.option('--rate-limit', '-rl', type=int, default=-1)
-@click.option('--force', '-f', is_flag=True, help='Force install a package, ignoring any existing installations of a package.')
+@click.option('--no-cache', '-nocache', is_flag=True, help='Update Supercache While Updating')
+@click.option('--all', '-a', is_flag=True, help='Update all packages which require an update')
 def update(
-    ctx,
     package_name: str,
-    verbose: bool,
-    debug: bool,
-    no_progress: bool,
-    no_color: bool,
-    logfile: str,
-    yes: bool,
-    silent: bool,
-    virus_check: bool,
     no_cache: bool,
-    sync: bool,
-    reduce: bool,
-    rate_limit: int,
-    node: bool,
-    force: bool,
-    version: str,
+    all: bool,
 ):
     """
     Updates an existing package
     """
-
-    if logfile:
-        logfile = logfile.replace('=', '')
-        logfile = logfile.replace('.txt', '.log')
-        create_config(logfile, logging.INFO, 'Install')
-
-    log_info('Generating metadata...', logfile)
-
-    metadata = generate_metadata(
-        None, silent, verbose, debug, no_color, yes, logfile, None, None, None, Setting.new())
-
-    log_info('Successfully generated metadata.', logfile)
-
-    log_info('Checking if supercache exists...', metadata.logfile)
+    metadata = generate_metadata(None, None, None, None, None, None, None, None, None, None, Setting.new())
     super_cache = check_supercache_valid()
-
     if super_cache:
-        log_info('SuperCache detected.', metadata.logfile)
-
+        log_info('Supercache detected.', metadata.logfile)
     if no_cache:
         log_info('Overriding SuperCache To FALSE', metadata.logfile)
         super_cache = False
+    if not super_cache:
+        update_supercache(metadata)
 
-    if logfile:
-        logfile = logfile.replace('.txt', '.log')
-        create_config(logfile, logging.INFO, 'Install')
+    log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
+    status = 'Initializing'
+    setup_name = ''
+    keyboard.add_hotkey(
+        'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
 
-    packages = package_name.split(',')
+    packages = package_name.strip(' ').split(',')
 
     corrected_package_names = get_autocorrections(packages, get_correct_package_names(), metadata)
+    corrected_package_names = list(set(corrected_package_names))
 
-    index = 0
+    write_debug(install_debug_headers, metadata)
+    for header in install_debug_headers:
+        log_info(header, metadata.logfile)
+        index = 0
 
     for package in corrected_package_names:
         supercache_availiable = check_supercache_availiable(package)
+
         if super_cache and supercache_availiable and not no_cache:
             log_info('Handling SuperCache Request.', metadata.logfile)
             res, time = handle_cached_request(package)
-            time = Decimal(time)
         else:
+            spinner = halo.Halo(color='grey')
+            spinner.start()
             log_info('Handling Network Request...', metadata.logfile)
             status = 'Networking'
-            write_verbose('Sending GET Request To /rapidquery/packages', metadata)
-            write_debug('Sending GET Request To /rapidquery/packages', metadata)
-            log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
-            update_supercache(metadata)
-            res, time = handle_cached_request(package)
+            write_verbose('Sending GET Request To /packages/', metadata)
+            write_debug('Sending GET Request To /packages', metadata)
+            log_info('Sending GET Request To /packages', metadata.logfile)
+            log_info('Updating SuperCache', metadata.logfile)
+            res, time = send_req_package(package)
+            log_info('Successfully Updated SuperCache', metadata.logfile)
+            spinner.stop()
 
         pkg = res
-        keys = list(pkg.keys())
-        idx = 0
-        for key in keys:
-            if key not in ['package-name', 'nightly', 'display-name']:
-                idx = keys.index(key)
-                break
-
-        version = keys[idx]
-        uninstall_exit_codes = None
-        if 'valid-uninstall-exit-codes' in list(pkg.keys()):
-            uninstall_exit_codes = pkg['valid-install-exit-codes']
-
-        name = pkg['display-name']
-        pkg = pkg[version]
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
-        proc = None
-        keyboard.add_hotkey(
-            'ctrl+c', lambda: kill_proc(proc, metadata))
-
-        if super_cache:
-            write(
-                f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', 'bright_yellow', metadata)
-            write_debug(
-                f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 9)}s', metadata)
-            log_info(
-                f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
-        else:
-            write(
-                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_green', metadata)
-            log_info(
-                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
-
-        # Getting UninstallString or QuietUninstallString From The Registry Search Algorithm
-        write_verbose(
-            'Fetching uninstall key from the registry...', metadata)
-        write_debug('Sending query (uninstall-string) to Registry', metadata)
-        log_info('Fetching uninstall key from the registry...', metadata.logfile)
-
-        start = timer()
-        key = get_uninstall_key(packet.json_name, packet.display_name)
-
-        end = timer()
-
-        if not key:
-            log_info(f'electric didn\'t detect any existing installations of => {packet.display_name}', metadata.logfile)
-            write(
-                f'Could Not Find Any Existing Installations Of {packet.display_name}', 'yellow', metadata)
-            close_log(metadata.logfile, 'Uninstall')
-            index += 1
-            continue
-
-        kill_running_proc(packet.json_name, packet.display_name, metadata)
-
-        write_verbose('Uninstall key found.', metadata)
-        log_info('Uninstall key found.', metadata.logfile)
-        log_info(key, metadata.logfile)
-        write_debug('Successfully Recieved UninstallString from Windows Registry', metadata)
-
-        write(
-            f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', 'green', metadata)
-        log_info(
-            f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', metadata.logfile)
-
-        command = ''
-
-        # Key Can Be A List Or A Dictionary Based On Results
-
-        if isinstance(key, list):
-            if key:
-                key = key[0]
-
-        with Halo(f'Uninstalling {packet.display_name}', text_color='cyan', color='grey') as h:
-            # If QuietUninstallString Exists (Preferable)
-            if 'QuietUninstallString' in key:
-                command = key['QuietUninstallString']
-                command = command.replace('/I', '/X')
-                command = command.replace('/quiet', '/qn')
-
-                additional_switches = None
-                if packet.uninstall_switches:
-                    if packet.uninstall_switches != []:
-                        write_verbose(
-                            'Adding additional uninstall switches', metadata)
-                        write_debug('Appending / Adding additional uninstallation switches', metadata)
-                        log_info('Adding additional uninstall switches', metadata.logfile)
-                        additional_switches = packet.uninstall_switches
-
-                if additional_switches:
-                    for switch in additional_switches:
-                        command += ' ' + switch
-
-                write_verbose('Executing the quiet uninstall command', metadata)
-                log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
-                write_debug('Running silent uninstallation command', metadata)
-                run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet, no_cache, None)
-
-
-                h.stop()
-
-                write(
-                    f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-
-                write_verbose('Uninstallation completed.', metadata)
-                log_info('Uninstallation completed.', metadata.logfile)
-
-                index += 1
-                write_debug(
-                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
-                log_info(
-                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
-                close_log(metadata.logfile, 'Uninstall')
-
-            # If Only UninstallString Exists (Not Preferable)
-            if 'UninstallString' in key:
-                command = key['UninstallString']
-                command = command.replace('/I', '/X')
-                if 'msiexec.exe' in command.lower():
-                    command += ' /quiet'
-                # command = f'"{command}"'
-                for switch in packet.uninstall_switches:
-                    command += f' {switch}'
-
-                # Run The UninstallString
-                write_verbose('Executing the Uninstall Command', metadata)
-                log_info('Executing the silent Uninstall Command', metadata.logfile)
-
-                run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet, no_cache, None)
-                h.stop()
-                write(
-                    f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-                write_verbose('Uninstallation completed.', metadata)
-                log_info('Uninstallation completed.', metadata.logfile)
-                index += 1
-                write_debug(
-                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
-                log_info(
-                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
-                close_log(metadata.logfile, 'Uninstall')
-    finish_log()
-
-
+        print(json.dumps(res, indent=4))
+        #         {
+        #     "display-name": "Sublime Text 3",    
+        #     "package-name": "sublime-text-3",    
+        #     "latest-version": "3211",
+        #     "portable": {
+        #         "package-name": "sublime-text-3",
+        #         "display-name": "Sublime Text 3",
+        #         "latest-version": "3211",        
+        #         "3211": {
+        #             "url": "https://download.sublimetext.com/Sublime%20Text%20Build%203211%20x64.zip",
+        #             "file-type": ".zip",
+        #             "extract-dir": "sublime-text-3",
+        #             "bin": [
+        #                 "subl.exe"
+        #             ],
+        #             "shortcuts": [
+        #                 {
+        #                     "shortcut-name": "Sublime Text 3",
+        #                     "file-name": "sublime_text.exe"
+        #                 }
+        #             ]
+        #         }
+        #     },
+        #     "3211": {
+        #         "url": "https://download.sublimetext.com/Sublime%20Text%20Build%203211%20x64%20Setup.exe",
+        #         "url-type": ".exe",
+        #         "install-switches": [
+        #             "/SP-",
+        #             "/VERYSILENT",
+        #             "/SUPPRESSMSGBOXES",
+        #             "/NOCANCEL",
+        #             "/NORESTART",
+        #             "/FORCECLOSEAPPLICATIONS"
+        #         ],
+        #         "uninstall-switches": [
+        #             "/VERYSILENT",
+        #             "/SUPPRESSMSGBOXES",
+        #             "/NORESTART"
+        #         ],
+        #         "custom-location": "/DIR=",
+        #         "dependencies": []
+        #     }
+        # }
+        # TODO: Check For Latest Version Of Package
+        # TODO: If Newer Version Availiable, Prompt If Update Is Required By The User
+        # TODO: Uninstall Current Version Of Software
+        # TODO: Install Newer Version Of Software
+        pass
 
 
 @cli.command(aliases=['remove', 'u'], context_settings=CONTEXT_SETTINGS)
