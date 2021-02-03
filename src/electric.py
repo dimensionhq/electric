@@ -859,51 +859,14 @@ def update(
             spinner.stop()
 
         pkg = res
+        pkg = pkg[pkg['latest-version']]
+        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, [], res['latest-version'])
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        print(json.dumps(res, indent=4))
-        #         {
-        #     "display-name": "Sublime Text 3",    
-        #     "package-name": "sublime-text-3",    
-        #     "latest-version": "3211",
-        #     "portable": {
-        #         "package-name": "sublime-text-3",
-        #         "display-name": "Sublime Text 3",
-        #         "latest-version": "3211",        
-        #         "3211": {
-        #             "url": "https://download.sublimetext.com/Sublime%20Text%20Build%203211%20x64.zip",
-        #             "file-type": ".zip",
-        #             "extract-dir": "sublime-text-3",
-        #             "bin": [
-        #                 "subl.exe"
-        #             ],
-        #             "shortcuts": [
-        #                 {
-        #                     "shortcut-name": "Sublime Text 3",
-        #                     "file-name": "sublime_text.exe"
-        #                 }
-        #             ]
-        #         }
-        #     },
-        #     "3211": {
-        #         "url": "https://download.sublimetext.com/Sublime%20Text%20Build%203211%20x64%20Setup.exe",
-        #         "url-type": ".exe",
-        #         "install-switches": [
-        #             "/SP-",
-        #             "/VERYSILENT",
-        #             "/SUPPRESSMSGBOXES",
-        #             "/NOCANCEL",
-        #             "/NORESTART",
-        #             "/FORCECLOSEAPPLICATIONS"
-        #         ],
-        #         "uninstall-switches": [
-        #             "/VERYSILENT",
-        #             "/SUPPRESSMSGBOXES",
-        #             "/NORESTART"
-        #         ],
-        #         "custom-location": "/DIR=",
-        #         "dependencies": []
-        #     }
-        # }
+        installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+        if package in installed_packages:
+            check_newer_version(package, packet)
+        else:
+            write(f'{package} Is Not Installed', 'red', metadata)
         # TODO: Check For Latest Version Of Package
         # TODO: If Newer Version Availiable, Prompt If Update Is Required By The User
         # TODO: Uninstall Current Version Of Software

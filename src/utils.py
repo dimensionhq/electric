@@ -840,9 +840,10 @@ def check_newer_version(package_name: str, packet: Packet):
     with open(rf'{install_dir}\{package_name}.json', 'r') as f:
         data = json.load(f)
     installed_version = data['version']    
-    if installed_version != packet.latest_version:
+    if installed_version != packet.version:
         print('Newer Version Availiable')
-
+    else:
+        print('Latest Version Already Installed')
 
 def check_newer_version_local(new_version) -> bool:
     current_version = int(info.__version__.replace('.', '').replace('a', '').replace('b', ''))
