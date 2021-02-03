@@ -322,14 +322,14 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
                 return ['no-error']
 
     if 'exit status 1603' in error:
-        if method == 'installation':
+        if method == 'installation' and not is_admin():
             flags = ''
             for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
                 flags += f' {flag}'
             click.echo(click.style(f'The {packet.display_name} Installer Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
-        if method == 'uninstallation':
+        if method == 'uninstallation' and not is_admin():
             flags = ''
             for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
                 flags += f' {flag}'
@@ -338,8 +338,9 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             flags = flags.replace(' --reduce', '')
             click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
+            click.echo(click.style('\nAdministrator Elevation Required Or Fatal Installer Error. Exit Code [1603]', fg='red'))
             sys.exit()
-        click.echo(click.style('\nAdministrator Elevation Required Or Unknown Error. Exit Code [1603]', fg='red'))
+        click.echo(click.style('\nFatal Installer Error. Exit Code [1603]', fg='red'))
         return get_error_message('1603', 'installation', display_name, packet.version)
 
     if 'exit status 1639' in error:
@@ -713,10 +714,14 @@ def assert_cpu_compatible() -> int:
     print(cpu_count)
 
 
-def find_existing_installation(package_name: str, display_name: str):
+def find_existing_installation(package_name: str, display_name: str, test=True):
     key = registry.get_uninstall_key(package_name, display_name)
-
+    installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
     if key:
+        if not test:
+            if package_name in installed_packages:
+                return True
+            return False
         return True
     return False
 
@@ -1051,7 +1056,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
 
         elif code('1603'):
             return [
-                f'\n[1603] => {method.capitalize()} might have failed because the software you tried to {attr} might require administrator permissions.',
+                f'\n[1603] => {method.capitalize()} might have failed because the software you tried to {attr} might require administrator permissions. \n\nIf you are running this on an administrator terminal, then this indicates a fatal error with the installer itself.',
                 f'\n\nHow To Fix:\n\nRun Your Command Prompt Or Powershell As Administrator And Retry {method.capitalize()}.\n\nHelp:',
                 '\n[1] <=> https://www.howtogeek.com/194041/how-to-open-the-command-prompt-as-administrator-in-windows-8.1/',
                 '\n[2] <=> https://www.top-password.com/blog/5-ways-to-run-powershell-as-administrator-in-windows-10/\n\n',

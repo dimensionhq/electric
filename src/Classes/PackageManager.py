@@ -327,11 +327,11 @@ class PackageManager:
                 os.remove(path)
             write('Successfully Cleaned Up Installer From Temp Directory...',
                   'green', self.metadata)
-
+        for packet in self.packets:
+            register_package_success(packet, packet.directory, False, False,self.metadata)
         write(
             'Successfully Installed Packages!', 'bright_magenta', self.metadata)
         log_info('Successfully Installed Packages!', self.metadata.logfile)
-
         log_info('Refreshing Environment Variables', self.metadata.logfile)
         write_debug(
             'Refreshing Env Variables, Calling Batch Script', self.metadata)
@@ -339,7 +339,7 @@ class PackageManager:
         start = timer()
         refresh_environment_variables()
         end = timer()
-        write_debug(f'Successfully Refreshed Environment Variabled in {round((end - start), 2)} seconds', self.metadata)
+        write_debug(f'Successfully Refreshed Environment Variables in {round((end - start), 2)} seconds', self.metadata)
         write_verbose('Installation and setup completed.', self.metadata)
         log_info('Installation and setup completed.', self.metadata.logfile)
         write_debug(
@@ -532,7 +532,7 @@ class PackageManager:
                     write(
                         f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
                     log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
-
+                    register_package_success(packet, install_directory, False, False, metadata)
 
                     if metadata.reduce_package:
 
