@@ -469,6 +469,7 @@ def install(
                         with Halo(f'Verifying Successful Installation', text_color='green') as h:
                             if find_existing_installation(packet.json_name, packet.display_name):
                                 h.stop()
+                                register_package_success(package, install_directory, no_cache, sync, metadata)
                                 write(
                                     f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
                                 log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
@@ -770,6 +771,7 @@ def install(
             write(f'Running Tests For {packet.display_name}', 'white', metadata)
             if find_existing_installation(packet.json_name, packet.display_name):
                 write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
+                register_package_success(packet, install_directory, no_cache, sync, metadata)
                 write(
                     f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
                 log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)

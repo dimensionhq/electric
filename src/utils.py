@@ -1173,6 +1173,19 @@ def get_correct_package_names(all=False) -> list:
     return packages
 
 
+def register_package_success(packet: Packet, install_dir: str, no_cache, sync, metadata: Metadata):
+    data = {
+        'display-name': packet.display_name,
+        'json-name': packet.json_name,
+        'version': packet.version,
+        'custom-location-switch': packet.custom_location,
+        'custom-install-directory': packet.directory if packet.directory else '',
+        'flags': get_install_flags(install_dir, no_cache, sync, metadata)
+    }
+    appdata_dir = PathManager.get_appdata_directory()
+    
+    pass
+
 def get_autocorrections(package_names: list, corrected_package_names: list, metadata: Metadata) -> list:
     corrected_names = []
 
