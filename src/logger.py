@@ -10,13 +10,15 @@ import os
 
 appdata_dir = PathManager.get_appdata_directory()
 
+def start_log():
+    mode = 'a+' if isfile(f'{appdata_dir}\\electric-log.log') else 'w+'
+    with open(f'{appdata_dir}\\electric-log.log', mode) as f:
+        f.write('-' * 75)
+        
 # Create Log File At A Certain Directory (logfile)
 def create_config(logfile : str, level, process : str):
     if not isdir(appdata_dir):
         os.mkdir(appdata_dir)
-
-    with open(Rf'{appdata_dir}\electric-log.log', 'w+') as f:
-        f.write("")
 
     mode = None
     if isfile(logfile):
@@ -32,12 +34,12 @@ def create_config(logfile : str, level, process : str):
     finally:
         file.close()
 
-    logging.basicConfig(filename=logfile, level=level, encoding='utf-8')
+    logging.basicConfig(filename=logfile, level=level)
     logging.info(f'Initialising RapidLogger With {process} at {strftime("%H:%M:%S")}')
 
 
 def close_log(logfile : str, process : str):
-    with open(f'{appdata_dir}\\electric-log.log', 'a') as f:
+    with open(f'{appdata_dir}\\electric-log.log', 'a+') as f:
         f.write('\n')
         f.write('-' * 75)
         f.write('\n')
@@ -54,8 +56,6 @@ def close_log(logfile : str, process : str):
 
 def log_info(text : str, logfile : str):
     mode = 'a+'
-    if not os.path.isdir(f'{appdata_dir}\\electric-log.log'):
-        mode = 'w+'
 
     with open(f'{appdata_dir}\\electric-log.log', mode) as f:
         f.write(f'\nINFO:root:{text}')
@@ -69,5 +69,4 @@ def log_error(text : str, logfile : str):
         logging.error(text)
 
 def finish_log():
-    with open(f'{appdata_dir}\\electric-log.log', 'w+') as _:
-        pass
+    pass

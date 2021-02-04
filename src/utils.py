@@ -1,7 +1,3 @@
-######################################################################
-#                           HELPERS / UTILS                          #
-######################################################################
-
 import ctypes
 import difflib
 import hashlib
@@ -38,7 +34,7 @@ import registry
 from Classes.Metadata import Metadata
 from Classes.Packet import Packet
 from Classes.PathManager import PathManager
-from constants import valid_install_exit_codes, valid_uninstall_exit_codes
+from headers import *
 from extension import *
 from limit import *
 from logger import *
@@ -207,7 +203,7 @@ def download_other(url: str):
     cursor.hide()
     response = requests.get(url, stream=True)
     total_length = response.headers.get('content-length')
-    chunk_size = 4096
+    chunk_size = 5696
 
     with open(fR'{PathManager.get_appdata_directory()}\SuperCache\supercache.txt', 'wb') as f:
         if total_length is None:
@@ -215,8 +211,6 @@ def download_other(url: str):
         else:
             dl = 0
             full_length = int(total_length)
-            # 7096 => 7.48, 8.001
-            # 4096 => 6.87, 6.005, 7.59, 7.35
             for data in response.iter_content(chunk_size=chunk_size):
                 dl += len(data)
                 f.write(data)
@@ -266,8 +260,6 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         else:
             dl = 0
             full_length = int(total_length)
-            # 7096 => 7.48, 8.001
-            # 4096 => 6.87, 6.005, 7.59, 7.35
             for data in response.iter_content(chunk_size=chunk_size):
                 dl += len(data)
                 f.write(data)
@@ -299,12 +291,11 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                     else:
                         sys.stdout.write(
                             f'\r{get_init_char(True, metadata)}{fill_c}{unfill_c}{get_init_char(False, metadata)} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
-                    # sys.stdout.write(
-                    #     f'\r{fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
-
                     sys.stdout.flush()
+
     os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
     dump_pickle(generate_dict(newpath if newpath else path, package_name), 'downloadcache')
+
     if not newpath:
         return path, False
     else:
@@ -335,14 +326,14 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
                 return ['no-error']
 
     if 'exit status 1603' in error:
-        if method == 'installation':
+        if method == 'installation' and not is_admin():
             flags = ''
             for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
                 flags += f' {flag}'
             click.echo(click.style(f'The {packet.display_name} Installer Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
-        if method == 'uninstallation':
+        if method == 'uninstallation' and not is_admin():
             flags = ''
             for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
                 flags += f' {flag}'
@@ -351,8 +342,9 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             flags = flags.replace(' --reduce', '')
             click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
+            click.echo(click.style('\nAdministrator Elevation Required Or Fatal Installer Error. Exit Code [1603]', fg='red'))
             sys.exit()
-        click.echo(click.style('\nAdministrator Elevation Required Or Unknown Error. Exit Code [1603]', fg='red'))
+        click.echo(click.style('\nFatal Installer Error. Exit Code [1603]', fg='red'))
         return get_error_message('1603', 'installation', display_name, packet.version)
 
     if 'exit status 1639' in error:
@@ -418,18 +410,10 @@ def get_file_type(command: str) -> str:
 
 
 def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo, packet, no_cache: bool, sync: bool):
-
-    if method == 'uninstallation':
-        file_type = get_file_type(command)
-        if 'append-uninstall-switches-if' in list(packet.raw.keys()):
-            if packet.raw['append-uninstall-switches-if']['file-type'] != file_type:
-                for switch in packet.uninstall_switches:
-                    command = command.replace(switch, '')
-
-    log_info(f'Running command: {command}', metadata.logfile)
     command = command.replace('\"\"', '\"').replace('  ', ' ')
     log_info(f'Running command: {command}', metadata.logfile)
     write_debug(f'{command}', metadata, newline=True)
+    
     try:
         check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except (CalledProcessError, OSError, FileNotFoundError) as err:
@@ -493,10 +477,6 @@ def install_package(path, packet: Packet, metadata: Metadata, no_cache: bool, sy
             click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
-            # click.echo(click.style(
-            #     '\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
-            # disp_error_msg(get_error_message('0001', 'installation', packet.display_name, packet.version), metadata)
-            # handle_exit('ERROR', None, metadata)
         run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None, packet, no_cache, sync)
 
     elif download_type == '.zip':
@@ -670,25 +650,25 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
               'green', metadata)
         write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0',
               'light_blue', metadata)
-        print(Fore.RESET, '')
+        # print(Fore.RESET, '')
         sys.exit()
 
     if status == 'Got Download Path':
         print(Fore.RESET, '')
         write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
-        print(Fore.RESET, '')
+        # print(Fore.RESET, '')
         sys.exit()
 
     if status == 'Downloading':
         print(Fore.RESET, '')
         write('\n\nRapidExit Successfully Exited With Code 0', 'green', metadata)
-        print(Fore.RESET, '')
+        # print(Fore.RESET, '')
         sys.exit()
 
     else:
         print(Fore.RESET, '')
-        write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
-        print(Fore.RESET, '')
+        write('RapidExit Successfully Exited With Code 0', 'green', metadata)
+        # print(Fore.RESET, '')
         sys.exit()
 
 def kill_running_proc(package_name: str, display_name: str, metadata: Metadata):
@@ -738,10 +718,14 @@ def assert_cpu_compatible() -> int:
     print(cpu_count)
 
 
-def find_existing_installation(package_name: str, display_name: str):
+def find_existing_installation(package_name: str, display_name: str, test=True):
     key = registry.get_uninstall_key(package_name, display_name)
-
+    installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
     if key:
+        if not test:
+            if package_name in installed_packages:
+                return True
+            return False
         return True
     return False
 
@@ -779,8 +763,8 @@ def get_install_flags(install_dir: str, no_cache: bool, sync: bool, metadata: Me
 
 
 def refresh_environment_variables():
-    Popen(Rf'{PathManager.get_current_directory()}\scripts\refreshvars.cmd',
-                 stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    proc = Popen('powershell -c "$env:Path = [System.Environment]::GetEnvironmentVariable(\'Path\',\'Machine\') + \';\' + [System.Environment]::GetEnvironmentVariable(\'Path\',\'User\')"'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    proc.communicate()
 
 
 def check_virus(path: str, metadata: Metadata):
@@ -804,6 +788,9 @@ def check_virus(path: str, metadata: Metadata):
 
 
 def setup_supercache(call: bool = False):
+    home = os.path.expanduser('~')
+    if not os.path.isdir(f'{home}\\electric'):
+        os.mkdir(f'{home}\\electric')
     supercache_dir = PathManager.get_appdata_directory() + R'\SuperCache'
     try:
         exist = len(os.listdir(supercache_dir)) != 0
@@ -812,7 +799,8 @@ def setup_supercache(call: bool = False):
 
     if call:
         shutil.rmtree(supercache_dir)
-
+    
+    
     if not os.path.isdir(supercache_dir) or not exist or call:
 
         with Halo('Setting Up SuperCache ', text_color='green') as h:
@@ -839,7 +827,8 @@ def setup_supercache(call: bool = False):
                     b.next()
             os.remove(loc)
             click.echo(click.style('Successfully Generated SuperCache!', 'green'))
-
+            cursor.hide()
+            proc = Popen('electric update all --local'.split(), shell=True)
 
 def update_supercache(metadata: Metadata):
     if isfile(f'{tempfile.gettempdir()}\electric'):
@@ -857,7 +846,16 @@ def update_supercache(metadata: Metadata):
     log_info(f'Successfully wrote date and time to {logpath}', metadata.logfile if metadata else None)
 
 
-def check_newer_version(new_version) -> bool:
+def check_newer_version(package_name: str, packet: Packet) -> bool:
+    install_dir = PathManager.get_appdata_directory() + r'\Current'
+    with open(rf'{install_dir}\{package_name}.json', 'r') as f:
+        data = json.load(f)
+    installed_version = data['version']    
+    if installed_version != packet.version:
+        return True
+    return False    
+
+def check_newer_version_local(new_version) -> bool:
     current_version = int(info.__version__.replace('.', '').replace('a', '').replace('b', ''))
     new_version = int(new_version.replace('.', ''))
     if current_version < new_version:
@@ -872,7 +870,7 @@ def check_for_updates():
 
     if version_dict:
         new_version = version_dict['version']
-        if check_newer_version(new_version):
+        if check_newer_version_local(new_version):
             # Implement Version Check
             if click.confirm('A new update for electric is available, would you like to proceed with the update?'):
                 click.echo(click.style('Updating Electric..', fg='green'))
@@ -1064,7 +1062,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
 
         elif code('1603'):
             return [
-                f'\n[1603] => {method.capitalize()} might have failed because the software you tried to {attr} might require administrator permissions.',
+                f'\n[1603] => {method.capitalize()} might have failed because the software you tried to {attr} might require administrator permissions. \n\nIf you are running this on an administrator terminal, then this indicates a fatal error with the installer itself.',
                 f'\n\nHow To Fix:\n\nRun Your Command Prompt Or Powershell As Administrator And Retry {method.capitalize()}.\n\nHelp:',
                 '\n[1] <=> https://www.howtogeek.com/194041/how-to-open-the-command-prompt-as-administrator-in-windows-8.1/',
                 '\n[2] <=> https://www.top-password.com/blog/5-ways-to-run-powershell-as-administrator-in-windows-10/\n\n',
@@ -1163,18 +1161,21 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
         name = res['display-name']
         click.echo(click.style(f'\nCannot Find {name}::v{version}', 'red'))
         exit()
-    url = pkg['win64']
+    url = pkg['url']
     display_name = res['display-name']
-    calc_length = len(f'{Fore.MAGENTA}| {Fore.GREEN}Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}|') - 30
-    name_line = len(f'{Fore.MAGENTA}| {Fore.GREEN}Name {Fore.MAGENTA}=>{display_name}{Fore.GREEN}{Fore.YELLOW}{Fore.MAGENTA}') - 30
-    version_line = len(f'{Fore.MAGENTA}|{Fore.GREEN}Latest Version {Fore.MAGENTA}=>{Fore.BLUE}{version}{Fore.GREEN}{Fore.MAGENTA}|') - 30
-    url_line = len(f'{Fore.MAGENTA}| {Fore.GREEN}Url(Windows){Fore.MAGENTA}=>{Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}|') - 30
+    package_name = res['package-name']
+    calc_length = len(f'{Fore.MAGENTA}│ {Fore.GREEN}Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}│') - 30
+    name_line = len(f'{Fore.MAGENTA}│ {Fore.GREEN}Name {Fore.MAGENTA}=>{display_name}{Fore.GREEN}{Fore.YELLOW}{Fore.MAGENTA}') - 30
+    version_line = len(f'{Fore.MAGENTA}│{Fore.GREEN}Latest Version {Fore.MAGENTA}=>{Fore.BLUE}{version}{Fore.GREEN}{Fore.MAGENTA}│') - 30
+    url_line = len(f'{Fore.MAGENTA}│ {Fore.GREEN}Url(Windows){Fore.MAGENTA}=>{Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}│') - 30
+    command_line = len(f'{Fore.MAGENTA}│ {Fore.GREEN}Install Command{Fore.MAGENTA}=>{Fore.CYAN}{package_name}{Fore.CYAN}{Fore.MAGENTA}│') - 13
     base = '─'
     return f'''
 {Fore.MAGENTA}┌{base * calc_length}{Fore.MAGENTA}┐
 {Fore.MAGENTA}| {Fore.GREEN}Name {Fore.MAGENTA}=>{Fore.GREEN}{Fore.YELLOW} {display_name}{Fore.MAGENTA}{' ' * (calc_length - name_line)}|
 {Fore.MAGENTA}| {Fore.GREEN}Latest Version {Fore.MAGENTA}=> {Fore.BLUE}{version}{Fore.GREEN}{Fore.MAGENTA}{' ' * (calc_length - version_line)}|
 {Fore.MAGENTA}| {Fore.GREEN}Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}{' ' * (calc_length - url_line)}|
+{Fore.MAGENTA}| {Fore.GREEN}Install Command {Fore.MAGENTA}=> {Fore.CYAN}electric install {package_name}{Fore.CYAN}{Fore.MAGENTA}{' ' * (calc_length - command_line)}|
 {Fore.MAGENTA}└{base * calc_length}{Fore.MAGENTA}┘
 '''
 
@@ -1192,6 +1193,20 @@ def get_correct_package_names(all=False) -> list:
     return packages
 
 
+def register_package_success(packet: Packet, install_dir: str, no_cache, sync, metadata: Metadata):
+    data = {
+        'display-name': packet.display_name,
+        'json-name': packet.json_name,
+        'version': packet.version,
+        'custom-location-switch': packet.custom_location,
+        'custom-install-directory': packet.directory if packet.directory else '',
+        'flags': get_install_flags(install_dir, no_cache, sync, metadata)
+    }
+    pkg_dir = PathManager.get_appdata_directory() + r'\Current'
+    with open(rf'{pkg_dir}\{packet.json_name}.json', 'w+') as f:
+        f.write(json.dumps(data, indent=4))
+    
+    
 def get_autocorrections(package_names: list, corrected_package_names: list, metadata: Metadata) -> list:
     corrected_names = []
 

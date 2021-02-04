@@ -28,5 +28,5 @@ if '%errorlevel%' NEQ '0' (
     CD /D "%~dp0"
 :--------------------------------------
 
-powershell electric uninstall %1 %2 -y
+powershell electric uninstall %1 %2 -y --ae
 timeout /t 2

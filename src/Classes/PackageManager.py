@@ -327,11 +327,11 @@ class PackageManager:
                 os.remove(path)
             write('Successfully Cleaned Up Installer From Temp Directory...',
                   'green', self.metadata)
-
+        for packet in self.packets:
+            register_package_success(packet, packet.directory, False, False,self.metadata)
         write(
             'Successfully Installed Packages!', 'bright_magenta', self.metadata)
         log_info('Successfully Installed Packages!', self.metadata.logfile)
-
         log_info('Refreshing Environment Variables', self.metadata.logfile)
         write_debug(
             'Refreshing Env Variables, Calling Batch Script', self.metadata)
@@ -339,7 +339,7 @@ class PackageManager:
         start = timer()
         refresh_environment_variables()
         end = timer()
-        write_debug(f'Successfully Refreshed Environment Variabled in {round((end - start), 2)} seconds', self.metadata)
+        write_debug(f'Successfully Refreshed Environment Variables in {round((end - start), 2)} seconds', self.metadata)
         write_verbose('Installation and setup completed.', self.metadata)
         log_info('Installation and setup completed.', self.metadata.logfile)
         write_debug(
@@ -385,7 +385,7 @@ class PackageManager:
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
 
-                    packet = Packet(package, res['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None)
+                    packet = Packet(package, res['package-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None)
                     installation = find_existing_installation(
                         package, packet.json_name)
                     if installation:
@@ -435,7 +435,7 @@ class PackageManager:
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
                     
-                    packet = Packet(package, pkg['package-name'], pkg['win64'], pkg['win64-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None)
+                    packet = Packet(package, pkg['package-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None)
                     log_info('Searching for existing installation of package.', metadata.logfile)
                     installation = find_existing_installation(package, packet.json_name)
 
@@ -532,7 +532,7 @@ class PackageManager:
                     write(
                         f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
                     log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
-
+                    register_package_success(packet, install_directory, False, False, metadata)
 
                     if metadata.reduce_package:
 

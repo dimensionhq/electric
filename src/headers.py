@@ -112,7 +112,8 @@ install_flags = [
     '--no-cache',
     '--sync',
     '--reduce',
-    '--rate-limit'
+    '--rate-limit',
+    '--portable'
 ]
 
 uninstall_flags = [
@@ -126,6 +127,7 @@ uninstall_flags = [
     '--python',
     '--node',
     '--no-cache',
+    '--portable'
 ]
 
 search_flags = [

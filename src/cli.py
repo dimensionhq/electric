@@ -121,7 +121,7 @@ class DYMMixin(object):  # pylint: disable=too-few-public-methods
                 formatter.write_dl(rows)
 
     def format_help(self, ctx, formatter):
-        message = f'''Electric Package Manager v1.0.0 Alpha
+        message = f'''Electric Package Manager v1.0.0 Pre-Alpha Build
 Copyright (c) Electric Inc.
 
 Usage: electric <command> [<options>]
