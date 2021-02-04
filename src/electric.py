@@ -7,6 +7,7 @@
 # TODO: Add Conflict-With Field For Json To Differentiate Between Microsoft Visual Studio Code and Microsoft Visual Studio Code Insiders 
 
 import difflib
+import time
 import logging
 import os
 import sys
@@ -778,6 +779,7 @@ def install(
             else:
                 write(f'Failed: Registry Check', 'red', metadata)
                 write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
+                time.sleep(5)
                 if find_existing_installation(packet.json_name, packet.display_name):
                     write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
                     register_package_success(packet, install_directory, no_cache, sync, metadata)
@@ -1313,6 +1315,7 @@ def uninstall(
                 print(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check')
                 write(f'Failed: Registry Check', 'red', metadata)
                 write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
+                time.sleep(5)
                 if find_existing_installation(packet.json_name, packet.display_name):
                     write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
                     register_package_success(packet, install_directory, no_cache, sync, metadata)
