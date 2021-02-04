@@ -194,7 +194,7 @@ def download_other(url: str):
     cursor.hide()
     response = requests.get(url, stream=True)
     total_length = response.headers.get('content-length')
-    chunk_size = 4096
+    chunk_size = 5696
 
     with open(fR'{PathManager.get_appdata_directory()}\SuperCache\supercache.txt', 'wb') as f:
         if total_length is None:
@@ -202,8 +202,6 @@ def download_other(url: str):
         else:
             dl = 0
             full_length = int(total_length)
-            # 7096 => 7.48, 8.001
-            # 4096 => 6.87, 6.005, 7.59, 7.35
             for data in response.iter_content(chunk_size=chunk_size):
                 dl += len(data)
                 f.write(data)
@@ -253,8 +251,6 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         else:
             dl = 0
             full_length = int(total_length)
-            # 7096 => 7.48, 8.001
-            # 4096 => 6.87, 6.005, 7.59, 7.35
             for data in response.iter_content(chunk_size=chunk_size):
                 dl += len(data)
                 f.write(data)
@@ -286,12 +282,11 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                     else:
                         sys.stdout.write(
                             f'\r{get_init_char(True, metadata)}{fill_c}{unfill_c}{get_init_char(False, metadata)} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
-                    # sys.stdout.write(
-                    #     f'\r{fill_c}{unfill_c} ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
-
                     sys.stdout.flush()
+
     os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
     dump_pickle(generate_dict(newpath if newpath else path, package_name), 'downloadcache')
+
     if not newpath:
         return path, False
     else:
