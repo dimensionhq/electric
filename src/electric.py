@@ -7,7 +7,7 @@
 # TODO: Add Conflict-With Field For Json To Differentiate Between Microsoft Visual Studio Code and Microsoft Visual Studio Code Insiders 
 
 import difflib
-import time
+import time as tm
 import logging
 import os
 import sys
@@ -256,7 +256,7 @@ def install(
                     install_exit_codes = None
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
-                    packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version)
+                    packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
                     installation = find_existing_installation(
                         package, packet.display_name)
                     if installation:
@@ -333,7 +333,7 @@ def install(
                         if 'valid-install-exit-codes' in list(pkg.keys()):
                             install_exit_codes = pkg['valid-install-exit-codes']
 
-                        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
+                        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
                         log_info('Searching for existing installation of package.', metadata.logfile)
 
                         installation = find_existing_installation(package, packet.json_name, test=False)
@@ -533,7 +533,7 @@ def install(
                         install_exit_codes = None
                         if 'valid-install-exit-codes' in list(pkg.keys()):
                             install_exit_codes = pkg['valid-install-exit-codes']
-                        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version)
+                        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
                         installation = find_existing_installation(
                             package, packet.display_name, test=False)
                         if installation:
@@ -634,7 +634,7 @@ def install(
             install_portable(portable_packet, metadata)
             sys.exit()
         else:
-            packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version)
+            packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-test'] if 'run-test' in list(res.keys()) else True)
             log_info('Searching for existing installation of package.', metadata.logfile)
 
             log_info('Finding existing installation of package...', metadata.logfile)
@@ -769,17 +769,8 @@ def install(
                 refresh_environment_variables()
                 end = timer()
                 write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
-            write(f'Running Tests For {packet.display_name}', 'white', metadata)
-            if find_existing_installation(packet.json_name, packet.display_name):
-                write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
-                register_package_success(packet, install_directory, no_cache, sync, metadata)
-                write(
-                    f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
-                log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
-            else:
-                write(f'Failed: Registry Check', 'red', metadata)
-                write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
-                time.sleep(5)
+            if packet.run_test != False:
+                write(f'Running Tests For {packet.display_name}', 'white', metadata)
                 if find_existing_installation(packet.json_name, packet.display_name):
                     write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
                     register_package_success(packet, install_directory, no_cache, sync, metadata)
@@ -788,7 +779,17 @@ def install(
                     log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
                 else:
                     write(f'Failed: Registry Check', 'red', metadata)
-                sys.exit()
+                    write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
+                    tm.sleep(10)
+                    if find_existing_installation(packet.json_name, packet.display_name):
+                        write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
+                        register_package_success(packet, install_directory, no_cache, sync, metadata)
+                        write(
+                            f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
+                        log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
+                    else:
+                        write(f'Failed: Registry Check', 'red', metadata)
+                    sys.exit()
 
             if metadata.reduce_package:
                 os.remove(path)
@@ -906,7 +907,7 @@ def update(
 
         pkg = res
         pkg = pkg[pkg['latest-version']]
-        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, [], res['latest-version'])
+        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, [], res['latest-version'], res['run-check'] if 'run-check' in list(res.keys()) else True)
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
         if package in installed_packages:
@@ -1184,7 +1185,7 @@ def uninstall(
                 uninstall_portable(portable_packet, metadata)
                 end = timer()
                 sys.exit()
-            packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version)
+            packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
             proc = None
             keyboard.add_hotkey(
                 'ctrl+c', lambda: kill_proc(proc, metadata))
@@ -1305,27 +1306,28 @@ def uninstall(
                     log_info(
                         f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
                     close_log(metadata.logfile, 'Uninstall')
-            write(f'Running Tests For {packet.display_name}', 'white', metadata)
-            if not find_existing_installation(packet.json_name, packet.display_name):
-                os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
-                print(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check')
-                write(
-                        f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-            else:
-                print(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check')
-                write(f'Failed: Registry Check', 'red', metadata)
-                write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
-                time.sleep(5)
-                if find_existing_installation(packet.json_name, packet.display_name):
-                    write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
-                    register_package_success(packet, install_directory, no_cache, sync, metadata)
+            if packet.run_test != False:
+                write(f'Running Tests For {packet.display_name}', 'white', metadata)
+                if not find_existing_installation(packet.json_name, packet.display_name):
+                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
+                    print(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check')
                     write(
-                        f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
-                    log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
+                            f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                 else:
-                    write(
-                        f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
-                        
+                    print(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check')
+                    write(f'Failed: Registry Check', 'red', metadata)
+                    write('Retrying Registry Check In 10 seconds', 'yellow', metadata)
+                    tm.sleep(10)
+                    if find_existing_installation(packet.json_name, packet.display_name):
+                        write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
+                        register_package_success(packet, install_directory, no_cache, sync, metadata)
+                        write(
+                            f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
+                        log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
+                    else:
+                        write(
+                            f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
+                            
     finish_log()
 
 

@@ -3,7 +3,7 @@
 ######################################################################
 
 class Packet:
-    def __init__(self, raw, json_name, display_name, win64, win64_type, custom_location, install_switches, uninstall_switches, directory, dependencies, install_exit_codes, uninstall_exit_codes, version):
+    def __init__(self, raw, json_name, display_name, win64, win64_type, custom_location, install_switches, uninstall_switches, directory, dependencies, install_exit_codes, uninstall_exit_codes, version, run_test):
         self.raw = raw
         self.json_name = json_name
         self.display_name = display_name
@@ -17,4 +17,4 @@ class Packet:
         self.install_exit_codes = install_exit_codes if install_exit_codes != None else []
         self.uninstall_exit_codes = uninstall_exit_codes if uninstall_exit_codes != None else []
         self.version = version
-        
+        self.run_test = run_test
