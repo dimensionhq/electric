@@ -663,7 +663,7 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
 
     else:
         print(Fore.RESET, '')
-        write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
+        write('RapidExit Successfully Exited With Code 0', 'green', metadata)
         # print(Fore.RESET, '')
         sys.exit()
 
@@ -795,7 +795,8 @@ def setup_supercache(call: bool = False):
 
     if call:
         shutil.rmtree(supercache_dir)
-
+    
+    
     if not os.path.isdir(supercache_dir) or not exist or call:
 
         with Halo('Setting Up SuperCache ', text_color='green') as h:
@@ -822,7 +823,8 @@ def setup_supercache(call: bool = False):
                     b.next()
             os.remove(loc)
             click.echo(click.style('Successfully Generated SuperCache!', 'green'))
-
+            cursor.hide()
+            proc = Popen('electric update all --local'.split(), shell=True)
 
 def update_supercache(metadata: Metadata):
     if isfile(f'{tempfile.gettempdir()}\electric'):

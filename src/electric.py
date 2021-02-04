@@ -777,6 +777,15 @@ def install(
                 log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
             else:
                 write(f'Failed: Registry Check', 'red', metadata)
+                write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
+                if find_existing_installation(packet.json_name, packet.display_name):
+                    write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
+                    register_package_success(packet, install_directory, no_cache, sync, metadata)
+                    write(
+                        f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
+                    log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
+                else:
+                    write(f'Failed: Registry Check', 'red', metadata)
                 sys.exit()
 
             if metadata.reduce_package:
@@ -812,6 +821,7 @@ def install(
 @click.option('--rate-limit', '-rl', type=int, default=-1)
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during uninstallation')
 @click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after bundle installation')
+@click.option('--local', '-ll', is_flag=True, help='')
 @click.pass_context
 def update(
     ctx,
@@ -827,6 +837,7 @@ def update(
     rate_limit: int,
     reduce: bool,
     virus_check: bool,
+    local: bool,
 ):
     """
     Updates an existing package
@@ -847,7 +858,8 @@ def update(
                 no_progress=no_progress,
                 rate_limit=rate_limit,
                 reduce=reduce,
-                virus_check=virus_check
+                virus_check=virus_check,
+                local=local if local else False
             )
         sys.exit()
 
@@ -897,13 +909,16 @@ def update(
         installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
         if package in installed_packages:
             if check_newer_version(package, packet):
-                print(f'Updating {package}')
                 install_dir = PathManager.get_appdata_directory() + r'\Current'
                 with open(rf'{install_dir}\{package_name}.json', 'r') as f:
                     data = json.load(f)
                 installed_version = data['version']    
                 if not yes:
-                    continue_update = click.confirm(f'{package} would be updated from version {installed_version} to {packet.version}')
+                    if not local:
+                        continue_update = click.confirm(f'{package} would be updated from version {installed_version} to {packet.version}')
+                    else:
+                        write(rf'There is a newer version of {packet.display_name} Availiable ({installed_version}) => ({packet.version})', 'yellow', metadata)
+                        sys.exit()
                 else:
                     continue_update = True
                 if continue_update:
@@ -1296,9 +1311,18 @@ def uninstall(
                         f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
             else:
                 print(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check')
-                write(
+                write(f'Failed: Registry Check', 'red', metadata)
+                write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
+                if find_existing_installation(packet.json_name, packet.display_name):
+                    write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
+                    register_package_success(packet, install_directory, no_cache, sync, metadata)
+                    write(
+                        f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
+                    log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
+                else:
+                    write(
                         f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
-        
+                        
     finish_log()
 
 
