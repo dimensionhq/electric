@@ -285,6 +285,19 @@ def download_supercache(url: str) -> str:
 
 
 def download(url: str, package_name: str, metadata: Metadata, download_type: str):
+    """
+    Official electric downloader, uses requests to download files from a url.
+    Can resume from existing downloads or detect already existing installers in the case of a reinstall.
+
+    Args:
+        url (str): The url to download the file / installer from
+        package_name (str): The name of the package being installed
+        metadata (Metadata): Metadata for the installation
+        download_type (str): The extension to the file being downloaded
+
+    Returns:
+        str: Path to the downloaded installer
+    """    
     cursor.hide()
     path = check_existing_download(package_name, download_type)
     if not os.path.isdir(Rf'{tempfile.gettempdir()}\electric'):
@@ -356,12 +369,28 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
     dump_pickle(generate_dict(newpath if newpath else path, package_name), 'downloadcache')
 
     if not newpath:
-        return path, False
+        return path
     else:
-        return newpath, False
+        return newpath
 
 
-def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: list, display_name: str, method: str, metadata: Metadata, packet: Packet, no_cache: bool, sync: bool) -> str:
+def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: list, method: str, metadata: Metadata, packet: Packet) -> str:
+    """
+    Troubleshoots errors when a CalledProcessError, OSError or FileNotFoundError is caught through subprocess.run in run_cmd. 
+
+    IMPORTANT: `method` here refers to installation or uninstallation
+    Args:
+        error (str): Error written to stderr to troubleshoot
+        install_exit_codes (list): Valid install exit codes which are valid to be ignored
+        uninstall_exit_codes (list):  Valid uninstall exit codes which are valid to be ignored
+        method (str): Installation or Uninstallation method
+        metadata (Metadata): Metadata for the method
+        packet (Packet): Packet used for the method
+
+
+    Returns:
+        str: Error message to log
+    """
     log_info(f'{error} ==> {method}', metadata.logfile)
     valid_i_exit_codes = valid_install_exit_codes
     valid_u_exit_codes = valid_uninstall_exit_codes
@@ -387,14 +416,14 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     if 'exit status 1603' in error:
         if method == 'installation' and not is_admin():
             flags = ''
-            for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
+            for flag in get_install_flags(packet.directory, metadata):
                 flags += f' {flag}'
             click.echo(click.style(f'The {packet.display_name} Installer Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
         if method == 'uninstallation' and not is_admin():
             flags = ''
-            for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
+            for flag in get_install_flags(packet.directory, metadata):
                 flags += f' {flag}'
             flags = flags.replace(' --sync', '')
             flags = flags.replace(' --install-dir', '')
@@ -404,22 +433,22 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             click.echo(click.style('\nAdministrator Elevation Required Or Fatal Installer Error. Exit Code [1603]', fg='red'))
             sys.exit()
         click.echo(click.style('\nFatal Installer Error. Exit Code [1603]', fg='red'))
-        return get_error_message('1603', 'installation', display_name, packet.version)
+        return get_error_message('1603', 'installation', packet.display_name, packet.version)
 
     if 'exit status 1639' in error:
         click.echo(click.style(f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
-        return get_error_message('0002', 'installation', display_name, packet.version)
+        return get_error_message('0002', 'installation', packet.display_name, packet.version)
 
     if 'exit status 1' in error:
         click.echo(click.style(f'\nUnknown Error. Exited With Code [0000]', fg='red'))
         handle_unknown_error(error)
-        return get_error_message('0000', 'installation', display_name, packet.version)
+        return get_error_message('0000', 'installation', packet.display_name, packet.version)
 
     if '[WinError 740]' in error and 'elevation' in error:
         # Process Needs Elevation To Execute
         if method == 'installation':
             flags = ''
-            for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
+            for flag in get_install_flags(packet.directory, metadata):
                 flags += f' {flag}'
             
             click.echo(click.style(f'The {packet.display_name} Installater Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
@@ -427,7 +456,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             sys.exit()
         if method == 'uninstallation':
             flags = ''
-            for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
+            for flag in get_install_flags(packet.directory, metadata):
                 flags += f' {flag}'
             flags = flags.replace(' --sync', '')
             flags = flags.replace(' --install-dir', '')
@@ -435,40 +464,47 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
             sys.exit()
-        # click.echo(click.style(f'\nAdministrator Elevation Required. Exit Code [0001]', fg='red'))
-        # return get_error_message('0001', 'installation', display_name, packet.version)
         
 
     if 'exit status 2' in error or 'exit status 1' in error:
         click.echo(click.style(f'\nAdministrative Privileges Declined. Exit Code [0101]', fg='red'))
-        return get_error_message('0101', 'installation', display_name, packet.version)
+        return get_error_message('0101', 'installation', packet.display_name, packet.version)
 
     if 'exit status 4' in error:
         # Fatal Error During Installation
         click.echo(click.style(f'\nFatal Error. Exit Code [1111]', fg='red'))
-        return get_error_message('1111', 'installation', display_name, packet.version)
+        return get_error_message('1111', 'installation', packet.display_name, packet.version)
 
     if '[WinError 87]' in error and 'incorrect' in error:
         click.echo(click.style(f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
-        return get_error_message('0002', 'installation', display_name, packet.version)
+        return get_error_message('0002', 'installation', packet.display_name, packet.version)
 
     if 'exit status 3010' or 'exit status 2359301' in error:
         # Installer Requesting Reboot
-        return get_error_message('1010', 'installation', display_name, packet.version)
+        return get_error_message('1010', 'installation', packet.display_name, packet.version)
 
     else:
         click.echo(click.style(f'\nUnknown Error. Exited With Code [0000]', fg='red'))
         handle_unknown_error(error)
-        return get_error_message('0000', 'installation', display_name, packet.version)
+        return get_error_message('0000', 'installation', packet.display_name, packet.version)
 
 
 def get_file_type(command: str) -> str:
+    """
+    Used to understand if a command run uses a .msi or a .exe installer / uninstaller
+
+    Args:
+        command (str): The command to infer the installer type from
+
+    Returns:
+        str: The filetype of the installer infered from the command
+    """    
     if 'msiexec.exe' in command.lower():
         return '.msi'
     return '.exe'
 
 
-def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, install_exit_codes: list, uninstall_exit_codes: list, halo: Halo, packet, no_cache: bool, sync: bool):
+def run_cmd(command: str, metadata: Metadata, method: str, halo: Halo, packet: Packet):
     command = command.replace('\"\"', '\"').replace('  ', ' ')
     log_info(f'Running command: {command}', metadata.logfile)
     write_debug(f'{command}', metadata, newline=True)
@@ -480,15 +516,17 @@ def run_cmd(command: str, metadata: Metadata, method: str, display_name: str, in
             halo.stop()
         keyboard.add_hotkey(
         'ctrl+c', lambda: os._exit(0))
-        disp_error_msg(get_error_cause(str(err), install_exit_codes, uninstall_exit_codes, display_name, method, metadata, packet, no_cache, sync), metadata)
+        disp_error_msg(get_error_cause(str(err), packet.install_exit_codes, packet.uninstall_exit_codes, method, metadata, packet), metadata)
 
 
-def install_package(path, packet: Packet, metadata: Metadata, no_cache: bool, sync: bool) -> str:
+def install_package(path, packet: Packet, metadata: Metadata) -> str:
     download_type = packet.win64_type
     custom_install_switch = packet.custom_location
     directory = packet.directory
     package_name = packet.json_name
     switches = packet.install_switches
+    no_cache = metadata.no_cache
+    sync = metadata.sync
 
     if download_type == '.exe':
         if '.exe' not in path:
@@ -522,7 +560,7 @@ def install_package(path, packet: Packet, metadata: Metadata, no_cache: bool, sy
             for switch in switches:
                 command = command + ' ' + switch
 
-        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None, packet, no_cache, sync)
+        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes)
 
     elif download_type == '.msi':
         command = 'msiexec.exe /i ' + path + ' '
@@ -531,12 +569,12 @@ def install_package(path, packet: Packet, metadata: Metadata, no_cache: bool, sy
 
         if not is_admin():
             flags = ''
-            for flag in get_install_flags(packet.directory, no_cache, sync, metadata):
+            for flag in get_install_flags(packet.directory, metadata):
                 flags += f' {flag}'
             click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
-        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, None, packet, no_cache, sync)
+        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes)
 
     elif download_type == '.zip':
         if metadata.no_color:
@@ -789,7 +827,7 @@ def find_existing_installation(package_name: str, display_name: str, test=True):
     return False
 
 
-def get_install_flags(install_dir: str, no_cache: bool, sync: bool, metadata: Metadata):
+def get_install_flags(install_dir: str, metadata: Metadata):
     flags = []
     if metadata.verbose:
         flags.append('--verbose')
@@ -813,9 +851,9 @@ def get_install_flags(install_dir: str, no_cache: bool, sync: bool, metadata: Me
         flags.append(f'--rate-limit={metadata.rate_limit}')
     if install_dir:
         flags.append(f'--install-dir={install_dir}')
-    if sync:
+    if metadata.sync:
         flags.append('--sync')
-    if no_cache:
+    if metadata.no_cache:
         flags.append('--no-cache')
 
     return flags
@@ -1007,8 +1045,8 @@ def handle_cached_request(package_name: str):
     return res, (end - start)
 
 
-def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, settings):
-    return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce, rate_limit, settings)
+def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, settings, sync, no_cache):
+    return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce, rate_limit, settings, sync, no_cache)
 
 
 def disp_error_msg(messages: list, metadata: Metadata):
@@ -1252,14 +1290,14 @@ def get_correct_package_names(all=False) -> list:
     return packages
 
 
-def register_package_success(packet: Packet, install_dir: str, no_cache, sync, metadata: Metadata):
+def register_package_success(packet: Packet, install_dir: str, metadata: Metadata):
     data = {
         'display-name': packet.display_name,
         'json-name': packet.json_name,
         'version': packet.version,
         'custom-location-switch': packet.custom_location,
         'custom-install-directory': packet.directory if packet.directory else '',
-        'flags': get_install_flags(install_dir, no_cache, sync, metadata)
+        'flags': get_install_flags(install_dir, metadata)
     }
     pkg_dir = PathManager.get_appdata_directory() + r'\Current'
     with open(rf'{pkg_dir}\{packet.json_name}.json', 'w+') as f:

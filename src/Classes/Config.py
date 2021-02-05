@@ -565,7 +565,7 @@ class Config:
 
     def install(self, exclude_versions: bool, install_directory: str, no_cache: str, sync: bool, metadata: Metadata):
         if is_admin():
-            flags = get_install_flags(install_directory, no_cache, sync, metadata)
+            flags = get_install_flags(install_directory, metadata)
             config = self.dictionary
             python_packages = config['Pip-Packages'] if 'Pip-Packages' in self.headers else None
             node_packages = config['Node-Packages'] if 'Node-Packages' in self.headers else None

@@ -98,14 +98,14 @@ class PackageManager:
                 click.echo(click.style(
                     f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
-            run_cmd(command, self.metadata, 'installation', install.display_name, install.install_exit_codes, [], None, install, None, None)
+            run_cmd(command, self.metadata, 'installation', install.display_name, install.install_exit_codes, [], None, install)
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i' + path + ' '
             for switch in switches:
                 command = command + ' ' + switch
 
-            run_cmd(command, self.metadata, 'installation', install.display_name, install.install_exit_codes, [], None, install, None, None)
+            run_cmd(command, self.metadata, 'installation', install.display_name, install.install_exit_codes, [], None, install)
 
         elif download_type == '.zip':
             if not self.metadata.no_color:
@@ -328,7 +328,7 @@ class PackageManager:
             write('Successfully Cleaned Up Installer From Temp Directory...',
                   'green', self.metadata)
         for packet in self.packets:
-            register_package_success(packet, packet.directory, False, False,self.metadata)
+            register_package_success(packet, packet.directory, self.metadata)
         write(
             'Successfully Installed Packages!', 'bright_magenta', self.metadata)
         log_info('Successfully Installed Packages!', self.metadata.logfile)
@@ -478,7 +478,7 @@ class PackageManager:
                     log_info(f"Downloading from '{download_url}'", metadata.logfile)
 
                     if rate_limit == -1:
-                        path, _ = download(download_url, packet.json_name, metadata, packet.win64_type)
+                        path = download(download_url, packet.json_name, metadata, packet.win64_type)
                     else:
                         log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
                         bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
@@ -532,7 +532,7 @@ class PackageManager:
                     write(
                         f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
                     log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
-                    register_package_success(packet, install_directory, False, False, metadata)
+                    register_package_success(packet, install_directory, metadata)
 
                     if metadata.reduce_package:
 

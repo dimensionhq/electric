@@ -150,7 +150,7 @@ def install(
 
     log_info('Generating metadata...', logfile)
     metadata = generate_metadata(
-        no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new())
+        no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync, no_cache)
     log_info('Successfully generated metadata.', metadata.logfile)
 
     if python:
@@ -410,7 +410,7 @@ def install(
 
                         if rate_limit == -1:
                             start = timer()
-                            path, cached = download(download_url, packet.json_name, metadata, packet.win64_type)
+                            path = download(download_url, packet.json_name, metadata, packet.win64_type)
                             end = timer()
                         else:
                             log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
@@ -437,12 +437,9 @@ def install(
                             with Halo('\nScanning File For Viruses...', text_color='blue'):
                                 check_virus(path, metadata)
                         
-                        if not cached:
-                            write(
-                                f'\nInstalling {packet.display_name}', 'cyan', metadata)
-                        else:
-                            write(
-                                f'Installing {packet.display_name}', 'cyan', metadata)
+                        
+                        write(
+                            f'Installing {packet.display_name}', 'cyan', metadata)
                         log_info(
                             f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
 
@@ -453,7 +450,7 @@ def install(
                         start_snap = get_environment_keys()
                         status = 'Installing'
                         # Running The Installer silently And Completing Setup
-                        install_package(path, packet, metadata, no_cache, sync)
+                        install_package(path, packet, metadata)
 
                         status = 'Installed'
                         final_snap = get_environment_keys()
@@ -470,7 +467,7 @@ def install(
                         with Halo(f'Verifying Successful Installation', text_color='green') as h:
                             if find_existing_installation(packet.json_name, packet.display_name):
                                 h.stop()
-                                register_package_success(package, install_directory, no_cache, sync, metadata)
+                                register_package_success(package, install_directory, metadata)
                                 write(
                                     f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
                                 log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
@@ -712,7 +709,7 @@ def install(
             cached = False
             if rate_limit == -1:
                 start = timer()
-                path, cached = download(download_url, packet.json_name, metadata, packet.win64_type)
+                path = download(download_url, packet.json_name, metadata, packet.win64_type)
                 end = timer()
             else:
                 log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
@@ -739,12 +736,11 @@ def install(
                 log_info('Running requested virus scanning', metadata.logfile)
                 write('Scanning File For Viruses...', 'blue', metadata)
                 check_virus(path, metadata)
-            if not cached:
-                write(
-                    f'\nInstalling {packet.display_name}', 'cyan', metadata)
-            else:
-                log_info(
-                    'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+
+            write(
+                f'\nInstalling {packet.display_name}', 'cyan', metadata)
+            log_info(
+                'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
             write_debug(
                 f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
@@ -754,7 +750,7 @@ def install(
             start_snap = get_environment_keys()
             status = 'Installing'
             # Running The Installer silently And Completing Setup
-            install_package(path, packet, metadata, no_cache, sync)
+            install_package(path, packet, metadata)
 
             status = 'Installed'
             log_info('Creating final snapshot of registry...', metadata.logfile)
@@ -773,22 +769,22 @@ def install(
                 write(f'Running Tests For {packet.display_name}', 'white', metadata)
                 if find_existing_installation(packet.json_name, packet.display_name):
                     write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
-                    register_package_success(packet, install_directory, no_cache, sync, metadata)
+                    register_package_success(packet, install_directory, metadata)
                     write(
                         f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
                     log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
                 else:
-                    write(f'Failed: Registry Check', 'red', metadata)
+                    write(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check', 'red', metadata)
                     write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
                     tm.sleep(10)
                     if find_existing_installation(packet.json_name, packet.display_name):
                         write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
-                        register_package_success(packet, install_directory, no_cache, sync, metadata)
+                        register_package_success(packet, install_directory, metadata)
                         write(
                             f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
                         log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
                     else:
-                        write(f'Failed: Registry Check', 'red', metadata)
+                        write(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check', 'red', metadata)
                     sys.exit()
 
             if metadata.reduce_package:
@@ -866,7 +862,7 @@ def update(
             )
         sys.exit()
 
-    metadata = generate_metadata(None, None, None, None, None, None, None, None, None, None, Setting.new())
+    metadata = generate_metadata(None, None, None, None, None, None, None, None, None, None, Setting.new(), None, no_cache)
     super_cache = check_supercache_valid()
     if super_cache:
         log_info('Supercache detected.', metadata.logfile)
@@ -1028,7 +1024,7 @@ def uninstall(
     log_info('Generating metadata...', logfile)
 
     metadata = generate_metadata(
-        None, silent, verbose, debug, no_color, yes, logfile, None, None, None, Setting.new())
+        None, silent, verbose, debug, no_color, yes, logfile, None, None, None, Setting.new(), None, no_cache)
 
     log_info('Successfully generated metadata.', logfile)
 
@@ -1266,7 +1262,7 @@ def uninstall(
                     write_verbose('Executing the quiet uninstall command', metadata)
                     log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
                     write_debug('Running silent uninstallation command', metadata)
-                    run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet, no_cache, None)
+                    run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet)
 
                     h.stop()
 
@@ -1296,7 +1292,7 @@ def uninstall(
                     write_verbose('Executing the Uninstall Command', metadata)
                     log_info('Executing the silent Uninstall Command', metadata.logfile)
 
-                    run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet, no_cache, None)
+                    run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet)
                     h.stop()
                     write_verbose('Uninstallation completed.', metadata)
                     log_info('Uninstallation completed.', metadata.logfile)
@@ -1320,7 +1316,7 @@ def uninstall(
                     tm.sleep(10)
                     if find_existing_installation(packet.json_name, packet.display_name):
                         write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
-                        register_package_success(packet, install_directory, no_cache, sync, metadata)
+                        register_package_success(packet, '', metadata)
                         write(
                             f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
                         log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
@@ -1399,7 +1395,7 @@ def bundle(
     Installs a bunlde of packages from the official electric repository.
     """
     metadata = generate_metadata(
-            no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new())
+            no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync, no_cache)
 
     if is_admin():
         if logfile:
@@ -1604,7 +1600,7 @@ def config(
         sys.exit()
 
     metadata = generate_metadata(
-            no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new())
+            no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync, no_cache)
 
     config = Config.generate_configuration(config_path)
     config.check_prerequisites()

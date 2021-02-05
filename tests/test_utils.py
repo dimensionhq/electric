@@ -22,7 +22,7 @@ class TestUtil(unittest.TestCase):
 
 
     def test_gen_metadata(self):
-        meta = utils.generate_metadata(None, None, None, None, None, None, None, None, None, None, None)
+        meta = utils.generate_metadata(None, None, None, None, None, None, None, None, None, None, None, None, None)
         self.assertIsInstance(meta, utils.Metadata)
 
     def test_check_supercache_availiable(self):
