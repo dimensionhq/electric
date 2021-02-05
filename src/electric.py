@@ -450,6 +450,7 @@ def install(
                         start_snap = get_environment_keys()
                         status = 'Installing'
                         # Running The Installer silently And Completing Setup
+                        
                         install_package(path, packet, metadata)
 
                         status = 'Installed'
@@ -580,6 +581,7 @@ def install(
 
         else:
             if not silent:
+                # ERROR HERE
                 spinner = halo.Halo(color='grey' if not no_color else 'white')
                 spinner.start()
             log_info('Handling Network Request...', metadata.logfile)
@@ -706,7 +708,7 @@ def install(
                 f"Downloading from '{download_url}'", metadata)
             log_info(f"Downloading from '{download_url}'", metadata.logfile)
             status = 'Downloading'
-            cached = False
+            
             if rate_limit == -1:
                 start = timer()
                 path = download(download_url, packet.json_name, metadata, packet.win64_type)
@@ -750,6 +752,7 @@ def install(
             start_snap = get_environment_keys()
             status = 'Installing'
             # Running The Installer silently And Completing Setup
+            
             install_package(path, packet, metadata)
 
             status = 'Installed'
@@ -886,7 +889,7 @@ def update(
     write_debug(install_debug_headers, metadata)
     for header in install_debug_headers:
         log_info(header, metadata.logfile)
-        index = 0
+
 
     for package in corrected_package_names:
         spinner = halo.Halo(color='grey', text='Finding Packages')
@@ -909,7 +912,7 @@ def update(
         if package in installed_packages:
             if check_newer_version(package, packet):
                 install_dir = PathManager.get_appdata_directory() + r'\Current'
-                with open(rf'{install_dir}\{package_name}.json', 'r') as f:
+                with open(rf'{install_dir}\{package}.json', 'r') as f:
                     data = json.load(f)
                 installed_version = data['version']    
                 if not yes:
@@ -1262,7 +1265,7 @@ def uninstall(
                     write_verbose('Executing the quiet uninstall command', metadata)
                     log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
                     write_debug('Running silent uninstallation command', metadata)
-                    run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet)
+                    run_cmd(command, metadata, 'uninstallation', h, packet)
 
                     h.stop()
 
@@ -1292,7 +1295,7 @@ def uninstall(
                     write_verbose('Executing the Uninstall Command', metadata)
                     log_info('Executing the silent Uninstall Command', metadata.logfile)
 
-                    run_cmd(command, metadata, 'uninstallation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes, h, packet)
+                    run_cmd(command, metadata, 'uninstallation', h, packet)
                     h.stop()
                     write_verbose('Uninstallation completed.', metadata)
                     log_info('Uninstallation completed.', metadata.logfile)
@@ -1312,14 +1315,14 @@ def uninstall(
                 else:
                     print(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check')
                     write(f'Failed: Registry Check', 'red', metadata)
-                    write('Retrying Registry Check In 10 seconds', 'yellow', metadata)
-                    tm.sleep(10)
-                    if find_existing_installation(packet.json_name, packet.display_name):
+                    write('Retrying Registry Check In 8 seconds', 'yellow', metadata)
+                    tm.sleep(7.5)
+                    if not find_existing_installation(packet.json_name, packet.display_name):
                         write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
                         register_package_success(packet, '', metadata)
                         write(
-                            f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
-                        log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
+                            f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                        log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
                     else:
                         write(
                             f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)

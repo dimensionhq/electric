@@ -307,7 +307,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         path = Rf'{tempfile.gettempdir()}\electric\Setup{download_type}'
     else:
         write(f'Found Existing Download At => {tempfile.gettempdir()}', 'blue', metadata)
-        return path, True
+        return path
 
     while os.path.isfile(path):
         path = Rf'{tempfile.gettempdir()}\electric\Setup{random.randint(200, 100000)}'
@@ -367,7 +367,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
     os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
     dump_pickle(generate_dict(newpath if newpath else path, package_name), 'downloadcache')
-
+    
     if not newpath:
         return path
     else:
@@ -560,7 +560,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             for switch in switches:
                 command = command + ' ' + switch
 
-        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes)
+        run_cmd(command, metadata, 'installation', None, packet)
 
     elif download_type == '.msi':
         command = 'msiexec.exe /i ' + path + ' '
@@ -574,7 +574,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
-        run_cmd(command, metadata, 'installation', packet.display_name, packet.install_exit_codes, packet.uninstall_exit_codes)
+        run_cmd(command, metadata, 'installation', None, packet)
 
     elif download_type == '.zip':
         if metadata.no_color:
@@ -899,7 +899,6 @@ def setup_supercache(call: bool = False):
     
     
     if not os.path.isdir(supercache_dir) or not exist or call:
-
         with Halo('Setting Up SuperCache ', text_color='green') as h:
             if not os.path.isdir(supercache_dir):
                 os.mkdir(supercache_dir)
@@ -908,7 +907,7 @@ def setup_supercache(call: bool = False):
             with open(fR'{supercache_dir}\packages.json', 'w+') as f:
                 f.write(json.dumps(name_list, indent=4))
             h.stop()
-            loc = download_other('https://electric-package-manager.herokuapp.com/setup/supercache')
+            loc = download_supercache('https://electric-package-manager.herokuapp.com/setup/supercache')
             with open(loc, 'rb') as f:
                 data = eval(JSONCompress.load_compressed_file(f))
                 keys = data.keys()
@@ -925,7 +924,7 @@ def setup_supercache(call: bool = False):
             os.remove(loc)
             click.echo(click.style('Successfully Generated SuperCache!', 'green'))
             cursor.hide()
-            proc = Popen('electric update all --local'.split(), shell=True)
+            Popen('electric update all --local'.split(), shell=True)
 
 def update_supercache(metadata: Metadata):
     if isfile(f'{tempfile.gettempdir()}\electric'):

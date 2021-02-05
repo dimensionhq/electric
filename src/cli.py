@@ -130,6 +130,7 @@ Usage: electric <command> [<options>]
   {Fore.CYAN}Software Management{Fore.RESET}
     {Fore.MAGENTA}*{Fore.RESET} install
     {Fore.MAGENTA}*{Fore.RESET} uninstall
+    {Fore.MAGENTA}*{Fore.RESET} update
     {Fore.MAGENTA}*{Fore.RESET} bundle
   {Fore.CYAN}Explore Packages{Fore.RESET}
     {Fore.MAGENTA}*{Fore.RESET} search

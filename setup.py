@@ -53,7 +53,8 @@ setup(
         'prompt-toolkit',
         'py7zr',
         'pywin32',
-        'patool'
+        'patool',
+        'tqdm'
     ],
     package_dir={'': 'src'},
     entry_points =
