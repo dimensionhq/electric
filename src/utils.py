@@ -49,7 +49,8 @@ appdata_dir = PathManager.get_appdata_directory()
 
 
 def get_recent_logs() -> list:
-    """Reads all recent logs from %appdata%\electric-log.log
+    """
+    Reads all recent logs from %appdata%\electric-log.log
     Used to create the log attachment for the support ticket.
 
     Returns:
@@ -95,7 +96,8 @@ def is_admin() -> bool:
 
 
 def generate_dict(path: str, package_name: str) -> dict:
-    """Generates dictionary to dump to the downloadcache.pickle
+    """
+    Generates dictionary to dump to the downloadcache.pickle
 
     Args:
         path (str): Path to the installer
@@ -103,7 +105,8 @@ def generate_dict(path: str, package_name: str) -> dict:
 
     Returns:
         dict: The data to dump to the downloadcache as a dictionary
-    """    return {
+    """    
+    return {
         'directory': path,
         'package_name': package_name,
         'size': os.stat(path).st_size,
@@ -111,11 +114,27 @@ def generate_dict(path: str, package_name: str) -> dict:
 
 
 def dump_pickle(data: dict, filename: str):
+    """
+    Dump a dictionary to a pickle file in the temp download directory for resuming or using existing downloads
+
+    Args:
+        data (dict): Data to dump to the pickle file
+        filename (str): Name of the file to dump the data to in the temp directory
+    """    
     with open(Rf'{tempfile.gettempdir()}\electric\{filename}.pickle', 'wb') as f:
         pickle.dump(data, f)
 
 
-def retrieve_data(filename: str):
+def retrieve_data(filename: str) -> dict:
+    """
+    Retrieve or read data from a pickle file in the temp download directory
+
+    Args:
+        filename (str): Name of the pickle file to read from in the temp directory
+
+    Returns:
+        dict: Data inside the pickle file in the form of a dictionary
+    """
     if os.path.isfile(Rf'{tempfile.gettempdir()}\electric\{filename}.pickle'):
         with open(Rf'{tempfile.gettempdir()}\electric\{filename}.pickle', 'rb') as f:
             final = pickle.loads(f.read())
@@ -143,7 +162,16 @@ def check_existing_download(package_name: str, download_type) -> bool:
     return False
 
 
-def get_chunk_size(total_size: str):
+def get_chunk_size(total_size: str) -> int:
+    """
+    Get the download iter chunk size, could increase speeds based on file size
+
+    Args:
+        total_size (str): Size of the download
+
+    Returns:
+        int: Chunk iter size for downloading the file
+    """    
     size = int(total_size)
     size = size / 1000000
     if size < 7:
@@ -152,11 +180,18 @@ def get_chunk_size(total_size: str):
         return 7096
 
 
-def get_color_escape(r, g, b, background=False):
-    return '\033[{};2;{};{};{}m'.format(48 if background else 38, r, g, b)
+def check_resume_download(package_name: str, download_url: str, metadata: Metadata) -> tuple:
+    """
+    Check if an existing download can be resumed instead of redownloading from the start
 
+    Args:
+        package_name (str): Name of the package being installed
+        download_url (str): Url for the file being downloaded
+        metadata (Metadata): Metadata for the installation
 
-def check_resume_download(package_name: str, download_url: str, metadata: Metadata):
+    Returns:
+        tuple: Size and directory of the file to resume downloading
+    """
     data = retrieve_data('unfinishedcache')
     try:
         if os.path.isfile(data['path']) and package_name == data['name'] and data['url'] == download_url:
@@ -168,7 +203,13 @@ def check_resume_download(package_name: str, download_url: str, metadata: Metada
         return (None, None)
     
 
-def send_req_bundle():
+def send_req_bundle() -> dict:
+    """
+    Send a network request to the API for the bundles to be installed
+
+    Returns:
+        dict: The json response from the network request
+    """    
     REQA = 'https://electric-package-manager.herokuapp.com/bundles/windows'
     time = 0.0
     response = requests.get(REQA, timeout=15)
@@ -177,15 +218,7 @@ def send_req_bundle():
     return res, time
 
 
-def send_req_bundle():
-    REQA = 'https://electric-package-manager.herokuapp.com/bundles/windows'
-    time = 0.0
-    response = requests.get(REQA, timeout=15)
-    time = response.elapsed.total_seconds()
-    return response.json(), time
-
-
-def get_init_char(start, metadata):
+def get_init_char(start, metadata) -> str:
     if start:
         try:
             start_char = Fore.RESET + metadata.settings.raw_dictionary['customProgressBar']['start_character']
@@ -216,7 +249,16 @@ def get_character_color(fill, metadata):
         return f'Fore.{unfill_char_color.upper()}' if unfill_char_color else 'Fore.RESET'
 
 
-def download_other(url: str):
+def download_supercache(url: str) -> str:
+    """
+    Download supercache into %APPDATA%\electric\SuperCache\supercache.txt 
+
+    Args:
+        url (str): Url to download the supercache.txt from
+
+    Returns:
+        str: %APPDATA%\electric\SuperCache\supercache.txt
+    """    
     cursor.hide()
     response = requests.get(url, stream=True)
     total_length = response.headers.get('content-length')
