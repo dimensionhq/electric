@@ -459,7 +459,7 @@ class PackageManager:
                     log_info('Generating system download path...', metadata.logfile)
 
                     start = timer()
-                    download_url = get_download_url(packet)
+                    download_url = packet.win64
                     end = timer()
 
                     val = round(Decimal(end) - Decimal(start), 6)

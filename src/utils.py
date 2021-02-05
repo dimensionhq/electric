@@ -47,33 +47,46 @@ path = ''
 
 appdata_dir = PathManager.get_appdata_directory()
 
-class HiddenPrints:
-    def __enter__(self):
-        self._original_stdout = sys.stdout
-        sys.stdout = open(os.devnull, 'w')
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        sys.stdout.close()
-        sys.stdout = self._original_stdout
-
 
 def get_recent_logs() -> list:
+    """Reads all recent logs from %appdata%\electric-log.log
+    Used to create the log attachment for the support ticket.
+
+    Returns:
+        list: Recent logs in the form of a list
+    """    
     with open(Rf'{appdata_dir}\electric-log.log', 'r') as file:
         data = file.read()
     return data.splitlines()
 
 
-def generate_report(name: str, version: str):
+def generate_report(name: str, version: str) -> str:
+    """
+    Generate support ticket info including version and name of software.
+
+    Args:
+        name (str): Name of the package that failed to install / uninstall.
+        version (str): Version of the package that failed to install / uninstall.
+
+    Returns:
+        str: Support ticket to echo to output
+    """    
     return f'''
 {{
-NAME {Fore.MAGENTA}=>{Fore.RESET} {Fore.YELLOW}{name}{Fore.RESET}
-{Fore.LIGHTRED_EX}VERSION {Fore.MAGENTA}=>{Fore.RESET} {Fore.BLUE}{version}{Fore.GREEN}
-{Fore.LIGHTBLUE_EX}LOGFILE {Fore.MAGENTA}=>{Fore.RESET} {Fore.CYAN}<--attachment-->{Fore.GREEN}
+Name {Fore.MAGENTA}=>{Fore.RESET} {Fore.YELLOW}{name}{Fore.RESET}
+{Fore.LIGHTRED_EX}Version {Fore.MAGENTA}=>{Fore.RESET} {Fore.BLUE}{version}{Fore.GREEN}
+{Fore.LIGHTBLUE_EX}Logfile {Fore.MAGENTA}=>{Fore.RESET} {Fore.CYAN}<--attachment-->{Fore.GREEN}
 }}{Fore.RESET}
     '''
 
 
-def is_admin():
+def is_admin() -> bool:
+    """
+    Checks if electric is running as administrator.
+
+    Returns:
+        bool: If electric is run as administrator
+    """    
     try:
         is_admin = (os.getuid() == 0)
     except AttributeError:
@@ -81,12 +94,16 @@ def is_admin():
     return is_admin
 
 
-def get_download_url(packet):
-    return packet.win64
+def generate_dict(path: str, package_name: str) -> dict:
+    """Generates dictionary to dump to the downloadcache.pickle
 
+    Args:
+        path (str): Path to the installer
+        package_name (str): Name of the package being installed
 
-def generate_dict(path: str, package_name: str):
-    return {
+    Returns:
+        dict: The data to dump to the downloadcache as a dictionary
+    """    return {
         'directory': path,
         'package_name': package_name,
         'size': os.stat(path).st_size,

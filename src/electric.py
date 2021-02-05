@@ -395,7 +395,7 @@ def install(
                         start = timer()
 
                         status = 'Download Path'
-                        download_url = get_download_url(packet)
+                        download_url = packet.win64
                         status = 'Got Download Path'
                         end = timer()
 
@@ -697,7 +697,7 @@ def install(
                     print(f'Found => [ {packet.display_name} ]')
 
             status = 'Download Path'
-            download_url = get_download_url(packet)
+            download_url = packet.win64
             status = 'Got Download Path'
 
             log_info(f'Recieved download path => {download_url}', metadata.logfile)
