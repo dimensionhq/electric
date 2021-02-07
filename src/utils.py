@@ -504,13 +504,13 @@ def get_file_type(command: str) -> str:
     return '.exe'
 
 
-def run_cmd(command: str, metadata: Metadata, method: str, halo: Halo, packet: Packet):
+def run_cmd(command: str, metadata: Metadata, method: str, halo: Halo, packet: Packet) -> bool:
     command = command.replace('\"\"', '\"').replace('  ', ' ')
     log_info(f'Running command: {command}', metadata.logfile)
-    write_debug(f'{command}', metadata, newline=True)
-    
+    write_debug(f'{command}', metadata)
     try:
-        check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        exit_code = check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+        return False if exit_code == 0 else True
     except (CalledProcessError, OSError, FileNotFoundError) as err:
         if halo:
             halo.stop()
@@ -519,7 +519,7 @@ def run_cmd(command: str, metadata: Metadata, method: str, halo: Halo, packet: P
         disp_error_msg(get_error_cause(str(err), packet.install_exit_codes, packet.uninstall_exit_codes, method, metadata, packet), metadata)
 
 
-def install_package(path, packet: Packet, metadata: Metadata) -> str:
+def install_package(path, packet: Packet, metadata: Metadata, halo: Halo) -> str:
     download_type = packet.win64_type
     custom_install_switch = packet.custom_location
     directory = packet.directory
@@ -560,7 +560,8 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             for switch in switches:
                 command = command + ' ' + switch
 
-        run_cmd(command, metadata, 'installation', None, packet)
+        run_test = run_cmd(command, metadata, 'installation', halo, packet)
+        packet.run_test = run_test
 
     elif download_type == '.msi':
         command = 'msiexec.exe /i ' + path + ' '
@@ -574,72 +575,8 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
-        run_cmd(command, metadata, 'installation', None, packet)
-
-    elif download_type == '.zip':
-        if metadata.no_color:
-            click.echo(click.style(
-                f'Unzipping File At {path}'))
-        else:
-            click.echo(click.style(
-                f'Unzipping File At {path}', fg='green'))
-
-        zip_directory = fR'{tempfile.gettempdir()}\\{package_name}'
-        with zipfile.ZipFile(path, 'r') as zip_ref:
-            zip_ref.extractall(zip_directory)
-        executable_list = []
-        for name in os.listdir(zip_directory):
-            if name.endswith('.exe'):
-                executable_list.append(name)
-        executable_list.append('Exit')
-
-        file_path = fR'{tempfile.gettempdir()}\\{package_name}'
-
-        def trigger():
-            click.clear()
-            for executable in executable_list:
-                if executable == executable_list[index]:
-                    print(Back.CYAN + executable + Back.RESET)
-                else:
-                    print(executable)
-
-        trigger()
-
-        def up():
-            global index
-            if len(executable_list) != 1:
-                index -= 1
-                if index >= len(executable_list):
-                    index = 0
-                    trigger()
-                    return
-                trigger()
-
-        def down():
-            global index
-            if len(executable_list) != 1:
-                index += 1
-                if index >= len(executable_list):
-                    index = 0
-                    trigger()
-                    return
-                trigger()
-
-        def enter():
-            if executable_list[index] == 'Exit':
-                os._exit(0)
-
-            else:
-                path = file_path + '\\' + executable_list[index]
-                click.echo(click.style(
-                    f'Running {executable_list[index]}. Hit Control + C to Quit', fg='magenta'))
-                call(path, stdout=PIPE, stdin=PIPE, stderr=PIPE)
-                quit()
-
-        keyboard.add_hotkey('up', up)
-        keyboard.add_hotkey('down', down)
-        keyboard.add_hotkey('enter', enter)
-        keyboard.wait()
+        run_test = run_cmd(command, metadata, 'installation', halo, packet)
+        packet.run_test = run_test
 
 
 def get_configuration_data(username: str, description: str, uses_editor: bool, include_editor: bool, editor: str, include_python: bool, include_node: bool):

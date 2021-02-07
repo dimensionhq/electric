@@ -439,7 +439,7 @@ def install(
                         
                         
                         write(
-                            f'Installing {packet.display_name}', 'cyan', metadata)
+                            f'Installing {Fore.CYAN}{packet.display_name}{Fore.RESET}', 'white', metadata)
                         log_info(
                             f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
 
@@ -470,8 +470,8 @@ def install(
                                 h.stop()
                                 register_package_success(package, install_directory, metadata)
                                 write(
-                                    f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
-                                log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
+                                    f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
+                                log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
                             else:
                                 h.fail()
                                 print(f'[  {Fore.GREEN}ERROR{Fore.RESET}  ]  Registry Check')
@@ -738,23 +738,21 @@ def install(
                 log_info('Running requested virus scanning', metadata.logfile)
                 write('Scanning File For Viruses...', 'blue', metadata)
                 check_virus(path, metadata)
-
-            write(
-                f'\nInstalling {packet.display_name}', 'cyan', metadata)
-            log_info(
-                'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
-
-            write_debug(
-                f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
-            log_info(
-                f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
-            log_info('Creating start snapshot of registry...', metadata.logfile)
-            start_snap = get_environment_keys()
-            status = 'Installing'
-            # Running The Installer silently And Completing Setup
             
-            install_package(path, packet, metadata)
+            with Halo(text=f'Installing {Fore.CYAN}{packet.display_name}{Fore.RESET}') as h:
+                log_info(
+                    'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
+                write_debug(
+                    f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
+                log_info(
+                    f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
+                log_info('Creating start snapshot of registry...', metadata.logfile)
+                start_snap = get_environment_keys()
+                status = 'Installing'
+                # Running The Installer silently And Completing Setup
+                install_package(path, packet, metadata, h)
+            write(f'Installation Complete', 'white', metadata)
             status = 'Installed'
             log_info('Creating final snapshot of registry...', metadata.logfile)
             final_snap = get_environment_keys()
@@ -768,7 +766,13 @@ def install(
                 refresh_environment_variables()
                 end = timer()
                 write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
-            if packet.run_test != False:
+            
+            if not packet.run_test:
+                register_package_success(packet, install_directory, metadata)
+                write(
+                    f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
+                log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
+            else:
                 write(f'Running Tests For {packet.display_name}', 'white', metadata)
                 if find_existing_installation(packet.json_name, packet.display_name):
                     write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
@@ -779,7 +783,7 @@ def install(
                 else:
                     write(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check', 'red', metadata)
                     write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
-                    tm.sleep(10)
+                    tm.sleep(5)
                     if find_existing_installation(packet.json_name, packet.display_name):
                         write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
                         register_package_success(packet, install_directory, metadata)
@@ -1265,16 +1269,22 @@ def uninstall(
                     write_verbose('Executing the quiet uninstall command', metadata)
                     log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
                     write_debug('Running silent uninstallation command', metadata)
-                    run_cmd(command, metadata, 'uninstallation', h, packet)
-
+                    run_test = run_cmd(command, metadata, 'uninstallation', h, packet)
+                    if run_test:
+                        packet.run_test = False
                     h.stop()
-
-                    
 
                     write_verbose('Uninstallation completed.', metadata)
                     log_info('Uninstallation completed.', metadata.logfile)
 
                     index += 1
+
+                    if not packet.run_test:
+                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
+                        write(
+                            f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                        log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
+                                            
                     write_debug(
                         f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
                     log_info(
@@ -1295,17 +1305,26 @@ def uninstall(
                     write_verbose('Executing the Uninstall Command', metadata)
                     log_info('Executing the silent Uninstall Command', metadata.logfile)
 
-                    run_cmd(command, metadata, 'uninstallation', h, packet)
+                    run_test = run_cmd(command, metadata, 'uninstallation', h, packet)
+                    packet.run_test = False
                     h.stop()
                     write_verbose('Uninstallation completed.', metadata)
                     log_info('Uninstallation completed.', metadata.logfile)
                     index += 1
+                    
+                    if not packet.run_test:
+                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
+                        write(
+                            f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                        log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
+                    
                     write_debug(
                         f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
                     log_info(
                         f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
                     close_log(metadata.logfile, 'Uninstall')
-            if packet.run_test != False:
+
+            if packet.run_test:
                 write(f'Running Tests For {packet.display_name}', 'white', metadata)
                 if not find_existing_installation(packet.json_name, packet.display_name):
                     os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
@@ -1315,18 +1334,18 @@ def uninstall(
                 else:
                     print(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check')
                     write(f'Failed: Registry Check', 'red', metadata)
-                    write('Retrying Registry Check In 8 seconds', 'yellow', metadata)
-                    tm.sleep(7.5)
+                    write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
+                    tm.sleep(5)
                     if not find_existing_installation(packet.json_name, packet.display_name):
                         write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
-                        register_package_success(packet, '', metadata)
+                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
                         write(
                             f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                         log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
                     else:
                         write(
                             f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
-                            
+
     finish_log()
 
 
