@@ -524,7 +524,7 @@ def install(
                         else:
                             custom_dir = install_directory
                         keys = list(pkg.keys())
-                        idx = 0
+                        
                         if not version:
                             version = res['latest-version']
                         pkg = pkg[version]

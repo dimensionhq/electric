@@ -15,11 +15,16 @@ import os
 __version__ = '1.0.0a'
 
 def get_architecture():
+    """
+    Get the cpu architecture of the user's pc 
+
+    Returns:
+        architecture(str): The architecture of the user's pc
+    """    
     if platform.machine().endswith('64'):
         return 'x64'
     if platform.machine().endswith('86'):
         return 'x32'
-
     return None
 
 # processor = SystemManager.get_pc_config()['cpu-info']
