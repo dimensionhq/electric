@@ -40,7 +40,7 @@ tags = [
 ]
 
 class Config:
-
+    
     def __init__(self, dictionary):
         self.dictionary = dictionary
         self.publisher = dictionary['Info'][0]['Publisher']

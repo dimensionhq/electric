@@ -3,6 +3,9 @@
 ######################################################################
 
 class Packet:
+    """
+    Used to store data related to the package being installed
+    """    
     def __init__(self, raw, json_name, display_name, win64, win64_type, custom_location, install_switches, uninstall_switches, directory, dependencies, install_exit_codes, uninstall_exit_codes, version, run_test):
         self.raw = raw
         self.json_name = json_name

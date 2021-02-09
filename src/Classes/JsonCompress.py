@@ -1,9 +1,15 @@
 import gzip
 from io import BytesIO, TextIOWrapper
 
-class JSONCompress():
+class JSONCompress:
     @staticmethod
     def load_compressed_file(f: TextIOWrapper):
+        """
+        Loads a json from a compressed json file
+
+        Args:
+            f (TextIOWrapper): The file with compressed data 
+        """        
         data = f.read()
         bio = BytesIO()
         stream = BytesIO(data)
@@ -19,8 +25,8 @@ class JSONCompress():
     @staticmethod
     def compress_json_to_bytes(input_string: str) -> bytes:
         """
-        read the given string, encode it in utf-8,
-        compress the data and return it as a byte array.
+        Read the given string, encode it in utf-8,
+        Compress the data and return it as a byte array.
         """
         bio = BytesIO()
         bio.write(input_string.encode("utf-8"))

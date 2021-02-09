@@ -4,6 +4,9 @@
 
 
 class Metadata:
+    """
+    Stores metadata for a method, including all flags passed in during the method.
+    """    
     def __init__(self, no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce_package, rate_limit, settings, sync, no_cache):
         self.no_progress = no_progress
         self.no_color = no_color

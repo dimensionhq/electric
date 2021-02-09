@@ -9,6 +9,16 @@ import hashlib
 API_KEY = 'GET'
 
 def virus_check(path : str):
+    """
+    Uses the virustotal api to check if a file contains viruses.
+
+    Args:
+        path (str): The path to the file to check for viruses
+
+    Returns:
+        result (dict): The virustotal api response
+    """
+    
     # Read A .exe File
     with open(rf'{path}', 'rb') as f:
         content = f.read()

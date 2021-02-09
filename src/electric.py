@@ -26,7 +26,7 @@ from prompt_toolkit.completion import WordCompleter
 from decimal import Decimal
 from Classes.PortablePacket import PortablePacket
 from Classes.Config import Config
-from Classes.PackageManager import PackageManager
+from Classes.ThreadedInstaller import ThreadedInstaller
 from Classes.Packet import Packet
 from Classes.Setting import Setting
 from cli import SuperChargeCLI
@@ -290,7 +290,7 @@ def install(
                     write_verbose('Generating system download path...', metadata)
                     log_info('Generating system download path...', metadata.logfile)
 
-                manager = PackageManager(packets, metadata)
+                manager = ThreadedInstaller(packets, metadata)
                 paths = manager.handle_multi_download()
                 cursor.show()
                 log_info('Finished Rapid Download...', metadata.logfile)
@@ -355,7 +355,7 @@ def install(
                                 handle_exit(status, setup_name, metadata)
 
                         if packet.dependencies:
-                            PackageManager.install_dependent_packages(packet, rate_limit, install_directory, metadata)
+                            ThreadedInstaller.install_dependent_packages(packet, rate_limit, install_directory, metadata)
 
                         write_verbose(
                             f'Package to be installed: {packet.json_name}', metadata)
@@ -564,7 +564,7 @@ def install(
                         write_verbose('Generating system download path...', metadata)
                         log_info('Generating system download path...', metadata.logfile)
 
-                    manager = PackageManager(packets, metadata)
+                    manager = ThreadedInstaller(packets, metadata)
                     paths = manager.handle_multi_download()
                     log_info('Finished Rapid Download...', metadata.logfile)
                     log_info(
@@ -657,7 +657,7 @@ def install(
                     handle_exit(status, setup_name, metadata)
 
             if packet.dependencies:
-                PackageManager.install_dependent_packages(packet, rate_limit, install_directory, metadata)
+                ThreadedInstaller.install_dependent_packages(packet, rate_limit, install_directory, metadata)
 
             write_verbose(
                 f'Package to be installed: {packet.json_name}', metadata)

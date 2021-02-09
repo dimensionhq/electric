@@ -1,6 +1,9 @@
 from settings import read_settings
 
 class Setting:
+    """
+    Stores settings for access
+    """
     def __init__(self, raw_dictionary, progress_bar_type, show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar):
         self.raw_dictionary = raw_dictionary
         self.progress_bar_type = progress_bar_type
@@ -11,6 +14,12 @@ class Setting:
 
     @staticmethod
     def new():
+        """
+        Creates a new settings object
+
+        Returns:
+            Setting: The new settings object
+        """        
         settings = read_settings()
         progress_bar_type,  show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar = '', '', False, False, ''
         

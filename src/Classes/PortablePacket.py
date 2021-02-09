@@ -1,4 +1,7 @@
 class PortablePacket:
+    """
+    Similar to the packet class but used for --portable installations
+    """    
     def __init__(self, data):
         self.display_name = data['display-name']
         self.json_name = data['package-name']

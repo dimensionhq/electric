@@ -23,7 +23,7 @@ import sys
 import os
 paths = {}
 
-class PackageManager:
+class ThreadedInstaller:
 
     def __init__(self, packets, metadata):
         self.packets = packets
@@ -35,7 +35,7 @@ class PackageManager:
             os.mkdir(Rf'{tempfile.gettempdir()}\electric')
 
         path = Rf'{tempfile.gettempdir()}\electric\{download.name}{download.extension}'
-        status = 'Downloading'
+        
         with open(path, 'wb') as f:
             response = requests.get(download.url, stream=True)
             total_length = response.headers.get('content-length')
@@ -181,7 +181,7 @@ class PackageManager:
     def handle_dependencies(self):
         for packet in self.packets:
             if packet.dependencies:
-                PackageManager.install_dependent_packages(packet, self.metadata.rate_limit, packet.directory, self.metadata)
+                ThreadedInstaller.install_dependent_packages(packet, self.metadata.rate_limit, packet.directory, self.metadata)
 
     def handle_multi_download(self) -> list:
 
@@ -418,7 +418,7 @@ class PackageManager:
                     write_verbose('Generating system download path...', metadata)
                     log_info('Generating system download path...', metadata.logfile)
 
-                manager = mgr.PackageManager(packets, metadata)
+                manager = mgr.ThreadedInstaller(packets, metadata)
                 paths = manager.handle_multi_download()
                 log_info('Finished Rapid Download...', metadata.logfile)
                 log_info(
@@ -449,7 +449,7 @@ class PackageManager:
                         continue
 
                     if packet.dependencies:
-                        PackageManager.install_dependent_packages(packet, rate_limit, install_directory, metadata)
+                        ThreadedInstaller.install_dependent_packages(packet, rate_limit, install_directory, metadata)
 
                     write_verbose(
                         f'Package to be installed: {packet.json_name}', metadata)
