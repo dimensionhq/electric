@@ -674,7 +674,6 @@ def find_approx_pid(exe_name, display_name) -> str:
 
 
 def handle_exit(status: str, setup_name: str, metadata: Metadata):
-    finish_log()
     if status == 'Downloaded' or status == 'Installing' or status == 'Installed':
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)

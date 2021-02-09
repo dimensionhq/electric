@@ -1346,8 +1346,6 @@ def uninstall(
                         write(
                             f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
 
-    finish_log()
-
 
 @cli.command(aliases=['clean', 'clear'], context_settings=CONTEXT_SETTINGS)
 def cleanup():

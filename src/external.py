@@ -13,6 +13,15 @@ import sys
 
 
 def handle_python_package(package_name: str, version: str, mode: str, metadata: Metadata):
+    """
+    Installs a python package handling metadata for the method
+
+    Args:
+        package_name (str): The name of the python package to be installed
+        version (str): The version of the python package to be installed
+        mode (str): The method (installation/uninstallation)
+        metadata (Metadata): Metadata for the method
+    """    
     command = ''
 
     valid = Popen(mslex.split('pip --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE)
@@ -94,6 +103,15 @@ def handle_python_package(package_name: str, version: str, mode: str, metadata: 
 
 
 def handle_node_package(package_name: str, mode: str, metadata: Metadata):
+    """
+    Installs a node/npm package handling metadata for the method
+
+    Args:
+        package_name (str): The name of the node/npm package to be installed
+        version (str): The version of the node/npm package to be installed
+        mode (str): The method (installation/uninstallation)
+        metadata (Metadata): Metadata for the method
+    """    
     version_proc = Popen(mslex.split('npm --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     version, err = version_proc.communicate()
     version = version.decode().strip()
@@ -139,6 +157,15 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
 
 
 def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
+    """
+    Installs a visual studio code package handling metadata for the method
+
+    Args:
+        package_name (str): The name of the visual studio code package to be installed
+        version (str): The version of the visual studio code package to be installed
+        mode (str): The method (installation/uninstallation)
+        metadata (Metadata): Metadata for the method
+    """
     try:
         version_proc = Popen(mslex.split('code --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     except FileNotFoundError:
@@ -185,6 +212,15 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
 
 
 def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
+    """
+    Installs a sublime text package handling metadata for the method
+
+    Args:
+        package_name (str): The name of the sublime text package to be installed
+        version (str): The version of the sublime text package to be installed
+        mode (str): The method (installation/uninstallation)
+        metadata (Metadata): Metadata for the method
+    """
     if mode == 'install':
         if find_existing_installation('sublime-text-3', 'Sublime Text 3'):
             location = PathManager.get_appdata_directory().replace('\electric', '') + '\Sublime Text 3'
@@ -245,7 +281,17 @@ def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
         else:
             print('Sublime Text 3 is not installed!')
 
+
 def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
+    """
+    Installs an atom package handling metadata
+
+    Args:
+        package_name (str): The name of the atom package to be installed
+        version (str): The version of the atom package to be installed
+        mode (str): The method (installation/uninstallation)
+        metadata (Metadata): Metadata for the method
+    """
     if mode == 'install':
         try:
             proc = Popen('apm --version --no-color'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
@@ -302,6 +348,3 @@ def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
                     h.stop()
                     click.echo(click.style(f' Successfully Uninstalled {package_name}', 'green'))
 
-
-def handle_visual_studio_package(package_name: str, mode: str, metadata: Metadata):
-    pass

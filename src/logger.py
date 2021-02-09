@@ -11,12 +11,23 @@ import os
 appdata_dir = PathManager.get_appdata_directory()
 
 def start_log():
+    """
+    Register a new method start in the appdata electric logfile
+    """    
     mode = 'a+' if isfile(f'{appdata_dir}\\electric-log.log') else 'w+'
     with open(f'{appdata_dir}\\electric-log.log', mode) as f:
         f.write('-' * 75)
         
 # Create Log File At A Certain Directory (logfile)
 def create_config(logfile : str, level, process : str):
+    """
+    Initializes a logger and handles logging to a specific file if told to do so
+
+    Args:
+        logfile (str): Name of the file to log to
+        level ([type]): The level of the logging (defaults to info)
+        process (str): The method (installation / uninstallation)
+    """    
     if not isdir(appdata_dir):
         os.mkdir(appdata_dir)
 
@@ -39,6 +50,13 @@ def create_config(logfile : str, level, process : str):
 
 
 def close_log(logfile : str, process : str):
+    """
+    Marks a completed log into the specified logfile and the appdata electric logs
+
+    Args:
+        logfile (str): The file to log to
+        process (str): The method (installation / uninstallation)
+    """    
     with open(f'{appdata_dir}\\electric-log.log', 'a+') as f:
         f.write('\n')
         f.write('-' * 75)
@@ -54,7 +72,15 @@ def close_log(logfile : str, process : str):
         finally:
             file.close()
 
+
 def log_info(text : str, logfile : str):
+    """
+    Logs with a level of `info` to a logfile
+
+    Args:
+        text (str): The text to log / write to the file
+        logfile (str): The file to write logs to
+    """    
     mode = 'a+'
 
     with open(f'{appdata_dir}\\electric-log.log', mode) as f:
@@ -62,11 +88,16 @@ def log_info(text : str, logfile : str):
     if logfile:
         logging.info(text)
 
+
 def log_error(text : str, logfile : str):
+    """
+    Logs with a level of `error` to a logfile
+
+    Args:
+        text (str): Text to log / write to the file
+        logfile (str): The file to write logs to
+    """    
     with open(f'\n{appdata_dir}\\electric-log.log', 'a+') as f:
         f.write(f'INFO:root:{text}')
     if logfile:
         logging.error(text)
-
-def finish_log():
-    pass
