@@ -1091,9 +1091,35 @@ def uninstall(
     index = 0
 
     for package in corrected_package_names:
-        installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+        installed_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
         if package not in installed_packages:
-            write(f'Could not find any existing installations of {package}', 'red', metadata)
+            supercache_availiable = check_supercache_availiable(package)
+            if super_cache and supercache_availiable and not no_cache:
+                log_info('Handling SuperCache Request.', metadata.logfile)
+                res, time = handle_cached_request(package)
+                time = Decimal(time)
+            else:
+                log_info('Handling Network Request...', metadata.logfile)
+                status = 'Networking'
+                write_verbose('Sending GET Request To /rapidquery/packages', metadata)
+                write_debug('Sending GET Request To /rapidquery/packages', metadata)
+                log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
+                update_supercache(metadata)
+                res, time = handle_cached_request(package)
+
+            pkg = res
+            version = pkg['latest-version']
+            name = pkg['display-name']
+            pkg = pkg[version]
+            log_info('Generating Packet For Further Installation.', metadata.logfile)
+            uninstall_exit_codes = []
+            packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+            
+            write(f'Could not find any existing installations of {packet.display_name}', 'red', metadata)
+            try:
+                os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+            except:
+                pass
             handle_exit('ERROR', '', metadata)
         else:
             supercache_availiable = check_supercache_availiable(package)
@@ -1217,8 +1243,34 @@ def uninstall(
 
             if not key:
                 log_info(f'electric didn\'t detect any existing installations of => {packet.display_name}', metadata.logfile)
-                write(
-                    f'Could Not Find Any Existing Installations Of {packet.display_name}', 'yellow', metadata)
+                supercache_availiable = check_supercache_availiable(package)
+                if super_cache and supercache_availiable and not no_cache:
+                    log_info('Handling SuperCache Request.', metadata.logfile)
+                    res, time = handle_cached_request(package)
+                    time = Decimal(time)
+                else:
+                    log_info('Handling Network Request...', metadata.logfile)
+                    status = 'Networking'
+                    write_verbose('Sending GET Request To /rapidquery/packages', metadata)
+                    write_debug('Sending GET Request To /rapidquery/packages', metadata)
+                    log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
+                    update_supercache(metadata)
+                    res, time = handle_cached_request(package)
+
+                pkg = res
+                version = pkg['latest-version']
+                name = pkg['display-name']
+                pkg = pkg[version]
+                log_info('Generating Packet For Further Installation.', metadata.logfile)
+                
+                uninstall_exit_codes = []
+                packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                
+                write(f'Could not find any existing installations of {packet.display_name}', 'red', metadata)
+                try:
+                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                except:
+                    pass
                 close_log(metadata.logfile, 'Uninstall')
                 index += 1
                 continue
@@ -1277,7 +1329,7 @@ def uninstall(
                     index += 1
 
                     if not packet.run_test:
-                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}v{packet.version}.json')
+                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                         write(
                             f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                         log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
@@ -1310,7 +1362,7 @@ def uninstall(
                     index += 1
                     write(f'{Fore.CYAN}{packet.display_name}{Fore.RESET} Uninstaller Exited With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
                     if not packet.run_test:
-                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}v{packet.version}.json')
+                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                         write(
                             f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                         log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
@@ -1324,7 +1376,7 @@ def uninstall(
             if packet.run_test:
                 write(f'Running Tests For {packet.display_name}', 'white', metadata)
                 if not find_existing_installation(packet.json_name, packet.display_name):
-                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}v{packet.version}.json')
+                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                     print(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check')
                     write(
                             f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
@@ -1335,7 +1387,7 @@ def uninstall(
                     tm.sleep(5)
                     if not find_existing_installation(packet.json_name, packet.display_name):
                         write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
-                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}v{packet.version}.json')
+                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                         write(
                             f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                         log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
