@@ -187,6 +187,12 @@ def get_uninstall_key(package_name : str, display_name: str):
 
 
 def get_environment_keys() -> RegSnapshot:
+    """
+    Gets the current PATH environment variable and inserts it into a registry snapshot
+
+    Returns:
+        RegSnapshot: The Snapshot for the PATH Env
+    """    
     env_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Environment', 0, winreg.KEY_READ)
     sys_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, R'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', 0, winreg.KEY_READ)
     sys_idx = 0

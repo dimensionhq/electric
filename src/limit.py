@@ -50,6 +50,9 @@ class TokenBucket:
     
 
 class Limiter:
+    """
+    Download speed limiter
+    """    
     def __init__(self, bucket, filename) -> None:
         self.bucket = bucket
         self.last_update = 0
@@ -68,7 +71,6 @@ class Limiter:
         
         self.last_downloaded_kb = downloaded_kb
 
-        # print('called')
         self.bar.next()
 
         predicted_size = block_size/1024.

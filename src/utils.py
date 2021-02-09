@@ -755,7 +755,7 @@ def assert_cpu_compatible() -> int:
 
 def find_existing_installation(package_name: str, display_name: str, test=True):
     key = registry.get_uninstall_key(package_name, display_name)
-    installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+    installed_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
     if key:
         if not test:
             if package_name in installed_packages:
@@ -1237,7 +1237,7 @@ def register_package_success(packet: Packet, install_dir: str, metadata: Metadat
         'flags': get_install_flags(install_dir, metadata)
     }
     pkg_dir = PathManager.get_appdata_directory() + r'\Current'
-    with open(rf'{pkg_dir}\{packet.json_name}.json', 'w+') as f:
+    with open(rf'{pkg_dir}\{packet.json_name}@{packet.version}.json', 'w+') as f:
         f.write(json.dumps(data, indent=4))
     
     

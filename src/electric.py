@@ -1277,7 +1277,7 @@ def uninstall(
                     index += 1
 
                     if not packet.run_test:
-                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
+                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}v{packet.version}.json')
                         write(
                             f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                         log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
@@ -1310,7 +1310,7 @@ def uninstall(
                     index += 1
                     write(f'{Fore.CYAN}{packet.display_name}{Fore.RESET} Uninstaller Exited With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
                     if not packet.run_test:
-                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
+                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}v{packet.version}.json')
                         write(
                             f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                         log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
@@ -1324,7 +1324,7 @@ def uninstall(
             if packet.run_test:
                 write(f'Running Tests For {packet.display_name}', 'white', metadata)
                 if not find_existing_installation(packet.json_name, packet.display_name):
-                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
+                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}v{packet.version}.json')
                     print(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check')
                     write(
                             f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
@@ -1335,7 +1335,7 @@ def uninstall(
                     tm.sleep(5)
                     if not find_existing_installation(packet.json_name, packet.display_name):
                         write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
-                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
+                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}v{packet.version}.json')
                         write(
                             f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                         log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
@@ -1719,6 +1719,38 @@ def generate(
 
     os.system(
         f'electric sign {PathManager.get_desktop_directory()}\electric-configuration.electric')
+
+
+@cli.command(aliases=['list'], context_settings=CONTEXT_SETTINGS)
+@click.option('--installed', '-i', is_flag=True, help='List all installed packages')
+@click.option('--versions', '-v', is_flag=True, help='List all installed packages')
+@click.pass_context
+def ls(ctx, installed: bool, versions: bool):
+    '''
+    Lists top packages which can be installed.
+    If --installed is passed in, lists all installed packages
+    '''
+    if installed:
+        if not versions:
+            try:
+                installed_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+                for package_name in installed_packages:
+                    print(package_name)
+            except: 
+                print(f'{Fore.YELLOW}No installed packages found{Fore.RESET}')
+        else:
+            os.chdir(PathManager.get_appdata_directory() + r'\Current')
+            try:
+                installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+                for package_name in installed_packages:
+                    print(package_name)
+            except: 
+                print(f'{Fore.YELLOW}No installed packages found{Fore.RESET}')
+    else: 
+        supercached_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\SuperCache') ][:99]
+        supercached_packages.remove('packages')
+        for package_name in supercached_packages:
+            print(package_name)
 
 
 @cli.command(aliases=['info'], context_settings=CONTEXT_SETTINGS)
