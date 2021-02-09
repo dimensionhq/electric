@@ -11,7 +11,6 @@ import time as tm
 import logging
 import os
 import sys
-from timeit import default_timer as timer
 from urllib.request import urlretrieve
 from itertools import zip_longest
 
@@ -40,7 +39,6 @@ from settings import initialize_settings, open_settings
 from utils import *
 from zip_install import install_portable
 from zip_uninstall import uninstall_portable
-
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 
@@ -751,7 +749,7 @@ def install(
                 status = 'Installing'
                 # Running The Installer silently And Completing Setup
                 install_package(path, packet, metadata, h)
-            write(f'Completed {Fore.CYAN}{packet.display_name}{Fore.RESET} Installer With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
+            write(f'{Fore.CYAN}{packet.display_name}{Fore.RESET} Installer Exited With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
             status = 'Installed'
             log_info('Creating final snapshot of registry...', metadata.logfile)
             final_snap = get_environment_keys()
@@ -1194,15 +1192,15 @@ def uninstall(
 
             if super_cache:
                 if not ae:
-                    write(
-                        f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', 'bright_yellow', metadata)
+                    write(f'SuperCached [ {Fore.CYAN}{packet.display_name}{Fore.RESET} ]', 'white', metadata)
                     write_debug(
-                        f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 9)}s', metadata)
+                        f'Successfully SuperCached {packet.json_name} in {round(time, 9)}s', metadata)
                     log_info(
-                        f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
+                        f'Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
             else:
+                write(f'Recieved => [ {Fore.CYAN} {packet.display_name} {Fore.RESET} ]', 'white', metadata)
                 write(
-                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_green', metadata)
+                    f'Received {packet.json_name}.json in {round(time, 6)}s', 'bright_green', metadata)
                 log_info(
                     f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
 
@@ -1310,7 +1308,7 @@ def uninstall(
                     write_verbose('Uninstallation completed.', metadata)
                     log_info('Uninstallation completed.', metadata.logfile)
                     index += 1
-                    
+                    write(f'{Fore.CYAN}{packet.display_name}{Fore.RESET} Uninstaller Exited With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
                     if not packet.run_test:
                         os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
                         write(
