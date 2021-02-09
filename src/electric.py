@@ -48,8 +48,8 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 @click.version_option(__version__)
 @click.pass_context
 def cli(_):
-    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\electric-settings.json'):
-        click.echo(click.style(f'Creating electric-settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
+    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\settings.json'):
+        click.echo(click.style(f'Creating settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
         initialize_settings()
     if not os.path.isdir(PathManager.get_appdata_directory() + r'\Current'):
         os.mkdir(PathManager.get_appdata_directory() + r'\Current')
@@ -1737,8 +1737,8 @@ def show(package_name: str, nightly: bool):
 
 @cli.command(context_settings=CONTEXT_SETTINGS)
 def settings():
-    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\electric-settings.json'):
-        click.echo(click.style(f'Creating electric-settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
+    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\settings.json'):
+        click.echo(click.style(f'Creating settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
         initialize_settings()
     cursor.hide()
     with Halo('Opening Settings... ', text_color='blue'):
