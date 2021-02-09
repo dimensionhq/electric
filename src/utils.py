@@ -338,12 +338,14 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
                 if metadata.no_progress == True or metadata.settings.show_progress_bar == False:
                     sys.stdout.write(
-                        f'\r{round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
+                        f'\r{round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} Mb')
                     sys.stdout.flush()
 
 
                 elif not metadata.no_progress and not metadata.silent:
                     complete = int(25 * dl / full_length)
+                    fill_c = '-' # Fallback Character
+                    unfill_c = ' ' # Fallback Character           
                     if progress_type == 'custom' or metadata.settings.use_custom_progress_bar:
                         fill_c = eval(get_character_color(True, metadata))  + metadata.settings.raw_dictionary['customProgressBar']['fill_character'] * complete
                         unfill_c = eval(get_character_color(False, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['unfill_character']  * (25 - complete)
@@ -359,7 +361,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
                     if metadata.settings.electrify_progress_bar == True and not metadata.settings.use_custom_progress_bar:
                         sys.stdout.write(
-                        f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}⚡')
+                        f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} Mb {Fore.RESET}⚡')
                     else:
                         sys.stdout.write(
                             f'\r{get_init_char(True, metadata)}{fill_c}{unfill_c}{get_init_char(False, metadata)} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
@@ -367,7 +369,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
     os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
     dump_pickle(generate_dict(newpath if newpath else path, package_name), 'downloadcache')
-    
+    sys.stdout.write('\n') # Prevent /r from getting overwritten by Halo
     if not newpath:
         return path
     else:

@@ -738,7 +738,6 @@ def install(
                 log_info('Running requested virus scanning', metadata.logfile)
                 write('Scanning File For Viruses...', 'blue', metadata)
                 check_virus(path, metadata)
-            
             with Halo(text=f'Installing {Fore.CYAN}{packet.display_name}{Fore.RESET}') as h:
                 log_info(
                     'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
@@ -752,7 +751,7 @@ def install(
                 status = 'Installing'
                 # Running The Installer silently And Completing Setup
                 install_package(path, packet, metadata, h)
-            write(f'Installation Complete', 'white', metadata)
+            write(f'Completed {Fore.CYAN}{packet.display_name}{Fore.RESET} Installer With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
             status = 'Installed'
             log_info('Creating final snapshot of registry...', metadata.logfile)
             final_snap = get_environment_keys()
