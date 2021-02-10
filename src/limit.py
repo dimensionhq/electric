@@ -4,9 +4,7 @@
 
 import threading
 import time
-from typing import Any
 from progress.bar import Bar
-
 
 class TokenBucket:
     def __init__(self, tokens, fill_rate) -> None:
@@ -62,7 +60,7 @@ class Limiter:
         self.avg_rate = None
         self.bar = Bar('')
 
-    def __call__(self, block_count, block_size, total_size) -> Any:
+    def __call__(self, block_count, block_size, total_size):
         total_kb = total_size / 1024
         self.bar.max = total_kb / 8.00008
 

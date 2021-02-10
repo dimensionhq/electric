@@ -22,7 +22,6 @@ from progress.bar import Bar
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
 
-from decimal import Decimal
 from Classes.PortablePacket import PortablePacket
 from Classes.Config import Config
 from Classes.ThreadedInstaller import ThreadedInstaller
@@ -30,7 +29,6 @@ from Classes.Packet import Packet
 from Classes.Setting import Setting
 from cli import SuperChargeCLI
 from headers import *
-from external import *
 from info import __version__
 from limit import Limiter, TokenBucket
 from logger import *
@@ -1097,7 +1095,6 @@ def uninstall(
             if super_cache and supercache_availiable and not no_cache:
                 log_info('Handling SuperCache Request.', metadata.logfile)
                 res, time = handle_cached_request(package)
-                time = Decimal(time)
             else:
                 log_info('Handling Network Request...', metadata.logfile)
                 status = 'Networking'
@@ -1126,7 +1123,6 @@ def uninstall(
             if super_cache and supercache_availiable and not no_cache:
                 log_info('Handling SuperCache Request.', metadata.logfile)
                 res, time = handle_cached_request(package)
-                time = Decimal(time)
             else:
                 log_info('Handling Network Request...', metadata.logfile)
                 status = 'Networking'
@@ -1220,15 +1216,15 @@ def uninstall(
                 if not ae:
                     write(f'SuperCached [ {Fore.CYAN}{packet.display_name}{Fore.RESET} ]', 'white', metadata)
                     write_debug(
-                        f'Successfully SuperCached {packet.json_name} in {round(time, 9)}s', metadata)
+                        f'Successfully SuperCached {packet.json_name}', metadata)
                     log_info(
-                        f'Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
+                        f'Successfully SuperCached {packet.json_name}', metadata)
             else:
                 write(f'Recieved => [ {Fore.CYAN} {packet.display_name} {Fore.RESET} ]', 'white', metadata)
                 write(
-                    f'Received {packet.json_name}.json in {round(time, 6)}s', 'bright_green', metadata)
+                    f'Received {packet.json_name}.json', 'bright_green', metadata)
                 log_info(
-                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
+                    f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
 
             # Getting UninstallString or QuietUninstallString From The Registry Search Algorithm
             write_verbose(
@@ -1247,7 +1243,6 @@ def uninstall(
                 if super_cache and supercache_availiable and not no_cache:
                     log_info('Handling SuperCache Request.', metadata.logfile)
                     res, time = handle_cached_request(package)
-                    time = Decimal(time)
                 else:
                     log_info('Handling Network Request...', metadata.logfile)
                     status = 'Networking'
