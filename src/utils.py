@@ -11,10 +11,9 @@ import shutil
 import sys
 import tempfile
 import webbrowser
-import zipfile
 from datetime import datetime
 from signal import SIGTERM
-from subprocess import PIPE, CalledProcessError, Popen, call, check_call
+from subprocess import PIPE, CalledProcessError, Popen, check_call
 from timeit import default_timer as timer
 from Classes.JsonCompress import JSONCompress
 
@@ -24,7 +23,7 @@ import cursor
 import keyboard
 import pyperclip as clipboard
 import requests
-from colorama import Back, Fore, Style
+from colorama import Fore, Style
 from googlesearch import search
 from halo import Halo
 from switch import Switch
@@ -38,7 +37,6 @@ from headers import *
 from extension import *
 from limit import *
 from logger import *
-from registry import *
 from viruscheck import virus_check
 
 index = 0
