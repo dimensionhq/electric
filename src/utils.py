@@ -420,6 +420,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             flags = ''
             for flag in get_install_flags(packet.directory, metadata):
                 flags += f' {flag}'
+            sys.stdout.write('\n')
             click.echo(click.style(f'The {packet.display_name} Installer Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
@@ -434,8 +435,9 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
             click.echo(click.style('\nAdministrator Elevation Required Or Fatal Installer Error. Exit Code [1603]', fg='red'))
             sys.exit()
-        click.echo(click.style('\nFatal Installer Error. Exit Code [1603]', fg='red'))
-        return get_error_message('1603', 'installation', packet.display_name, packet.version)
+        else:
+            click.echo(click.style('\nFatal Installer Error. Exit Code [1603]', fg='red'))
+            return get_error_message('1603', 'installation', packet.display_name, packet.version)
 
     if 'exit status 1639' in error:
         click.echo(click.style(f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
@@ -589,28 +591,22 @@ def get_configuration_data(username: str, description: str, uses_editor: bool, i
         f'Description => \"{description}\"\n'
     ]
 
-    required_packages = []
-
     if uses_editor and include_editor and editor:
         base_configuration.append('\n[ Editor-Configuration ]\n')
         if editor == 'Visual Studio Code':
             base_configuration.append(f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<vscode:name>\n')
-            required_packages.append('visual-studio-code')
+
         if editor == 'Atom':
             base_configuration.append(
                 f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<atom:name>\n')
-            required_packages.append('atom')
 
     if include_python:
         base_configuration.append('\n[ Pip-Packages ]\n<pip:name>\n')
-        required_packages.append('python')
 
     if include_node:
         base_configuration.append('\n[ Node-Packages ]\n<npm:name>\n')
-        required_packages.append('nodejs')
 
-    requirements = str(required_packages).replace('[', '').replace(']', '').replace(',', '\n').replace('\'', '').replace('\n ', '\n')
-    base_configuration.insert(4, f'\n[ Packages ]\n{requirements}\n')
+    base_configuration.insert(4, f'\n[ Packages ]\n<electric:name>\n')
     return base_configuration
 
 # IMPORTANT: FOR FUTURE USE

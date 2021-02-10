@@ -1,5 +1,5 @@
 from tempfile import gettempdir
-from sys import platform
+from sys import dllhandle, platform
 from subprocess import *
 from external import *
 from utils import *
@@ -188,7 +188,6 @@ class Config:
             with open(f'{filepath}', 'r') as f:
                 chunks = f.read().split("[")
 
-
                 for chunk in chunks:
                     chunk = chunk.replace("=>", ":").split('\n')
                     header = chunk[0].replace("[", '').replace(']', '').strip()
@@ -232,6 +231,38 @@ class Config:
                                     exit()
 
                             d[header].append({ k : v.replace('"', '') })
+
+                if 'Packages' in d:
+                    with open(f'{filepath}', 'r') as f:
+
+                        lines = f.readlines()
+
+                    for line in lines:
+
+                        if '<electric:name>' in line or '<electric>' in line:
+                            idx = lines.index(line)
+                            proc = Popen('electric list --installed'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                            output, _ = proc.communicate()
+                            output = output.decode().splitlines()
+                            electric_packages = []
+                            electric_packages = output
+
+                            lines[idx] = Config.get_repr_packages(electric_packages, False) + '\n'
+
+                            with open(f'{filepath}', 'w') as f:
+                                f.writelines(lines)
+                        
+                        if '<electric:name,version>' in line:
+                            idx = lines.index(line)
+                            proc = Popen('electric list --installed --versions'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                            output, _ = proc.communicate()
+                            output = output.decode().splitlines()
+                            electric_packages = []
+                            electric_packages = [{line.split('@')[0] : line.split('@')[1]} for line in output]
+                            lines[idx] = Config.get_repr_packages(electric_packages, True).replace('\n ', '\n') + '\n'
+
+                            with open(f'{filepath}', 'w') as f:
+                                f.writelines(lines)
 
                 if 'Editor-Extensions' in d:
                     with open(f'{filepath}', 'r') as f:
