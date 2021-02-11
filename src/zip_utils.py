@@ -9,7 +9,6 @@ import zipfile
 import tarfile
 import py7zr
 import patoolib
-from tqdm import tqdm
 
 from Classes.Metadata import Metadata
 from Classes.PortablePacket import PortablePacket
@@ -45,12 +44,8 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata:
             except:
                 pass
     elif not metadata.silent and file_type == '.zip':
-        with zipfile.ZipFile(download_dir, 'r') as zf:
-            for member in tqdm(zf.infolist(), desc='Extracting Files', bar_format='{l_bar}{bar:20}{r_bar}{bar:-20b}', unit='files'):
-                try:
-                    zf.extract(member, download_dir.replace('.zip', ''))
-                except zipfile.error:
-                 pass
+        os.system(rf'powershell.exe -noprofile Expand-Archive "{download_dir}" -Force')
+        
 
     if file_type == '.tar':
         tar = tarfile.open(download_dir)

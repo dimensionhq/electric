@@ -3,7 +3,6 @@ from sys import platform
 from subprocess import *
 from external import *
 from utils import *
-import pyperclip
 import colorama
 import socket
 import click
@@ -406,7 +405,7 @@ class Config:
                     l = [line.strip() for line in lines]
                     if not '# --------------------Checksum Start-------------------------- #' in l or not '# --------------------Checksum End--------------------------- #' in l:
                         click.echo(click.style(f'File Checksum Not Found! Run `electric sign {filepath}` ( Copied To Clipboard ) to sign your .electric configuration.', fg='red'))
-                        pyperclip.copy(f'electric sign {filepath}')
+                        copy_to_clipboard(f'electric sign {filepath}')
                         exit()
 
                     if lines[-1] != '# --------------------Checksum End--------------------------- #':

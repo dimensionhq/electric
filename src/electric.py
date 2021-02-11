@@ -594,6 +594,9 @@ def install(
         pkg = res
         log_info('Generating Packet For Further Installation.', metadata.logfile)
 
+        if 'is-portable' in list(pkg.keys()):
+            if pkg['is-portable'] == True:
+                portable = True
         if not version:
             version = pkg['latest-version']
         if portable:
@@ -1090,11 +1093,13 @@ def uninstall(
 
     for package in corrected_package_names:
         installed_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+        portable_installed_packages = [ ''.join(f.split('@')[:1]) for f in os.listdir(os.path.expanduser('~') + r'\electric') ]
+        installed_packages += portable_installed_packages
         if package not in installed_packages:
             supercache_availiable = check_supercache_availiable(package)
             if super_cache and supercache_availiable and not no_cache:
                 log_info('Handling SuperCache Request.', metadata.logfile)
-                res, time = handle_cached_request(package)
+                res, _ = handle_cached_request(package)
             else:
                 log_info('Handling Network Request...', metadata.logfile)
                 status = 'Networking'
@@ -1102,7 +1107,7 @@ def uninstall(
                 write_debug('Sending GET Request To /rapidquery/packages', metadata)
                 log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
                 update_supercache(metadata)
-                res, time = handle_cached_request(package)
+                res, _ = handle_cached_request(package)
 
             pkg = res
             version = pkg['latest-version']
@@ -1122,7 +1127,7 @@ def uninstall(
             supercache_availiable = check_supercache_availiable(package)
             if super_cache and supercache_availiable and not no_cache:
                 log_info('Handling SuperCache Request.', metadata.logfile)
-                res, time = handle_cached_request(package)
+                res, _ = handle_cached_request(package)
             else:
                 log_info('Handling Network Request...', metadata.logfile)
                 status = 'Networking'
@@ -1130,11 +1135,13 @@ def uninstall(
                 write_debug('Sending GET Request To /rapidquery/packages', metadata)
                 log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
                 update_supercache(metadata)
-                res, time = handle_cached_request(package)
-
+                res, _ = handle_cached_request(package)
+            
             pkg = res
+            if 'is-portable' in list(pkg.keys()):
+                if pkg['is-portable'] == True:
+                    portable = True
             version = pkg['latest-version']
-
             if portable:
                 version = 'portable'
             uninstall_exit_codes = []
@@ -1142,6 +1149,7 @@ def uninstall(
                 uninstall_exit_codes = pkg['valid-install-exit-codes']
 
             name = pkg['display-name']
+
             pkg = pkg[version]
             log_info('Generating Packet For Further Installation.', metadata.logfile)
             if portable:
