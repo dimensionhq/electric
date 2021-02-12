@@ -402,11 +402,16 @@ class Config:
                             for val in output:
                                 if val:
                                     refined_output.append(val.replace('+--', '').replace('`--', '').strip())
+                            
                             npm_packages = []
                             npm_packages.append([line.split('@')[0] for line in refined_output])
                             npm_packages = npm_packages[0]
-
-                            lines[idx] = Config.get_repr_packages(npm_packages, False) + '\n'
+                            new_packages = []
+                            for package in npm_packages:
+                                package = package.replace('UNMET PEER DEPENDENCY ', '')
+                                new_packages.append(package)
+                            
+                            lines[idx] = Config.get_repr_packages(new_packages, False) + '\n'
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
 
