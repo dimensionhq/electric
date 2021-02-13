@@ -9,9 +9,23 @@ class PortablePacket:
         self.url = data['url']
         self.file_type = data['file-type']
         self.extract_dir = data['extract-dir']
-        self.chdir = data['chdir']
-        self.bin = data['bin']
-        self.shortcuts = data['shortcuts']
-        self.post_install = data['post-install']
-        self.notes = data['notes']
-        
+        try:
+            self.chdir = data['chdir']
+        except:
+            self.chdir = None
+        try:
+            self.bin = data['bin']
+        except:
+            self.bin = None
+        try:
+            self.shortcuts = data['shortcuts']
+        except:
+            self.shortcuts = None
+        try:
+            self.post_install = data['post-install']
+        except:
+            self.post_install = None
+        try:
+            self.notes = data['notes']
+        except:
+            self.notes = None

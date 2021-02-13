@@ -11,7 +11,7 @@ home = os.path.expanduser('~')
 
 
 def install_portable(packet: PortablePacket, metadata: Metadata):
-    if find_existing_installation(f'{packet.extract_dir}{packet.latest_version}'):
+    if find_existing_installation(f'{packet.extract_dir}@{packet.latest_version}'):
         write(f'Found Existing Installation Of {packet.display_name}', 'yellow', metadata)
         continue_installation = click.confirm(f'Would you like to reinstall {packet.display_name}?')
         if continue_installation:
@@ -24,9 +24,9 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
     shortcuts = packet.shortcuts
     extract_dir = packet.extract_dir
     write_debug(f'Downloading {packet.json_name}{packet.file_type} from {packet.url}', metadata)
-    download(packet.url, '.zip', rf'{home}\electric\\' + f'{packet.extract_dir}{packet.latest_version}', metadata, show_progress_bar= True if not metadata.silent and not metadata.no_progress else False)
-    unzip_dir = unzip_file(f'{packet.extract_dir}{packet.latest_version}' + '.zip', extract_dir, packet.file_type, metadata)
-    
+    download(packet.url, '.zip', rf'{home}\electric\\' + f'{packet.extract_dir}@{packet.latest_version}', metadata, show_progress_bar= True if not metadata.silent and not metadata.no_progress else False)
+    unzip_dir = unzip_file(f'{packet.extract_dir}@{packet.latest_version}' + '.zip', extract_dir, packet.file_type, metadata)
+
     if packet.chdir:
         dir = packet.chdir
         unzip_dir += f'\\{dir}\\'
@@ -47,11 +47,11 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                 generate_shim(f'{shim_dir}', shim, shim_ext)
                 end = timer()
                 write(f'{Fore.CYAN}Successfully Generated {shim} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)
-                
-    for shortcut in shortcuts:
-        shortcut_name = shortcut['shortcut-name']
-        file_name = shortcut['file-name']
-        create_start_menu_shortcut(unzip_dir, file_name, shortcut_name)
+    if shortcuts:
+        for shortcut in shortcuts:
+            shortcut_name = shortcut['shortcut-name']
+            file_name = shortcut['file-name']
+            create_start_menu_shortcut(unzip_dir, file_name, shortcut_name)
 
     if changes_environment:
         write(f'{Fore.GREEN}\nRefreshing Environment Variables{Fore.RESET}', 'white', metadata)

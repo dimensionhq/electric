@@ -3,7 +3,6 @@ from sys import dllhandle, platform
 from subprocess import *
 from external import *
 from utils import *
-import pyperclip
 import colorama
 import socket
 import click
@@ -403,11 +402,16 @@ class Config:
                             for val in output:
                                 if val:
                                     refined_output.append(val.replace('+--', '').replace('`--', '').strip())
+                            
                             npm_packages = []
                             npm_packages.append([line.split('@')[0] for line in refined_output])
                             npm_packages = npm_packages[0]
-
-                            lines[idx] = Config.get_repr_packages(npm_packages, False) + '\n'
+                            new_packages = []
+                            for package in npm_packages:
+                                package = package.replace('UNMET PEER DEPENDENCY ', '')
+                                new_packages.append(package)
+                            
+                            lines[idx] = Config.get_repr_packages(new_packages, False) + '\n'
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
 
@@ -437,7 +441,7 @@ class Config:
                     l = [line.strip() for line in lines]
                     if not '# --------------------Checksum Start-------------------------- #' in l or not '# --------------------Checksum End--------------------------- #' in l:
                         click.echo(click.style(f'File Checksum Not Found! Run `electric sign {filepath}` ( Copied To Clipboard ) to sign your .electric configuration.', fg='red'))
-                        pyperclip.copy(f'electric sign {filepath}')
+                        copy_to_clipboard(f'electric sign {filepath}')
                         exit()
 
                     if lines[-1] != '# --------------------Checksum End--------------------------- #':

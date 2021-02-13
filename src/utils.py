@@ -21,7 +21,6 @@ from Classes.JsonCompress import JSONCompress
 import click
 import cursor
 import keyboard
-import pyperclip as clipboard
 import requests
 from colorama import Fore, Style
 from googlesearch import search
@@ -44,6 +43,10 @@ final_value = None
 path = ''
 
 appdata_dir = PathManager.get_appdata_directory()
+
+
+def copy_to_clipboard(text: str):
+    Popen(f'echo {text} | clip'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
 
 
 def get_recent_logs() -> list:
@@ -1081,7 +1084,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
             ]
 
         elif code('0011'):
-            clipboard.copy('electric install nodejs')
+            copy_to_clipboard('electric install nodejs')
             return [
                 '\n[0011] => Node(npm) is not installed on your system.',
                 '\n\nHow To Fix:\n',
@@ -1097,7 +1100,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
             ]
 
         elif code('0010'):
-            clipboard.copy('electric install python3')
+            copy_to_clipboard('electric install python3')
             return [
                 '\n[0010] => Python(pip) is not installed on your system.',
                 '\n\nHow To Fix:\n',

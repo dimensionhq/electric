@@ -594,6 +594,9 @@ def install(
         pkg = res
         log_info('Generating Packet For Further Installation.', metadata.logfile)
 
+        if 'is-portable' in list(pkg.keys()):
+            if pkg['is-portable'] == True:
+                portable = True
         if not version:
             version = pkg['latest-version']
         if portable:
@@ -907,7 +910,7 @@ def update(
         pkg = pkg[pkg['latest-version']]
         packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, [], res['latest-version'], res['run-check'] if 'run-check' in list(res.keys()) else True)
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+        installed_packages = [ f.replace('.json', '').split('@')[:-1] for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
         if package in installed_packages:
             if check_newer_version(package, packet):
                 install_dir = PathManager.get_appdata_directory() + r'\Current'
@@ -959,9 +962,7 @@ def update(
             else:
                 print(f'{package} is already on the latest version')
         else:
-            write(f'{package} Is Not Installed', 'red', metadata)
-        # TODO: Install Newer Version Of Software
-        pass
+            write(f'{packet.display_name} Is Not Installed', 'red', metadata)
 
 
 @cli.command(aliases=['remove', 'u'], context_settings=CONTEXT_SETTINGS)
@@ -1090,11 +1091,13 @@ def uninstall(
 
     for package in corrected_package_names:
         installed_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+        portable_installed_packages = [ ''.join(f.split('@')[:1]) for f in os.listdir(os.path.expanduser('~') + r'\electric') ]
+        installed_packages += portable_installed_packages
         if package not in installed_packages:
             supercache_availiable = check_supercache_availiable(package)
             if super_cache and supercache_availiable and not no_cache:
                 log_info('Handling SuperCache Request.', metadata.logfile)
-                res, time = handle_cached_request(package)
+                res, _ = handle_cached_request(package)
             else:
                 log_info('Handling Network Request...', metadata.logfile)
                 status = 'Networking'
@@ -1102,7 +1105,7 @@ def uninstall(
                 write_debug('Sending GET Request To /rapidquery/packages', metadata)
                 log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
                 update_supercache(metadata)
-                res, time = handle_cached_request(package)
+                res, _ = handle_cached_request(package)
 
             pkg = res
             version = pkg['latest-version']
@@ -1122,7 +1125,7 @@ def uninstall(
             supercache_availiable = check_supercache_availiable(package)
             if super_cache and supercache_availiable and not no_cache:
                 log_info('Handling SuperCache Request.', metadata.logfile)
-                res, time = handle_cached_request(package)
+                res, _ = handle_cached_request(package)
             else:
                 log_info('Handling Network Request...', metadata.logfile)
                 status = 'Networking'
@@ -1130,78 +1133,41 @@ def uninstall(
                 write_debug('Sending GET Request To /rapidquery/packages', metadata)
                 log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
                 update_supercache(metadata)
-                res, time = handle_cached_request(package)
-
+                res, _ = handle_cached_request(package)
+            
             pkg = res
-            version = pkg['latest-version']
-
+            if 'is-portable' in list(pkg.keys()):
+                if pkg['is-portable'] == True:
+                    portable = True
+        
             if portable:
                 version = 'portable'
+            else:
+                version = pkg['latest-version']
+
             uninstall_exit_codes = []
             if 'valid-uninstall-exit-codes' in list(pkg.keys()):
                 uninstall_exit_codes = pkg['valid-install-exit-codes']
 
             name = pkg['display-name']
             pkg = pkg[version]
+        
             log_info('Generating Packet For Further Installation.', metadata.logfile)
             if portable:
-                try:
-                    data = {
-                        'display-name': res['display-name'],
-                        'package-name': res['package-name'],
-                        'latest-version': res['latest-version'],
-                        'url': pkg[res['latest-version']]['url'],
-                        'file-type': pkg[res['latest-version']]['file-type'],
-                        'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                        'chdir': pkg[res['latest-version']]['chdir'],
-                        'bin': pkg[res['latest-version']]['bin'],
-                        'shortcuts': pkg[res['latest-version']]['shortcuts'],
-                        'post-install': pkg[res['latest-version']]['post-install'],
-                    }
-                except KeyError:
-                    try:
-                        data = {
-                            'display-name': res['display-name'],
-                            'package-name': res['package-name'],
-                            'latest-version': res['latest-version'],
-                            'url': pkg[res['latest-version']]['url'],
-                            'file-type': pkg[res['latest-version']]['file-type'],
-                            'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                            'bin': pkg[res['latest-version']]['bin'],
-                            'shortcuts': pkg[res['latest-version']]['shortcuts']
-                        }
-                    except KeyError:
-                        try:
-                            data = {
-                                'display-name': res['display-name'],
-                                'package-name': res['package-name'],
-                                'latest-version': res['latest-version'],
-                                'url': pkg[res['latest-version']]['url'],
-                                'file-type': pkg[res['latest-version']]['file-type'],
-                                'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                                'bin': pkg[res['latest-version']]['bin'],
-                                'shortcuts': pkg[res['latest-version']]['shortcuts']
-                            }
-                        except KeyError:
-                            try:
-                                data = {
-                                    'display-name': res['display-name'],
-                                    'package-name': res['package-name'],
-                                    'latest-version': res['latest-version'],
-                                    'url': pkg[res['latest-version']]['url'],
-                                    'file-type': pkg[res['latest-version']]['file-type'],
-                                    'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                                    'bin': pkg[res['latest-version']]['bin'],
-                                }
-                            except KeyError:
-                                data = {
-                                    'display-name': res['display-name'],
-                                    'package-name': res['package-name'],
-                                    'latest-version': res['latest-version'],
-                                    'url': pkg[res['latest-version']]['url'],
-                                    'file-type': pkg[res['latest-version']]['file-type'],
-                                    'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                                }
+                keys = list(pkg[res['latest-version']].keys())
+                data = {
+                    'display-name': res['display-name'],
+                    'package-name': res['package-name'],
+                    'latest-version': res['latest-version'],
+                    'url': pkg[res['latest-version']]['url'],
+                    'file-type': pkg[res['latest-version']]['file-type'],
+                    'extract-dir': pkg[res['latest-version']]['extract-dir'],
+                    'chdir': pkg[res['latest-version']]['chdir'] if 'chdir' in keys else None,
+                    'bin': pkg[res['latest-version']]['bin'] if 'bin' in keys else None,
+                    'shortcuts': pkg[res['latest-version']]['shortcuts'] if 'shortcuts' in keys else None,
+                    'post-install': pkg[res['latest-version']]['post-install'] if 'post-install' in keys else None,
+                }
+            
                 portable_packet = PortablePacket(data)
                 start = timer()
                 uninstall_portable(portable_packet, metadata)
