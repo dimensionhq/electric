@@ -21,3 +21,4 @@ Inno Setup/
 src/Pipfile.lock
 src/Pipfile
 tests/__pycache__
+test.py
