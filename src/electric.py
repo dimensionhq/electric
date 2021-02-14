@@ -17,7 +17,7 @@ from itertools import zip_longest
 import click
 import halo
 import keyboard
-from colorama import *
+from colorama import Fore
 from progress.bar import Bar
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter

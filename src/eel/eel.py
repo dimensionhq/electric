@@ -1,7 +1,7 @@
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit import prompt
 from eel_cli import SuperChargeCLI
-from moviepy.editor import *
+from moviepy.editor import VideoClipFile
 import click
 
 

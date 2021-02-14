@@ -1,8 +1,8 @@
+from utils import find_existing_installation, copy_to_clipboard
 from tempfile import gettempdir
-from sys import dllhandle, platform
-from subprocess import *
+from sys import platform
+from subprocess import Popen, PIPE
 from external import *
-from utils import *
 import colorama
 import socket
 import click
@@ -476,8 +476,7 @@ class Config:
                             os.remove(rf'{gettempdir()}\electric\configuration.electric')
                             exit(1)
                         os.remove(rf'{gettempdir()}\electric\configuration.electric')
-        except FileNotFoundError as e:
-            print(filepath)
+        except FileNotFoundError:
             click.echo(click.style(f'Could Not Find {Fore.BLUE}{filepath}{Fore.RESET}.', fg='red'), err=True)
             time.sleep(2)
             exit()
