@@ -74,4 +74,3 @@ with open(filepath, 'a') as f:
     ])
 
 print(Fore.GREEN + f'Successfully Signed {filepath}.')
-# TODO: DO something in order to make sure people can't just calculate checksums and paste them into the file in the same format

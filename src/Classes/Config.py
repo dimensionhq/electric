@@ -1,3 +1,4 @@
+import requests
 from utils import find_existing_installation, copy_to_clipboard
 from tempfile import gettempdir
 from sys import platform
@@ -178,6 +179,40 @@ class Config:
             return False
         else:
             NotImplementedError('A definitive answer was not found by primary or secondary lookups.')
+
+    @staticmethod
+    def check_vscode_name(extension_name):
+        """
+        Check if an extension exists on vscode.
+        """
+        extension_url = 'https://marketplace.visualstudio.com/items?itemName='
+        res = requests.get(f'{extension_url}{extension_name}')
+        return True if res.status_code == 200 else False
+
+    @staticmethod
+    def check_atom_name(extension_name):
+        extension_url = 'https://atom.io/packages/'
+        res = requests.get(f'{extension_url}{extension_name}')
+        return True if res.status_code == 200 else False
+    
+    @staticmethod
+    def check_sublime_name(extension_name):
+        extension_url = 'https://packagecontrol.io/packages/'
+        res = requests.get(f'{extension_url}{extension_name}')
+        return True if res.status_code == 200 else False
+
+    @staticmethod
+    def check_node_name(extension_name):
+        extension_url = 'https://www.npmjs.com/package/'
+        res = requests.get(f'{extension_url}{extension_name}')
+        return True if res.status_code == 200 else False
+
+    # FUTURE Yarn Support
+    @staticmethod
+    def check_yarn_name(extension_name):
+        extension_url = 'https://yarnpkg.com/package/'
+        res = requests.get(f'{extension_url}{extension_name}')
+        return True if res.status_code == 200 else False
 
 
     @staticmethod
@@ -485,7 +520,7 @@ class Config:
         return Config(d)
 
 
-    def verify(self, server=False, socket=None):
+    def verify(self):
         config = self.dictionary
         python_packages = config['Pip-Packages'] if 'Pip-Packages' in self.headers else None
         node_packages = config['Node-Packages'] if 'Node-Packages' in self.headers else None
@@ -494,108 +529,46 @@ class Config:
         editor_type = config['Editor-Configuration'][0]['Editor'] if 'Editor-Configuration' in self.headers else None
         if packages:
             click.echo(click.style('↓ Validating Electric Packages        ↓', 'cyan'))
-            if socket and server:
-                socket.send(b'Validating Electric Packages')
             for package in packages:
                 proc = Popen(f'electric show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
                 output, err = proc.communicate()
-                if 'Could Not Find Any Packages' in output.decode():
-                    if socket and server:
-                        error = f'Electric Package => `{list(package.keys())[0]}` does not exist or has been removed.ERROR'
-                        socket.send(error.encode())
-                        return
-                    else:
-                        click.echo(click.style(f'`{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
-                        return
+                if 'Could Not Find Any Packages' in output.decode() or err:
+                    click.echo(click.style(f'`{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
+                    return
 
         if node_packages:
             click.echo(click.style('↓ Validating Node or Npm Modules      ↓', 'cyan'))
-            if socket and server:
-                socket.send(b'Validating Node or Npm Modules')
-            for package in node_packages:
-                proc = Popen(f'npm show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-                output, err = proc.communicate()
-                if f'\'{list(package.keys())[0]}\' is not in the npm registry.' in err.decode():
-                    if socket and server:
-                        error = f'The ( npm | node ) module => `{list(package.keys())[0]}` does not exist or has been removed.ERROR'
-                        socket.send(error.encode())
-                        socket.close()
-                        return
+            for package_name in node_packages:
+                if not Config.check_node_name(package_name):
                     click.echo(click.style(f'The ( npm | node ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
                     return
 
         click.echo(click.style('↓ Validating Python or Pip Modules    ↓', 'cyan'))
 
         if python_packages:
-            if socket and server:
-                socket.send(b'Validating Python Or Pip Modules')
             for package in python_packages:
                 if not Config.check_pypi_name(list(package.keys())[0].lower()):
-                    if socket and server:
-                        error = f'The ( python | pip ) module => `{list(package.keys())[0]}`.ERROR'
-                        socket.send(error.encode())
-                        socket.close()
-                        return
                     click.echo(click.style(f'The ( python | pip ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
                     return
 
         if editor_type:
             if not editor_type in ['Visual Studio Code', 'Atom', 'Sublime Text 3']:
                 click.echo(click.style(f'The editor => {editor_type} is not supported by electric yet!', 'red'))
-                if socket and server:
-                    error = f'The editor => {editor_type} is not supported by electric yet!ERROR'
-                    socket.send(error.encode())
-                    socket.close()
-                    return
             else:
                 if editor_extensions:
                     click.echo(click.style('↓ Validating Editor Extensions        ↓', 'cyan'))
-                    if socket and server:
-                        socket.send(b'Validating Editor Extensions')
                     if editor_type == 'Visual Studio Code':
-                        for package in editor_extensions:
-                            if not '.' in list(package.keys())[0]:
-                                if socket and server:
-                                    error = f'Invalid Extension Name => {list(package.keys())[0]}.ERROR'
-                                    socket.send(error.encode())
-                                    socket.close()
-                                    return
+                        for package_name in editor_extensions:
+                            if not Config.check_vscode_name(package_name):
                                 click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
                                 return
 
                     if editor_type == 'Atom':
-                        for package in editor_extensions:
-                            proc = Popen(f'apm show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-                            output, err = proc.communicate()
-
-                            if err != b'':
-                                if err == b'\x1b[31mread ECONNRESET\x1b[39m\n':
-                                    if socket and server:
-                                        error = f'Read Timed-Out => {list(package.keys())[0]}. Retrying In 7 Seconds.'
-                                        time.sleep(7)
-                                        socket.send(error.encode())
-                                        proc = Popen(f'apm show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-                                        output, err = proc.communicate()
-                                        if err != b'':
-                                            if socket and server:
-                                                error = f'Invalid Extension Name Or Failed To Validate => {list(package.keys())[0]}.ERROR'
-                                                socket.send(error.encode())
-                                                socket.close()
-                                                return
-                                            click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
-                                            return
-
-                                if socket and server:
-                                    error = f'Invalid Extension Name => {list(package.keys())[0]}.ERROR'
-                                    socket.send(error.encode())
-                                    socket.close()
-                                    return
+                        for package_name in editor_extensions:
+                            if not Config.check_atom_name(package_name):
                                 click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
                                 return
-        if socket and server:
-            socket.send(b'Valid Configuration, Signing Config!')
-            socket.close()
-
+        
 
     def install(self, exclude_versions: bool, install_directory: str, no_cache: str, sync: bool, metadata: Metadata):
         if is_admin():
@@ -748,3 +721,13 @@ class Config:
                             exit()
         else:
             click.echo(click.style('Config installation must be ran as administrator!', fg='red'), err=True)
+
+# TODO: For Installing VISUAL STUDIO EXTENSIONS
+# DOWNLOAD THE VSIX FILE FROM https://marketplace.visualstudio.com/_apis/public/gallery/publishers/JaredParMSFT/vsextensions/VsVim/2.8.0.0/vspackage (example => can be scraped)
+# Install using vsixinstaller /q path_to_vsix
+
+# TODO: Add Support for intellij idea plugins
+# https://intellij-support.jetbrains.com/hc/en-us/community/posts/206178329-How-to-install-idea-plugins-from-the-command-line-
+# https://intellij-support.jetbrains.com/hc/en-us/articles/206544519
+
+# TODO: Add support for eclipse plugins

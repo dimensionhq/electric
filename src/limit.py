@@ -7,6 +7,9 @@ import time
 from progress.bar import Bar
 
 class TokenBucket:
+    """
+    Used to limit download speeds and store data for the download
+    """    
     def __init__(self, tokens, fill_rate) -> None:
         self.capacity = float(tokens)
         self._tokens = float(tokens)
