@@ -26,6 +26,7 @@ from colorama import Fore, Style
 from googlesearch import search
 from halo import Halo
 from switch import Switch
+import headers
 
 import info
 import registry
@@ -48,6 +49,17 @@ appdata_dir = PathManager.get_appdata_directory()
 def copy_to_clipboard(text: str):
     Popen(f'echo {text} | clip'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
 
+
+def write_install_headers(metadata: Metadata):
+    write_debug(headers.install_debug_headers, metadata)
+    for header in headers.install_debug_headers:
+        log_info(header, metadata.logfile)
+
+
+def write_uninstall_headers(metadata: Metadata):
+    write_debug(headers.install_debug_headers, metadata)
+    for header in headers.install_debug_headers:
+        log_info(header, metadata.logfile)
 
 def get_recent_logs() -> list:
     """

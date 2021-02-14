@@ -206,95 +206,90 @@ def install(
     corrected_package_names = get_autocorrections(packages, get_correct_package_names(), metadata)
     corrected_package_names = list(set(corrected_package_names))
 
-    write_debug(install_debug_headers, metadata)
-    for header in install_debug_headers:
-        log_info(header, metadata.logfile)
-
-        index = 0
-
+    write_install_headers(metadata)
+    
     def grouper(iterable, n, fillvalue=None):
         "Collect data into fixed-length chunks or blocks"
         args = [iter(iterable)] * n
         return zip_longest(*args, fillvalue=fillvalue)
 
-    if not sync:
-        if len(corrected_package_names) > 1:
-            split_package_names = list(grouper(corrected_package_names, 3))
-            if len(split_package_names) == 1:
-                packets = []
-                for package in corrected_package_names:
-                    if super_cache:
-                        log_info('Handling SuperCache Request.', metadata.logfile)
-                        res, time = handle_cached_request(package)
-                    else:
-                        spinner = halo.Halo(color='grey')
-                        spinner.start()
-                        log_info('Handling Network Request...', metadata.logfile)
-                        status = 'Networking'
-                        write_verbose('Sending GET Request To /packages/', metadata)
-                        write_debug('Sending GET Request To /packages', metadata)
-                        log_info('Sending GET Request To /packages', metadata.logfile)
-                        res, time = send_req_package(package)
-                        log_info('Updating SuperCache', metadata.logfile)
-                        update_supercache(metadata)
-                        log_info('Successfully Updated SuperCache', metadata.logfile)
-                        spinner.stop()
+    if not sync and len(corrected_package_names) > 1:
+        split_package_names = list(grouper(corrected_package_names, 3))
+        if len(split_package_names) == 1:
+            packets = []
+            for package in corrected_package_names:
+                if super_cache:
+                    log_info('Handling SuperCache Request.', metadata.logfile)
+                    res, time = handle_cached_request(package)
+                else:
+                    spinner = halo.Halo(color='grey')
+                    spinner.start()
+                    log_info('Handling Network Request...', metadata.logfile)
+                    status = 'Networking'
+                    write_verbose('Sending GET Request To /packages/', metadata)
+                    write_debug('Sending GET Request To /packages', metadata)
+                    log_info('Sending GET Request To /packages', metadata.logfile)
+                    res, time = send_req_package(package)
+                    log_info('Updating SuperCache', metadata.logfile)
+                    update_supercache(metadata)
+                    log_info('Successfully Updated SuperCache', metadata.logfile)
+                    spinner.stop()
 
-                    pkg = res
-                    custom_dir = None
-                    if install_directory:
-                        custom_dir = install_directory + f'\\{pkg["package-name"]}'
-                    else:
-                        custom_dir = install_directory
+                pkg = res
+                custom_dir = None
+                if install_directory:
+                    custom_dir = install_directory + f'\\{pkg["package-name"]}'
+                else:
+                    custom_dir = install_directory
 
-                    version = res['latest-version']
-                    pkg = pkg[version]
-                    install_exit_codes = None
-                    if 'valid-install-exit-codes' in list(pkg.keys()):
-                        install_exit_codes = pkg['valid-install-exit-codes']
-                    packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
-                    installation = find_existing_installation(
-                        package, packet.display_name)
-                    if installation:
-                        write_debug(
-                            f'Aborting Installation As {packet.json_name} is already installed.', metadata)
-                        write_verbose(
-                            f'Found an existing installation of => {packet.json_name}', metadata)
-                        write(
-                            f'Found an existing installation {packet.display_name}.', 'yellow', metadata)
-                        installation_continue = click.confirm(
-                            f'Would you like to reinstall {packet.json_name}')
-
-                        if installation_continue or yes:
-                            os.system(f'electric uninstall {packet.json_name}')
-                            os.system(f'electric install {packet.json_name}')
-                            return
-                        else:
-                            handle_exit(status, setup_name, metadata)
-
+                version = res['latest-version']
+                pkg = pkg[version]
+                install_exit_codes = None
+                if 'valid-install-exit-codes' in list(pkg.keys()):
+                    install_exit_codes = pkg['valid-install-exit-codes']
+                packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                installation = find_existing_installation(
+                    package, packet.display_name)
+                if installation:
+                    write_debug(
+                        f'Aborting Installation As {packet.json_name} is already installed.', metadata)
                     write_verbose(
-                        f'Package to be installed: {packet.json_name}', metadata)
-                    log_info(
-                        f'Package to be installed: {packet.json_name}', metadata.logfile)
+                        f'Found an existing installation of => {packet.json_name}', metadata)
+                    write(
+                        f'Found an existing installation {packet.display_name}.', 'yellow', metadata)
+                    installation_continue = click.confirm(
+                        f'Would you like to reinstall {packet.json_name}')
 
-                    write_verbose(
-                        f'Finding closest match to {packet.json_name}...', metadata)
-                    log_info(
-                        f'Finding closest match to {packet.json_name}...', metadata.logfile)
-                    packets.append(packet)
+                    if installation_continue or yes:
+                        os.system(f'electric uninstall {packet.json_name}')
+                        os.system(f'electric install {packet.json_name}')
+                        return
+                    else:
+                        handle_exit(status, setup_name, metadata)
 
-                    write_verbose('Generating system download path...', metadata)
-                    log_info('Generating system download path...', metadata.logfile)
-
-                manager = ThreadedInstaller(packets, metadata)
-                paths = manager.handle_multi_download()
-                cursor.show()
-                log_info('Finished Rapid Download...', metadata.logfile)
+                write_verbose(
+                    f'Package to be installed: {packet.json_name}', metadata)
                 log_info(
-                    f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
-                manager.handle_multi_install(paths)
-                return
-            elif len(split_package_names) > 1:
+                    f'Package to be installed: {packet.json_name}', metadata.logfile)
+
+                write_verbose(
+                    f'Finding closest match to {packet.json_name}...', metadata)
+                log_info(
+                    f'Finding closest match to {packet.json_name}...', metadata.logfile)
+                packets.append(packet)
+
+                write_verbose('Generating system download path...', metadata)
+                log_info('Generating system download path...', metadata.logfile)
+
+            manager = ThreadedInstaller(packets, metadata)
+            paths = manager.handle_multi_download()
+            cursor.show()
+            log_info('Finished Rapid Download...', metadata.logfile)
+            log_info(
+                f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
+            manager.handle_multi_install(paths)
+            return
+        elif len(split_package_names) > 1:
                 for package_batch in split_package_names:
                     package_batch = list(package_batch)
                     package_batch = [x for x in package_batch if x is not None]
@@ -888,10 +883,7 @@ def update(
     corrected_package_names = get_autocorrections(packages, get_correct_package_names(), metadata)
     corrected_package_names = list(set(corrected_package_names))
 
-    write_debug(install_debug_headers, metadata)
-    for header in install_debug_headers:
-        log_info(header, metadata.logfile)
-
+    write_install_headers(metadata)
 
     for package in corrected_package_names:
         spinner = halo.Halo(color='grey', text='Finding Packages')
@@ -1083,9 +1075,7 @@ def uninstall(
     corrected_package_names = get_autocorrections(packages, get_correct_package_names(), metadata)
     corrected_package_names = list(set(corrected_package_names))
 
-    write_debug(install_debug_headers, metadata)
-    for header in install_debug_headers:
-        log_info(header, metadata.logfile)
+    write_uninstall_headers(metadata)
 
     index = 0
 
