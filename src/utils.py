@@ -664,7 +664,6 @@ def send_req_package(package_name: str) -> dict:
         f'\r{fill_c * 25}')
     sys.stdout.flush()
     sys.stdout.write('\r')
-    # sys.stdout.write('\n')
     try:
         res = json.loads(response.text)
     except JSONDecodeError:
