@@ -638,11 +638,33 @@ def get_checksum(bytecode: bytes, hash_algorithm: str):
 
     return None
 
+import time as tm
 
 def send_req_package(package_name: str) -> dict:
+    cursor.hide()
+    fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█'
+    unfill_c = Fore.BLACK + '█'
+    sys.stdout.write(
+        f'\r{fill_c * 1}{unfill_c * 20}')
+    tm.sleep(0.05)
+    sys.stdout.write(
+        f'\r{fill_c * 5}{unfill_c * 20}')
+    sys.stdout.flush()
     REQA = 'https://electric-package-manager.herokuapp.com/packages/windows/'
+    tm.sleep(0.05)
+    sys.stdout.write(
+        f'\r{fill_c * 10}{unfill_c * 15}')
     response = requests.get(REQA + package_name, timeout=15)
+    tm.sleep(0.05)
     time = response.elapsed.total_seconds()
+    sys.stdout.write(
+        f'\r{fill_c * 15}{unfill_c * 10}')
+    tm.sleep(0.05)
+    sys.stdout.write(
+        f'\r{fill_c * 25}')
+    sys.stdout.flush()
+    sys.stdout.write('\r')
+    # sys.stdout.write('\n')
     try:
         res = json.loads(response.text)
     except JSONDecodeError:

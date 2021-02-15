@@ -218,22 +218,18 @@ def install(
         if len(split_package_names) == 1:
             packets = []
             for package in corrected_package_names:
-                if super_cache:
-                    log_info('Handling SuperCache Request.', metadata.logfile)
-                    res, time = handle_cached_request(package)
-                else:
-                    spinner = halo.Halo(color='grey')
-                    spinner.start()
-                    log_info('Handling Network Request...', metadata.logfile)
-                    status = 'Networking'
-                    write_verbose('Sending GET Request To /packages/', metadata)
-                    write_debug('Sending GET Request To /packages', metadata)
-                    log_info('Sending GET Request To /packages', metadata.logfile)
-                    res, time = send_req_package(package)
-                    log_info('Updating SuperCache', metadata.logfile)
-                    update_supercache(metadata)
-                    log_info('Successfully Updated SuperCache', metadata.logfile)
-                    spinner.stop()
+                    # spinner = halo.Halo(color='grey')
+                    # spinner.start()
+                    # log_info('Handling Network Request...', metadata.logfile)
+                    # status = 'Networking'
+                    # write_verbose('Sending GET Request To /packages/', metadata)
+                    # write_debug('Sending GET Request To /packages', metadata)
+                    # log_info('Sending GET Request To /packages', metadata.logfile)
+                    # res, time = send_req_package(package)
+                    # log_info('Updating SuperCache', metadata.logfile)
+                    # update_supercache(metadata)
+                    # log_info('Successfully Updated SuperCache', metadata.logfile)
+                    # spinner.stop()
 
                 pkg = res
                 custom_dir = None
@@ -356,20 +352,12 @@ def install(
                             f'Finding closest match to {packet.json_name}...', metadata)
                         log_info(f'Finding closest match to {packet.json_name}...', metadata.logfile)
 
-                        if index == 0:
-                            if super_cache:
-                                write_verbose(
-                                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
-                                write_debug(
-                                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
-                                log_info(f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata.logfile)
-                            else:
-                                write_verbose(
-                                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                                write_debug(
-                                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                                log_info(
-                                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
+                        write_verbose(
+                            f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+                        write_debug(
+                            f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+                        log_info(
+                            f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
 
                         write_verbose('Generating system download path...', metadata)
                         log_info('Generating system download path...', metadata.logfile)
@@ -564,27 +552,21 @@ def install(
                 return
 
     for package in corrected_package_names:
-        supercache_availiable = check_supercache_availiable(package)
 
-        if super_cache and supercache_availiable and not no_cache:
-            log_info('Handling SuperCache Request.', metadata.logfile)
-            res, time = handle_cached_request(package)
-
-        else:
-            if not silent:
-                # ERROR HERE
-                spinner = halo.Halo(color='grey' if not no_color else 'white')
-                spinner.start()
-            log_info('Handling Network Request...', metadata.logfile)
-            status = 'Networking'
-            write_verbose('Sending GET Request To /packages/', metadata)
-            write_debug('Sending GET Request To /packages', metadata)
-            log_info('Sending GET Request To /packages', metadata.logfile)
-            log_info('Updating SuperCache', metadata.logfile)
-            res, time = send_req_package(package)
-            log_info('Successfully Updated SuperCache', metadata.logfile)
-            if not silent:
-                spinner.stop()
+        # if not silent:
+        #     # ERROR HERE
+        #     spinner = halo.Halo(color='grey' if not no_color else 'white')
+        #     spinner.start()
+        log_info('Handling Network Request...', metadata.logfile)
+        status = 'Networking'
+        write_verbose('Sending GET Request To /packages/', metadata)
+        write_debug('Sending GET Request To /packages', metadata)
+        log_info('Sending GET Request To /packages', metadata.logfile)
+        log_info('Updating SuperCache', metadata.logfile)
+        res, time = send_req_package(package)
+        log_info('Successfully Updated SuperCache', metadata.logfile)
+        # if not silent:
+        #     spinner.stop()
 
         pkg = res
         log_info('Generating Packet For Further Installation.', metadata.logfile)
@@ -661,33 +643,21 @@ def install(
                 f'Finding closest match to {packet.json_name}...', metadata)
             log_info(f'Finding closest match to {packet.json_name}...', metadata.logfile)
 
-            if index == 0:
-                if super_cache:
-                    write_verbose(
-                        f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
-                    write_debug(
-                        f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
-                    log_info(f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata.logfile)
-                else:
-                    write_verbose(
-                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                    write_debug(
-                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                    log_info(
-                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
+            write_verbose(
+                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+            write_debug(
+                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+            log_info(
+                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
 
             write_verbose('Generating system download path...', metadata)
             log_info('Generating system download path...', metadata.logfile)
 
             if not metadata.silent:
                 if not metadata.no_color:
-                    if super_cache:
-                        print('SuperCached [', Fore.CYAN + f'{packet.display_name}' + Fore.RESET + ' ]')
-                    else:
-                        print('Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
-
+                    print('Recieved [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
                 else:
-                    print(f'Found => [ {packet.display_name} ]')
+                    print(f'Recieved [ {packet.display_name} ]')
 
             status = 'Download Path'
             download_url = packet.win64
@@ -802,8 +772,6 @@ def install(
             log_info(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
             close_log(metadata.logfile, 'Install')
-
-        index += 1
 
 
 
