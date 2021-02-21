@@ -522,6 +522,19 @@ def get_file_type(command: str) -> str:
 
 
 def run_cmd(command: str, metadata: Metadata, method: str, halo: Halo, packet: Packet) -> bool:
+    """
+    Runs a command on the shell with electric error handling and exit code monitoring
+
+    Args:
+        command (str): Command to run on the shell
+        metadata (Metadata): Metadata for the method
+        method (str): Method (installation / uninstallation)
+        halo (Halo): Halo for the installation / uninstallation
+        packet (Packet): Packet for the method
+
+    Returns:
+        bool: Success (Exit Code == 0)
+    """    
     command = command.replace('\"\"', '\"').replace('  ', ' ')
     log_info(f'Running command: {command}', metadata.logfile)
     write_debug(f'{command}', metadata)
@@ -537,6 +550,16 @@ def run_cmd(command: str, metadata: Metadata, method: str, halo: Halo, packet: P
 
 
 def install_package(path, packet: Packet, metadata: Metadata, halo: Halo) -> str:
+    """
+    Installs an electric package
+
+    Args:
+        path (str): Path to the installer executable
+        packet (Packet): Packet for installation
+        metadata (Metadata): Metadata for installation
+        halo (Halo): Halo for installation
+
+    """    
     download_type = packet.win64_type
     custom_install_switch = packet.custom_location
     directory = packet.directory
@@ -641,7 +664,16 @@ def get_checksum(bytecode: bytes, hash_algorithm: str):
 import time as tm
 
 def send_req_package(package_name: str) -> dict:
-    cursor.hide()
+    """
+    Send a request for an electric package from the official package registry on github
+
+    Args:
+        package_name (str): The name of the package to request from the registry
+
+    Returns:
+        dict: Decoded JSON from the github registry response
+    """
+    # cursor.hide()
     fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█'
     unfill_c = Fore.BLACK + '█'
     sys.stdout.write(
@@ -663,7 +695,9 @@ def send_req_package(package_name: str) -> dict:
     sys.stdout.write(
         f'\r{fill_c * 25}')
     sys.stdout.flush()
-    sys.stdout.write('\r')
+    # sys.stdout.write('\r')
+    # sys.stdout.flush()
+    sys.stdout.write('\n')
     try:
         res = json.loads(response.text)
     except JSONDecodeError:
@@ -673,6 +707,15 @@ def send_req_package(package_name: str) -> dict:
 
 
 def get_pid(exe_name):
+    """
+    Gets the running process PID from the tasklist command to quit installers
+
+    Args:
+        exe_name (str): Name of the installer being run
+
+    Returns:
+        str: PID
+    """    
     proc = Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, _ = proc.communicate()
     output = output.decode('utf-8')
@@ -682,7 +725,16 @@ def get_pid(exe_name):
             return line.split()[1]
 
 
-def find_approx_pid(exe_name, display_name) -> str:
+def find_approx_pid(display_name) -> str:
+    """
+    Gets the approximate PID of an application that has to be terminated before uninstallation
+
+    Args:
+        display_name (str): The display name of the package
+
+    Returns:
+        str: PID
+    """    
     proc = Popen('tasklist /FI "Status eq RUNNING"', stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, _ = proc.communicate()
     output = output.decode('utf-8')
@@ -706,6 +758,14 @@ def find_approx_pid(exe_name, display_name) -> str:
 
 
 def handle_exit(status: str, setup_name: str, metadata: Metadata):
+    """
+    Overrides default (ctrl + c) exit command of click
+
+    Args:
+        status (str): Status of the method
+        setup_name (str): Name of the setup file being run if any
+        metadata (Metadata): Metadata for the method
+    """    
     if status == 'Downloaded' or status == 'Installing' or status == 'Installed':
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
@@ -737,9 +797,17 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
         sys.exit()
 
 def kill_running_proc(package_name: str, display_name: str, metadata: Metadata):
+    """
+    Kills a running process for an application before running the uninstaller to prevent errors
+
+    Args:
+        package_name (str): Name of the package
+        display_name (str): Display name of the package
+        metadata (Metadata): Metadata for the uninstallation
+    """    
     parts = package_name.split('-')
     name = ' '.join([p.capitalize() for p in parts])
-    pid = int(find_approx_pid(package_name, display_name))
+    pid = int(find_approx_pid(display_name))
     if pid == 1:
         return
     if pid and pid != 1:
@@ -765,6 +833,13 @@ def kill_running_proc(package_name: str, display_name: str, metadata: Metadata):
 
 
 def kill_proc(proc, metadata: Metadata):
+    """
+    Kill a process from subprocess when ctrl+c is hit
+
+    Args:
+        proc (Popen): Popen object 
+        metadata (Metadata): Metadata for the method
+    """    
     if proc is not None:
         proc.terminate()
         write('SafetyHarness Successfully Created Clean Exit Gateway',
@@ -784,6 +859,17 @@ def assert_cpu_compatible() -> int:
 
 
 def find_existing_installation(package_name: str, display_name: str, test=True):
+    """
+    Finds an existing installation of a package in the windows registry given the package name and display name
+
+    Args:
+        package_name (str): Name of the package
+        display_name (str): Display name of the package
+        test (bool, optional): If the command is being run to test successful installation / uninstallation. Defaults to True.
+
+    Returns:
+        [type]: [description]
+    """    
     key = registry.get_uninstall_key(package_name, display_name)
     installed_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
     if key:
@@ -796,6 +882,16 @@ def find_existing_installation(package_name: str, display_name: str, test=True):
 
 
 def get_install_flags(install_dir: str, metadata: Metadata):
+    """
+    Generates a list of flags given the metadata and installation directory
+
+    Args:
+        install_dir (str): Directory that the software is being installed to 
+        metadata (Metadata): Metadata for the method (installation / uninstallation)
+
+    Returns:
+        [type]: [description]
+    """    
     flags = []
     if metadata.verbose:
         flags.append('--verbose')
@@ -828,11 +924,21 @@ def get_install_flags(install_dir: str, metadata: Metadata):
 
 
 def refresh_environment_variables():
+    """
+    Refreshes the environment variables on the current Powershell session.
+    """    
     proc = Popen('powershell -c "$env:Path = [System.Environment]::GetEnvironmentVariable(\'Path\',\'Machine\') + \';\' + [System.Environment]::GetEnvironmentVariable(\'Path\',\'User\')"'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     proc.communicate()
-
+    
 
 def check_virus(path: str, metadata: Metadata):
+    """
+    Checks for a virus given the path of the executable / file
+
+    Args:
+        path (str): Path to the executable / file
+        metadata (Metadata): Metadata for the installation
+    """    
     detected = virus_check(path)
     if detected:
         for value in detected.items():
@@ -911,6 +1017,16 @@ def update_supercache(metadata: Metadata):
 
 
 def check_newer_version(package_name: str, packet: Packet) -> bool:
+    """
+    Checks if a newer version of a package exists, used for updating packages
+
+    Args:
+        package_name (str): Name of the package
+        packet (Packet): Packet for the package
+
+    Returns:
+        bool: If there is a newer version of the package
+    """    
     install_dir = PathManager.get_appdata_directory() + r'\Current'
     with open(rf'{install_dir}\{package_name}.json', 'r') as f:
         data = json.load(f)
@@ -920,6 +1036,15 @@ def check_newer_version(package_name: str, packet: Packet) -> bool:
     return False    
 
 def check_newer_version_local(new_version) -> bool:
+    """
+    Checks if there is a newer version of electric availiable (used in the autoupdater)
+
+    Args:
+        new_version (str): Version of electric that could be newer
+
+    Returns:
+        bool: If there is a newer version of electric availiable
+    """    
     current_version = int(info.__version__.replace('.', '').replace('a', '').replace('b', ''))
     new_version = int(new_version.replace('.', ''))
     if current_version < new_version:
@@ -928,6 +1053,9 @@ def check_newer_version_local(new_version) -> bool:
 
 
 def check_for_updates():
+    """
+    Checks if there is a newer version of electric is availiable and automatically updates electric
+    """    
     res = requests.get('https://electric-package-manager.herokuapp.com/version/windows', timeout=10)
     js = res.json()
     version_dict = json.loads(js)
@@ -1207,6 +1335,7 @@ def handle_unknown_error(err: str):
 
 
 def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
+    
     pkg = res
     keys = list(pkg.keys())
     idx = 0
@@ -1272,6 +1401,17 @@ def register_package_success(packet: Packet, install_dir: str, metadata: Metadat
     
     
 def get_autocorrections(package_names: list, corrected_package_names: list, metadata: Metadata) -> list:
+    """
+    Display autocorrects for the package names
+
+    Args:
+        package_names (list): All the package names that are added during the method
+        corrected_package_names (list): Corrected packages that would be compared to the supplied during the method
+        metadata (Metadata): Metadata for the method
+
+    Returns:
+        list: Autocorrected packages names
+    """    
     corrected_names = []
 
     for name in package_names:
