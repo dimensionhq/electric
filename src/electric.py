@@ -11,19 +11,17 @@ import time as tm
 import logging
 import os
 import sys
-from timeit import default_timer as timer
 from urllib.request import urlretrieve
 from itertools import zip_longest
 
 import click
 import halo
 import keyboard
-from colorama import *
+from colorama import Fore
 from progress.bar import Bar
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
 
-from decimal import Decimal
 from Classes.PortablePacket import PortablePacket
 from Classes.Config import Config
 from Classes.ThreadedInstaller import ThreadedInstaller
@@ -31,7 +29,6 @@ from Classes.Packet import Packet
 from Classes.Setting import Setting
 from cli import SuperChargeCLI
 from headers import *
-from external import *
 from info import __version__
 from limit import Limiter, TokenBucket
 from logger import *
@@ -40,7 +37,6 @@ from settings import initialize_settings, open_settings
 from utils import *
 from zip_install import install_portable
 from zip_uninstall import uninstall_portable
-
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 
@@ -210,95 +206,86 @@ def install(
     corrected_package_names = get_autocorrections(packages, get_correct_package_names(), metadata)
     corrected_package_names = list(set(corrected_package_names))
 
-    write_debug(install_debug_headers, metadata)
-    for header in install_debug_headers:
-        log_info(header, metadata.logfile)
-
-        index = 0
-
+    write_install_headers(metadata)
+    
     def grouper(iterable, n, fillvalue=None):
         "Collect data into fixed-length chunks or blocks"
         args = [iter(iterable)] * n
         return zip_longest(*args, fillvalue=fillvalue)
 
-    if not sync:
-        if len(corrected_package_names) > 1:
-            split_package_names = list(grouper(corrected_package_names, 3))
-            if len(split_package_names) == 1:
-                packets = []
-                for package in corrected_package_names:
-                    if super_cache:
-                        log_info('Handling SuperCache Request.', metadata.logfile)
-                        res, time = handle_cached_request(package)
-                    else:
-                        spinner = halo.Halo(color='grey')
-                        spinner.start()
-                        log_info('Handling Network Request...', metadata.logfile)
-                        status = 'Networking'
-                        write_verbose('Sending GET Request To /packages/', metadata)
-                        write_debug('Sending GET Request To /packages', metadata)
-                        log_info('Sending GET Request To /packages', metadata.logfile)
-                        res, time = send_req_package(package)
-                        log_info('Updating SuperCache', metadata.logfile)
-                        update_supercache(metadata)
-                        log_info('Successfully Updated SuperCache', metadata.logfile)
-                        spinner.stop()
+    if not sync and len(corrected_package_names) > 1:
+        split_package_names = list(grouper(corrected_package_names, 3))
+        if len(split_package_names) == 1:
+            packets = []
+            for package in corrected_package_names:
+                    # spinner = halo.Halo(color='grey')
+                    # spinner.start()
+                    # log_info('Handling Network Request...', metadata.logfile)
+                    # status = 'Networking'
+                    # write_verbose('Sending GET Request To /packages/', metadata)
+                    # write_debug('Sending GET Request To /packages', metadata)
+                    # log_info('Sending GET Request To /packages', metadata.logfile)
+                    # res, time = send_req_package(package)
+                    # log_info('Updating SuperCache', metadata.logfile)
+                    # update_supercache(metadata)
+                    # log_info('Successfully Updated SuperCache', metadata.logfile)
+                    # spinner.stop()
 
-                    pkg = res
-                    custom_dir = None
-                    if install_directory:
-                        custom_dir = install_directory + f'\\{pkg["package-name"]}'
-                    else:
-                        custom_dir = install_directory
+                pkg = res
+                custom_dir = None
+                if install_directory:
+                    custom_dir = install_directory + f'\\{pkg["package-name"]}'
+                else:
+                    custom_dir = install_directory
 
-                    version = res['latest-version']
-                    pkg = pkg[version]
-                    install_exit_codes = None
-                    if 'valid-install-exit-codes' in list(pkg.keys()):
-                        install_exit_codes = pkg['valid-install-exit-codes']
-                    packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
-                    installation = find_existing_installation(
-                        package, packet.display_name)
-                    if installation:
-                        write_debug(
-                            f'Aborting Installation As {packet.json_name} is already installed.', metadata)
-                        write_verbose(
-                            f'Found an existing installation of => {packet.json_name}', metadata)
-                        write(
-                            f'Found an existing installation {packet.display_name}.', 'yellow', metadata)
-                        installation_continue = click.confirm(
-                            f'Would you like to reinstall {packet.json_name}')
-
-                        if installation_continue or yes:
-                            os.system(f'electric uninstall {packet.json_name}')
-                            os.system(f'electric install {packet.json_name}')
-                            return
-                        else:
-                            handle_exit(status, setup_name, metadata)
-
+                version = res['latest-version']
+                pkg = pkg[version]
+                install_exit_codes = None
+                if 'valid-install-exit-codes' in list(pkg.keys()):
+                    install_exit_codes = pkg['valid-install-exit-codes']
+                packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                installation = find_existing_installation(
+                    package, packet.display_name)
+                if installation:
+                    write_debug(
+                        f'Aborting Installation As {packet.json_name} is already installed.', metadata)
                     write_verbose(
-                        f'Package to be installed: {packet.json_name}', metadata)
-                    log_info(
-                        f'Package to be installed: {packet.json_name}', metadata.logfile)
+                        f'Found an existing installation of => {packet.json_name}', metadata)
+                    write(
+                        f'Found an existing installation {packet.display_name}.', 'yellow', metadata)
+                    installation_continue = click.confirm(
+                        f'Would you like to reinstall {packet.json_name}')
 
-                    write_verbose(
-                        f'Finding closest match to {packet.json_name}...', metadata)
-                    log_info(
-                        f'Finding closest match to {packet.json_name}...', metadata.logfile)
-                    packets.append(packet)
+                    if installation_continue or yes:
+                        os.system(f'electric uninstall {packet.json_name}')
+                        os.system(f'electric install {packet.json_name}')
+                        return
+                    else:
+                        handle_exit(status, setup_name, metadata)
 
-                    write_verbose('Generating system download path...', metadata)
-                    log_info('Generating system download path...', metadata.logfile)
-
-                manager = ThreadedInstaller(packets, metadata)
-                paths = manager.handle_multi_download()
-                cursor.show()
-                log_info('Finished Rapid Download...', metadata.logfile)
+                write_verbose(
+                    f'Package to be installed: {packet.json_name}', metadata)
                 log_info(
-                    f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
-                manager.handle_multi_install(paths)
-                return
-            elif len(split_package_names) > 1:
+                    f'Package to be installed: {packet.json_name}', metadata.logfile)
+
+                write_verbose(
+                    f'Finding closest match to {packet.json_name}...', metadata)
+                log_info(
+                    f'Finding closest match to {packet.json_name}...', metadata.logfile)
+                packets.append(packet)
+
+                write_verbose('Generating system download path...', metadata)
+                log_info('Generating system download path...', metadata.logfile)
+
+            manager = ThreadedInstaller(packets, metadata)
+            paths = manager.handle_multi_download()
+            cursor.show()
+            log_info('Finished Rapid Download...', metadata.logfile)
+            log_info(
+                f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
+            manager.handle_multi_install(paths)
+            return
+        elif len(split_package_names) > 1:
                 for package_batch in split_package_names:
                     package_batch = list(package_batch)
                     package_batch = [x for x in package_batch if x is not None]
@@ -365,20 +352,12 @@ def install(
                             f'Finding closest match to {packet.json_name}...', metadata)
                         log_info(f'Finding closest match to {packet.json_name}...', metadata.logfile)
 
-                        if index == 0:
-                            if super_cache:
-                                write_verbose(
-                                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
-                                write_debug(
-                                    f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
-                                log_info(f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata.logfile)
-                            else:
-                                write_verbose(
-                                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                                write_debug(
-                                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                                log_info(
-                                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
+                        write_verbose(
+                            f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+                        write_debug(
+                            f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+                        log_info(
+                            f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
 
                         write_verbose('Generating system download path...', metadata)
                         log_info('Generating system download path...', metadata.logfile)
@@ -573,31 +552,28 @@ def install(
                 return
 
     for package in corrected_package_names:
-        supercache_availiable = check_supercache_availiable(package)
 
-        if super_cache and supercache_availiable and not no_cache:
-            log_info('Handling SuperCache Request.', metadata.logfile)
-            res, time = handle_cached_request(package)
-
-        else:
-            if not silent:
-                # ERROR HERE
-                spinner = halo.Halo(color='grey' if not no_color else 'white')
-                spinner.start()
-            log_info('Handling Network Request...', metadata.logfile)
-            status = 'Networking'
-            write_verbose('Sending GET Request To /packages/', metadata)
-            write_debug('Sending GET Request To /packages', metadata)
-            log_info('Sending GET Request To /packages', metadata.logfile)
-            log_info('Updating SuperCache', metadata.logfile)
-            res, time = send_req_package(package)
-            log_info('Successfully Updated SuperCache', metadata.logfile)
-            if not silent:
-                spinner.stop()
+        # if not silent:
+        #     # ERROR HERE
+        #     spinner = halo.Halo(color='grey' if not no_color else 'white')
+        #     spinner.start()
+        log_info('Handling Network Request...', metadata.logfile)
+        status = 'Networking'
+        write_verbose('Sending GET Request To /packages/', metadata)
+        write_debug('Sending GET Request To /packages', metadata)
+        log_info('Sending GET Request To /packages', metadata.logfile)
+        log_info('Updating SuperCache', metadata.logfile)
+        res, time = send_req_package(package)
+        log_info('Successfully Updated SuperCache', metadata.logfile)
+        # if not silent:
+        #     spinner.stop()
 
         pkg = res
         log_info('Generating Packet For Further Installation.', metadata.logfile)
 
+        if 'is-portable' in list(pkg.keys()):
+            if pkg['is-portable'] == True:
+                portable = True
         if not version:
             version = pkg['latest-version']
         if portable:
@@ -667,33 +643,21 @@ def install(
                 f'Finding closest match to {packet.json_name}...', metadata)
             log_info(f'Finding closest match to {packet.json_name}...', metadata.logfile)
 
-            if index == 0:
-                if super_cache:
-                    write_verbose(
-                        f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
-                    write_debug(
-                        f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
-                    log_info(f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata.logfile)
-                else:
-                    write_verbose(
-                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                    write_debug(
-                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                    log_info(
-                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
+            write_verbose(
+                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+            write_debug(
+                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+            log_info(
+                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
 
             write_verbose('Generating system download path...', metadata)
             log_info('Generating system download path...', metadata.logfile)
 
             if not metadata.silent:
                 if not metadata.no_color:
-                    if super_cache:
-                        print('SuperCached [', Fore.CYAN + f'{packet.display_name}' + Fore.RESET + ' ]')
-                    else:
-                        print('Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
-
+                    print('Recieved [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
                 else:
-                    print(f'Found => [ {packet.display_name} ]')
+                    print(f'Recieved [ {packet.display_name} ]')
 
             status = 'Download Path'
             download_url = packet.win64
@@ -751,7 +715,7 @@ def install(
                 status = 'Installing'
                 # Running The Installer silently And Completing Setup
                 install_package(path, packet, metadata, h)
-            write(f'Completed {Fore.CYAN}{packet.display_name}{Fore.RESET} Installer With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
+            write(f'{Fore.CYAN}{packet.display_name}{Fore.RESET} Installer Exited With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
             status = 'Installed'
             log_info('Creating final snapshot of registry...', metadata.logfile)
             final_snap = get_environment_keys()
@@ -808,8 +772,6 @@ def install(
             log_info(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
             close_log(metadata.logfile, 'Install')
-
-        index += 1
 
 
 
@@ -889,10 +851,7 @@ def update(
     corrected_package_names = get_autocorrections(packages, get_correct_package_names(), metadata)
     corrected_package_names = list(set(corrected_package_names))
 
-    write_debug(install_debug_headers, metadata)
-    for header in install_debug_headers:
-        log_info(header, metadata.logfile)
-
+    write_install_headers(metadata)
 
     for package in corrected_package_names:
         spinner = halo.Halo(color='grey', text='Finding Packages')
@@ -911,7 +870,7 @@ def update(
         pkg = pkg[pkg['latest-version']]
         packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, [], res['latest-version'], res['run-check'] if 'run-check' in list(res.keys()) else True)
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+        installed_packages = [ f.replace('.json', '').split('@')[:-1] for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
         if package in installed_packages:
             if check_newer_version(package, packet):
                 install_dir = PathManager.get_appdata_directory() + r'\Current'
@@ -963,9 +922,7 @@ def update(
             else:
                 print(f'{package} is already on the latest version')
         else:
-            write(f'{package} Is Not Installed', 'red', metadata)
-        # TODO: Install Newer Version Of Software
-        pass
+            write(f'{packet.display_name} Is Not Installed', 'red', metadata)
 
 
 @cli.command(aliases=['remove', 'u'], context_settings=CONTEXT_SETTINGS)
@@ -1086,23 +1043,19 @@ def uninstall(
     corrected_package_names = get_autocorrections(packages, get_correct_package_names(), metadata)
     corrected_package_names = list(set(corrected_package_names))
 
-    write_debug(install_debug_headers, metadata)
-    for header in install_debug_headers:
-        log_info(header, metadata.logfile)
+    write_uninstall_headers(metadata)
 
     index = 0
 
     for package in corrected_package_names:
-        installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+        installed_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+        portable_installed_packages = [ ''.join(f.split('@')[:1]) for f in os.listdir(os.path.expanduser('~') + r'\electric') ]
+        installed_packages += portable_installed_packages
         if package not in installed_packages:
-            write(f'Could not find any existing installations of {package}', 'red', metadata)
-            handle_exit('ERROR', '', metadata)
-        else:
             supercache_availiable = check_supercache_availiable(package)
             if super_cache and supercache_availiable and not no_cache:
                 log_info('Handling SuperCache Request.', metadata.logfile)
-                res, time = handle_cached_request(package)
-                time = Decimal(time)
+                res, _ = handle_cached_request(package)
             else:
                 log_info('Handling Network Request...', metadata.logfile)
                 status = 'Networking'
@@ -1110,78 +1063,69 @@ def uninstall(
                 write_debug('Sending GET Request To /rapidquery/packages', metadata)
                 log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
                 update_supercache(metadata)
-                res, time = handle_cached_request(package)
+                res, _ = handle_cached_request(package)
 
             pkg = res
             version = pkg['latest-version']
-
+            name = pkg['display-name']
+            pkg = pkg[version]
+            log_info('Generating Packet For Further Installation.', metadata.logfile)
+            uninstall_exit_codes = []
+            packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+            
+            write(f'Could not find any existing installations of {packet.display_name}', 'red', metadata)
+            try:
+                os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+            except:
+                pass
+            handle_exit('ERROR', '', metadata)
+        else:
+            supercache_availiable = check_supercache_availiable(package)
+            if super_cache and supercache_availiable and not no_cache:
+                log_info('Handling SuperCache Request.', metadata.logfile)
+                res, _ = handle_cached_request(package)
+            else:
+                log_info('Handling Network Request...', metadata.logfile)
+                status = 'Networking'
+                write_verbose('Sending GET Request To /rapidquery/packages', metadata)
+                write_debug('Sending GET Request To /rapidquery/packages', metadata)
+                log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
+                update_supercache(metadata)
+                res, _ = handle_cached_request(package)
+            
+            pkg = res
+            if 'is-portable' in list(pkg.keys()):
+                if pkg['is-portable'] == True:
+                    portable = True
+        
             if portable:
                 version = 'portable'
+            else:
+                version = pkg['latest-version']
+
             uninstall_exit_codes = []
             if 'valid-uninstall-exit-codes' in list(pkg.keys()):
                 uninstall_exit_codes = pkg['valid-install-exit-codes']
 
             name = pkg['display-name']
             pkg = pkg[version]
+        
             log_info('Generating Packet For Further Installation.', metadata.logfile)
             if portable:
-                try:
-                    data = {
-                        'display-name': res['display-name'],
-                        'package-name': res['package-name'],
-                        'latest-version': res['latest-version'],
-                        'url': pkg[res['latest-version']]['url'],
-                        'file-type': pkg[res['latest-version']]['file-type'],
-                        'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                        'chdir': pkg[res['latest-version']]['chdir'],
-                        'bin': pkg[res['latest-version']]['bin'],
-                        'shortcuts': pkg[res['latest-version']]['shortcuts'],
-                        'post-install': pkg[res['latest-version']]['post-install'],
-                    }
-                except KeyError:
-                    try:
-                        data = {
-                            'display-name': res['display-name'],
-                            'package-name': res['package-name'],
-                            'latest-version': res['latest-version'],
-                            'url': pkg[res['latest-version']]['url'],
-                            'file-type': pkg[res['latest-version']]['file-type'],
-                            'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                            'bin': pkg[res['latest-version']]['bin'],
-                            'shortcuts': pkg[res['latest-version']]['shortcuts']
-                        }
-                    except KeyError:
-                        try:
-                            data = {
-                                'display-name': res['display-name'],
-                                'package-name': res['package-name'],
-                                'latest-version': res['latest-version'],
-                                'url': pkg[res['latest-version']]['url'],
-                                'file-type': pkg[res['latest-version']]['file-type'],
-                                'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                                'bin': pkg[res['latest-version']]['bin'],
-                                'shortcuts': pkg[res['latest-version']]['shortcuts']
-                            }
-                        except KeyError:
-                            try:
-                                data = {
-                                    'display-name': res['display-name'],
-                                    'package-name': res['package-name'],
-                                    'latest-version': res['latest-version'],
-                                    'url': pkg[res['latest-version']]['url'],
-                                    'file-type': pkg[res['latest-version']]['file-type'],
-                                    'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                                    'bin': pkg[res['latest-version']]['bin'],
-                                }
-                            except KeyError:
-                                data = {
-                                    'display-name': res['display-name'],
-                                    'package-name': res['package-name'],
-                                    'latest-version': res['latest-version'],
-                                    'url': pkg[res['latest-version']]['url'],
-                                    'file-type': pkg[res['latest-version']]['file-type'],
-                                    'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                                }
+                keys = list(pkg[res['latest-version']].keys())
+                data = {
+                    'display-name': res['display-name'],
+                    'package-name': res['package-name'],
+                    'latest-version': res['latest-version'],
+                    'url': pkg[res['latest-version']]['url'],
+                    'file-type': pkg[res['latest-version']]['file-type'],
+                    'extract-dir': pkg[res['latest-version']]['extract-dir'],
+                    'chdir': pkg[res['latest-version']]['chdir'] if 'chdir' in keys else None,
+                    'bin': pkg[res['latest-version']]['bin'] if 'bin' in keys else None,
+                    'shortcuts': pkg[res['latest-version']]['shortcuts'] if 'shortcuts' in keys else None,
+                    'post-install': pkg[res['latest-version']]['post-install'] if 'post-install' in keys else None,
+                }
+            
                 portable_packet = PortablePacket(data)
                 start = timer()
                 uninstall_portable(portable_packet, metadata)
@@ -1194,17 +1138,17 @@ def uninstall(
 
             if super_cache:
                 if not ae:
-                    write(
-                        f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', 'bright_yellow', metadata)
+                    write(f'SuperCached [ {Fore.CYAN}{packet.display_name}{Fore.RESET} ]', 'white', metadata)
                     write_debug(
-                        f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 9)}s', metadata)
+                        f'Successfully SuperCached {packet.json_name}', metadata)
                     log_info(
-                        f'Rapidquery Successfully SuperCached {packet.json_name} in {round(time, 6)}s', metadata)
+                        f'Successfully SuperCached {packet.json_name}', metadata)
             else:
+                write(f'Recieved => [ {Fore.CYAN} {packet.display_name} {Fore.RESET} ]', 'white', metadata)
                 write(
-                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', 'bright_green', metadata)
+                    f'Received {packet.json_name}.json', 'bright_green', metadata)
                 log_info(
-                    f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
+                    f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
 
             # Getting UninstallString or QuietUninstallString From The Registry Search Algorithm
             write_verbose(
@@ -1219,8 +1163,33 @@ def uninstall(
 
             if not key:
                 log_info(f'electric didn\'t detect any existing installations of => {packet.display_name}', metadata.logfile)
-                write(
-                    f'Could Not Find Any Existing Installations Of {packet.display_name}', 'yellow', metadata)
+                supercache_availiable = check_supercache_availiable(package)
+                if super_cache and supercache_availiable and not no_cache:
+                    log_info('Handling SuperCache Request.', metadata.logfile)
+                    res, time = handle_cached_request(package)
+                else:
+                    log_info('Handling Network Request...', metadata.logfile)
+                    status = 'Networking'
+                    write_verbose('Sending GET Request To /rapidquery/packages', metadata)
+                    write_debug('Sending GET Request To /rapidquery/packages', metadata)
+                    log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
+                    update_supercache(metadata)
+                    res, time = handle_cached_request(package)
+
+                pkg = res
+                version = pkg['latest-version']
+                name = pkg['display-name']
+                pkg = pkg[version]
+                log_info('Generating Packet For Further Installation.', metadata.logfile)
+                
+                uninstall_exit_codes = []
+                packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                
+                write(f'Could not find any existing installations of {packet.display_name}', 'red', metadata)
+                try:
+                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                except:
+                    pass
                 close_log(metadata.logfile, 'Uninstall')
                 index += 1
                 continue
@@ -1279,7 +1248,7 @@ def uninstall(
                     index += 1
 
                     if not packet.run_test:
-                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
+                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                         write(
                             f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                         log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
@@ -1310,9 +1279,9 @@ def uninstall(
                     write_verbose('Uninstallation completed.', metadata)
                     log_info('Uninstallation completed.', metadata.logfile)
                     index += 1
-                    
+                    write(f'{Fore.CYAN}{packet.display_name}{Fore.RESET} Uninstaller Exited With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
                     if not packet.run_test:
-                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
+                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                         write(
                             f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                         log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
@@ -1326,7 +1295,7 @@ def uninstall(
             if packet.run_test:
                 write(f'Running Tests For {packet.display_name}', 'white', metadata)
                 if not find_existing_installation(packet.json_name, packet.display_name):
-                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
+                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                     print(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check')
                     write(
                             f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
@@ -1337,7 +1306,7 @@ def uninstall(
                     tm.sleep(5)
                     if not find_existing_installation(packet.json_name, packet.display_name):
                         write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
-                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}.json')
+                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                         write(
                             f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                         log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
@@ -1721,6 +1690,38 @@ def generate(
 
     os.system(
         f'electric sign {PathManager.get_desktop_directory()}\electric-configuration.electric')
+
+
+@cli.command(aliases=['list'], context_settings=CONTEXT_SETTINGS)
+@click.option('--installed', '-i', is_flag=True, help='List all installed packages')
+@click.option('--versions', '-v', is_flag=True, help='List all installed packages')
+@click.pass_context
+def ls(ctx, installed: bool, versions: bool):
+    '''
+    Lists top packages which can be installed.
+    If --installed is passed in, lists all installed packages
+    '''
+    if installed:
+        if not versions:
+            try:
+                installed_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+                for package_name in installed_packages:
+                    print(package_name)
+            except: 
+                print(f'{Fore.YELLOW}No installed packages found{Fore.RESET}')
+        else:
+            os.chdir(PathManager.get_appdata_directory() + r'\Current')
+            try:
+                installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+                for package_name in installed_packages:
+                    print(package_name)
+            except: 
+                print(f'{Fore.YELLOW}No installed packages found{Fore.RESET}')
+    else: 
+        supercached_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\SuperCache') ][:99]
+        supercached_packages.remove('packages')
+        for package_name in supercached_packages:
+            print(package_name)
 
 
 @cli.command(aliases=['info'], context_settings=CONTEXT_SETTINGS)

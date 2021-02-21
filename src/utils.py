@@ -11,10 +11,9 @@ import shutil
 import sys
 import tempfile
 import webbrowser
-import zipfile
 from datetime import datetime
 from signal import SIGTERM
-from subprocess import PIPE, CalledProcessError, Popen, call, check_call
+from subprocess import PIPE, CalledProcessError, Popen, check_call
 from timeit import default_timer as timer
 from Classes.JsonCompress import JSONCompress
 
@@ -22,12 +21,12 @@ from Classes.JsonCompress import JSONCompress
 import click
 import cursor
 import keyboard
-import pyperclip as clipboard
 import requests
-from colorama import Back, Fore, Style
+from colorama import Fore, Style
 from googlesearch import search
 from halo import Halo
 from switch import Switch
+import headers
 
 import info
 import registry
@@ -38,7 +37,6 @@ from headers import *
 from extension import *
 from limit import *
 from logger import *
-from registry import *
 from viruscheck import virus_check
 
 index = 0
@@ -47,6 +45,21 @@ path = ''
 
 appdata_dir = PathManager.get_appdata_directory()
 
+
+def copy_to_clipboard(text: str):
+    Popen(f'echo {text} | clip'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+
+
+def write_install_headers(metadata: Metadata):
+    write_debug(headers.install_debug_headers, metadata)
+    for header in headers.install_debug_headers:
+        log_info(header, metadata.logfile)
+
+
+def write_uninstall_headers(metadata: Metadata):
+    write_debug(headers.install_debug_headers, metadata)
+    for header in headers.install_debug_headers:
+        log_info(header, metadata.logfile)
 
 def get_recent_logs() -> list:
     """
@@ -420,6 +433,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             flags = ''
             for flag in get_install_flags(packet.directory, metadata):
                 flags += f' {flag}'
+            sys.stdout.write('\n')
             click.echo(click.style(f'The {packet.display_name} Installer Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
@@ -434,8 +448,9 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
             click.echo(click.style('\nAdministrator Elevation Required Or Fatal Installer Error. Exit Code [1603]', fg='red'))
             sys.exit()
-        click.echo(click.style('\nFatal Installer Error. Exit Code [1603]', fg='red'))
-        return get_error_message('1603', 'installation', packet.display_name, packet.version)
+        else:
+            click.echo(click.style('\nFatal Installer Error. Exit Code [1603]', fg='red'))
+            return get_error_message('1603', 'installation', packet.display_name, packet.version)
 
     if 'exit status 1639' in error:
         click.echo(click.style(f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
@@ -589,28 +604,22 @@ def get_configuration_data(username: str, description: str, uses_editor: bool, i
         f'Description => \"{description}\"\n'
     ]
 
-    required_packages = []
-
     if uses_editor and include_editor and editor:
         base_configuration.append('\n[ Editor-Configuration ]\n')
         if editor == 'Visual Studio Code':
             base_configuration.append(f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<vscode:name>\n')
-            required_packages.append('visual-studio-code')
+
         if editor == 'Atom':
             base_configuration.append(
                 f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<atom:name>\n')
-            required_packages.append('atom')
 
     if include_python:
         base_configuration.append('\n[ Pip-Packages ]\n<pip:name>\n')
-        required_packages.append('python')
 
     if include_node:
         base_configuration.append('\n[ Node-Packages ]\n<npm:name>\n')
-        required_packages.append('nodejs')
 
-    requirements = str(required_packages).replace('[', '').replace(']', '').replace(',', '\n').replace('\'', '').replace('\n ', '\n')
-    base_configuration.insert(4, f'\n[ Packages ]\n{requirements}\n')
+    base_configuration.insert(4, f'\n[ Packages ]\n<electric:name>\n')
     return base_configuration
 
 # IMPORTANT: FOR FUTURE USE
@@ -629,11 +638,32 @@ def get_checksum(bytecode: bytes, hash_algorithm: str):
 
     return None
 
+import time as tm
 
 def send_req_package(package_name: str) -> dict:
+    cursor.hide()
+    fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█'
+    unfill_c = Fore.BLACK + '█'
+    sys.stdout.write(
+        f'\r{fill_c * 1}{unfill_c * 20}')
+    tm.sleep(0.05)
+    sys.stdout.write(
+        f'\r{fill_c * 5}{unfill_c * 20}')
+    sys.stdout.flush()
     REQA = 'https://electric-package-manager.herokuapp.com/packages/windows/'
+    tm.sleep(0.05)
+    sys.stdout.write(
+        f'\r{fill_c * 10}{unfill_c * 15}')
     response = requests.get(REQA + package_name, timeout=15)
+    tm.sleep(0.05)
     time = response.elapsed.total_seconds()
+    sys.stdout.write(
+        f'\r{fill_c * 15}{unfill_c * 10}')
+    tm.sleep(0.05)
+    sys.stdout.write(
+        f'\r{fill_c * 25}')
+    sys.stdout.flush()
+    sys.stdout.write('\r')
     try:
         res = json.loads(response.text)
     except JSONDecodeError:
@@ -755,7 +785,7 @@ def assert_cpu_compatible() -> int:
 
 def find_existing_installation(package_name: str, display_name: str, test=True):
     key = registry.get_uninstall_key(package_name, display_name)
-    installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+    installed_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
     if key:
         if not test:
             if package_name in installed_packages:
@@ -1087,7 +1117,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
             ]
 
         elif code('0011'):
-            clipboard.copy('electric install nodejs')
+            copy_to_clipboard('electric install nodejs')
             return [
                 '\n[0011] => Node(npm) is not installed on your system.',
                 '\n\nHow To Fix:\n',
@@ -1103,7 +1133,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
             ]
 
         elif code('0010'):
-            clipboard.copy('electric install python3')
+            copy_to_clipboard('electric install python3')
             return [
                 '\n[0010] => Python(pip) is not installed on your system.',
                 '\n\nHow To Fix:\n',
@@ -1237,7 +1267,7 @@ def register_package_success(packet: Packet, install_dir: str, metadata: Metadat
         'flags': get_install_flags(install_dir, metadata)
     }
     pkg_dir = PathManager.get_appdata_directory() + r'\Current'
-    with open(rf'{pkg_dir}\{packet.json_name}.json', 'w+') as f:
+    with open(rf'{pkg_dir}\{packet.json_name}@{packet.version}.json', 'w+') as f:
         f.write(json.dumps(data, indent=4))
     
     

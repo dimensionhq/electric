@@ -136,6 +136,7 @@ Usage: electric <command> [<options>]
     {Fore.MAGENTA}*{Fore.RESET} update
     {Fore.MAGENTA}*{Fore.RESET} bundle
   {Fore.CYAN}Explore Packages{Fore.RESET}
+    {Fore.MAGENTA}*{Fore.RESET} list
     {Fore.MAGENTA}*{Fore.RESET} search
     {Fore.MAGENTA}*{Fore.RESET} show
   {Fore.CYAN}Configuration Development And Management{Fore.RESET}

@@ -5,7 +5,7 @@
 
 class RegSnapshot:
     """
-    Snapshot used to detect a change in the path, both system and environment paths
+    Snapshot used to store data in order to detect a change in the path, both system and environment paths
     """    
     def __init__(self, sys_value, sys_length, env_value, env_length):
         self.sys_value = sys_value

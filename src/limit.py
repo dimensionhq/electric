@@ -4,11 +4,12 @@
 
 import threading
 import time
-from typing import Any
 from progress.bar import Bar
 
-
 class TokenBucket:
+    """
+    Used to limit download speeds and store data for the download
+    """    
     def __init__(self, tokens, fill_rate) -> None:
         self.capacity = float(tokens)
         self._tokens = float(tokens)
@@ -50,6 +51,9 @@ class TokenBucket:
     
 
 class Limiter:
+    """
+    Download speed limiter
+    """    
     def __init__(self, bucket, filename) -> None:
         self.bucket = bucket
         self.last_update = 0
@@ -59,7 +63,7 @@ class Limiter:
         self.avg_rate = None
         self.bar = Bar('')
 
-    def __call__(self, block_count, block_size, total_size) -> Any:
+    def __call__(self, block_count, block_size, total_size):
         total_kb = total_size / 1024
         self.bar.max = total_kb / 8.00008
 
@@ -68,7 +72,6 @@ class Limiter:
         
         self.last_downloaded_kb = downloaded_kb
 
-        # print('called')
         self.bar.next()
 
         predicted_size = block_size/1024.
