@@ -262,40 +262,6 @@ def get_character_color(fill, metadata):
         return f'Fore.{unfill_char_color.upper()}' if unfill_char_color else 'Fore.RESET'
 
 
-def download_supercache(url: str) -> str:
-    """
-    Download supercache into %APPDATA%\electric\SuperCache\supercache.txt 
-
-    Args:
-        url (str): Url to download the supercache.txt from
-
-    Returns:
-        str: %APPDATA%\electric\SuperCache\supercache.txt
-    """    
-    cursor.hide()
-    response = requests.get(url, stream=True)
-    total_length = response.headers.get('content-length')
-    chunk_size = 5696
-
-    with open(fR'{PathManager.get_appdata_directory()}\SuperCache\supercache.txt', 'wb') as f:
-        if total_length is None:
-            f.write(response.content)
-        else:
-            dl = 0
-            full_length = int(total_length)
-            for data in response.iter_content(chunk_size=chunk_size):
-                dl += len(data)
-                f.write(data)
-
-                complete = int(25 * dl / full_length)
-                fill_c =  Fore.GREEN + '=' * complete
-                unfill_c = Fore.LIGHTBLACK_EX + '-' * (25 - complete)
-                sys.stdout.write(
-                    f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} {round(dl / 10000, 1)} / {round(full_length / 10000, 1)} KB {Fore.RESET}')
-                sys.stdout.flush()
-
-    return fR'{PathManager.get_appdata_directory()}\SuperCache\supercache.txt'
-
 
 def download(url: str, package_name: str, metadata: Metadata, download_type: str):
     """
@@ -958,64 +924,6 @@ def check_virus(path: str, metadata: Metadata):
         click.echo(click.style('No Viruses Detected!', fg='green'))
 
 
-def setup_supercache(call: bool = False):
-    home = os.path.expanduser('~')
-    if not os.path.isdir(f'{home}\\electric'):
-        os.mkdir(f'{home}\\electric')
-    supercache_dir = PathManager.get_appdata_directory() + R'\SuperCache'
-    try:
-        exist = len(os.listdir(supercache_dir)) != 0
-    except FileNotFoundError:
-        exist = False
-
-    if call:
-        shutil.rmtree(supercache_dir)
-    
-    
-    if not os.path.isdir(supercache_dir) or not exist or call:
-        with Halo('Setting Up SuperCache ', text_color='green') as h:
-            if not os.path.isdir(supercache_dir):
-                os.mkdir(supercache_dir)
-            res = requests.get('https://electric-package-manager.herokuapp.com/setup/name-list', timeout=15)
-            name_list = json.loads(res.text)
-            with open(fR'{supercache_dir}\packages.json', 'w+') as f:
-                f.write(json.dumps(name_list, indent=4))
-            h.stop()
-            loc = download_supercache('https://electric-package-manager.herokuapp.com/setup/supercache')
-            with open(loc, 'rb') as f:
-                data = eval(JSONCompress.load_compressed_file(f))
-                keys = data.keys()
-            with open('supercache.json', 'w+') as f:
-                f.write(json.dumps(data, indent=4))
-            h.stop()
-            with Bar(f'{Fore.CYAN}Generating SuperCache{Fore.RESET}', max=len(keys), bar_prefix=' [ ', bar_suffix=' ] ', fill=f'{Fore.GREEN}={Fore.RESET}', empty_fill=f'{Fore.LIGHTBLACK_EX}-{Fore.RESET}') as b:
-                for key in keys:
-                    base_loc = loc.replace('\supercache.txt', '')
-                    with open(base_loc + rf'\{key}' + '.json', 'w+') as f:
-                        json.dump(data[key], f, indent=4)
-                    time.sleep(0.0075)
-                    b.next()
-            os.remove(loc)
-            click.echo(click.style('Successfully Generated SuperCache!', 'green'))
-            cursor.hide()
-            Popen('electric update all --local'.split(), shell=True)
-
-def update_supercache(metadata: Metadata):
-    if isfile(f'{tempfile.gettempdir()}\electric'):
-        log_info(f'Removing all data in {tempfile.gettempdir()}\electric', metadata.logfile)
-        shutil.rmtree(f'{tempfile.gettempdir()}\electric')
-        log_info(f'Deleted all data in {tempfile.gettempdir()}\electric successfully.', metadata.logfile)
-
-    setup_supercache(True)
-    logpath = Rf'{appdata_dir}\superlog.txt'
-    logfile = open(logpath, 'w+')
-    now = datetime.now()
-    log_info(f'Writing {str(now)} to {logpath}', metadata.logfile if metadata else None)
-    logfile.write(str(now))
-    logfile.close()
-    log_info(f'Successfully wrote date and time to {logpath}', metadata.logfile if metadata else None)
-
-
 def check_newer_version(package_name: str, packet: Packet) -> bool:
     """
     Checks if a newer version of a package exists, used for updating packages
@@ -1105,39 +1013,6 @@ def check_for_updates():
                 else:
                     click.echo(click.style('Re-Run Electric As Administrator To Update', fg='red'))
 
-
-def check_supercache_valid():
-    filepath = Rf'{appdata_dir}\superlog.txt'
-    if os.path.isfile(filepath):
-        with open(filepath, 'r') as f:
-            contents = f.read()
-        date = datetime.strptime(contents, '%Y-%m-%d %H:%M:%S.%f')
-        if (datetime.now() - date).days < 7:
-            return True
-        else:
-            return False
-    with open(filepath, 'w+') as f:
-        f.write(str(datetime.strptime(str(datetime.now()), '%Y-%m-%d %H:%M:%S.%f')))
-    return True
-
-def check_supercache_availiable(package_name: str) -> bool:
-    supercache_dir = PathManager.get_appdata_directory() + R'\SuperCache'
-    files = os.listdir(supercache_dir)
-    if f'{package_name}.json' in files:
-        return True
-    return False
-
-
-def handle_cached_request(package_name: str):
-    start = timer()
-    supercache_dir = PathManager.get_appdata_directory() + R'\SuperCache'
-    try:
-        with open(rf'{supercache_dir}\{package_name}.json') as f:
-            res = json.load(f)
-    except FileNotFoundError:
-        return 'NOT FOUND', 1
-    end = timer()
-    return res, (end - start)
 
 
 def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, settings, sync, no_cache):
@@ -1373,13 +1248,21 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
 '''
 
 
+def update_package_list():
+    with Halo('Updating Electric'):
+        r = requests.get('https://raw.githubusercontent.com/XtremeDevX/electric-packages/master/package-list.json')
+        data = r.json()
+        with open(rf'{PathManager.get_appdata_directory()}\package-list.json', 'w+') as f:
+            f.write(json.dumps(data, indent=4))
+
+
 def get_correct_package_names(all=False) -> list:
     if not all:
-        with open(rf'{PathManager.get_appdata_directory()}\SuperCache\packages.json', 'r') as f:
+        with open(rf'{PathManager.get_appdata_directory()}\packages.json', 'r') as f:
             dictionary = json.load(f)
             packages = dictionary['packages']
     else:
-        req = requests.get('https://electric-package-manager.herokuapp.com/setup/name-list')
+        req = requests.get('https://raw.githubusercontent.com/XtremeDevX/electric-packages/master/package-list.json')
         res = json.loads(req.text)
         packages = res['packages']
 

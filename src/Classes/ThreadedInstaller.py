@@ -357,15 +357,11 @@ class ThreadedInstaller:
         write(f'{packet.display_name} has the following dependencies: {disp}', 'yellow', metadata)
         continue_install = click.confirm('Would you like to install the above dependencies ?')
         if continue_install:
-            res, _ = handle_cached_request()
             if len(packet.dependencies) > 1 and len(packet.dependencies) <= 5:
                 write(f'Using Parallel Installation For Installing Dependencies', 'green', metadata)
                 packets = []
                 for package in packet.dependencies:
-                    if True:
-                        log_info('Handling SuperCache Request.', metadata.logfile)
-                        res, _ = handle_cached_request(package)
-                    
+                    res = send_req_package(package)
                     pkg = res
                     keys = list(pkg.keys())
                     idx = 0

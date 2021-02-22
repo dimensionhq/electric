@@ -25,10 +25,6 @@ class TestUtil(unittest.TestCase):
         meta = utils.generate_metadata(None, None, None, None, None, None, None, None, None, None, None, None, None)
         self.assertIsInstance(meta, utils.Metadata)
 
-    def test_check_supercache_availiable(self):
-        availiable = utils.check_supercache_availiable('atom')
-        self.assertIsInstance(availiable, bool)
-
     def test_display_info(self):
         res, _ = utils.send_req_package('atom')
         text = utils.display_info(res)

@@ -45,11 +45,11 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 @click.pass_context
 def cli(_):
     if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\settings.json'):
+        update_package_list()
         click.echo(click.style(f'Creating settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
         initialize_settings()
     if not os.path.isdir(PathManager.get_appdata_directory() + r'\Current'):
         os.mkdir(PathManager.get_appdata_directory() + r'\Current')
-    setup_supercache()
 
 
 @cli.command(aliases=['i'], context_settings=CONTEXT_SETTINGS)
@@ -185,15 +185,6 @@ def install(
             handle_atom_package(name, 'install', metadata)
         sys.exit()
 
-    log_info('Checking if supercache exists', metadata.logfile)
-    super_cache = check_supercache_valid()
-    if super_cache:
-        log_info('Supercache detected.', metadata.logfile)
-    if no_cache:
-        log_info('Overriding SuperCache To FALSE', metadata.logfile)
-        super_cache = False
-    if not super_cache:
-        update_supercache(metadata)
 
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
     status = 'Initializing'
@@ -291,22 +282,19 @@ def install(
                     package_batch = [x for x in package_batch if x is not None]
                     if len(package_batch) == 1:
                         package = package_batch[0]
-                        if super_cache:
-                            log_info('Handling SuperCache Request.', metadata.logfile)
-                            res, time = handle_cached_request(package)
-                        else:
-                            spinner = halo.Halo(color='grey')
-                            spinner.start()
-                            log_info('Handling Network Request...', metadata.logfile)
-                            status = 'Networking'
-                            write_verbose('Sending GET Request To /packages/', metadata)
-                            write_debug('Sending GET Request To /packages', metadata)
-                            log_info('Sending GET Request To /packages', metadata.logfile)
-                            res, time = send_req_package(package)
-                            log_info('Updating SuperCache', metadata.logfile)
-                            update_supercache(metadata)
-                            log_info('Successfully Updated SuperCache', metadata.logfile)
-                            spinner.stop()
+                    
+                        spinner = halo.Halo(color='grey')
+                        spinner.start()
+                        log_info('Handling Network Request...', metadata.logfile)
+                        status = 'Networking'
+                        write_verbose('Sending GET Request To /packages/', metadata)
+                        write_debug('Sending GET Request To /packages', metadata)
+                        log_info('Sending GET Request To /packages', metadata.logfile)
+                        res, time = send_req_package(package)
+                        log_info('Updating SuperCache', metadata.logfile)
+
+                        log_info('Successfully Updated SuperCache', metadata.logfile)
+                        spinner.stop()
 
                         pkg = res
 
@@ -479,22 +467,19 @@ def install(
 
                     packets = []
                     for package in package_batch:
-                        if super_cache:
-                            log_info('Handling SuperCache Request.', metadata.logfile)
-                            res, time = handle_cached_request(package)
-                        else:
-                            spinner = halo.Halo(color='grey')
-                            spinner.start()
-                            log_info('Handling Network Request...', metadata.logfile)
-                            status = 'Networking'
-                            write_verbose('Sending GET Request To /packages/', metadata)
-                            write_debug('Sending GET Request To /packages', metadata)
-                            log_info('Sending GET Request To /packages', metadata.logfile)
-                            res, time = send_req_package(package)
-                            log_info('Updating SuperCache', metadata.logfile)
-                            update_supercache(metadata)
-                            log_info('Successfully Updated SuperCache', metadata.logfile)
-                            spinner.stop()
+                        
+                        spinner = halo.Halo(color='grey')
+                        spinner.start()
+                        log_info('Handling Network Request...', metadata.logfile)
+                        status = 'Networking'
+                        write_verbose('Sending GET Request To /packages/', metadata)
+                        write_debug('Sending GET Request To /packages', metadata)
+                        log_info('Sending GET Request To /packages', metadata.logfile)
+                        res, time = send_req_package(package)
+                        log_info('Updating SuperCache', metadata.logfile)
+
+                        log_info('Successfully Updated SuperCache', metadata.logfile)
+                        spinner.stop()
 
                         pkg = res
                         custom_dir = None
@@ -831,14 +816,7 @@ def update(
         sys.exit()
 
     metadata = generate_metadata(None, None, None, None, None, None, None, None, None, None, Setting.new(), None, no_cache)
-    super_cache = check_supercache_valid()
-    if super_cache:
-        log_info('Supercache detected.', metadata.logfile)
-    if no_cache:
-        log_info('Overriding SuperCache To FALSE', metadata.logfile)
-        super_cache = False
-    if not super_cache:
-        update_supercache(metadata)
+    
 
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
     status = 'Initializing'
@@ -992,15 +970,7 @@ def uninstall(
     log_info('Successfully generated metadata.', logfile)
 
     log_info('Checking if supercache exists...', metadata.logfile)
-    super_cache = check_supercache_valid()
-
-    if super_cache:
-        log_info('SuperCache detected.', metadata.logfile)
-
-    if no_cache:
-        log_info('Overriding SuperCache To FALSE', metadata.logfile)
-        super_cache = False
-
+    
     if logfile:
         logfile = logfile.replace('.txt', '.log')
         create_config(logfile, logging.INFO, 'Install')
@@ -1052,19 +1022,6 @@ def uninstall(
         portable_installed_packages = [ ''.join(f.split('@')[:1]) for f in os.listdir(os.path.expanduser('~') + r'\electric') ]
         installed_packages += portable_installed_packages
         if package not in installed_packages:
-            supercache_availiable = check_supercache_availiable(package)
-            if super_cache and supercache_availiable and not no_cache:
-                log_info('Handling SuperCache Request.', metadata.logfile)
-                res, _ = handle_cached_request(package)
-            else:
-                log_info('Handling Network Request...', metadata.logfile)
-                status = 'Networking'
-                write_verbose('Sending GET Request To /rapidquery/packages', metadata)
-                write_debug('Sending GET Request To /rapidquery/packages', metadata)
-                log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
-                update_supercache(metadata)
-                res, _ = handle_cached_request(package)
-
             pkg = res
             version = pkg['latest-version']
             name = pkg['display-name']
@@ -1079,240 +1036,216 @@ def uninstall(
             except:
                 pass
             handle_exit('ERROR', '', metadata)
+        
+            
+        pkg = res
+        if 'is-portable' in list(pkg.keys()):
+            if pkg['is-portable'] == True:
+                portable = True
+    
+        if portable:
+            version = 'portable'
         else:
-            supercache_availiable = check_supercache_availiable(package)
-            if super_cache and supercache_availiable and not no_cache:
-                log_info('Handling SuperCache Request.', metadata.logfile)
-                res, _ = handle_cached_request(package)
-            else:
-                log_info('Handling Network Request...', metadata.logfile)
-                status = 'Networking'
-                write_verbose('Sending GET Request To /rapidquery/packages', metadata)
-                write_debug('Sending GET Request To /rapidquery/packages', metadata)
-                log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
-                update_supercache(metadata)
-                res, _ = handle_cached_request(package)
+            version = pkg['latest-version']
+
+        uninstall_exit_codes = []
+        if 'valid-uninstall-exit-codes' in list(pkg.keys()):
+            uninstall_exit_codes = pkg['valid-install-exit-codes']
+
+        name = pkg['display-name']
+        pkg = pkg[version]
+    
+        log_info('Generating Packet For Further Installation.', metadata.logfile)
+        if portable:
+            keys = list(pkg[res['latest-version']].keys())
+            data = {
+                'display-name': res['display-name'],
+                'package-name': res['package-name'],
+                'latest-version': res['latest-version'],
+                'url': pkg[res['latest-version']]['url'],
+                'file-type': pkg[res['latest-version']]['file-type'],
+                'extract-dir': pkg[res['latest-version']]['extract-dir'],
+                'chdir': pkg[res['latest-version']]['chdir'] if 'chdir' in keys else None,
+                'bin': pkg[res['latest-version']]['bin'] if 'bin' in keys else None,
+                'shortcuts': pkg[res['latest-version']]['shortcuts'] if 'shortcuts' in keys else None,
+                'post-install': pkg[res['latest-version']]['post-install'] if 'post-install' in keys else None,
+            }
+        
+            portable_packet = PortablePacket(data)
+            start = timer()
+            uninstall_portable(portable_packet, metadata)
+            end = timer()
+            sys.exit()
+        packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+        proc = None
+        keyboard.add_hotkey(
+            'ctrl+c', lambda: kill_proc(proc, metadata))
+
+        if super_cache:
+            if not ae:
+                write(f'SuperCached [ {Fore.CYAN}{packet.display_name}{Fore.RESET} ]', 'white', metadata)
+                write_debug(
+                    f'Successfully SuperCached {packet.json_name}', metadata)
+                log_info(
+                    f'Successfully SuperCached {packet.json_name}', metadata)
+        else:
+            write(f'Recieved => [ {Fore.CYAN} {packet.display_name} {Fore.RESET} ]', 'white', metadata)
+            write(
+                f'Received {packet.json_name}.json', 'bright_green', metadata)
+            log_info(
+                f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
+
+        # Getting UninstallString or QuietUninstallString From The Registry Search Algorithm
+        write_verbose(
+            'Fetching uninstall key from the registry...', metadata)
+        write_debug('Sending query (uninstall-string) to Registry', metadata)
+        log_info('Fetching uninstall key from the registry...', metadata.logfile)
+
+        start = timer()
+        key = get_uninstall_key(packet.json_name, packet.display_name)
+
+        end = timer()
+
+        if not key:
+            log_info(f'electric didn\'t detect any existing installations of => {packet.display_name}', metadata.logfile)
             
             pkg = res
-            if 'is-portable' in list(pkg.keys()):
-                if pkg['is-portable'] == True:
-                    portable = True
-        
-            if portable:
-                version = 'portable'
-            else:
-                version = pkg['latest-version']
-
-            uninstall_exit_codes = []
-            if 'valid-uninstall-exit-codes' in list(pkg.keys()):
-                uninstall_exit_codes = pkg['valid-install-exit-codes']
-
+            version = pkg['latest-version']
             name = pkg['display-name']
             pkg = pkg[version]
-        
             log_info('Generating Packet For Further Installation.', metadata.logfile)
-            if portable:
-                keys = list(pkg[res['latest-version']].keys())
-                data = {
-                    'display-name': res['display-name'],
-                    'package-name': res['package-name'],
-                    'latest-version': res['latest-version'],
-                    'url': pkg[res['latest-version']]['url'],
-                    'file-type': pkg[res['latest-version']]['file-type'],
-                    'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                    'chdir': pkg[res['latest-version']]['chdir'] if 'chdir' in keys else None,
-                    'bin': pkg[res['latest-version']]['bin'] if 'bin' in keys else None,
-                    'shortcuts': pkg[res['latest-version']]['shortcuts'] if 'shortcuts' in keys else None,
-                    'post-install': pkg[res['latest-version']]['post-install'] if 'post-install' in keys else None,
-                }
             
-                portable_packet = PortablePacket(data)
-                start = timer()
-                uninstall_portable(portable_packet, metadata)
-                end = timer()
-                sys.exit()
+            uninstall_exit_codes = []
             packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
-            proc = None
-            keyboard.add_hotkey(
-                'ctrl+c', lambda: kill_proc(proc, metadata))
-
-            if super_cache:
-                if not ae:
-                    write(f'SuperCached [ {Fore.CYAN}{packet.display_name}{Fore.RESET} ]', 'white', metadata)
-                    write_debug(
-                        f'Successfully SuperCached {packet.json_name}', metadata)
-                    log_info(
-                        f'Successfully SuperCached {packet.json_name}', metadata)
-            else:
-                write(f'Recieved => [ {Fore.CYAN} {packet.display_name} {Fore.RESET} ]', 'white', metadata)
-                write(
-                    f'Received {packet.json_name}.json', 'bright_green', metadata)
-                log_info(
-                    f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
-
-            # Getting UninstallString or QuietUninstallString From The Registry Search Algorithm
-            write_verbose(
-                'Fetching uninstall key from the registry...', metadata)
-            write_debug('Sending query (uninstall-string) to Registry', metadata)
-            log_info('Fetching uninstall key from the registry...', metadata.logfile)
-
-            start = timer()
-            key = get_uninstall_key(packet.json_name, packet.display_name)
-
-            end = timer()
-
-            if not key:
-                log_info(f'electric didn\'t detect any existing installations of => {packet.display_name}', metadata.logfile)
-                supercache_availiable = check_supercache_availiable(package)
-                if super_cache and supercache_availiable and not no_cache:
-                    log_info('Handling SuperCache Request.', metadata.logfile)
-                    res, time = handle_cached_request(package)
-                else:
-                    log_info('Handling Network Request...', metadata.logfile)
-                    status = 'Networking'
-                    write_verbose('Sending GET Request To /rapidquery/packages', metadata)
-                    write_debug('Sending GET Request To /rapidquery/packages', metadata)
-                    log_info('Sending GET Request To /rapidquery/packages', metadata.logfile)
-                    update_supercache(metadata)
-                    res, time = handle_cached_request(package)
-
-                pkg = res
-                version = pkg['latest-version']
-                name = pkg['display-name']
-                pkg = pkg[version]
-                log_info('Generating Packet For Further Installation.', metadata.logfile)
-                
-                uninstall_exit_codes = []
-                packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
-                
-                write(f'Could not find any existing installations of {packet.display_name}', 'red', metadata)
-                try:
-                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                except:
-                    pass
-                close_log(metadata.logfile, 'Uninstall')
-                index += 1
-                continue
-
-            kill_running_proc(packet.json_name, packet.display_name, metadata)
             
-            if not ae:
-                write_verbose('Uninstall key found.', metadata)
-                log_info('Uninstall key found.', metadata.logfile)
-                log_info(key, metadata.logfile)
-                write_debug('Successfully Recieved UninstallString from Windows Registry', metadata)
+            write(f'Could not find any existing installations of {packet.display_name}', 'red', metadata)
+            try:
+                os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+            except:
+                pass
+            close_log(metadata.logfile, 'Uninstall')
+            index += 1
+            continue
 
-                write(
-                    f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', 'green', metadata)
-                log_info(
-                    f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', metadata.logfile)
+        kill_running_proc(packet.json_name, packet.display_name, metadata)
+        
+        if not ae:
+            write_verbose('Uninstall key found.', metadata)
+            log_info('Uninstall key found.', metadata.logfile)
+            log_info(key, metadata.logfile)
+            write_debug('Successfully Recieved UninstallString from Windows Registry', metadata)
 
-            command = ''
+            write(
+                f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', 'green', metadata)
+            log_info(
+                f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', metadata.logfile)
 
-            # Key Can Be A List Or A Dictionary Based On Results
+        command = ''
 
-            if isinstance(key, list):
-                if key:
-                    key = key[0]
+        # Key Can Be A List Or A Dictionary Based On Results
 
-            with Halo(f'Uninstalling {packet.display_name}', text_color='cyan', color='grey') as h:
-                if 'QuietUninstallString' in key:
-                    command = key['QuietUninstallString']
-                    command = command.replace('/I', '/X')
-                    command = command.replace('/quiet', '/qn')
+        if isinstance(key, list):
+            if key:
+                key = key[0]
 
-                    additional_switches = None
-                    if packet.uninstall_switches:
-                        if packet.uninstall_switches != []:
-                            write_verbose(
-                                'Adding additional uninstall switches', metadata)
-                            write_debug('Appending / Adding additional uninstallation switches', metadata)
-                            log_info('Adding additional uninstall switches', metadata.logfile)
-                            additional_switches = packet.uninstall_switches
+        with Halo(f'Uninstalling {packet.display_name}', text_color='cyan', color='grey') as h:
+            if 'QuietUninstallString' in key:
+                command = key['QuietUninstallString']
+                command = command.replace('/I', '/X')
+                command = command.replace('/quiet', '/qn')
 
-                    if additional_switches:
-                        for switch in additional_switches:
-                            command += ' ' + switch
+                additional_switches = None
+                if packet.uninstall_switches:
+                    if packet.uninstall_switches != []:
+                        write_verbose(
+                            'Adding additional uninstall switches', metadata)
+                        write_debug('Appending / Adding additional uninstallation switches', metadata)
+                        log_info('Adding additional uninstall switches', metadata.logfile)
+                        additional_switches = packet.uninstall_switches
 
-                    write_verbose('Executing the quiet uninstall command', metadata)
-                    log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
-                    write_debug('Running silent uninstallation command', metadata)
-                    run_test = run_cmd(command, metadata, 'uninstallation', h, packet)
-                    if run_test:
-                        packet.run_test = False
-                    h.stop()
+                if additional_switches:
+                    for switch in additional_switches:
+                        command += ' ' + switch
 
-                    write_verbose('Uninstallation completed.', metadata)
-                    log_info('Uninstallation completed.', metadata.logfile)
-
-                    index += 1
-
-                    if not packet.run_test:
-                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                        write(
-                            f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-                        log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
-                                            
-                    write_debug(
-                        f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
-                    log_info(
-                        f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
-                    close_log(metadata.logfile, 'Uninstall')
-
-                # If Only UninstallString Exists (Not Preferable)
-                if 'UninstallString' in key:
-                    command = key['UninstallString']
-                    command = command.replace('/I', '/X')
-                    if 'msiexec.exe' in command.lower():
-                        command += ' /quiet'
-                    # command = f'"{command}"'
-                    for switch in packet.uninstall_switches:
-                        command += f' {switch}'
-
-                    # Run The UninstallString
-                    write_verbose('Executing the Uninstall Command', metadata)
-                    log_info('Executing the silent Uninstall Command', metadata.logfile)
-
-                    run_test = run_cmd(command, metadata, 'uninstallation', h, packet)
+                write_verbose('Executing the quiet uninstall command', metadata)
+                log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
+                write_debug('Running silent uninstallation command', metadata)
+                run_test = run_cmd(command, metadata, 'uninstallation', h, packet)
+                if run_test:
                     packet.run_test = False
-                    h.stop()
-                    write_verbose('Uninstallation completed.', metadata)
-                    log_info('Uninstallation completed.', metadata.logfile)
-                    index += 1
-                    write(f'{Fore.CYAN}{packet.display_name}{Fore.RESET} Uninstaller Exited With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
-                    if not packet.run_test:
-                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                        write(
-                            f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-                        log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
-                    
-                    write_debug(
-                        f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
-                    log_info(
-                        f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
-                    close_log(metadata.logfile, 'Uninstall')
+                h.stop()
 
-            if packet.run_test:
-                write(f'Running Tests For {packet.display_name}', 'white', metadata)
-                if not find_existing_installation(packet.json_name, packet.display_name):
+                write_verbose('Uninstallation completed.', metadata)
+                log_info('Uninstallation completed.', metadata.logfile)
+
+                index += 1
+
+                if not packet.run_test:
                     os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                    print(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check')
                     write(
-                            f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                        f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                    log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
+                                        
+                write_debug(
+                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
+                log_info(
+                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
+                close_log(metadata.logfile, 'Uninstall')
+
+            # If Only UninstallString Exists (Not Preferable)
+            if 'UninstallString' in key:
+                command = key['UninstallString']
+                command = command.replace('/I', '/X')
+                if 'msiexec.exe' in command.lower():
+                    command += ' /quiet'
+                # command = f'"{command}"'
+                for switch in packet.uninstall_switches:
+                    command += f' {switch}'
+
+                # Run The UninstallString
+                write_verbose('Executing the Uninstall Command', metadata)
+                log_info('Executing the silent Uninstall Command', metadata.logfile)
+
+                run_test = run_cmd(command, metadata, 'uninstallation', h, packet)
+                packet.run_test = False
+                h.stop()
+                write_verbose('Uninstallation completed.', metadata)
+                log_info('Uninstallation completed.', metadata.logfile)
+                index += 1
+                write(f'{Fore.CYAN}{packet.display_name}{Fore.RESET} Uninstaller Exited With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
+                if not packet.run_test:
+                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                    write(
+                        f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                    log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
+                
+                write_debug(
+                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
+                log_info(
+                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
+                close_log(metadata.logfile, 'Uninstall')
+
+        if packet.run_test:
+            write(f'Running Tests For {packet.display_name}', 'white', metadata)
+            if not find_existing_installation(packet.json_name, packet.display_name):
+                os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                print(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check')
+                write(
+                        f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+            else:
+                print(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check')
+                write(f'Failed: Registry Check', 'red', metadata)
+                write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
+                tm.sleep(5)
+                if not find_existing_installation(packet.json_name, packet.display_name):
+                    write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
+                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                    write(
+                        f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                    log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
                 else:
-                    print(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check')
-                    write(f'Failed: Registry Check', 'red', metadata)
-                    write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
-                    tm.sleep(5)
-                    if not find_existing_installation(packet.json_name, packet.display_name):
-                        write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
-                        os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                        write(
-                            f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-                        log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
-                    else:
-                        write(
-                            f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
+                    write(
+                        f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
 
 
 @cli.command(aliases=['clean', 'clear'], context_settings=CONTEXT_SETTINGS)
