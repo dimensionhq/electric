@@ -45,9 +45,10 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 @click.pass_context
 def cli(_):
     if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\settings.json'):
-        update_package_list()
         click.echo(click.style(f'Creating settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
         initialize_settings()
+    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\packages.json'):
+        update_package_list()        
     if not os.path.isdir(PathManager.get_appdata_directory() + r'\Current'):
         os.mkdir(PathManager.get_appdata_directory() + r'\Current')
 
@@ -71,7 +72,6 @@ def cli(_):
 @click.option('--atom', '-ato', is_flag=True, help='Specify an Atom extension to install')
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to install')
 @click.option('--node', '-npm', is_flag=True, help='Specify a Npm package to install')
-@click.option('--no-cache', '-nocache', is_flag=True, help='Update SuperCaches')
 @click.option('--sync', '-sc', is_flag=True, help='Force downloads and installations one after another')
 @click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after installation')
 @click.option('--rate-limit', '-rl', type=int, default=-1)
@@ -92,7 +92,6 @@ def install(
     python: bool,
     install_directory: str,
     virus_check: bool,
-    no_cache: bool,
     sync: bool,
     reduce: bool,
     rate_limit: int,
@@ -132,12 +131,11 @@ def install(
             virus_check=virus_check,
             yes=yes,
             silent=silent,
-            no_cache=no_cache,
             sync=sync,
             reduce=reduce,
             rate_limit=rate_limit
         )
-        exit()
+        sys.exit()
 
     if logfile:
         logfile = logfile.replace('=', '')
@@ -146,7 +144,7 @@ def install(
 
     log_info('Generating metadata...', logfile)
     metadata = generate_metadata(
-        no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync, no_cache)
+        no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync)
     log_info('Successfully generated metadata.', metadata.logfile)
 
     if python:
@@ -209,19 +207,7 @@ def install(
         if len(split_package_names) == 1:
             packets = []
             for package in corrected_package_names:
-                    # spinner = halo.Halo(color='grey')
-                    # spinner.start()
-                    # log_info('Handling Network Request...', metadata.logfile)
-                    # status = 'Networking'
-                    # write_verbose('Sending GET Request To /packages/', metadata)
-                    # write_debug('Sending GET Request To /packages', metadata)
-                    # log_info('Sending GET Request To /packages', metadata.logfile)
-                    # res, time = send_req_package(package)
-                    # log_info('Updating SuperCache', metadata.logfile)
-                    # update_supercache(metadata)
-                    # log_info('Successfully Updated SuperCache', metadata.logfile)
-                    # spinner.stop()
-
+                res = send_req_package(package)
                 pkg = res
                 custom_dir = None
                 if install_directory:
@@ -290,7 +276,7 @@ def install(
                         write_verbose('Sending GET Request To /packages/', metadata)
                         write_debug('Sending GET Request To /packages', metadata)
                         log_info('Sending GET Request To /packages', metadata.logfile)
-                        res, time = send_req_package(package)
+                        res = send_req_package(package)
                         log_info('Updating SuperCache', metadata.logfile)
 
                         log_info('Successfully Updated SuperCache', metadata.logfile)
@@ -352,13 +338,9 @@ def install(
 
                         if not metadata.silent:
                             if not metadata.no_color:
-                                if super_cache:
-                                    print('SuperCached', Fore.GREEN + '=>' + Fore.RESET, '[', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
-                                else:
-                                    print('Recieved => [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
-
+                                print(f'SuperCached [ {packet.display_name} ]')
                             else:
-                                print(f'Found => [ {packet.display_name} ]')
+                                print(f'SuperCached [ {Fore.CYAN} {packet.display_name} {Fore.RESET} ]')
                         start = timer()
 
                         status = 'Download Path'
@@ -406,7 +388,7 @@ def install(
                         
                         
                         write(
-                            f'Installing {Fore.CYAN}{packet.display_name}{Fore.RESET}', 'white', metadata)
+                            f'{Fore.CYAN}Installing {packet.display_name}{Fore.RESET}', 'white', metadata)
                         log_info(
                             f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
 
@@ -475,7 +457,7 @@ def install(
                         write_verbose('Sending GET Request To /packages/', metadata)
                         write_debug('Sending GET Request To /packages', metadata)
                         log_info('Sending GET Request To /packages', metadata.logfile)
-                        res, time = send_req_package(package)
+                        res = send_req_package(package)
                         log_info('Updating SuperCache', metadata.logfile)
 
                         log_info('Successfully Updated SuperCache', metadata.logfile)
@@ -538,20 +520,14 @@ def install(
 
     for package in corrected_package_names:
 
-        # if not silent:
-        #     # ERROR HERE
-        #     spinner = halo.Halo(color='grey' if not no_color else 'white')
-        #     spinner.start()
         log_info('Handling Network Request...', metadata.logfile)
         status = 'Networking'
         write_verbose('Sending GET Request To /packages/', metadata)
         write_debug('Sending GET Request To /packages', metadata)
         log_info('Sending GET Request To /packages', metadata.logfile)
         log_info('Updating SuperCache', metadata.logfile)
-        res, time = send_req_package(package)
+        res = send_req_package(package)
         log_info('Successfully Updated SuperCache', metadata.logfile)
-        # if not silent:
-        #     spinner.stop()
 
         pkg = res
         log_info('Generating Packet For Further Installation.', metadata.logfile)
@@ -629,20 +605,20 @@ def install(
             log_info(f'Finding closest match to {packet.json_name}...', metadata.logfile)
 
             write_verbose(
-                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+                f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
             write_debug(
-                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+                f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
             log_info(
-                f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
+                f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
 
             write_verbose('Generating system download path...', metadata)
             log_info('Generating system download path...', metadata.logfile)
 
             if not metadata.silent:
                 if not metadata.no_color:
-                    print('Recieved [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
+                    print('SuperCached [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
                 else:
-                    print(f'Recieved [ {packet.display_name} ]')
+                    print(f'SuperCached [ {packet.display_name} ]')
 
             status = 'Download Path'
             download_url = packet.win64
@@ -687,20 +663,22 @@ def install(
                 log_info('Running requested virus scanning', metadata.logfile)
                 write('Scanning File For Viruses...', 'blue', metadata)
                 check_virus(path, metadata)
-            with Halo(text=f'Installing {Fore.CYAN}{packet.display_name}{Fore.RESET}') as h:
-                log_info(
-                    'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+            
+            write(f'{Fore.CYAN}Installing {packet.display_name}{Fore.RESET}', 'white', metadata)
+            log_info(
+                'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
-                write_debug(
-                    f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
-                log_info(
-                    f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
-                log_info('Creating start snapshot of registry...', metadata.logfile)
-                start_snap = get_environment_keys()
-                status = 'Installing'
-                # Running The Installer silently And Completing Setup
-                install_package(path, packet, metadata, h)
-            write(f'{Fore.CYAN}{packet.display_name}{Fore.RESET} Installer Exited With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
+            write_debug(
+                f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
+            log_info(
+                f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
+            log_info('Creating start snapshot of registry...', metadata.logfile)
+            start_snap = get_environment_keys()
+            status = 'Installing'
+            # Running The Installer silently And Completing Setup
+            install_package(path, packet, metadata)
+
+            # write(f'{Fore.CYAN}{packet.display_name}{Fore.RESET} Installer Exited With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
             status = 'Installed'
             log_info('Creating final snapshot of registry...', metadata.logfile)
             final_snap = get_environment_keys()
@@ -716,6 +694,8 @@ def install(
                 write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
             
             if not packet.run_test:
+                write(f'Running Tests For {packet.display_name}', 'white', metadata)
+                write(f'[{Fore.GREEN} OK {Fore.RESET}] Registry Check', 'white', metadata)
                 register_package_success(packet, install_directory, metadata)
                 write(
                     f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
@@ -762,7 +742,6 @@ def install(
 
 @cli.command(aliases=['upgrade'], context_settings=CONTEXT_SETTINGS)
 @click.argument('package_name', required =True)
-@click.option('--no-cache', '-nocache', is_flag=True, help='Update Supercache While Updating')
 @click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for bundle installation')
 @click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for bundle installation')
 @click.option('--verbose', '-vb', is_flag=True, help='Enable verbose mode for installation')
@@ -778,7 +757,6 @@ def install(
 def update(
     ctx,
     package_name: str,
-    no_cache: bool,
     verbose: bool,
     debug: bool,
     no_color: bool,
@@ -800,7 +778,6 @@ def update(
             ctx.invoke(
                 update,
                 package_name=package,
-                no_cache=no_cache,
                 verbose=verbose,
                 debug=debug,
                 no_color=no_color,
@@ -815,7 +792,7 @@ def update(
             )
         sys.exit()
 
-    metadata = generate_metadata(None, None, None, None, None, None, None, None, None, None, Setting.new(), None, no_cache)
+    metadata = generate_metadata(None, None, None, None, None, None, None, None, None, None, Setting.new(), None)
     
 
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
@@ -840,7 +817,7 @@ def update(
         write_debug('Sending GET Request To /packages', metadata)
         log_info('Sending GET Request To /packages', metadata.logfile)
         log_info('Updating SuperCache', metadata.logfile)
-        res, _ = send_req_package(package)
+        res = send_req_package(package)
         log_info('Successfully Updated SuperCache', metadata.logfile)
         spinner.stop()
 
@@ -874,7 +851,6 @@ def update(
                         yes=yes,
                         silent=silent,
                         python=None,
-                        no_cache=no_cache,
                     )
                     ctx.invoke(
                         install,
@@ -889,7 +865,6 @@ def update(
                         silent=silent,
                         python=None,
                         node=None,
-                        no_cache=no_cache,
                         reduce=reduce,
                         rate_limit=rate_limit
                         )
@@ -915,7 +890,6 @@ def update(
 @click.option('--atom', '-ato', is_flag=True, help='Specify an Atom extension to install')
 @click.option('--vscode', '-vs', is_flag=True, help='Specify a Visual Studio Code extension to install')
 @click.option('--node', '-npm', is_flag=True, help='Specify a Python package to install')
-@click.option('--no-cache', '-nocache', is_flag=True, help='Prevent cache usage for uninstallation')
 @click.option('--portable', '--non-admin', '-p', is_flag=True, help='Install a portable version of a package')
 @click.option('--configuration', '-cf', is_flag=True, help='Specify a config file to install')
 @click.option('--ae', is_flag=True)
@@ -932,7 +906,6 @@ def uninstall(
     python: bool,
     vscode: bool,
     node: bool,
-    no_cache: bool,
     atom: bool,
     configuration: bool,
     portable: bool,
@@ -955,7 +928,6 @@ def uninstall(
             virus_check=None,
             yes=yes,
             silent=silent,
-            no_cache=no_cache,
             sync=None,
             reduce=None,
             rate_limit=None
@@ -965,7 +937,7 @@ def uninstall(
     log_info('Generating metadata...', logfile)
 
     metadata = generate_metadata(
-        None, silent, verbose, debug, no_color, yes, logfile, None, None, None, Setting.new(), None, no_cache)
+        None, silent, verbose, debug, no_color, yes, logfile, None, None, None, Setting.new(), None)
 
     log_info('Successfully generated metadata.', logfile)
 
@@ -1021,6 +993,7 @@ def uninstall(
         installed_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
         portable_installed_packages = [ ''.join(f.split('@')[:1]) for f in os.listdir(os.path.expanduser('~') + r'\electric') ]
         installed_packages += portable_installed_packages
+        res = send_req_package(package)
         if package not in installed_packages:
             pkg = res
             version = pkg['latest-version']
@@ -1037,7 +1010,6 @@ def uninstall(
                 pass
             handle_exit('ERROR', '', metadata)
         
-            
         pkg = res
         if 'is-portable' in list(pkg.keys()):
             if pkg['is-portable'] == True:
@@ -1081,19 +1053,9 @@ def uninstall(
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
 
-        if super_cache:
-            if not ae:
-                write(f'SuperCached [ {Fore.CYAN}{packet.display_name}{Fore.RESET} ]', 'white', metadata)
-                write_debug(
-                    f'Successfully SuperCached {packet.json_name}', metadata)
-                log_info(
-                    f'Successfully SuperCached {packet.json_name}', metadata)
-        else:
-            write(f'Recieved => [ {Fore.CYAN} {packet.display_name} {Fore.RESET} ]', 'white', metadata)
-            write(
-                f'Received {packet.json_name}.json', 'bright_green', metadata)
-            log_info(
-                f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
+        write(f'SuperCached [ {Fore.CYAN}{packet.display_name}{Fore.RESET} ]', 'white', metadata)
+        log_info(
+            f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
 
         # Getting UninstallString or QuietUninstallString From The Registry Search Algorithm
         write_verbose(
@@ -1148,82 +1110,82 @@ def uninstall(
             if key:
                 key = key[0]
 
-        with Halo(f'Uninstalling {packet.display_name}', text_color='cyan', color='grey') as h:
-            if 'QuietUninstallString' in key:
-                command = key['QuietUninstallString']
-                command = command.replace('/I', '/X')
-                command = command.replace('/quiet', '/qn')
+        write(f'{Fore.CYAN}Uninstalling {packet.display_name}{Fore.RESET}', 'white', metadata)
+        if 'QuietUninstallString' in key:
+            command = key['QuietUninstallString']
+            command = command.replace('/I', '/X')
+            command = command.replace('/quiet', '/qn')
 
-                additional_switches = None
-                if packet.uninstall_switches:
-                    if packet.uninstall_switches != []:
-                        write_verbose(
-                            'Adding additional uninstall switches', metadata)
-                        write_debug('Appending / Adding additional uninstallation switches', metadata)
-                        log_info('Adding additional uninstall switches', metadata.logfile)
-                        additional_switches = packet.uninstall_switches
+            additional_switches = None
+            if packet.uninstall_switches:
+                if packet.uninstall_switches != []:
+                    write_verbose(
+                        'Adding additional uninstall switches', metadata)
+                    write_debug('Appending / Adding additional uninstallation switches', metadata)
+                    log_info('Adding additional uninstall switches', metadata.logfile)
+                    additional_switches = packet.uninstall_switches
 
-                if additional_switches:
-                    for switch in additional_switches:
-                        command += ' ' + switch
+            if additional_switches:
+                for switch in additional_switches:
+                    command += ' ' + switch
 
-                write_verbose('Executing the quiet uninstall command', metadata)
-                log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
-                write_debug('Running silent uninstallation command', metadata)
-                run_test = run_cmd(command, metadata, 'uninstallation', h, packet)
-                if run_test:
-                    packet.run_test = False
-                h.stop()
-
-                write_verbose('Uninstallation completed.', metadata)
-                log_info('Uninstallation completed.', metadata.logfile)
-
-                index += 1
-
-                if not packet.run_test:
-                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                    write(
-                        f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-                    log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
-                                        
-                write_debug(
-                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
-                log_info(
-                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
-                close_log(metadata.logfile, 'Uninstall')
-
-            # If Only UninstallString Exists (Not Preferable)
-            if 'UninstallString' in key:
-                command = key['UninstallString']
-                command = command.replace('/I', '/X')
-                if 'msiexec.exe' in command.lower():
-                    command += ' /quiet'
-                # command = f'"{command}"'
-                for switch in packet.uninstall_switches:
-                    command += f' {switch}'
-
-                # Run The UninstallString
-                write_verbose('Executing the Uninstall Command', metadata)
-                log_info('Executing the silent Uninstall Command', metadata.logfile)
-
-                run_test = run_cmd(command, metadata, 'uninstallation', h, packet)
+            write_verbose('Executing the quiet uninstall command', metadata)
+            log_info(f'Executing the quiet uninstall command => {command}', metadata.logfile)
+            write_debug('Running silent uninstallation command', metadata)
+            run_test = run_cmd(command, metadata, 'uninstallation', packet)
+            if run_test:
                 packet.run_test = False
-                h.stop()
-                write_verbose('Uninstallation completed.', metadata)
-                log_info('Uninstallation completed.', metadata.logfile)
-                index += 1
-                write(f'{Fore.CYAN}{packet.display_name}{Fore.RESET} Uninstaller Exited With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
-                if not packet.run_test:
-                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                    write(
-                        f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-                    log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
+            
+            write_verbose('Uninstallation completed.', metadata)
+            log_info('Uninstallation completed.', metadata.logfile)
+
+            index += 1
+
+            if not packet.run_test:
+                os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                write(
+                    f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
+                                    
+            write_debug(
+                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
+            log_info(
+                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
+            close_log(metadata.logfile, 'Uninstall')
+
+        # If Only UninstallString Exists (Not Preferable)
+        if 'UninstallString' in key:
+            command = key['UninstallString']
+            command = command.replace('/I', '/X')
+            if 'msiexec.exe' in command.lower():
+                command += ' /quiet'
+            # command = f'"{command}"'
+            for switch in packet.uninstall_switches:
+                command += f' {switch}'
+
+            # Run The UninstallString
+            write_verbose('Executing the Uninstall Command', metadata)
+            log_info('Executing the silent Uninstall Command', metadata.logfile)
+
+            run_test = run_cmd(command, metadata, 'uninstallation', packet)
+            packet.run_test = False
+            write_verbose('Uninstallation completed.', metadata)
+            log_info('Uninstallation completed.', metadata.logfile)
+            index += 1
+            if not packet.run_test:
+                write(f'Running Tests For {packet.display_name}', 'white', metadata)
+                os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                write(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check', 'white', metadata)
                 
-                write_debug(
-                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
-                log_info(
-                    f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
-                close_log(metadata.logfile, 'Uninstall')
+                write(
+                    f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                log_info(f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
+            
+            write_debug(
+                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
+            log_info(
+                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
+            close_log(metadata.logfile, 'Uninstall')
 
         if packet.run_test:
             write(f'Running Tests For {packet.display_name}', 'white', metadata)
@@ -1260,7 +1222,7 @@ def cleanup():
             os.mkdir(rf'{tempfile.gettempdir()}\electric')
             h.stop()
             click.echo(click.style('Nothing To Cleanup!', 'cyan'))
-            exit()
+            sys.exit()
 
         if len(files) == 0:
             h.stop()
@@ -1287,7 +1249,6 @@ def cleanup():
 @click.option('--virus-check', '-vc', is_flag=True, help='Check for virus before bundle installation')
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during bundle installation')
 @click.option('--silent', '-s', is_flag=True, help='Completely silent bundle installation without any output to console')
-@click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
 @click.option('--sync', '-sc', is_flag=True, help='Force downloads and installations one after another')
 @click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after bundle installation')
 @click.option('--exclude', '-ex', 'exclude', help='Exclude a package from bundle installation')
@@ -1306,7 +1267,6 @@ def bundle(
     virus_check: bool,
     yes: bool,
     silent: bool,
-    no_cache: bool,
     sync: bool,
     reduce: bool,
     rate_limit: bool,
@@ -1316,7 +1276,7 @@ def bundle(
     Installs a bunlde of packages from the official electric repository.
     """
     metadata = generate_metadata(
-            no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync, no_cache)
+            no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync)
 
     if is_admin():
         if logfile:
@@ -1372,7 +1332,6 @@ def bundle(
                 yes=yes,
                 silent=silent,
                 python=None,
-                no_cache=no_cache,
                 )
 
         else:
@@ -1390,7 +1349,6 @@ def bundle(
                 silent=silent,
                 python=None,
                 node=None,
-                no_cache=no_cache,
                 sync=sync,
                 reduce=reduce,
                 rate_limit=rate_limit
@@ -1486,7 +1444,6 @@ def new(
 @click.option('--virus-check', '-vc', is_flag=True, help='Check for virus before config installation')
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during config installation')
 @click.option('--silent', '-s', is_flag=True, help='Completely silent config installation without any output to console')
-@click.option('--no-cache', '-nocache', is_flag=True, help='Specify a Python package to install')
 @click.option('--sync', '-sc', is_flag=True, help='Force downloads and installations one after another')
 @click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after config installation')
 @click.option('--rate-limit', '-rl', type=int, default=-1)
@@ -1502,7 +1459,6 @@ def config(
     virus_check: bool,
     yes: bool,
     silent: bool,
-    no_cache: bool,
     sync: bool,
     reduce: bool,
     rate_limit: bool,
@@ -1521,14 +1477,14 @@ def config(
         sys.exit()
 
     metadata = generate_metadata(
-            no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync, no_cache)
+            no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync)
 
     config = Config.generate_configuration(config_path)
     config.check_prerequisites()
     if remove:
         config.uninstall()
     else:
-        config.install(exclude_versions, install_directory, no_cache, sync, metadata)
+        config.install(exclude_versions, install_directory, sync, metadata)
 
 
 @cli.command(aliases=['validate'], context_settings=CONTEXT_SETTINGS)
@@ -1557,7 +1513,7 @@ def sign(
 
         if '# --------------------Checksum Start-------------------------- #' in l and '# --------------------Checksum End--------------------------- #' in l:
             click.echo(click.style('File Already Signed, Aborting Signing!', fg='red'))
-            exit()
+            sys.exit()
 
     with open(filepath, 'a') as f:
         f.writelines([

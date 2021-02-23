@@ -2,6 +2,7 @@ from Classes.Config import Config
 from colorama import Fore
 import hashlib
 import socket
+import sys
 
 HOST = '127.0.0.1'
 PORT = 65432
@@ -17,7 +18,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
     except ConnectionRefusedError:
         print(Fore.RED + 'Electric Servers Are Not Responding!' + Fore.RESET)
-        exit()
+        sys.exit()
     s.sendall(byte_dict)
     while True:
         data = s.recv(1024)
@@ -43,7 +44,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             else:
                 print(Fore.RED + data.decode().replace('ERROR', '') + Fore.RESET)
                 s.close()
-                exit()
+                sys.exit()
 
 # Sign File And Exit
 md5 = hashlib.md5(open(filepath, 'rb').read()).hexdigest()
@@ -59,7 +60,7 @@ with open(filepath, 'r') as f:
 
     if '# --------------------Checksum Start-------------------------- #' in l and '# --------------------Checksum End--------------------------- #' in l:
         print(Fore.RED + f'File Already Signed, Aborting Signing!' + Fore.RESET)
-        exit()
+        sys.exit()
 
 with open(filepath, 'a') as f:
     f.writelines([

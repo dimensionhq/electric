@@ -8,6 +8,7 @@ import colorama
 import socket
 import click
 import ssl
+import sys
 
 
 refreshenv = PathManager.get_current_directory() + r'\scripts\refreshvars.cmd'
@@ -64,7 +65,7 @@ class Config:
             if platform == 'win32' and not self.os == 'Windows':
                 if self.os:
                     if not click.confirm(f'WARNING: This Config Has A Target OS Of {self.os}. Would you like to continue?'):
-                        exit()
+                        sys.exit()
 
         packages = self.dictionary['Packages'] if 'Packages' in self.headers else None
 
@@ -74,7 +75,7 @@ class Config:
             except FileNotFoundError:
                 if not any(['python' in package for package in packages]):
                     click.echo(click.style('Pip Not Found, Aborting Config Installation!', fg='red'))
-                    exit()
+                    sys.exit()
 
         if 'Node-Packages' in headers:
             try:
@@ -82,7 +83,7 @@ class Config:
             except FileNotFoundError:
                 if not any(['nodejs' in package for package in packages]):
                     click.echo(click.style('Node Not Found, Aborting Config Installation!', fg='red'))
-                    exit()
+                    sys.exit()
 
         editor_type = self.dictionary['Editor-Configuration'][0]['Editor'] if 'Editor-Configuration' in self.headers else None
         if editor_type:
@@ -244,7 +245,7 @@ class Config:
                                     click.echo(click.style(f'Error On Line {ln_number + 1} At {filepath}', fg='red'))
                                     message = line.replace(':', '')
                                     click.echo(click.style(f'ValueNotFoundError : No Value Provided For Key :: {colorama.Fore.CYAN}{message}', fg='yellow'))
-                                    exit()
+                                    sys.exit()
                             except ValueError:
                                 if header in ['Packages', 'Pip-Packages', 'Editor-Extensions', 'Node-Packages']:
                                     k, v = line, "latest"
@@ -262,7 +263,7 @@ class Config:
                                     click.echo(click.style(f'Error On Line {ln_number + 1} At {filepath}', fg='red'))
                                     message = line.replace(':', '')
                                     click.echo(click.style(f'ValueNotFoundError : Expecting A Value Pair With `=>` Operator For Key :: {colorama.Fore.CYAN}{message}', fg='yellow'))
-                                    exit()
+                                    sys.exit()
 
                             d[header].append({ k : v.replace('"', '') })
 
@@ -477,11 +478,11 @@ class Config:
                     if not '# --------------------Checksum Start-------------------------- #' in l or not '# --------------------Checksum End--------------------------- #' in l:
                         click.echo(click.style(f'File Checksum Not Found! Run `electric sign {filepath}` ( Copied To Clipboard ) to sign your .electric configuration.', fg='red'))
                         copy_to_clipboard(f'electric sign {filepath}')
-                        exit()
+                        sys.exit()
 
                     if lines[-1] != '# --------------------Checksum End--------------------------- #':
                         click.echo(click.style('DataAfterChecksumError : Comments, Code And New lines Are Not Allowed After The Checksum End Header.', 'red'))
-                        exit()
+                        sys.exit()
 
                     if '# --------------------Checksum Start-------------------------- #' in l and '# --------------------Checksum End--------------------------- #' in l:
                         idx = 0
@@ -514,7 +515,7 @@ class Config:
         except FileNotFoundError:
             click.echo(click.style(f'Could Not Find {Fore.BLUE}{filepath}{Fore.RESET}.', fg='red'), err=True)
             time.sleep(2)
-            exit()
+            sys.exit()
         d.pop('')
 
         return Config(d)
@@ -570,7 +571,7 @@ class Config:
                                 return
         
 
-    def install(self, exclude_versions: bool, install_directory: str, no_cache: str, sync: bool, metadata: Metadata):
+    def install(self, exclude_versions: bool, install_directory: str, sync: bool, metadata: Metadata):
         if is_admin():
             flags = get_install_flags(install_directory, metadata)
             config = self.dictionary
@@ -627,7 +628,7 @@ class Config:
                         os.system(command)
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
-                            exit()
+                            sys.exit()
 
             if editor_type == 'Sublime Text 3' and editor_extensions:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
@@ -638,7 +639,7 @@ class Config:
                         os.system(command)
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
-                            exit()
+                            sys.exit()
 
             if editor_type == 'Atom' and editor_extensions:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
@@ -649,7 +650,7 @@ class Config:
                         os.system(command)
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
-                            exit()
+                            sys.exit()
 
             if node_packages:
                 for node_package in node_packages:
@@ -658,7 +659,7 @@ class Config:
                         os.system(f'{refreshenv} & electric install --node {node_package}')
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
-                            exit()
+                            sys.exit()
 
         else:
             click.echo(click.style('Config installation must be ran as administrator!', fg='red'), err=True)
@@ -678,7 +679,7 @@ class Config:
                         os.system(f'electric uninstall {list(package.keys())[0]}')
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
-                            exit()
+                            sys.exit()
 
             if python_packages:
                 for python_package in python_packages:
@@ -687,7 +688,7 @@ class Config:
                         os.system(command)
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
-                            exit()
+                            sys.exit()
 
             if editor_type == 'Visual Studio Code' and editor_extensions:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
@@ -698,7 +699,7 @@ class Config:
                         os.system(command)
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
-                            exit()
+                            sys.exit()
 
             if editor_type == 'Atom' and editor_extensions:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
@@ -709,7 +710,7 @@ class Config:
                         os.system(command)
                     except:
                         if not click.confirm('Would you like to continue configuration'):
-                            exit()
+                            sys.exit()
 
             if node_packages:
                 for node_package in node_packages:
@@ -718,7 +719,7 @@ class Config:
                         os.system(f'electric uninstall --node {node_package}')
                     except:
                         if not click.confirm('Would you like to continue configuration installation?'):
-                            exit()
+                            sys.exit()
         else:
             click.echo(click.style('Config installation must be ran as administrator!', fg='red'), err=True)
 

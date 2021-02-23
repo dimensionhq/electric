@@ -243,7 +243,7 @@ def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
                     current_packages = json['installed_packages']
                     if package_name in current_packages:
                         print(f'{package_name} is already installed!')
-                        exit()
+                        sys.exit()
 
                     current_packages.append(package_name)
                 updated_packages = current_packages
@@ -299,7 +299,7 @@ def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
             version = output.decode().splitlines()[0].split()[1]
         except FileNotFoundError:
             print('Atom is not installed')
-            exit()
+            sys.exit()
         with Halo(f'apm v{version} :: Installing {package_name}', text_color='cyan') as h:
             proc = Popen(f'apm install {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
             for line in proc.stdout:
@@ -318,7 +318,7 @@ def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
                 version = output.decode().splitlines()[0].split()[1]
             except FileNotFoundError:
                 print('Atom is not installed')
-                exit()
+                sys.exit()
             with Halo(f'apm v{version} :: Installing {package_name}', text_color='cyan') as h:
                 proc = Popen(f'apm install {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
                 for line in proc.stdout:
@@ -336,7 +336,7 @@ def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
             version = output.decode().splitlines()[0].split()[1]
         except FileNotFoundError:
             print('Atom is not installed')
-            exit()
+            sys.exit()
         with Halo(f'apm v{version} :: Uninstalling {package_name}', text_color='cyan') as h:
             proc = Popen(f'apm deinstall {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
             for line in proc.stdout:

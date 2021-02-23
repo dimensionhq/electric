@@ -190,7 +190,7 @@ class ThreadedInstaller:
         package_list = [ packet.display_name for packet in  self.packets ]
         package_list = str(package_list).replace('[', '').replace(']', '').replace('\'', '')
         write(f'Supercached => [ {Fore.CYAN}{package_list}{Fore.RESET} ]', 'white', metadata)
-        log_info('Initializing Rapid Download...', metadata.logfile)
+        log_info('Initializing Rapid Download', metadata.logfile)
 
         packets = self.packets
 

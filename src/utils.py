@@ -487,7 +487,7 @@ def get_file_type(command: str) -> str:
     return '.exe'
 
 
-def run_cmd(command: str, metadata: Metadata, method: str, halo: Halo, packet: Packet) -> bool:
+def run_cmd(command: str, metadata: Metadata, method: str, packet: Packet) -> bool:
     """
     Runs a command on the shell with electric error handling and exit code monitoring
 
@@ -515,7 +515,7 @@ def run_cmd(command: str, metadata: Metadata, method: str, halo: Halo, packet: P
         disp_error_msg(get_error_cause(str(err), packet.install_exit_codes, packet.uninstall_exit_codes, method, metadata, packet), metadata)
 
 
-def install_package(path, packet: Packet, metadata: Metadata, halo: Halo) -> str:
+def install_package(path, packet: Packet, metadata: Metadata) -> str:
     """
     Installs an electric package
 
@@ -523,15 +523,13 @@ def install_package(path, packet: Packet, metadata: Metadata, halo: Halo) -> str
         path (str): Path to the installer executable
         packet (Packet): Packet for installation
         metadata (Metadata): Metadata for installation
-        halo (Halo): Halo for installation
-
+        
     """    
     download_type = packet.win64_type
     custom_install_switch = packet.custom_location
     directory = packet.directory
     package_name = packet.json_name
     switches = packet.install_switches
-    no_cache = metadata.no_cache
     sync = metadata.sync
 
     if download_type == '.exe':
@@ -566,7 +564,7 @@ def install_package(path, packet: Packet, metadata: Metadata, halo: Halo) -> str
             for switch in switches:
                 command = command + ' ' + switch
 
-        run_test = run_cmd(command, metadata, 'installation', halo, packet)
+        run_test = run_cmd(command, metadata, 'installation', packet)
         packet.run_test = run_test
 
     elif download_type == '.msi':
@@ -581,7 +579,7 @@ def install_package(path, packet: Packet, metadata: Metadata, halo: Halo) -> str
             click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
-        run_test = run_cmd(command, metadata, 'installation', halo, packet)
+        run_test = run_cmd(command, metadata, 'installation', packet)
         packet.run_test = run_test
 
 
@@ -639,37 +637,17 @@ def send_req_package(package_name: str) -> dict:
     Returns:
         dict: Decoded JSON from the github registry response
     """
-    # cursor.hide()
-    fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█'
-    unfill_c = Fore.BLACK + '█'
-    sys.stdout.write(
-        f'\r{fill_c * 1}{unfill_c * 20}')
-    tm.sleep(0.05)
-    sys.stdout.write(
-        f'\r{fill_c * 5}{unfill_c * 20}')
-    sys.stdout.flush()
+    
     REQA = 'https://electric-package-manager.herokuapp.com/packages/windows/'
-    tm.sleep(0.05)
-    sys.stdout.write(
-        f'\r{fill_c * 10}{unfill_c * 15}')
+    
     response = requests.get(REQA + package_name, timeout=15)
-    tm.sleep(0.05)
-    time = response.elapsed.total_seconds()
-    sys.stdout.write(
-        f'\r{fill_c * 15}{unfill_c * 10}')
-    tm.sleep(0.05)
-    sys.stdout.write(
-        f'\r{fill_c * 25}')
-    sys.stdout.flush()
-    # sys.stdout.write('\r')
-    # sys.stdout.flush()
-    sys.stdout.write('\n')
+    
     try:
         res = json.loads(response.text)
     except JSONDecodeError:
         click.echo(click.style(f'{package_name} not found!', 'red'))
         sys.exit()
-    return res, time
+    return res
 
 
 def get_pid(exe_name):
@@ -883,8 +861,6 @@ def get_install_flags(install_dir: str, metadata: Metadata):
         flags.append(f'--install-dir={install_dir}')
     if metadata.sync:
         flags.append('--sync')
-    if metadata.no_cache:
-        flags.append('--no-cache')
 
     return flags
 
@@ -1015,8 +991,8 @@ def check_for_updates():
 
 
 
-def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, settings, sync, no_cache):
-    return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce, rate_limit, settings, sync, no_cache)
+def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, settings, sync):
+    return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce, rate_limit, settings, sync)
 
 
 def disp_error_msg(messages: list, metadata: Metadata):
@@ -1228,7 +1204,7 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
     except KeyError:
         name = res['display-name']
         click.echo(click.style(f'\nCannot Find {name}::v{version}', 'red'))
-        exit()
+        sys.exit()
     url = pkg['url']
     display_name = res['display-name']
     package_name = res['package-name']
@@ -1252,7 +1228,7 @@ def update_package_list():
     with Halo('Updating Electric'):
         r = requests.get('https://raw.githubusercontent.com/XtremeDevX/electric-packages/master/package-list.json')
         data = r.json()
-        with open(rf'{PathManager.get_appdata_directory()}\package-list.json', 'w+') as f:
+        with open(rf'{PathManager.get_appdata_directory()}\packages.json', 'w+') as f:
             f.write(json.dumps(data, indent=4))
 
 
