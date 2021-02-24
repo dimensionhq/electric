@@ -1,33 +1,17 @@
-#   -v, --version
-#   --nightly, --pre-release
-#   -p, --portable, --non-admin
-#   -vb, --verbose
-#   -d, --debug
-#   -np, --no-progress
-#   -nc, --no-color
-#   -l, --log-output
-#   -dir, --install-dir
-#   -vc, --virus-check
-#   -y, --yes
-#   -s, --silent
-#   -vs, --vscode
-#   -sb, --sublime
-#   -ato, --atom
-#   -py, --python
-#   -npm, --node
-#   -nocache, --no-cache
-#   -sc, --sync
-#   -rd, --reduce
-#   -rl, --rate-limit INTEGER
-#   -f, --force
 #   -cf, --configuration
 #   -pl, --plugin
-#   -h, --help
 
+from timeit import default_timer as timer
 from subprocess import Popen, PIPE
 from colorama import Fore
 import os
 
+os.system('electric uninstall sublime-text-3')
+os.system('electric uninstall sublime-text-3 --portable')
+os.system('electric uninstall atom')
+os.system('cls')
+
+start = timer()
 ec1 = os.system('electric install sublime-text-3 --portable')
 ec2 = os.system('electric uninstall sublime-text-3 --portable')
 if ec1 == 0 and ec2 == 0:
@@ -83,7 +67,7 @@ if ec1 == 0 and ec2 == 0:
 else:
     print(f'{Fore.RED}❌ Nightly / Prerelease Installation And Uninstallation Check ❌{Fore.RESET}')
 
-ec1 = os.system('electric install atom --version ')
+ec1 = os.system('electric install atom --version 1.52.0')
 ec2 = os.system('electric uninstall atom')
 
 if ec1 == 0 and ec2 == 0:
@@ -107,8 +91,8 @@ if ec1 == 0 and ec2 == 0:
 else:
     print(f'{Fore.RED}❌ No-Color Installation And Uninstallation Check ❌{Fore.RESET}')
 
-ec1 = os.system(r'electric install sublime-text-3 --log-output C:\Users\tejas\Desktop\electric-log.txt')
-ec2 = os.system(r'electric uninstall sublime-text-3 --log-output C:\Users\tejas\Desktop\electric-log.txt')
+ec1 = os.system(r'electric install sublime-text-3 --log-output C:\Users\xtrem\Desktop\electric-log.txt')
+ec2 = os.system(r'electric uninstall sublime-text-3 --log-output C:\Users\xtrem\Desktop\electric-log.txt')
 
 
 if ec1 == 0 and ec2 == 0:
@@ -116,7 +100,7 @@ if ec1 == 0 and ec2 == 0:
 else:
     print(f'{Fore.RED}❌ Logging Installation And Uninstallation Check ❌{Fore.RESET}')
 
-ec1 = os.system(r'electric install sublime-text-3 --install-dir "C:\Users\tejas\Desktop\NewFolder"')
+ec1 = os.system(r'electric install sublime-text-3 --install-dir "C:\Users\xtrem\Desktop\NewFolder"')
 ec2 = os.system(r'electric uninstall sublime-text-3')
 
 if ec1 == 0 and ec2 == 0:
@@ -139,6 +123,14 @@ if output == b'' and err == b'' and proc.returncode == 0:
 else:
     print(f'{Fore.GREEN}❌ Silent Installation Check ❌{Fore.RESET}')
 
+ec1 = os.system('electric install sublime-text-3 --rate-limit 2000')
+ec2 = os.system('electric uninstall sublime-text-3 --rate-limit 2000')
+
+if output == b'' and err == b'' and proc.returncode == 0:
+    print(f'{Fore.GREEN}✅ Rate Limit Check ✅{Fore.RESET}')
+else:
+    print(f'{Fore.GREEN}❌ Rate Limit Check ❌{Fore.RESET}')
+
 proc = Popen('electric uninstall sublime-text-3 --silent', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
 output, err = proc.communicate()
 if output == b'' and err == b'' and proc.returncode == 0:
@@ -154,13 +146,39 @@ if ec1 == 0 and ec2 == 0:
 else:
     print(f'{Fore.RED}❌ Visual Studio Code Extension Installation And Uninstallation Check ❌{Fore.RESET}')
 
-# ec1 = os.system('electric install  --sublime')
-# ec2 = os.system('electric uninstall --sublime')
+ec2 = os.system('electric uninstall requests --python')
+ec1 = os.system('electric install requests --python')
 
-# if ec1 == 0 and ec2 == 0:
-#     print(f'{Fore.GREEN}✅ Sublime Text 3 Extension Installation And Uninstallation Check ✅{Fore.RESET}')
-# else:
-#     print(f'{Fore.RED}❌ Sublime Text 3 Extension Installation And Uninstallation Check ❌{Fore.RESET}')
+if ec1 == 0 and ec2 == 0:
+    print(f'{Fore.GREEN}✅ Python Package Installation And Uninstallation Check ✅{Fore.RESET}')
+else:
+    print(f'{Fore.RED}❌ Python Package Installation And Uninstallation Check ❌{Fore.RESET}')
 
+ec1 = os.system('electric install express --node')
+ec2 = os.system('electric uninstall express --node')
 
+if ec1 == 0 and ec2 == 0:
+    print(f'{Fore.GREEN}✅ Node Package Installation And Uninstallation Check ✅{Fore.RESET}')
+else:
+    print(f'{Fore.RED}❌ Node Package Installation And Uninstallation Check ❌{Fore.RESET}')
 
+ec1 = os.system('electric install sublime-text-3 --force')
+ec2 = os.system('electric uninstall sublime-text-3')
+
+if ec1 == 0 and ec2 == 0:
+    print(f'{Fore.GREEN}✅ Force Package Installation Check ✅{Fore.RESET}')
+else:
+    print(f'{Fore.RED}❌ Force Package Installation Check ❌{Fore.RESET}')
+
+# TODO: Add Multi-Threading Downloading
+
+ec1 = os.system('electric install sublime-text-3 --reduce')
+ec2 = os.system('electric uninstall sublime-text-3')
+
+if ec1 == 0 and ec2 == 0:
+    print(f'{Fore.GREEN}✅ Reduce Installation And Uninstallation Check ✅{Fore.RESET}')
+else:
+    print(f'{Fore.RED}❌ Reduce Installation And Uninstallation Check ❌{Fore.RESET}')
+
+end = timer()
+print(f'{Fore.GREEN}Execution Completed In {end - start}s {Fore.RESET}')

@@ -35,6 +35,7 @@ from logger import *
 from registry import get_environment_keys, get_uninstall_key
 from settings import initialize_settings, open_settings
 from utils import *
+from external import *
 from zip_install import install_portable
 from zip_uninstall import uninstall_portable
 
@@ -458,9 +459,6 @@ def install(
                         write_debug('Sending GET Request To /packages', metadata)
                         log_info('Sending GET Request To /packages', metadata.logfile)
                         res = send_req_package(package)
-                        log_info('Updating SuperCache', metadata.logfile)
-
-                        log_info('Successfully Updated SuperCache', metadata.logfile)
                         spinner.stop()
 
                         pkg = res
@@ -723,7 +721,7 @@ def install(
                     sys.exit()
 
             if metadata.reduce_package:
-                os.remove(path)
+                os.remove(f'{path}{packet.win64_type}')
                 os.remove(Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle')
 
                 log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
@@ -737,7 +735,6 @@ def install(
             log_info(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
             close_log(metadata.logfile, 'Install')
-
 
 
 @cli.command(aliases=['upgrade'], context_settings=CONTEXT_SETTINGS)
@@ -889,6 +886,7 @@ def update(
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to uninstall')
 @click.option('--atom', '-ato', is_flag=True, help='Specify an Atom extension to install')
 @click.option('--vscode', '-vs', is_flag=True, help='Specify a Visual Studio Code extension to install')
+@click.option('--nightly', '--pre-release', is_flag=True, help='Specify a Visual Studio Code extension to install')
 @click.option('--node', '-npm', is_flag=True, help='Specify a Python package to install')
 @click.option('--portable', '--non-admin', '-p', is_flag=True, help='Install a portable version of a package')
 @click.option('--configuration', '-cf', is_flag=True, help='Specify a config file to install')
@@ -909,7 +907,8 @@ def uninstall(
     atom: bool,
     configuration: bool,
     portable: bool,
-    ae: bool
+    ae: bool,
+    nightly: bool
 ):
     """
     Uninstalls a package or a list of packages.
@@ -1142,6 +1141,8 @@ def uninstall(
             index += 1
 
             if not packet.run_test:
+                if nightly:
+                    packet.version == 'nightly'
                 os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                 write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
@@ -1173,6 +1174,8 @@ def uninstall(
             log_info('Uninstallation completed.', metadata.logfile)
             index += 1
             if not packet.run_test:
+                if nightly:
+                    packet.version = 'nightly'
                 write(f'Running Tests For {packet.display_name}', 'white', metadata)
                 os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                 write(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check', 'white', metadata)
@@ -1190,7 +1193,10 @@ def uninstall(
         if packet.run_test:
             write(f'Running Tests For {packet.display_name}', 'white', metadata)
             if not find_existing_installation(packet.json_name, packet.display_name):
-                os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                if nightly:
+                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@nightly.json')
+                else:
+                    os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                 print(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check')
                 write(
                         f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
@@ -1620,7 +1626,7 @@ def show(package_name: str, nightly: bool):
     '''
     Displays information about the specified package.
     '''
-    res, _ = send_req_package(package_name)
+    res = send_req_package(package_name)
     click.echo(click.style(display_info(res, nightly=nightly), fg='green'))
 
 
