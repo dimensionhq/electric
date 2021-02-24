@@ -33,3 +33,52 @@ if ec1 == 0 and ec2 == 0:
     print(f'{Fore.GREEN}✅ Passed Portable Check ✅{Fore.RESET}')
 else:
     print(f'{Fore.RED}❌ Failed Portable Check ❌{Fore.RESET}')
+
+ec1 = os.system('electric show sublime-text-3')
+ec2 = os.system('electric search sublime-text-3')
+
+if ec1 == 0 and ec2 == 0:
+    print(f'{Fore.GREEN}✅ Show And Search Check ✅{Fore.RESET}')
+else:
+    print(f'{Fore.RED}❌ Show And Search Check ❌{Fore.RESET}')
+
+ec1 = os.system('electric install sublime-text-3')
+ec2 = os.system('electric uninstall sublime-text-3')
+
+if ec1 == 0 and ec2 == 0:
+    print(f'{Fore.GREEN}✅ Basic Installation And Uninstallation Check ✅{Fore.RESET}')
+else:
+    print(f'{Fore.RED}❌ Basic Installation And Uninstallation Check ❌{Fore.RESET}')
+
+ec1 = os.system('electric install sublime-text-3 --verbose')
+ec2 = os.system('electric uninstall sublime-text-3 --verbose')
+
+if ec1 == 0 and ec2 == 0:
+    print(f'{Fore.GREEN}✅ Verbose Installation And Uninstallation Check ✅{Fore.RESET}')
+else:
+    print(f'{Fore.RED}❌ Verbose Installation And Uninstallation Check ❌{Fore.RESET}')
+
+ec1 = os.system('electric install sublime-text-3 --debug')
+ec2 = os.system('electric uninstall sublime-text-3 --debug')
+
+if ec1 == 0 and ec2 == 0:
+    print(f'{Fore.GREEN}✅ Debug Installation And Uninstallation Check ✅{Fore.RESET}')
+else:
+    print(f'{Fore.RED}❌ Debug Installation And Uninstallation Check ❌{Fore.RESET}')
+
+ec1 = os.system('electric install sublime-text-3 --debug --verbose')
+ec2 = os.system('electric uninstall sublime-text-3 --debug --verbose')
+
+if ec1 == 0 and ec2 == 0:
+    print(f'{Fore.GREEN}✅ Debug + Verbose Installation And Uninstallation Check ✅{Fore.RESET}')
+else:
+    print(f'{Fore.RED}❌ Debug + Verbose Installation And Uninstallation Check ❌{Fore.RESET}')
+
+ec1 = os.system('electric install atom --nightly')
+ec2 = os.system('electric uninstall atom')
+
+if ec1 == 0 and ec2 == 0:
+    print(f'{Fore.GREEN}✅ Nightly / Prerelease Installation And Uninstallation Check ✅{Fore.RESET}')
+else:
+    print(f'{Fore.RED}❌ Nightly / Prerelease Installation And Uninstallation Check ❌{Fore.RESET}')
+
