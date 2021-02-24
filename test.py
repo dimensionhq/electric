@@ -24,10 +24,17 @@
 #   -pl, --plugin
 #   -h, --help
 
+from timeit import default_timer as timer
 from subprocess import Popen, PIPE
 from colorama import Fore
 import os
 
+os.system('electric uninstall sublime-text-3')
+os.system('electric uninstall sublime-text-3 --portable')
+os.system('electric uninstall atom')
+os.system('cls')
+
+start = timer()
 ec1 = os.system('electric install sublime-text-3 --portable')
 ec2 = os.system('electric uninstall sublime-text-3 --portable')
 if ec1 == 0 and ec2 == 0:
@@ -83,7 +90,7 @@ if ec1 == 0 and ec2 == 0:
 else:
     print(f'{Fore.RED}❌ Nightly / Prerelease Installation And Uninstallation Check ❌{Fore.RESET}')
 
-ec1 = os.system('electric install atom --version ')
+ec1 = os.system('electric install atom --version 1.52.0')
 ec2 = os.system('electric uninstall atom')
 
 if ec1 == 0 and ec2 == 0:
@@ -107,8 +114,8 @@ if ec1 == 0 and ec2 == 0:
 else:
     print(f'{Fore.RED}❌ No-Color Installation And Uninstallation Check ❌{Fore.RESET}')
 
-ec1 = os.system(r'electric install sublime-text-3 --log-output C:\Users\tejas\Desktop\electric-log.txt')
-ec2 = os.system(r'electric uninstall sublime-text-3 --log-output C:\Users\tejas\Desktop\electric-log.txt')
+ec1 = os.system(r'electric install sublime-text-3 --log-output C:\Users\xtrem\Desktop\electric-log.txt')
+ec2 = os.system(r'electric uninstall sublime-text-3 --log-output C:\Users\xtrem\Desktop\electric-log.txt')
 
 
 if ec1 == 0 and ec2 == 0:
@@ -116,7 +123,7 @@ if ec1 == 0 and ec2 == 0:
 else:
     print(f'{Fore.RED}❌ Logging Installation And Uninstallation Check ❌{Fore.RESET}')
 
-ec1 = os.system(r'electric install sublime-text-3 --install-dir "C:\Users\tejas\Desktop\NewFolder"')
+ec1 = os.system(r'electric install sublime-text-3 --install-dir "C:\Users\xtrem\Desktop\NewFolder"')
 ec2 = os.system(r'electric uninstall sublime-text-3')
 
 if ec1 == 0 and ec2 == 0:
@@ -153,6 +160,9 @@ if ec1 == 0 and ec2 == 0:
     print(f'{Fore.GREEN}✅ Visual Studio Code Extension Installation And Uninstallation Check ✅{Fore.RESET}')
 else:
     print(f'{Fore.RED}❌ Visual Studio Code Extension Installation And Uninstallation Check ❌{Fore.RESET}')
+
+end = timer()
+print(f'{Fore.GREEN}Execution Completed In {end - start}s {Fore.RESET}')
 
 # ec1 = os.system('electric install  --sublime')
 # ec2 = os.system('electric uninstall --sublime')

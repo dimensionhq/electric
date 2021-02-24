@@ -317,7 +317,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
                 if metadata.no_progress == True or metadata.settings.show_progress_bar == False:
                     sys.stdout.write(
-                        f'\r{round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} Mb')
+                        f'\r{round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
                     sys.stdout.flush()
 
 
@@ -625,8 +625,6 @@ def get_checksum(bytecode: bytes, hash_algorithm: str):
 
     return None
 
-import time as tm
-
 def send_req_package(package_name: str) -> dict:
     """
     Send a request for an electric package from the official package registry on github
@@ -638,9 +636,9 @@ def send_req_package(package_name: str) -> dict:
         dict: Decoded JSON from the github registry response
     """
     
-    REQA = 'https://electric-package-manager.herokuapp.com/packages/windows/'
+    REQA = 'https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/packages/'
     
-    response = requests.get(REQA + package_name, timeout=15)
+    response = requests.get(REQA + package_name + '.json', timeout=15)
     
     try:
         res = json.loads(response.text)
@@ -1186,25 +1184,19 @@ def handle_unknown_error(err: str):
 
 
 def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
-    
     pkg = res
-    keys = list(pkg.keys())
-    idx = 0
 
-    if not version:
-        for key in keys:
-            if key not in ['package-name', 'nightly', 'display-name']:
-                idx = keys.index(key)
-                break
-        version = keys[idx]
+    version = pkg['latest-version']    
     if nightly:
         version = 'nightly'
+
     try:
         pkg = pkg[version]
     except KeyError:
         name = res['display-name']
         click.echo(click.style(f'\nCannot Find {name}::v{version}', 'red'))
         sys.exit()
+    
     url = pkg['url']
     display_name = res['display-name']
     package_name = res['package-name']
