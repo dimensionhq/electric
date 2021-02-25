@@ -553,7 +553,7 @@ def install(
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
         if portable:
-            keys = list(pkg[res['latest-version']].keys())
+            keys = list(pkg[res['portable']].keys())
             data = {
                 'display-name': res['display-name'],
                 'package-name': res['package-name'],
