@@ -552,8 +552,8 @@ def install(
 
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
-        if portable:
-            keys = list(pkg[res['portable']].keys())
+        if portable and not 'is-portable' in list(res.keys()):
+            keys = list(pkg[pkg['latest-version']].keys())
             data = {
                 'display-name': res['display-name'],
                 'package-name': res['package-name'],
@@ -566,6 +566,24 @@ def install(
                 'shortcuts': pkg[res['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
                 'post-install': pkg[res['latest-version']]['post-install'] if 'post-install' in keys else [],
                 'notes': pkg[res['latest-version']]['notes'] if 'notes' in keys else []
+            }
+            portable_packet = PortablePacket(data)
+            install_portable(portable_packet, metadata)
+            sys.exit()
+        elif portable and 'is-portable' in list(res.keys()):
+            keys = list(pkg[pkg['latest-version']].keys())
+            data = {
+                'display-name': pkg['display-name'],
+                'package-name': pkg['package-name'],
+                'latest-version': pkg['latest-version'],
+                'url': pkg[pkg['latest-version']]['url'],
+                'file-type': pkg[pkg['latest-version']]['file-type'],
+                'extract-dir': pkg[pkg['latest-version']]['extract-dir'],
+                'chdir': pkg[pkg['latest-version']]['chdir'] if 'chdir' in keys else [],
+                'bin': pkg[pkg['latest-version']]['bin'] if 'bin' in keys else [],
+                'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
+                'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else [],
+                'notes': pkg[pkg['latest-version']]['notes'] if 'notes' in keys else []
             }
             portable_packet = PortablePacket(data)
             install_portable(portable_packet, metadata)
