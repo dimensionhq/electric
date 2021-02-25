@@ -48,6 +48,9 @@ def cli(_):
     if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\settings.json'):
         click.echo(click.style(f'Creating settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
         initialize_settings()
+    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\superlog.txt'):
+        with open(rf'{PathManager.get_appdata_directory()}\\superlog.txt', 'w+') as f:
+            f.write(f'{date.today().year} {date.today().month} {date.today().day}')
     if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\packages.json'):
         update_package_list()        
     if not os.path.isdir(PathManager.get_appdata_directory() + r'\Current'):
@@ -1303,7 +1306,7 @@ def bundle(
         write_verbose('Sending GET Request To /bundles', metadata)
         write_debug('Sending GET Request To /bundles', metadata)
         log_info('Sending GET Request To /bundles', metadata.logfile)
-        res, _ = send_req_bundle()
+        res = send_req_bundle()
         del res['_id']
         spinner.stop()
         package_names = ''

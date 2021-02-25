@@ -166,23 +166,25 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
         mode (str): The method (installation/uninstallation)
         metadata (Metadata): Metadata for the method
     """
-    try:
-        version_proc = Popen(mslex.split('code --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-    except FileNotFoundError:
-        click.echo(click.style('Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
-        disp_error_msg(get_error_message('0111', 'install', package_name, None), metadata)
-        handle_exit('ERROR', None, metadata)
+    base_c = 'code'
+    
+    output = Popen(mslex.split('code --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    version, err = output.communicate()
+    version = version.decode()         
+    if output.returncode != 0:
+        output = Popen(mslex.split('code-insiders --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        version, err = output.communicate()
+        version = version.decode()
+        base_c = 'code-insiders'
+        if output.returncode != 0:
+            click.echo(click.style('Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
+            disp_error_msg(get_error_message('0111', 'install', package_name, None), metadata)
+            handle_exit('error', metadata)
 
-    version, err = version_proc.communicate()
-    version = version.decode().strip().split('\n')[0]
-
-    if err:
-        click.echo(click.style('Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
-        disp_error_msg(get_error_message('0111', 'install', package_name, None), metadata)
-        handle_exit('ERROR', None, metadata)
-
+    version = version.strip().split('\n')[0]
+    
     if mode == 'install':
-        command = f'code --install-extension {package_name} --force'
+        command = f'{base_c} --install-extension {package_name} --force'
         proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         for line in proc.stdout:
             line = line.decode()
@@ -196,7 +198,7 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
             if 'was successfully installed' in line:
                 write(f'{Fore.GREEN}Code v{version} :: Successfully Installed {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
     if mode == 'uninstall':
-        command = f'code --uninstall-extension {package_name} --force'
+        command = f'{base_c} --uninstall-extension {package_name} --force'
         proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         for line in proc.stdout:
             line = line.decode()

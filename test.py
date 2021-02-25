@@ -146,6 +146,7 @@ if ec1 == 0 and ec2 == 0:
 else:
     print(f'{Fore.RED}❌ Visual Studio Code Extension Installation And Uninstallation Check ❌{Fore.RESET}')
 
+<<<<<<< HEAD
 ec2 = os.system('electric uninstall requests --python')
 ec1 = os.system('electric install requests --python')
 
@@ -169,6 +170,13 @@ if ec1 == 0 and ec2 == 0:
     print(f'{Fore.GREEN}✅ Force Package Installation Check ✅{Fore.RESET}')
 else:
     print(f'{Fore.RED}❌ Force Package Installation Check ❌{Fore.RESET}')
+=======
+end = timer()
+print(f'{Fore.GREEN}Execution Completed In {end - start}s {Fore.RESET}')
+
+# ec1 = os.system('electric install  --sublime')
+# ec2 = os.system('electric uninstall --sublime')
+>>>>>>> a7190493c825a0444c657e8242a172ad0704682c
 
 # TODO: Add Multi-Threading Downloading
 

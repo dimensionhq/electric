@@ -7,7 +7,7 @@ class TestUtil(unittest.TestCase):
         self.assertIsNotNone(utils.is_admin())
 
     def test_send_req_bundle(self):
-        res, _ = utils.send_req_bundle()
+        res = utils.send_req_bundle()
         pkg_data = res['atom']
         self.assertIsNotNone(pkg_data, msg="Package is missing or Request Failed")
 
@@ -26,10 +26,10 @@ class TestUtil(unittest.TestCase):
         self.assertIsInstance(meta, utils.Metadata)
 
     def test_display_info(self):
-        res, _ = utils.send_req_package('atom')
+        res = utils.send_req_package('atom')
         text = utils.display_info(res)
         self.assertIsInstance(text, str)
-        res, _ = utils.send_req_package('atom')
+        res = utils.send_req_package('atom')
         text = utils.display_info(res, nightly=True)
         self.assertIsInstance(text, str)
 
