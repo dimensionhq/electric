@@ -536,7 +536,7 @@ def install(
         if 'is-portable' in list(pkg.keys()):
             if pkg['is-portable'] == True:
                 portable = True
-        if not version:
+        if not version and not portable:
             version = pkg['latest-version']
         if portable:
             version = 'portable'
