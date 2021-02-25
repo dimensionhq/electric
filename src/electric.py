@@ -1616,9 +1616,10 @@ def ls(ctx, installed: bool, versions: bool):
             except: 
                 print(f'{Fore.YELLOW}No installed packages found{Fore.RESET}')
     else: 
-        supercached_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\SuperCache') ][:99]
-        supercached_packages.remove('packages')
-        for package_name in supercached_packages:
+        with open(f'{PathManager.get_appdata_directory()}\packages.json', 'r') as f:
+            data = json.load(f)
+        packages = data['packages']
+        for package_name in packages:
             print(package_name)
 
 
