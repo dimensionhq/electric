@@ -98,14 +98,14 @@ class ThreadedInstaller:
                 click.echo(click.style(
                     f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
-            run_cmd(command, self.metadata, 'installation', None, install)
+            run_cmd(command, self.metadata, 'installation',install)
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i' + path + ' '
             for switch in switches:
                 command = command + ' ' + switch
 
-            run_cmd(command, self.metadata, 'installation', None, install)
+            run_cmd(command, self.metadata, 'installation', install)
 
         elif download_type == '.zip':
             if not self.metadata.no_color:
@@ -189,7 +189,7 @@ class ThreadedInstaller:
         metadata = self.metadata
         package_list = [ packet.display_name for packet in  self.packets ]
         package_list = str(package_list).replace('[', '').replace(']', '').replace('\'', '')
-        write(f'Supercached => [ {Fore.CYAN}{package_list}{Fore.RESET} ]', 'white', metadata)
+        write(f'SuperCached [ {Fore.CYAN}{package_list}{Fore.RESET} ]', 'white', metadata)
         log_info('Initializing Rapid Download', metadata.logfile)
 
         packets = self.packets
@@ -250,7 +250,7 @@ class ThreadedInstaller:
             write('Finished Rapid Download...', 'green', metadata)
         log_info('Finished Rapid Download', metadata.logfile)
         write(
-            'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
+            'Installing Packages', 'cyan', metadata)
         log_info(
             'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
         return paths
