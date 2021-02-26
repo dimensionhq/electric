@@ -1060,7 +1060,7 @@ def uninstall(
     
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         
-        if portable and not 'is-portable' in list(pkg.keys()):
+        if portable and not 'is-portable' in list(res.keys()):
             keys = list(pkg.keys())
             data = {
                 'display-name': pkg['display-name'],
@@ -1096,7 +1096,7 @@ def uninstall(
                 'notes': pkg[pkg['latest-version']]['notes'] if 'notes' in keys else []
             }
             portable_packet = PortablePacket(data)
-            install_portable(portable_packet, metadata)
+            uninstall_portable(portable_packet, metadata)
             sys.exit()
         packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
         proc = None

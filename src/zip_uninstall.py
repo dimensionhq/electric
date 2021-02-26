@@ -9,11 +9,11 @@ home = os.path.expanduser('~')
 
 def uninstall_portable(packet: PortablePacket, metadata: Metadata):
     if find_existing_installation(f'{packet.extract_dir}@{packet.latest_version}'):
-        
+
         loc = rf'{home}\electric\\'
 
-        write(f'Deleting Shims For {packet.display_name}', 'cyan', metadata)
         if packet.bin:
+            write(f'Deleting Shims For {packet.display_name}', 'cyan', metadata)
             for sh in packet.bin:
                 shim_name = sh.split('\\')[-1].replace('.exe', '').replace('.ps1', '').replace('.cmd', '').replace('.bat', '')
                 try:
@@ -21,9 +21,10 @@ def uninstall_portable(packet: PortablePacket, metadata: Metadata):
                 except FileNotFoundError:
                     pass
 
-        write(f'Deleting Shortcuts For {packet.display_name}', 'cyan', metadata)
         shortcuts = packet.shortcuts
+
         if shortcuts:
+            write(f'Deleting Shortcuts For {packet.display_name}', 'cyan', metadata)
             for shortcut in shortcuts:
                 try:
                     delete_start_menu_shortcut(shortcut['shortcut-name'])
