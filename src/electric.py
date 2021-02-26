@@ -1013,23 +1013,33 @@ def uninstall(
         installed_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
         portable_installed_packages = [ ''.join(f.split('@')[:1]) for f in os.listdir(os.path.expanduser('~') + r'\electric') ]
         installed_packages += portable_installed_packages
+
         res = send_req_package(package)
+        # If the package is not installed, let the user know
         if package not in installed_packages:
             pkg = res
-            version = pkg['latest-version']
-            name = pkg['display-name']
-            pkg = pkg[version]
-            log_info('Generating Packet For Further Installation.', metadata.logfile)
+            if 'is-portable' in list(pkg.keys()):
+                if pkg['is-portable'] == True:
+                    portable = True
+        
+            if portable:
+                version = 'portable'
+            else:
+                version = pkg['latest-version']
+
             uninstall_exit_codes = []
-            packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
-            
-            write(f'Could not find any existing installations of {packet.display_name}', 'red', metadata)
+            if 'valid-uninstall-exit-codes' in list(pkg.keys()):
+                uninstall_exit_codes = pkg['valid-install-exit-codes']
+
+            pkg = pkg[version]
+            display_name = pkg['display-name']
+            write(f'Could not find any existing installations of {display_name}', 'red', metadata)
             try:
                 os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
             except:
                 pass
             handle_exit('ERROR', '', metadata)
-        
+        # Continue with normal installation because the package has not been installed yet
         pkg = res
         if 'is-portable' in list(pkg.keys()):
             if pkg['is-portable'] == True:
@@ -1048,25 +1058,44 @@ def uninstall(
         pkg = pkg[version]
     
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        if portable:
-            keys = list(pkg[res['latest-version']].keys())
+        
+        if portable and not 'is-portable' in list(pkg.keys()):
+            keys = list(pkg.keys())
             data = {
-                'display-name': res['display-name'],
-                'package-name': res['package-name'],
-                'latest-version': res['latest-version'],
-                'url': pkg[res['latest-version']]['url'],
-                'file-type': pkg[res['latest-version']]['file-type'],
-                'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                'chdir': pkg[res['latest-version']]['chdir'] if 'chdir' in keys else None,
-                'bin': pkg[res['latest-version']]['bin'] if 'bin' in keys else None,
-                'shortcuts': pkg[res['latest-version']]['shortcuts'] if 'shortcuts' in keys else None,
-                'post-install': pkg[res['latest-version']]['post-install'] if 'post-install' in keys else None,
+                'display-name': pkg['display-name'],
+                'package-name': pkg['package-name'],
+                'latest-version': pkg['latest-version'],
+                'url': pkg[pkg['latest-version']]['url'],
+                'file-type': pkg[pkg['latest-version']]['file-type'],
+                'extract-dir': pkg[pkg['latest-version']]['extract-dir'],
+                'chdir': pkg[pkg['latest-version']]['chdir'] if 'chdir' in keys else None,
+                'bin': pkg[pkg['latest-version']]['bin'] if 'bin' in keys else None,
+                'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else None,
+                'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else None,
             }
         
             portable_packet = PortablePacket(data)
             start = timer()
             uninstall_portable(portable_packet, metadata)
             end = timer()
+            sys.exit()
+        elif portable and 'is-portable' in list(res.keys()):
+            keys = list(pkg[pkg['latest-version']].keys())
+            data = {
+                'display-name': pkg['display-name'],
+                'package-name': pkg['package-name'],
+                'latest-version': pkg['latest-version'],
+                'url': pkg[pkg['latest-version']]['url'],
+                'file-type': pkg[pkg['latest-version']]['file-type'],
+                'extract-dir': pkg[pkg['latest-version']]['extract-dir'],
+                'chdir': pkg[pkg['latest-version']]['chdir'] if 'chdir' in keys else [],
+                'bin': pkg[pkg['latest-version']]['bin'] if 'bin' in keys else [],
+                'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
+                'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else [],
+                'notes': pkg[pkg['latest-version']]['notes'] if 'notes' in keys else []
+            }
+            portable_packet = PortablePacket(data)
+            install_portable(portable_packet, metadata)
             sys.exit()
         packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
         proc = None
@@ -1670,7 +1699,7 @@ def settings():
 def complete(
     word : str,
     commandline: str,
-    position: str
+    position: str,
     ):
 
     n = len(commandline.split(' '))
@@ -1680,9 +1709,8 @@ def complete(
             possibilities = electric_commands
 
         if n == 3 and not word.startswith('--') and not (word[0] == '-' and word[1] != '-'):
-            appdata_dir = PathManager.get_appdata_directory() + r'\SuperCache'
-
-            with open(rf'{appdata_dir}\packages.json', 'r') as f:
+            
+            with open(rf'{PathManager.get_appdata_directory()}\packages.json', 'r') as f:
                 packages = json.load(f)['packages']
 
             possibilities = difflib.get_close_matches(word, packages)

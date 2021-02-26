@@ -63,3 +63,4 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
 
     if packet.notes:
         display_notes(packet, metadata)
+    write(f'Successfully Installed {packet.display_name}', 'magenta', metadata)
