@@ -625,10 +625,10 @@ def get_checksum(bytecode: bytes, hash_algorithm: str):
 
 def get_day_diff(path: str) -> int:
     with open(path, 'r') as f:
-        smh = f.read()
+        file_date = f.read()
     
     current_date = date.today()
-    data = date(int(smh.split(' ')[0]), int(smh.split(' ')[1]), int(smh.split(' ')[2]))
+    data = date(int(file_date.split(' ')[0]), int(file_date.split(' ')[1]), int(file_date.split(' ')[2]))
     delta = current_date - data
     return delta.days
 
@@ -1229,6 +1229,8 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
 
 def update_package_list():
     with Halo('Updating Electric'):
+        with open(rf'{PathManager.get_appdata_directory()}\superlog.txt', 'w+') as f:
+            f.write(f'{date.today().year} {date.today().month} {date.today().day}')
         r = requests.get('https://raw.githubusercontent.com/XtremeDevX/electric-packages/master/package-list.json')
         data = r.json()
         with open(rf'{PathManager.get_appdata_directory()}\packages.json', 'w+') as f:
