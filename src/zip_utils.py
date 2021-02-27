@@ -9,6 +9,7 @@ import zipfile
 import tarfile
 import py7zr
 import patoolib
+import winreg
 
 from Classes.Metadata import Metadata
 from Classes.PortablePacket import PortablePacket
@@ -16,14 +17,6 @@ from extension import write
 
 home = os.path.expanduser('~')
 
-class HiddenPrints:
-    def __enter__(self):
-        self._original_stdout = sys.stdout
-        sys.stdout = open(os.devnull, 'w')
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        sys.stdout.close()
-        sys.stdout = self._original_stdout
 
 def delete_start_menu_shortcut(shortcut_name):
     start_menu = os.environ['APPDATA'] + R'\Microsoft\Windows\Start Menu\Programs\Electric'
@@ -65,7 +58,6 @@ def install_font(src_path: str):
         import ctypes
         import os
         import shutil
-        import winreg
 
         user32 = ctypes.WinDLL('user32', use_last_error=True)
         gdi32 = ctypes.WinDLL('gdi32', use_last_error=True)
@@ -208,6 +200,7 @@ def create_start_menu_shortcut(unzip_dir, file_name, shortcut_name):
     shortcut.WindowStyle = 7 # 7 - Minimized, 3 - Maximized, 1 - Normal
     shortcut.save()
 
+
 def generate_shim(shim_command: str, shim_name: str, shim_extension: str, overridefilename: str = ''):
     shim_command += f'\\{shim_name}'
     shim_command = shim_command.replace('\\\\', '\\')
@@ -217,12 +210,14 @@ def generate_shim(shim_command: str, shim_name: str, shim_extension: str, overri
     with open(rf'{home}\electric\shims\{shim_name if not overridefilename else overridefilename}.bat', 'w+') as f:
         f.write(f'@echo off\n"{shim_command}.{shim_extension}"')
 
+
 def find_existing_installation(dir_name: str) -> bool:
     loc = f'{home}\electric'
     files = os.listdir(loc)
     if dir_name in files:
         return True
     return False
+
 
 def display_notes(packet: PortablePacket, metadata: Metadata):
     write('\n----Notes----', 'white', metadata)

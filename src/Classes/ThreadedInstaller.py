@@ -381,7 +381,7 @@ class ThreadedInstaller:
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
 
-                    packet = Packet(package, res['package-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None)
+                    packet = Packet(package, res['package-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None)
                     installation = find_existing_installation(
                         package, packet.json_name)
                     if installation:
@@ -431,7 +431,7 @@ class ThreadedInstaller:
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
                     
-                    packet = Packet(package, pkg['package-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None)
+                    packet = Packet(package, pkg['package-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None)
                     log_info('Searching for existing installation of package.', metadata.logfile)
                     installation = find_existing_installation(package, packet.json_name)
 

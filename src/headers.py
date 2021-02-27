@@ -57,6 +57,7 @@ uninstall_debug_headers = [
 valid_install_exit_codes = [
     0,
     1641,
+    3010,
     2359302,
     2149842956
 ]

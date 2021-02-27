@@ -225,7 +225,7 @@ def install(
                 install_exit_codes = None
                 if 'valid-install-exit-codes' in list(pkg.keys()):
                     install_exit_codes = pkg['valid-install-exit-codes']
-                packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
                 installation = find_existing_installation(
                     package, packet.display_name)
                 if installation:
@@ -299,7 +299,7 @@ def install(
                         if 'valid-install-exit-codes' in list(pkg.keys()):
                             install_exit_codes = pkg['valid-install-exit-codes']
 
-                        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
                         log_info('Searching for existing installation of package.', metadata.logfile)
 
                         installation = find_existing_installation(package, packet.json_name, test=False)
@@ -479,7 +479,7 @@ def install(
                         install_exit_codes = None
                         if 'valid-install-exit-codes' in list(pkg.keys()):
                             install_exit_codes = pkg['valid-install-exit-codes']
-                        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
                         installation = find_existing_installation(
                             package, packet.display_name, test=False)
                         if installation:
@@ -590,7 +590,7 @@ def install(
             install_portable(portable_packet, metadata)
             sys.exit()
         else:
-            packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-test'] if 'run-test' in list(res.keys()) else True)
+            packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-test'] if 'run-test' in list(res.keys()) else True)
             log_info('Searching for existing installation of package.', metadata.logfile)
 
             log_info('Finding existing installation of package...', metadata.logfile)
@@ -842,7 +842,7 @@ def update(
 
         pkg = res
         pkg = pkg[pkg['latest-version']]
-        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, [], res['latest-version'], res['run-check'] if 'run-check' in list(res.keys()) else True)
+        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, [], res['latest-version'], res['run-check'] if 'run-check' in list(res.keys()) else True)
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         installed_packages = [ f.replace('.json', '').split('@')[:-1] for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
         if package in installed_packages:
@@ -1033,7 +1033,7 @@ def uninstall(
                 uninstall_exit_codes = pkg['valid-install-exit-codes']
 
             pkg = pkg[version]
-            display_name = pkg['display-name']
+            display_name = res['display-name']
             write(f'Could not find any existing installations of {display_name}', 'red', metadata)
             try:
                 os.remove(rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
@@ -1098,7 +1098,7 @@ def uninstall(
             portable_packet = PortablePacket(data)
             uninstall_portable(portable_packet, metadata)
             sys.exit()
-        packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+        packet = Packet(pkg, package, name, pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
         proc = None
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
@@ -1128,7 +1128,7 @@ def uninstall(
             log_info('Generating Packet For Further Installation.', metadata.logfile)
             
             uninstall_exit_codes = []
-            packet = Packet(pkg, package, name, pkg['url'], pkg['url-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+            packet = Packet(pkg, package, name, pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
             
             write(f'Could not find any existing installations of {packet.display_name}', 'red', metadata)
             try:
@@ -1642,7 +1642,7 @@ def generate(
 @click.option('--installed', '-i', is_flag=True, help='List all installed packages')
 @click.option('--versions', '-v', is_flag=True, help='List all installed packages')
 @click.pass_context
-def ls(ctx, installed: bool, versions: bool):
+def ls(_, installed: bool, versions: bool):
     '''
     Lists top packages which can be installed.
     If --installed is passed in, lists all installed packages
