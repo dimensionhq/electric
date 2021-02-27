@@ -791,6 +791,7 @@ def update(
     """
     Updates an existing package
     """
+    update_package_list()
     if package_name == 'all':
         installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
         for package in installed_packages:

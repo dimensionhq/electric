@@ -650,7 +650,7 @@ def send_req_package(package_name: str) -> dict:
     REQA = 'https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/packages/'
     
     response = requests.get(REQA + package_name + '.json', timeout=15)
-
+    
     try:
         res = json.loads(response.text)
     except JSONDecodeError:
