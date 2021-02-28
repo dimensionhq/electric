@@ -41,9 +41,13 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata:
         
 
     if file_type == '.tar':
-        tar = tarfile.open(download_dir)
+        tar = tarfile.open(download_dir, 'r:')
         tar.extractall(unzip_dir_name)
         tar.close()
+    
+    if file_type == '.tar.gz':
+        tar = tarfile.open(download_dir, 'r:gz')
+    
     if file_type == '.7z':
         with py7zr.SevenZipFile(download_dir) as z:
             z.extractall(unzip_dir_name)
