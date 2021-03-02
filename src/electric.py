@@ -43,6 +43,10 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 @click.pass_context
 def cli(_):
 
+    # Make electric portable / tools directory if it doesn't exist
+    if not os.path.isdir(os.path.expanduser('~') + r'\electric'):
+        os.mkdir(os.path.expanduser('~') + r'\electric')
+
     # Check if superlog.txt exists in USERAPPDATA
     if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\superlog.txt'):
         # Create the superlog.txt and write the current timestamp
