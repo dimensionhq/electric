@@ -58,6 +58,7 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 | NodeJS Package Installation        | ✅            |
 | Configuration Management           | ❌            |
 | Cleanup                            | ✅            |
+| Tab Completion                     | ✅            |
 
 
 #### Tab Completion
