@@ -12,7 +12,7 @@ def virus_check(path : str):
     """
     Uses the virustotal api to check if a file contains viruses.
 
-    Args:
+    #### Arguments
         path (str): The path to the file to check for viruses
 
     Returns:

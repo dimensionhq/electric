@@ -23,6 +23,7 @@ def delete_start_menu_shortcut(shortcut_name):
     path = os.path.join(start_menu, f'{shortcut_name}.lnk')
     os.remove(path)
 
+
 def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata: Metadata):
     if not unzip_dir_name:
         unzip_dir_name = download_dir.replace('.zip', '')
@@ -56,6 +57,7 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata:
   
     os.remove(download_dir)
     return rf'{home}\electric\\' + download_dir.replace(file_type, '')
+
 
 def install_font(src_path: str):
         from ctypes import wintypes
@@ -189,6 +191,7 @@ def download(url: str, download_extension: str, file_path: str, metadata: Metada
     except KeyboardInterrupt:
         print(f'\n{Fore.RED}Download Was Interrupted!{Fore.RESET}')
         sys.exit()
+
 
 def create_start_menu_shortcut(unzip_dir, file_name, shortcut_name):
     start_menu = os.environ['APPDATA'] + R'\Microsoft\Windows\Start Menu\Programs\Electric'

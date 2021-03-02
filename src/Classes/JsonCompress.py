@@ -7,7 +7,7 @@ class JSONCompress:
         """
         Loads a json from a compressed json file
 
-        Args:
+        #### Arguments
             f (TextIOWrapper): The file with compressed data 
         """        
         data = f.read()
