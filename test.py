@@ -123,6 +123,13 @@ if output == b'' and err == b'' and proc.returncode == 0:
 else:
     print(f'{Fore.GREEN}❌ Silent Installation Check ❌{Fore.RESET}')
 
+proc = Popen('electric uninstall sublime-text-3 --silent', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+output, err = proc.communicate()
+if output == b'' and err == b'' and proc.returncode == 0:
+    print(f'{Fore.GREEN}✅ Silent Uninstallation Check ✅{Fore.RESET}')
+else:
+    print(f'{Fore.GREEN}❌ Silent Uninstallation Check ❌{Fore.RESET}')
+
 ec1 = os.system('electric install sublime-text-3 --rate-limit 2000')
 ec2 = os.system('electric uninstall sublime-text-3 --rate-limit 2000')
 
@@ -131,12 +138,7 @@ if output == b'' and err == b'' and proc.returncode == 0:
 else:
     print(f'{Fore.GREEN}❌ Rate Limit Check ❌{Fore.RESET}')
 
-proc = Popen('electric uninstall sublime-text-3 --silent', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-output, err = proc.communicate()
-if output == b'' and err == b'' and proc.returncode == 0:
-    print(f'{Fore.GREEN}✅ Silent Uninstallation Check ✅{Fore.RESET}')
-else:
-    print(f'{Fore.GREEN}❌ Silent Uninstallation Check ❌{Fore.RESET}')
+
 
 ec1 = os.system('electric install aaron-bond.better-comments --vscode')
 ec2 = os.system('electric uninstall aaron-bond.better-comments --vscode')
