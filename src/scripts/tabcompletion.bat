@@ -16,7 +16,7 @@ IF not EXIST %powershellpath% type nul>%powershellpath%
         echo         [Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new^(^)
         echo         $Local:word = $wordToComplete.Replace^('^"', '^"^"'^)
         echo         $Local:ast = $commandAst.ToString^(^).Replace^('^"', '^"^"'^)
-        echo         electric complete --word=^"$Local:word^" --commandline ^"$Local:ast^" --position $cursorPosition ^| ForEach-Object {
+        echo         completer complete --word=^"$Local:word^" --commandline ^"$Local:ast^" --position $cursorPosition ^| ForEach-Object {
         echo             [System.Management.Automation.CompletionResult]::new^($_, $_, 'ParameterValue', $_^)
         echo         }
         echo }

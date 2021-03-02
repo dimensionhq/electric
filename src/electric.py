@@ -787,11 +787,14 @@ def update(
     reduce: bool,
     virus_check: bool,
     local: bool,
-):
+):  
     """
     Updates an existing package
     """
     update_package_list()
+    if package_name == 'electric':
+        sys.exit()
+
     if package_name == 'all':
         installed_packages = [ f.replace('.json', '') for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
         for package in installed_packages:
