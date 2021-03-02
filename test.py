@@ -146,8 +146,8 @@ if ec1 == 0 and ec2 == 0:
 else:
     print(f'{Fore.RED}❌ Visual Studio Code Extension Installation And Uninstallation Check ❌{Fore.RESET}')
 
-ec2 = os.system('electric uninstall requests --python')
-ec1 = os.system('electric install requests --python')
+ec2 = os.system('electric uninstall turtle --python')
+ec1 = os.system('electric install turtle --python')
 
 if ec1 == 0 and ec2 == 0:
     print(f'{Fore.GREEN}✅ Python Package Installation And Uninstallation Check ✅{Fore.RESET}')
