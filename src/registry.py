@@ -13,7 +13,7 @@ def get_uninstall_key(package_name : str, display_name: str):
     """
     Finds the uninstallation key from the registry
 
-    Args:
+    #### Arguments
         package_name (str): The json-name of the package ex: `sublime-text-3`
         
         display_name (str): The display name of the package ex: `Sublime Text 3`

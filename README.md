@@ -43,6 +43,24 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 
 4. Yaay! Electric is installed on your system!
 
+### Build Status
+| Feature                            | Build Status   |
+|------------------------------------|----------------|
+| Installation                       | ✅            |
+| Portable Installation              | ❌            |
+| Uninstallation                     | ✅            |
+| Update                             | ✅            |
+| Show                               | ✅            |
+| List                               | ✅            |
+| Search                             | ✅            |
+| Code Editor Extension Installation | ❌            |
+| Python Package Installation        | ✅            |
+| NodeJS Package Installation        | ✅            |
+| Configuration Management           | ❌            |
+| Cleanup                            | ✅            |
+| Tab Completion                     | ✅            |
+
+
 #### Tab Completion
 When using the official Electric installer, tab completion is setup for you out of the box, however, it is possible to manually add tab completion for electric.
 Add the below lines to your powershell profile:

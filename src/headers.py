@@ -54,6 +54,8 @@ uninstall_debug_headers = [
     f'System architecture detected: {get_architecture()}'
 ]
 
+
+# Valid Installer Exit Codes Which Are Ignored By Electric
 valid_install_exit_codes = [
     0,
     1641,
@@ -62,6 +64,7 @@ valid_install_exit_codes = [
     2149842956
 ]
 
+# Valid Uninstaller Exit Codes Which Are Ignored By Electric
 valid_uninstall_exit_codes = [
     0,
     1605,
@@ -71,11 +74,8 @@ valid_uninstall_exit_codes = [
     2149842956
 ]
 
-old_processors = [
-    'Pentium',
-    'Core 2 Duo',
-]
 
+# Set of commands that electric can execute (used for autocompletion)
 electric_commands = [
     'install',
     'uninstall',
@@ -86,22 +86,11 @@ electric_commands = [
     'sign',
     'show',
     'find',
+    'list'
 ]
 
 
-tab_completion = '''
-Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
-    param($wordToComplete, $commandAst, $cursorPosition)
-        [Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
-        $Local:word = $wordToComplete.Replace('"', '""')
-        $Local:ast = $commandAst.ToString().Replace('"', '""')
-        electric complete --word="$Local:word" --commandline "$Local:ast" --position $cursorPosition | ForEach-Object {
-            [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
-        }
-    }
-'''
-
-
+# Set of flags that can be used with `electric install`
 install_flags = [
     '--verbose',
     '--debug',
@@ -115,13 +104,13 @@ install_flags = [
     '--vscode',
     '--python',
     '--node',
-    '--no-cache',
     '--sync',
     '--reduce',
     '--rate-limit',
     '--portable'
 ]
 
+# Set of flags that can be used with `electric uninstall`
 uninstall_flags = [
     '--verbose',
     '--debug',
@@ -136,11 +125,13 @@ uninstall_flags = [
     '--portable'
 ]
 
+# Set of flags that can be used with `electric search`
 search_flags = [
     '--starts-with',
     '--exact'
 ]
 
+# Set of flags that can be used with `electric config`
 config_flags = [
     '--remove'
 ]

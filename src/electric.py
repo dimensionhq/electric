@@ -7,12 +7,11 @@
 # TODO: Add Conflict-With Field For Json To Differentiate Between Microsoft Visual Studio Code and Microsoft Visual Studio Code Insiders 
 
 import difflib
-import time as tm
 import logging
 import os
 import sys
+import time as tm
 from urllib.request import urlretrieve
-from itertools import zip_longest
 
 import click
 import halo
@@ -22,12 +21,12 @@ from progress.bar import Bar
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
 
-from Classes.PortablePacket import PortablePacket
 from Classes.Config import Config
-from Classes.ThreadedInstaller import ThreadedInstaller
 from Classes.Packet import Packet
+from Classes.PortablePacket import PortablePacket
 from Classes.Setting import Setting
 from cli import SuperChargeCLI
+from external import *
 from headers import *
 from info import __version__
 from limit import Limiter, TokenBucket
@@ -35,8 +34,6 @@ from logger import *
 from registry import get_environment_keys, get_uninstall_key
 from settings import initialize_settings, open_settings
 from utils import *
-from external import *
-from zip_install import install_portable
 from zip_uninstall import uninstall_portable
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
@@ -45,17 +42,39 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 @click.version_option(__version__)
 @click.pass_context
 def cli(_):
-    update_electric()
-    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\settings.json'):
-        click.echo(click.style(f'Creating settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
-        initialize_settings()
+
+    # Make electric portable / tools directory if it doesn't exist
+    if not os.path.isdir(os.path.expanduser('~') + r'\electric'):
+        os.mkdir(os.path.expanduser('~') + r'\electric')
+
+    # Check if superlog.txt exists in USERAPPDATA
     if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\superlog.txt'):
+        # Create the superlog.txt and write the current timestamp
         with open(rf'{PathManager.get_appdata_directory()}\\superlog.txt', 'w+') as f:
             f.write(f'{date.today().year} {date.today().month} {date.today().day}')
+
+    # Create the appdata directory for electric if it doesn't exist
+    if not (os.path.isdir(rf'{PathManager.get_appdata_directory()}')):
+        os.mkdir(rf'{PathManager.get_appdata_directory()}')
+    
+    # Check if settings.json exists in USERAPPDATA
+    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\settings.json'):
+        click.echo(click.style(f'Creating settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
+        # Create the settings.json file and write default settings into it
+        initialize_settings()
+       
+    
+    # Check if packages.json exists in USERAPPDATA
     if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\packages.json'):
+        # Otherwise create and write to packages.json   
         update_package_list()        
+    
+    # Create USERAPPDATA/Current if it doesn't exist
     if not os.path.isdir(PathManager.get_appdata_directory() + r'\Current'):
         os.mkdir(PathManager.get_appdata_directory() + r'\Current')
+
+    # Update electric if needed (see the function for further clarification)
+    update_electric()
 
 
 @cli.command(aliases=['i'], context_settings=CONTEXT_SETTINGS)
@@ -112,7 +131,7 @@ def install(
     plugin: bool,
 ):
     """
-    Installs a package or a list of packages.
+    Install a package or a list of packages.
     """
     start_log()
     if plugin:
@@ -186,6 +205,7 @@ def install(
         package_names = package_name.split(',')
         for name in package_names:
             handle_atom_package(name, 'install', metadata)
+
         sys.exit()
 
 
@@ -195,533 +215,165 @@ def install(
     keyboard.add_hotkey(
         'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
 
+    # Split the supplied package_name by ,
+    # For example : 'sublime-text-3,atom' becomes ['sublime-text-3', 'atom']
     packages = package_name.strip(' ').split(',')
 
-    corrected_package_names = get_autocorrections(packages, get_correct_package_names(), metadata)
-    corrected_package_names = list(set(corrected_package_names))
-
+    # Autocorrect all package names provided
+    corrected_package_names = list(set(get_autocorrections(packages, get_correct_package_names(), metadata)))
+    
+    # Write install headers to debug
     write_install_headers(metadata)
     
-    def grouper(iterable, n, fillvalue=None):
-        "Collect data into fixed-length chunks or blocks"
-        args = [iter(iterable)] * n
-        return zip_longest(*args, fillvalue=fillvalue)
+    handle_multithreaded_installation(corrected_package_names, install_directory, metadata)
 
-    if not sync and len(corrected_package_names) > 1:
-        split_package_names = list(grouper(corrected_package_names, 3))
-        if len(split_package_names) == 1:
-            packets = []
-            for package in corrected_package_names:
-                res = send_req_package(package)
-                pkg = res
-                custom_dir = None
-                if install_directory:
-                    custom_dir = install_directory + f'\\{pkg["package-name"]}'
-                else:
-                    custom_dir = install_directory
-
-                version = res['latest-version']
-                pkg = pkg[version]
-                install_exit_codes = None
-                if 'valid-install-exit-codes' in list(pkg.keys()):
-                    install_exit_codes = pkg['valid-install-exit-codes']
-                packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
-                installation = find_existing_installation(
-                    package, packet.display_name)
-                if installation:
-                    write_debug(
-                        f'Aborting Installation As {packet.json_name} is already installed.', metadata)
-                    write_verbose(
-                        f'Found an existing installation of => {packet.json_name}', metadata)
-                    write(
-                        f'Found an existing installation {packet.display_name}.', 'yellow', metadata)
-                    installation_continue = click.confirm(
-                        f'Would you like to reinstall {packet.json_name}')
-
-                    if installation_continue or yes:
-                        os.system(f'electric uninstall {packet.json_name}')
-                        os.system(f'electric install {packet.json_name}')
-                        return
-                    else:
-                        handle_exit(status, setup_name, metadata)
-
-                write_verbose(
-                    f'Package to be installed: {packet.json_name}', metadata)
-                log_info(
-                    f'Package to be installed: {packet.json_name}', metadata.logfile)
-
-                write_verbose(
-                    f'Finding closest match to {packet.json_name}...', metadata)
-                log_info(
-                    f'Finding closest match to {packet.json_name}...', metadata.logfile)
-                packets.append(packet)
-
-                write_verbose('Generating system download path...', metadata)
-                log_info('Generating system download path...', metadata.logfile)
-
-            manager = ThreadedInstaller(packets, metadata)
-            paths = manager.handle_multi_download()
-            cursor.show()
-            log_info('Finished Rapid Download...', metadata.logfile)
-            log_info(
-                f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
-            manager.handle_multi_install(paths)
-            return
-        elif len(split_package_names) > 1:
-                for package_batch in split_package_names:
-                    package_batch = list(package_batch)
-                    package_batch = [x for x in package_batch if x is not None]
-                    if len(package_batch) == 1:
-                        package = package_batch[0]
-                    
-                        spinner = halo.Halo(color='grey')
-                        spinner.start()
-                        log_info('Handling Network Request...', metadata.logfile)
-                        status = 'Networking'
-                        write_verbose('Sending GET Request To /packages/', metadata)
-                        write_debug('Sending GET Request To /packages', metadata)
-                        log_info('Sending GET Request To /packages', metadata.logfile)
-                        res = send_req_package(package)
-                        log_info('Updating SuperCache', metadata.logfile)
-
-                        log_info('Successfully Updated SuperCache', metadata.logfile)
-                        spinner.stop()
-
-                        pkg = res
-
-                        if not version:
-                            version = res['latest-version']
-
-                        pkg = pkg[version]
-                        log_info('Generating Packet For Further Installation.', metadata.logfile)
-
-                        install_exit_codes = None
-                        if 'valid-install-exit-codes' in list(pkg.keys()):
-                            install_exit_codes = pkg['valid-install-exit-codes']
-
-                        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
-                        log_info('Searching for existing installation of package.', metadata.logfile)
-
-                        installation = find_existing_installation(package, packet.json_name, test=False)
-
-                        if installation:
-                            write_debug(
-                                f'Found existing installation of {packet.json_name}.', metadata)
-                            write_verbose(
-                                f'Found an existing installation of => {packet.json_name}', metadata)
-                            write(
-                                f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
-                            installation_continue = click.confirm(
-                                f'Would you like to reinstall {packet.display_name}')
-                            if installation_continue or yes:
-                                os.system(f'electric uninstall {packet.json_name}')
-                                os.system(f'electric install {packet.json_name}')
-                                return
-                            else:
-                                handle_exit(status, setup_name, metadata)
-
-                        if packet.dependencies:
-                            ThreadedInstaller.install_dependent_packages(packet, rate_limit, install_directory, metadata)
-
-                        write_verbose(
-                            f'Package to be installed: {packet.json_name}', metadata)
-                        log_info(f'Package to be installed: {packet.json_name}', metadata.logfile)
-
-                        write_verbose(
-                            f'Finding closest match to {packet.json_name}...', metadata)
-                        log_info(f'Finding closest match to {packet.json_name}...', metadata.logfile)
-
-                        write_verbose(
-                            f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                        write_debug(
-                            f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                        log_info(
-                            f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
-
-                        write_verbose('Generating system download path...', metadata)
-                        log_info('Generating system download path...', metadata.logfile)
-
-                        if not metadata.silent:
-                            if not metadata.no_color:
-                                print(f'SuperCached [ {packet.display_name} ]')
-                            else:
-                                print(f'SuperCached [ {Fore.CYAN} {packet.display_name} {Fore.RESET} ]')
-                        start = timer()
-
-                        status = 'Download Path'
-                        download_url = packet.win64
-                        status = 'Got Download Path'
-                        end = timer()
-
-                        log_info('Initializing Rapid Download...', metadata.logfile)
-
-                        # Downloading The File From Source
-                        write_debug(f'Downloading {packet.display_name} from => {packet.win64}', metadata)
-                        write_verbose(
-                            f"Downloading from '{download_url}'", metadata)
-                        log_info(f"Downloading from '{download_url}'", metadata.logfile)
-                        status = 'Downloading'
-
-                        if rate_limit == -1:
-                            start = timer()
-                            path = download(download_url, packet.json_name, metadata, packet.win64_type)
-                            end = timer()
-                        else:
-                            log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
-                            bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
-
-                            limiter = Limiter(
-                                bucket=bucket,
-                                filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
-                            )
-
-                            urlretrieve(
-                                url=download_url,
-                                filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
-                                reporthook=limiter
-                            )
-
-                            path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
-
-                        status = 'Downloaded'
-
-                        log_info('Finished Rapid Download', metadata.logfile)
-
-                        if virus_check:
-                            with Halo('\nScanning File For Viruses...', text_color='blue'):
-                                check_virus(path, metadata)
-                        
-                        
-                        write(
-                            f'{Fore.CYAN}Installing {packet.display_name}{Fore.RESET}', 'white', metadata)
-                        log_info(
-                            f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
-
-                        write_debug(
-                            f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
-                        log_info(
-                            f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
-                        start_snap = get_environment_keys()
-                        status = 'Installing'
-                        # Running The Installer silently And Completing Setup
-                        
-                        install_package(path, packet, metadata)
-
-                        status = 'Installed'
-                        final_snap = get_environment_keys()
-                        if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
-                            write('Refreshing Environment Variables...', 'green', metadata)
-                            start = timer()
-                            log_info('Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
-                            write_debug('Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
-                            write_verbose('Refreshing Environment Variables', metadata)
-                            refresh_environment_variables()
-                            end = timer()
-                            write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
-
-                        with Halo(f'Verifying Successful Installation', text_color='green') as h:
-                            if find_existing_installation(packet.json_name, packet.display_name):
-                                h.stop()
-                                register_package_success(package, install_directory, metadata)
-                                write(
-                                    f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
-                                log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
-                            else:
-                                h.fail()
-                                print(f'[  {Fore.GREEN}ERROR{Fore.RESET}  ]  Registry Check')
-                                write(f'Failed To Install {packet.display_name}', 'red', metadata)
-                                sys.exit()
-
-                        if metadata.reduce_package:
-                            os.remove(path)
-                            try:
-                                os.remove(Rf'{tempfile.gettempdir()}\downloadcache.pickle')
-                            except:
-                                pass
-
-                            log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
-                            write('Successfully Cleaned Up Installer From Temp Directory...',
-                                'green', metadata)
-
-                        write_verbose('Installation and setup completed.', metadata)
-                        log_info('Installation and setup completed.', metadata.logfile)
-                        write_debug(
-                            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata)
-                        log_info(
-                            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
-                        close_log(metadata.logfile, 'Install')
-                        return
-
-                    packets = []
-                    for package in package_batch:
-                        
-                        spinner = halo.Halo(color='grey')
-                        spinner.start()
-                        log_info('Handling Network Request...', metadata.logfile)
-                        status = 'Networking'
-                        write_verbose('Sending GET Request To /packages/', metadata)
-                        write_debug('Sending GET Request To /packages', metadata)
-                        log_info('Sending GET Request To /packages', metadata.logfile)
-                        res = send_req_package(package)
-                        spinner.stop()
-
-                        pkg = res
-                        custom_dir = None
-                        if install_directory:
-                            custom_dir = install_directory + f'\\{pkg["package-name"]}'
-                        else:
-                            custom_dir = install_directory
-                        keys = list(pkg.keys())
-                        
-                        if not version:
-                            version = res['latest-version']
-                        pkg = pkg[version]
-                        install_exit_codes = None
-                        if 'valid-install-exit-codes' in list(pkg.keys()):
-                            install_exit_codes = pkg['valid-install-exit-codes']
-                        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
-                        installation = find_existing_installation(
-                            package, packet.display_name, test=False)
-                        if installation:
-                            write_debug(
-                                f'Aborting Installation As {packet.json_name} is already installed.', metadata)
-                            write_verbose(
-                                f'Found an existing installation of => {packet.json_name}', metadata)
-                            write(
-                                f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
-                            installation_continue = click.confirm(
-                                f'Would you like to reinstall {packet.json_name}')
-                            if installation_continue or yes:
-                                os.system(f'electric uninstall {packet.json_name}')
-                                os.system(f'electric install {packet.json_name}')
-                                return
-                            else:
-                                handle_exit(status, setup_name, metadata)
-
-                        write_verbose(
-                            f'Package to be installed: {packet.json_name}', metadata)
-                        log_info(
-                            f'Package to be installed: {packet.json_name}', metadata.logfile)
-
-                        write_verbose(
-                            f'Finding closest match to {packet.json_name}...', metadata)
-                        log_info(
-                            f'Finding closest match to {packet.json_name}...', metadata.logfile)
-                        packets.append(packet)
-
-                        write_verbose('Generating system download path...', metadata)
-                        log_info('Generating system download path...', metadata.logfile)
-
-                    manager = ThreadedInstaller(packets, metadata)
-                    paths = manager.handle_multi_download()
-                    log_info('Finished Rapid Download...', metadata.logfile)
-                    log_info(
-                        'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
-                    manager.handle_multi_install(paths)
-                return
-
+    # normal non-multi-threaded installation
     for package in corrected_package_names:
-
         log_info('Handling Network Request...', metadata.logfile)
         status = 'Networking'
         write_verbose('Sending GET Request To /packages/', metadata)
         write_debug('Sending GET Request To /packages', metadata)
         log_info('Sending GET Request To /packages', metadata.logfile)
         log_info('Updating SuperCache', metadata.logfile)
+        # request the json response of the package
         res = send_req_package(package)
         log_info('Successfully Updated SuperCache', metadata.logfile)
 
         pkg = res
         log_info('Generating Packet For Further Installation.', metadata.logfile)
 
-        if 'is-portable' in list(pkg.keys()):
-            if pkg['is-portable'] == True:
-                portable = True
-        if not version and not portable:
-            version = pkg['latest-version']
-        if portable:
-            version = 'portable'
-        if nightly:
-            version = 'nightly'
-        try:
-            pkg = pkg[version]
-        except KeyError:
-            name = res['display-name']
-            write(f'\nCannot Find {name}::{version}', 'red', metadata)
-            handle_exit('ERROR', None, metadata)
-        install_exit_codes = None
+        version = get_package_version(pkg, res, version, portable, nightly, metadata)
+        pkg = pkg[version]
+
+        install_exit_codes = []
 
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
-        if portable and not 'is-portable' in list(res.keys()):
-            keys = list(pkg[pkg['latest-version']].keys())
-            data = {
-                'display-name': res['display-name'],
-                'package-name': res['package-name'],
-                'latest-version': res['latest-version'],
-                'url': pkg[res['latest-version']]['url'],
-                'file-type': pkg[res['latest-version']]['file-type'],
-                'extract-dir': pkg[res['latest-version']]['extract-dir'],
-                'chdir': pkg[res['latest-version']]['chdir'] if 'chdir' in keys else [],
-                'bin': pkg[res['latest-version']]['bin'] if 'bin' in keys else [],
-                'shortcuts': pkg[res['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
-                'post-install': pkg[res['latest-version']]['post-install'] if 'post-install' in keys else [],
-                'notes': pkg[res['latest-version']]['notes'] if 'notes' in keys else []
-            }
-            portable_packet = PortablePacket(data)
-            install_portable(portable_packet, metadata)
-            sys.exit()
-        elif portable and 'is-portable' in list(res.keys()):
-            keys = list(pkg[pkg['latest-version']].keys())
-            data = {
-                'display-name': pkg['display-name'],
-                'package-name': pkg['package-name'],
-                'latest-version': pkg['latest-version'],
-                'url': pkg[pkg['latest-version']]['url'],
-                'file-type': pkg[pkg['latest-version']]['file-type'],
-                'extract-dir': pkg[pkg['latest-version']]['extract-dir'],
-                'chdir': pkg[pkg['latest-version']]['chdir'] if 'chdir' in keys else [],
-                'bin': pkg[pkg['latest-version']]['bin'] if 'bin' in keys else [],
-                'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
-                'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else [],
-                'notes': pkg[pkg['latest-version']]['notes'] if 'notes' in keys else []
-            }
-            portable_packet = PortablePacket(data)
-            install_portable(portable_packet, metadata)
-            sys.exit()
-        else:
-            packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-test'] if 'run-test' in list(res.keys()) else True)
-            log_info('Searching for existing installation of package.', metadata.logfile)
+        
+        handle_portable_installation(portable, pkg, res, metadata)
+        
+        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-test'] if 'run-test' in list(res.keys()) else True)
+        
+        handle_existing_installation(package, packet, force, metadata)
 
-            log_info('Finding existing installation of package...', metadata.logfile)
-            installation = find_existing_installation(package, packet.json_name, test=False)
+        if packet.dependencies:
+            ThreadedInstaller.install_dependent_packages(packet, rate_limit, install_directory, metadata)
 
-            if installation and not force:
-                log_info('Found existing installation of package...', metadata.logfile)
-                write_debug(
-                    f'Found existing installation of {packet.json_name}.', metadata)
-                write_verbose(
-                    f'Found an existing installation of => {packet.json_name}', metadata)
-                write(
-                    f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
-                installation_continue = click.confirm(
-                    f'Would you like to reinstall {packet.display_name}?')
-                if installation_continue or yes:
-                    os.system(f'electric uninstall {packet.json_name}')
-                    os.system(f'electric install {packet.json_name}')
-                    return
-                else:
-                    handle_exit(status, setup_name, metadata)
+        write_verbose(
+            f'Package to be installed: {packet.json_name}', metadata)
+        log_info(f'Package to be installed: {packet.json_name}', metadata.logfile)
 
-            if packet.dependencies:
-                ThreadedInstaller.install_dependent_packages(packet, rate_limit, install_directory, metadata)
+        write_verbose(
+            f'Finding closest match to {packet.json_name}...', metadata)
+        log_info(f'Finding closest match to {packet.json_name}...', metadata.logfile)
 
-            write_verbose(
-                f'Package to be installed: {packet.json_name}', metadata)
-            log_info(f'Package to be installed: {packet.json_name}', metadata.logfile)
+        write_verbose(
+            f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
+        write_debug(
+            f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
+        log_info(
+            f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
 
-            write_verbose(
-                f'Finding closest match to {packet.json_name}...', metadata)
-            log_info(f'Finding closest match to {packet.json_name}...', metadata.logfile)
+        write_verbose('Generating system download path...', metadata)
+        log_info('Generating system download path...', metadata.logfile)
 
-            write_verbose(
-                f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
-            write_debug(
-                f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
-            log_info(
-                f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
-
-            write_verbose('Generating system download path...', metadata)
-            log_info('Generating system download path...', metadata.logfile)
-
-            if not metadata.silent:
-                if not metadata.no_color:
-                    print('SuperCached [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
-                else:
-                    print(f'SuperCached [ {packet.display_name} ]')
-
-            status = 'Download Path'
-            download_url = packet.win64
-            status = 'Got Download Path'
-
-            log_info(f'Recieved download path => {download_url}', metadata.logfile)
-            log_info('Initializing Rapid Download...', metadata.logfile)
-
-            # Downloading The File From Source
-            write_debug(f'Downloading {packet.display_name} from => {packet.win64}', metadata)
-            write_verbose(
-                f"Downloading from '{download_url}'", metadata)
-            log_info(f"Downloading from '{download_url}'", metadata.logfile)
-            status = 'Downloading'
-            
-            if rate_limit == -1:
-                start = timer()
-                path = download(download_url, packet.json_name, metadata, packet.win64_type)
-                end = timer()
+        if not metadata.silent:
+            if not metadata.no_color:
+                print('SuperCached [', Fore.CYAN +  f'{packet.display_name}' + Fore.RESET + ' ]')
             else:
-                log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
-                bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
+                print(f'SuperCached [ {packet.display_name} ]')
 
-                limiter = Limiter(
-                    bucket=bucket,
-                    filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
-                )
+        status = 'Download Path'
+        download_url = packet.win64
+        status = 'Got Download Path'
 
-                urlretrieve(
-                    url=download_url,
-                    filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
-                    reporthook=limiter
-                )
+        log_info(f'Recieved download path : {download_url}', metadata.logfile)
+        log_info('Initializing Rapid Download...', metadata.logfile)
 
-                path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
+        # Downloading The File From Source
+        write_debug(f'Downloading {packet.display_name} from => {packet.win64}', metadata)
+        write_verbose(
+            f"Downloading from '{download_url}'", metadata)
+        log_info(f"Downloading from '{download_url}'", metadata.logfile)
+        status = 'Downloading'
+        
+        if rate_limit == -1:
+            start = timer()
+            path = download(download_url, packet.json_name, metadata, packet.win64_type)
+            end = timer()
+        else:
+            log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
+            bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
 
-            status = 'Downloaded'
+            limiter = Limiter(
+                bucket=bucket,
+                filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
+            )
 
-            log_info('Finished Rapid Download', metadata.logfile)
+            urlretrieve(
+                url=download_url,
+                filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
+                reporthook=limiter
+            )
 
-            if virus_check:
-                log_info('Running requested virus scanning', metadata.logfile)
-                write('Scanning File For Viruses...', 'blue', metadata)
-                check_virus(path, metadata)
-            
-            write(f'{Fore.CYAN}Installing {packet.display_name}{Fore.RESET}', 'white', metadata)
-            log_info(
-                'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+            path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
 
-            write_debug(
-                f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
-            log_info(
-                f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
-            log_info('Creating start snapshot of registry...', metadata.logfile)
-            start_snap = get_environment_keys()
-            status = 'Installing'
-            # Running The Installer silently And Completing Setup
-            install_package(path, packet, metadata)
+        status = 'Downloaded'
 
-            # write(f'{Fore.CYAN}{packet.display_name}{Fore.RESET} Installer Exited With Code{Fore.GREEN} 0 {Fore.RESET}', 'white', metadata)
-            status = 'Installed'
-            log_info('Creating final snapshot of registry...', metadata.logfile)
-            final_snap = get_environment_keys()
+        log_info('Finished Rapid Download', metadata.logfile)
 
-            if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
-                write('Refreshing Environment Variables', 'green', metadata)
-                start = timer()
-                log_info('Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
-                write_debug('Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
-                write_verbose('Refreshing Environment Variables', metadata)
-                refresh_environment_variables()
-                end = timer()
-                write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
-            
-            if not packet.run_test:
-                write(f'Running Tests For {packet.display_name}', 'white', metadata)
-                write(f'[{Fore.GREEN} OK {Fore.RESET}] Registry Check', 'white', metadata)
+        if virus_check:
+            log_info('Running requested virus scanning', metadata.logfile)
+            write('Scanning File For Viruses...', 'blue', metadata)
+            check_virus(path, metadata)
+        
+        write(f'{Fore.CYAN}Installing {packet.display_name}{Fore.RESET}', 'white', metadata)
+        log_info(
+            'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+
+        write_debug(
+            f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
+        log_info(
+            f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
+        log_info('Creating start snapshot of registry...', metadata.logfile)
+        start_snap = get_environment_keys()
+        status = 'Installing'
+        # Running The Installer silently And Completing Setup
+        install_package(path, packet, metadata)
+
+        status = 'Installed'
+        log_info('Creating final snapshot of registry...', metadata.logfile)
+        final_snap = get_environment_keys()
+
+        if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
+            write('Refreshing Environment Variables', 'green', metadata)
+            start = timer()
+            log_info('Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
+            write_debug('Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
+            write_verbose('Refreshing Environment Variables', metadata)
+            refresh_environment_variables()
+            end = timer()
+            write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
+        
+        if not packet.run_test:
+            write(f'Running Tests For {packet.display_name}', 'white', metadata)
+            write(f'[{Fore.GREEN} OK {Fore.RESET}] Registry Check', 'white', metadata)
+            register_package_success(packet, install_directory, metadata)
+            write(
+                f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
+            log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
+        else:
+            write(f'Running Tests For {packet.display_name}', 'white', metadata)
+            if find_existing_installation(packet.json_name, packet.display_name):
+                write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
                 register_package_success(packet, install_directory, metadata)
                 write(
                     f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
                 log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
             else:
-                write(f'Running Tests For {packet.display_name}', 'white', metadata)
+                write(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check', 'red', metadata)
+                write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
+                tm.sleep(5)
                 if find_existing_installation(packet.json_name, packet.display_name):
                     write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
                     register_package_success(packet, install_directory, metadata)
@@ -730,33 +382,23 @@ def install(
                     log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
                 else:
                     write(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check', 'red', metadata)
-                    write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
-                    tm.sleep(5)
-                    if find_existing_installation(packet.json_name, packet.display_name):
-                        write(f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
-                        register_package_success(packet, install_directory, metadata)
-                        write(
-                            f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
-                        log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
-                    else:
-                        write(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check', 'red', metadata)
-                    sys.exit()
+                sys.exit()
 
-            if metadata.reduce_package:
-                os.remove(f'{path}{packet.win64_type}')
-                os.remove(Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle')
+        if metadata.reduce_package:
+            os.remove(f'{path}{packet.win64_type}')
+            os.remove(Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle')
 
-                log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
-                write('Successfully Cleaned Up Installer From Temp Directory',
-                    'green', metadata)
+            log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
+            write('Successfully Cleaned Up Installer From Temp Directory',
+                'green', metadata)
 
-            write_verbose('Installation and setup completed.', metadata)
-            log_info('Installation and setup completed.', metadata.logfile)
-            write_debug(
-                f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata)
-            log_info(
-                f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
-            close_log(metadata.logfile, 'Install')
+        write_verbose('Installation and setup completed.', metadata)
+        log_info('Installation and setup completed.', metadata.logfile)
+        write_debug(
+            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata)
+        log_info(
+            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
+        close_log(metadata.logfile, 'Install')
 
 
 @cli.command(aliases=['upgrade'], context_settings=CONTEXT_SETTINGS)
@@ -1670,7 +1312,8 @@ def ls(_, installed: bool, versions: bool):
     else: 
         with open(f'{PathManager.get_appdata_directory()}\packages.json', 'r') as f:
             data = json.load(f)
-        packages = data['packages']
+        packages = data['packages'][:99]
+        print(f'Found {Fore.GREEN}{len(packages)}{Fore.RESET} packages')
         for package_name in packages:
             print(package_name)
 
@@ -1695,6 +1338,16 @@ def settings():
     with Halo('Opening Settings... ', text_color='blue'):
         open_settings()
     cursor.show()
+
+
+@cli.command(context_settings=CONTEXT_SETTINGS)
+def genpkg():
+    package_name = input('Package Name: ')
+    display_name = input('Package Display Name: ')
+    latest_version = input('Latest Package Version: ')
+    package_url = input('Download Url For The Package: ')
+    file_type = input('Enter Download File Type: ')
+    install_switches = input('Enter the install switches (separated by commas): ')
 
 
 @cli.command()

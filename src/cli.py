@@ -35,7 +35,7 @@ class DYMMixin(object):  # pylint: disable=too-few-public-methods
         """
         Overrides clicks ``resolve_command`` method
         and appends *Did you mean ...* suggestions
-        to the raised exception message.
+        to the raised exception message
         """
         original_cmd_name = click.utils.make_str(args[0])
 
