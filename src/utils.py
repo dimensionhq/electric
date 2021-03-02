@@ -728,6 +728,30 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 sys.exit()
 
 
+def handle_existing_installation(package, packet, force: bool, metadata: Metadata):
+    log_info('Searching for existing installation of package.', metadata.logfile)
+
+    log_info('Finding existing installation of package...', metadata.logfile)
+    installation = find_existing_installation(package, packet.json_name, test=False)
+
+    if installation and not force:
+        log_info('Found existing installation of package...', metadata.logfile)
+        write_debug(
+            f'Found existing installation of {packet.json_name}.', metadata)
+        write_verbose(
+            f'Found an existing installation of => {packet.json_name}', metadata)
+        write(
+            f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
+        installation_continue = click.confirm(
+            f'Would you like to reinstall {packet.display_name}?')
+        if installation_continue or metadata.yes:
+            os.system(f'electric uninstall {packet.json_name}')
+            os.system(f'electric install {packet.json_name}')
+            return
+        else:
+            sys.exit()
+
+
 def get_package_version(pkg, res, version, portable: bool, nightly: bool, metadata: Metadata):
     # if the package is portable by default (it doesn't have an installer)
     if 'is-portable' in list(pkg.keys()):

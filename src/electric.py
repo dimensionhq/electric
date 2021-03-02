@@ -238,7 +238,7 @@ def install(
         pkg = res
         log_info('Generating Packet For Further Installation.', metadata.logfile)
 
-        version = get_package_version(pkg, res, version, portable, metadata)
+        version = get_package_version(pkg, res, version, portable, nightly, metadata)
         
         install_exit_codes = []
 
@@ -248,27 +248,8 @@ def install(
         handle_portable_installation(portable, pkg, res, metadata)
         
         packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-test'] if 'run-test' in list(res.keys()) else True)
-        log_info('Searching for existing installation of package.', metadata.logfile)
-
-        log_info('Finding existing installation of package...', metadata.logfile)
-        installation = find_existing_installation(package, packet.json_name, test=False)
-
-        if installation and not force:
-            log_info('Found existing installation of package...', metadata.logfile)
-            write_debug(
-                f'Found existing installation of {packet.json_name}.', metadata)
-            write_verbose(
-                f'Found an existing installation of => {packet.json_name}', metadata)
-            write(
-                f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
-            installation_continue = click.confirm(
-                f'Would you like to reinstall {packet.display_name}?')
-            if installation_continue or yes:
-                os.system(f'electric uninstall {packet.json_name}')
-                os.system(f'electric install {packet.json_name}')
-                return
-            else:
-                handle_exit(status, setup_name, metadata)
+        
+        handle_existing_installation()
 
         if packet.dependencies:
             ThreadedInstaller.install_dependent_packages(packet, rate_limit, install_directory, metadata)
@@ -1323,7 +1304,8 @@ def ls(_, installed: bool, versions: bool):
     else: 
         with open(f'{PathManager.get_appdata_directory()}\packages.json', 'r') as f:
             data = json.load(f)
-        packages = data['packages']
+        packages = data['packages'][:99]
+        print(f'Found {Fore.GREEN}{len(packages)}{Fore.RESET} packages')
         for package_name in packages:
             print(package_name)
 

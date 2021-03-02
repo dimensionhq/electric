@@ -6,6 +6,7 @@
 from logger import log_info, close_log
 from Classes.Download import Download
 from Classes.Install import Install
+from Classes.Packet import Packet
 from subprocess import PIPE
 from threading import Thread
 from colorama import Back
