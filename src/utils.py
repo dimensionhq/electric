@@ -1434,72 +1434,73 @@ def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfil
 
 
 def disp_error_msg(messages: list, metadata: Metadata):
-    if 'no-error' in messages:
-        return
+    if messages:
+        if 'no-error' in messages:
+            return
 
-    reboot = False
-    websites = []
-    commands = []
-    support_ticket = False
-    idx = 0
-    for msg in messages:
-        if idx == 0:
-            click.echo(click.style(msg, fg='yellow'))
+        reboot = False
+        websites = []
+        commands = []
+        support_ticket = False
+        idx = 0
+        for msg in messages:
+            if idx == 0:
+                click.echo(click.style(msg, fg='yellow'))
+                idx += 1
+                continue
+            if 'Reboot' in msg:
+                reboot = True
+                break
+            if 'http' in msg:
+                websites.append(msg.strip())
+                click.echo(click.style(msg, fg='blue'))
+                idx += 1
+                continue
+            if 'electric install' in msg:
+                commands.append(re.findall(r'\`(.*?)`', msg))
+            if 'NAME' and 'VERSION' in msg:
+                click.echo(click.style(msg, fg='green'))
+                support_ticket = True
+                break
+            else:
+                click.echo(msg)
+
             idx += 1
-            continue
-        if 'Reboot' in msg:
-            reboot = True
-            break
-        if 'http' in msg:
-            websites.append(msg.strip())
-            click.echo(click.style(msg, fg='blue'))
-            idx += 1
-            continue
-        if 'electric install' in msg:
-            commands.append(re.findall(r'\`(.*?)`', msg))
-        if 'NAME' and 'VERSION' in msg:
-            click.echo(click.style(msg, fg='green'))
-            support_ticket = True
-            break
-        else:
-            click.echo(msg)
 
-        idx += 1
+        if support_ticket:
+            click.echo('By sending a support ticket, you agree to the Terms And Conditions (https://www.electric.sh/support/terms-and-conditions)')
+            sending_ticket = click.confirm('Would you like to send the support ticket ?')
+            if sending_ticket:
+                with Halo('', spinner='bounce') as h:
+                    res = requests.post('https://electric-package-manager.herokuapp.com/windows/support-ticket/', json={'Logs': get_recent_logs()})
+                    if res.status_code == 200:
+                        h.stop()
+                        click.echo(click.style('Successfully Sent Support Ticket!', fg='green'))
+                    else:
+                        h.fail('Failed To Send Support Ticket')
 
-    if support_ticket:
-        click.echo('By sending a support ticket, you agree to the Terms And Conditions (https://www.electric.sh/support/terms-and-conditions)')
-        sending_ticket = click.confirm('Would you like to send the support ticket ?')
-        if sending_ticket:
-            with Halo('', spinner='bounce') as h:
-                res = requests.post('https://electric-package-manager.herokuapp.com/windows/support-ticket/', json={'Logs': get_recent_logs()})
-                if res.status_code == 200:
-                    h.stop()
-                    click.echo(click.style('Successfully Sent Support Ticket!', fg='green'))
-                else:
-                    h.fail('Failed To Send Support Ticket')
-
-    if reboot:
-        reboot = click.confirm('Would you like to reboot?')
         if reboot:
-            os.system('shutdown /R')
+            reboot = click.confirm('Would you like to reboot?')
+            if reboot:
+                os.system('shutdown /R')
 
-    if commands:
-        run = click.confirm('Would You Like To Install Node?')
-        if run:
-            print('\n')
-            os.system(commands[0][0])
+        if commands:
+            run = click.confirm('Would You Like To Install Node?')
+            if run:
+                print('\n')
+                os.system(commands[0][0])
 
-    if websites:
-        website = click.confirm('Would You Like To Visit Any Of The Above Websites?')
-        if website:
-            try:
-                webpage = int(click.prompt('Which Webpage Would You Like To Visit? ')) - 1
-            except:
-                handle_exit('ERROR', None, metadata)
-            try:
-                webbrowser.open(websites[webpage][8:])
-            except:
-                pass
+        if websites:
+            website = click.confirm('Would You Like To Visit Any Of The Above Websites?')
+            if website:
+                try:
+                    webpage = int(click.prompt('Which Webpage Would You Like To Visit? ')) - 1
+                except:
+                    handle_exit('ERROR', None, metadata)
+                try:
+                    webbrowser.open(websites[webpage][8:])
+                except:
+                    pass
     handle_exit('ERROR', None, metadata)
 
 
