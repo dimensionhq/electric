@@ -244,7 +244,7 @@ def install(
 
         version = get_package_version(pkg, res, version, portable, nightly, metadata)
         pkg = pkg[version]
-        
+
         install_exit_codes = []
 
         if 'valid-install-exit-codes' in list(pkg.keys()):
@@ -254,7 +254,7 @@ def install(
         
         packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-test'] if 'run-test' in list(res.keys()) else True)
         
-        handle_existing_installation()
+        handle_existing_installation(package, packet, force, metadata)
 
         if packet.dependencies:
             ThreadedInstaller.install_dependent_packages(packet, rate_limit, install_directory, metadata)
