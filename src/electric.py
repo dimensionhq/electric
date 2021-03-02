@@ -243,6 +243,7 @@ def install(
         log_info('Generating Packet For Further Installation.', metadata.logfile)
 
         version = get_package_version(pkg, res, version, portable, nightly, metadata)
+        pkg = pkg[version]
         
         install_exit_codes = []
 
