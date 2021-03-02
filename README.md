@@ -46,7 +46,8 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 ### Build Status
 | Feature                            | Build Status   |
 |------------------------------------|----------------|
-| Installation                       | ❌            |
+| Installation                       | ✅            |
+| Portable Installation              | ❌            |
 | Uninstallation                     | ✅            |
 | Update                             | ✅            |
 | Show                               | ✅            |
