@@ -10,6 +10,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/v/tag/electric-package-manager/electric?color=green&label=electric&sort=semver"> <img src="https://img.shields.io/github/license/electric-package-manager/electric?color=pink"> <img src="https://img.shields.io/tokei/lines/github/electric-package-manager/electric?color=white&label=lines%20of%20code"> <img src="https://img.shields.io/github/languages/top/electric-package-manager/electric?color=%230xfffff"> <img src="https://img.shields.io/github/repo-size/electric-package-manager/electric?color=orange">
 </p>
+<br>
 
 ![Installing 7-Zip Through Electric](https://github.com/electric-package-manager/electric/blob/master/assets/install-animation.gif?raw=true)
 
@@ -28,6 +29,7 @@ First you'll need to set your execution policy to RemoteSigned if not done so:
 ```powershell
 Set-ExecutionPolicy RemoteSigned
 ```
+<br>
 
 ### Method 1: Install Using Powershell
 Run the following command on your powershell window:
