@@ -35,7 +35,7 @@ Set-ExecutionPolicy RemoteSigned
 
 Download the latest version of the electric Installer from the [Releases Page](https://github.com/electric-package-manager/electric/releases/latest)
 
-After completing the download, start the installer (double-click) and follow the simple installation prompts.
+After completing the download, run the installer and follow the simple installation prompts.
 
 Open your Command Prompt (cmd.exe) or alternatively Powershell (powershell.exe) and type `electric` to get a list of help commands.
 <br>
@@ -124,10 +124,22 @@ Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
 ```
 Then, restart your powershell and you've setup tab completion!
 
+## Authors
+[XtremeDevX](https://www.github.com/XtremeDevX) - Founder And Developer Of Electric
+
+See also the list of [contributors](https://github.com/electric-package-manager/electric/contributors) who participated in this project.
+
 ## Built With
 [Python 3](https://www.python.org/)
 [Click](https://click.palletsprojects.com/en/7.x/)
 
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/electric-package-manager/electric/tags). 
+
+## License
+
+This project is licensed under the Apache 2.0 License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## Config In Alpha
 A small peek of what's coming up next for electric! `(pssst! don't tell anyone!)`!
