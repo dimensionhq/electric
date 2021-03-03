@@ -3,6 +3,7 @@ from utils import find_existing_installation, copy_to_clipboard
 from tempfile import gettempdir
 from sys import platform
 from subprocess import Popen, PIPE
+from Classes.PathManager import PathManager
 from external import *
 import colorama
 import socket
