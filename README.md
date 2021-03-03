@@ -31,7 +31,17 @@ Set-ExecutionPolicy RemoteSigned
 ```
 <br>
 
-### Method 1: Install Using Powershell
+### Method 1: Install Using Official Installer
+
+Download the latest version of the electric Installer from the [Releases Page](https://github.com/electric-package-manager/electric/releases/latest)
+
+After completing the download, start the installer (double-click) and follow the simple installation prompts.
+
+Open your Command Prompt (cmd.exe) or alternatively Powershell (powershell.exe) and type `electric` to get a list of help commands.
+<br>
+<br>
+
+### Method 2: Install Using Powershell
 Run the following command on your powershell window:
 
 ```powershell
@@ -39,17 +49,7 @@ iwr -useb https://raw.githubusercontent.com/XtremeDevX/electric/dev/bin/electric
 ```
 <br>
 
-### Method 2: Install Using Official Installer
 
-Download the latest version of the electric Installer from the [Releases Page](https://github.com/electric-package-manager/electric/releases/latest)
-
-After completing the download, start the installer (double-click) and follow the simple installation prompts.
-
-**NOTE**: If you see warnings about the software not being trusted or from an unverified publisher, don't panic, this is a known issue as Electric is not code signed yet.
-
-Open your command prompt (cmd.exe) or alternatively powershell (powershell.exe) and type `electric` to get a list of help commands.
-<br>
-<br>
 
 ### Method 3: Build From Source
 Prerequisites: **Git**, **Python 3.x**
