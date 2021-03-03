@@ -1,7 +1,14 @@
-# Electric
 
-<img src="https://img.shields.io/github/v/tag/TheBossProSniper/Electric-Windows?color=green&label=electric&sort=semver"> <img src="https://img.shields.io/github/license/TheBossProSniper/Electric-Windows?color=pink"> <img src="https://img.shields.io/tokei/lines/github/TheBossProSniper/Electric-Windows?color=white&label=lines%20of%20code"> <img src="https://img.shields.io/github/languages/top/TheBossProSniper/Electric-Windows?color=%230xfffff"> <img src="https://img.shields.io/github/repo-size/TheBossProSniper/Electric?color=orange">
-***
+<p align="center">
+  <img src="https://github.com/electric-package-manager/electric/blob/master/assets/electric-icon-transparent-bg.png" />
+</p>
+
+<h1 align="center">Electric</h1>
+<h4 align="center">A futuristic, powerful and fast package manager for Windows.</h1>
+<br>
+<p align="center">
+  <img src="https://img.shields.io/github/v/tag/TheBossProSniper/Electric-Windows?color=green&label=electric&sort=semver"> <img src="https://img.shields.io/github/license/TheBossProSniper/Electric-Windows?color=pink"> <img src="https://img.shields.io/tokei/lines/github/TheBossProSniper/Electric-Windows?color=white&label=lines%20of%20code"> <img src="https://img.shields.io/github/languages/top/TheBossProSniper/Electric-Windows?color=%230xfffff"> <img src="https://img.shields.io/github/repo-size/TheBossProSniper/Electric?color=orange">
+</p>
 
 ![Installing 7-Zip Through Electric](https://github.com/XtremeDevX/Electric-Windows/blob/dev/assets/installation.gif?raw=true)
 
@@ -16,7 +23,7 @@ Built for today's systems and with good support for lower specced systems, Elect
 
 IMPORTANT: Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at [issues](https://github.com/TheBossProSniper/electric-windows/issues).
 
-# Installation
+## :zap: Installation
 
 First you'll need to set your execution policy to RemoteSigned if not done so:
 ```powershell
@@ -43,12 +50,12 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 
 4. Yaay! Electric is installed on your system!
 
-### Stargazers And Forkers
+## 👏 Supporters
 [![Stargazers repo roster for @electric-package-manager/electric](https://reporoster.com/stars/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/stargazers)
 
 [![Forkers repo roster for @electric-package-manager/electric](https://reporoster.com/forks/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/network/members)
 
-### Build Status
+### :hammer: Build Status
 | Feature                            | Build Status   |
 |------------------------------------|----------------|
 | Installation                       | ✅            |
