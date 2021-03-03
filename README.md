@@ -14,9 +14,9 @@
 
 ![Installing 7-Zip Through Electric](https://github.com/electric-package-manager/electric/blob/master/assets/install-animation.gif?raw=true)
 
-Highly optimized for **speed** and usability, Electric is anywhere from 200% to 1500% faster than other market competitors for downloading Applications and Packages, and has incredible speeds for concurrent / parallel downloading.
+Highly optimized for **speed** and **usability**, Electric is anywhere from 200% to 1500% faster than other market competitors for downloading Applications and Packages, and has incredible speeds for concurrent / parallel downloading.
 
-Electric believes in incredible **effeciency**, and is the only Windows package manager that officially supports installing packages **concurrently**.
+Electric believes in incredible **efficiency**, and is the only Windows package manager that officially supports installing packages **concurrently**.
 
 Built for today's systems and with good support for lower specced systems, Electric runs smoothly even on systems with as little as 2 GB of ram!
 
