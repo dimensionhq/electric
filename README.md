@@ -6,56 +6,92 @@
 <h1 align="center">Electric</h1>
 <h4 align="center">A futuristic, powerful and fast package manager for Windows.</h1>
 <br>
+
 <p align="center">
-  <img src="https://img.shields.io/github/v/tag/TheBossProSniper/Electric-Windows?color=green&label=electric&sort=semver"> <img src="https://img.shields.io/github/license/TheBossProSniper/Electric-Windows?color=pink"> <img src="https://img.shields.io/tokei/lines/github/TheBossProSniper/Electric-Windows?color=white&label=lines%20of%20code"> <img src="https://img.shields.io/github/languages/top/TheBossProSniper/Electric-Windows?color=%230xfffff"> <img src="https://img.shields.io/github/repo-size/TheBossProSniper/Electric?color=orange">
+  <img src="https://img.shields.io/github/v/tag/electric-package-manager/electric?color=green&label=electric&sort=semver"> <img src="https://img.shields.io/github/license/electric-package-manager/electric?color=pink"> <img src="https://img.shields.io/tokei/lines/github/electric-package-manager/electric?color=white&label=lines%20of%20code"> <img src="https://img.shields.io/github/languages/top/electric-package-manager/electric?color=%230xfffff"> <img src="https://img.shields.io/github/repo-size/electric-package-manager/electric?color=orange">
 </p>
+<br>
 
 ![Installing 7-Zip Through Electric](https://github.com/electric-package-manager/electric/blob/master/assets/install-animation.gif?raw=true)
 
+Highly optimized for **speed** and usability, Electric is anywhere from 200% to 1500% faster than other market competitors for downloading Applications and Packages, and has incredible speeds for concurrent / parallel downloading.
 
-A package manager for Windows!
-
-Highly optimized for speed and usability, Electric is anywhere from 200% to 1500% faster than other market competitors for downloading Applications and Packages, and has incredible speeds for concurrent / parallel downloading.
-
-Electric, unlike your average package manager believes in incredible effeciency, and officially supports installing packages concurrently (not one after another).
+Electric believes in incredible **effeciency**, and is the only Windows package manager that officially supports installing packages **concurrently**.
 
 Built for today's systems and with good support for lower specced systems, Electric runs smoothly even on systems with as little as 2 GB of ram!
 
-IMPORTANT: Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at [issues](https://github.com/TheBossProSniper/electric-windows/issues).
+**Note**: Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at [issues](https://github.com/electric-package-manager/electric/issues).
+<br>
 
-## :zap: Installation
+# :zap: Installation
 
 First you'll need to set your execution policy to RemoteSigned if not done so:
 ```powershell
 Set-ExecutionPolicy RemoteSigned
 ```
+<br>
 
-## Method 1: Install Using Powershell
+### Method 1: Install Using Official Installer
+
+Download the latest version of the electric Installer from the [Releases Page](https://github.com/electric-package-manager/electric/releases/latest)
+
+After completing the download, run the installer and follow the simple installation prompts.
+
+Open your Command Prompt (cmd.exe) or alternatively Powershell (powershell.exe) and type `electric` to get a list of help commands.
+<br>
+<br>
+
+### Method 2: Install Using Powershell
 Run the following command on your powershell window:
 
 ```powershell
 iwr -useb https://raw.githubusercontent.com/XtremeDevX/electric/dev/bin/electricInstall.ps1 | iex
 ```
+<br>
 
-## Method 2: Install Using Official Installer
-#### Steps
 
-1. Download the latest version of the electric Installer from the [Releases Page](https://github.com/TheBossProSniper/electric-windows/releases/)
 
-2. After completing the download, start the installer (double-click) and follow the simple installation prompts.
+### Method 3: Build From Source
+Prerequisites: **Git**, **Python 3.x**
 
-NOTE: If you see warnings about the software not being trusted or from an unverified publisher, don't panic, this is a known issue as Electric is not code signed yet.
+1. Clone the github repository using the Github CLI.
+```powershell
+git clone https://www.github.com/electric-package-manager/electric
+```
 
-3. Open your command prompt (cmd.exe) or alternatively powershell (powershell.exe) and type `electric` to get a list of help commands.
+2. Change to the electric directory.
+```powershell
+cd electric
+```
 
-4. Yaay! Electric is installed on your system!
+3. Install it locally using the Python package manager (`pip`)
+```powershell
+pip install --editable .
+```
 
-## 👏 Supporters
+4. Register [Tab Completion](https://github.com/electric-package-manager/electric#tab-completion)
+
+5. Type `electric` to get a help menu of commands.
+<br>
+
+## :test_tube: Testing
+
+First, make sure you [**Build From Source**](https://github.com/electric-package-manager/electric#method-3-build-from-source).
+
+Run this command to run the tests for electric
+```powershell
+python -m unittest discover src/tests
+```
+<br>
+
+## :clap: Supporters
 [![Stargazers repo roster for @electric-package-manager/electric](https://reporoster.com/stars/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/stargazers)
 
 [![Forkers repo roster for @electric-package-manager/electric](https://reporoster.com/forks/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/network/members)
 
-### :hammer: Build Status
+<br>
+
+## :hammer: Build Status
 | Feature                            | Build Status   |
 |------------------------------------|----------------|
 | Installation                       | ✅            |
@@ -72,7 +108,7 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 | Cleanup                            | ✅            |
 | Tab Completion                     | ✅            |
 
-
+<br>
 
 #### Tab Completion
 When using the official Electric installer, tab completion is setup for you out of the box, however, it is possible to manually add tab completion for electric.
@@ -88,7 +124,25 @@ Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
     }
 }
 ```
-Then, restart your powershell and voila, you've setup tab completion!
+Then, restart your powershell and you've setup tab completion!
+
+## Authors
+[XtremeDevX](https://www.github.com/XtremeDevX) - Founder And Developer Of Electric
+
+See also the list of [contributors](https://github.com/electric-package-manager/electric/contributors) who participated in this project.
+
+## Built With
+[Python 3](https://www.python.org/)
+
+[Click](https://click.palletsprojects.com/en/7.x/)
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/electric-package-manager/electric/tags). 
+
+## License
+
+This project is licensed under the Apache 2.0 License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## Config In Alpha
 A small peek of what's coming up next for electric! `(pssst! don't tell anyone!)`!
