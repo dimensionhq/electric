@@ -23,7 +23,7 @@ Built for today's systems and with good support for lower specced systems, Elect
 **Note**: Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at [issues](https://github.com/electric-package-manager/electric/issues).
 <br>
 
-## :zap: Installation
+# :zap: Installation
 
 First you'll need to set your execution policy to RemoteSigned if not done so:
 ```powershell
@@ -48,6 +48,7 @@ After completing the download, start the installer (double-click) and follow the
 **NOTE**: If you see warnings about the software not being trusted or from an unverified publisher, don't panic, this is a known issue as Electric is not code signed yet.
 
 Open your command prompt (cmd.exe) or alternatively powershell (powershell.exe) and type `electric` to get a list of help commands.
+<br>
 <br>
 
 ### Method 3: Build From Source
