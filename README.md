@@ -70,7 +70,17 @@ pip install --editable .
 4. Register [Tab Completion](https://github.com/electric-package-manager/electric#tab-completion)
 
 5. Type `electric` to get a help menu of commands.
+<br>
 
+## :test_tube: Testing
+
+First, make sure you [**Build From Source**](https://github.com/electric-package-manager/electric#method-3-build-from-source).
+
+Run this command to run the tests for electric
+```powershell
+python -m unittest discover src/tests
+```
+<br>
 
 ## :clap: Supporters
 [![Stargazers repo roster for @electric-package-manager/electric](https://reporoster.com/stars/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/stargazers)
