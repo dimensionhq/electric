@@ -48,7 +48,6 @@ After completing the download, start the installer (double-click) and follow the
 **NOTE**: If you see warnings about the software not being trusted or from an unverified publisher, don't panic, this is a known issue as Electric is not code signed yet.
 
 Open your command prompt (cmd.exe) or alternatively powershell (powershell.exe) and type `electric` to get a list of help commands.
-
 <br>
 
 ### Method 3: Build From Source
@@ -124,7 +123,10 @@ Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
 ```
 Then, restart your powershell and you've setup tab completion!
 
-<br>
+## Built With
+[Python 3](https://www.python.org/)
+[Click](https://click.palletsprojects.com/en/7.x/)
+
 
 ## Config In Alpha
 A small peek of what's coming up next for electric! `(pssst! don't tell anyone!)`!
