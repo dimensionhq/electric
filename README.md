@@ -23,7 +23,7 @@ Built for today's systems and with good support for lower specced systems, Elect
 
 IMPORTANT: Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at [issues](https://github.com/TheBossProSniper/electric-windows/issues).
 
-# ⚡Installation
+## :zap: Installation
 
 First you'll need to set your execution policy to RemoteSigned if not done so:
 ```powershell
@@ -55,7 +55,7 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 
 [![Forkers repo roster for @electric-package-manager/electric](https://reporoster.com/forks/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/network/members)
 
-### Build Status
+### :hammer: Build Status
 | Feature                            | Build Status   |
 |------------------------------------|----------------|
 | Installation                       | ✅            |
