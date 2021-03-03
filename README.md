@@ -30,14 +30,14 @@ First you'll need to set your execution policy to RemoteSigned if not done so:
 Set-ExecutionPolicy RemoteSigned
 ```
 
-## Method 1: Install Using Powershell
+### Method 1: Install Using Powershell
 Run the following command on your powershell window:
 
 ```powershell
 iwr -useb https://raw.githubusercontent.com/XtremeDevX/electric/dev/bin/electricInstall.ps1 | iex
 ```
 
-## Method 2: Install Using Official Installer
+### Method 2: Install Using Official Installer
 #### Steps
 
 1. Download the latest version of the electric Installer from the [Releases Page](https://github.com/TheBossProSniper/electric-windows/releases/)
@@ -50,7 +50,7 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 
 4. Yaay! Electric is installed on your system!
 
-## 👏 Supporters
+## :clap: Supporters
 [![Stargazers repo roster for @electric-package-manager/electric](https://reporoster.com/stars/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/stargazers)
 
 [![Forkers repo roster for @electric-package-manager/electric](https://reporoster.com/forks/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/network/members)
