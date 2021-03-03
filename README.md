@@ -35,19 +35,19 @@ Run the following command on your powershell window:
 ```powershell
 iwr -useb https://raw.githubusercontent.com/XtremeDevX/electric/dev/bin/electricInstall.ps1 | iex
 ```
+<br>
 
 ### Method 2: Install Using Official Installer
-#### Steps
 
-1. Download the latest version of the electric Installer from the [Releases Page](https://github.com/electric-package-manager/electric/releases/)
+Download the latest version of the electric Installer from the [Releases Page](https://github.com/electric-package-manager/electric/releases/latest)
 
-2. After completing the download, start the installer (double-click) and follow the simple installation prompts.
+After completing the download, start the installer (double-click) and follow the simple installation prompts.
 
 **NOTE**: If you see warnings about the software not being trusted or from an unverified publisher, don't panic, this is a known issue as Electric is not code signed yet.
 
-3. Open your command prompt (cmd.exe) or alternatively powershell (powershell.exe) and type `electric` to get a list of help commands.
+Open your command prompt (cmd.exe) or alternatively powershell (powershell.exe) and type `electric` to get a list of help commands.
 
-4. Electric is installed on your system!
+<br>
 
 ### Method 3: Build From Source
 Prerequisites: **Git**, **Python 3.x**
