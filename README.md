@@ -89,6 +89,8 @@ python -m unittest discover src/tests
 
 [![Forkers repo roster for @electric-package-manager/electric](https://reporoster.com/forks/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/network/members)
 
+<br>
+
 ## :hammer: Build Status
 | Feature                            | Build Status   |
 |------------------------------------|----------------|
@@ -131,6 +133,7 @@ See also the list of [contributors](https://github.com/electric-package-manager/
 
 ## Built With
 [Python 3](https://www.python.org/)
+
 [Click](https://click.palletsprojects.com/en/7.x/)
 
 ## Versioning
