@@ -13,15 +13,14 @@
 
 ![Installing 7-Zip Through Electric](https://github.com/electric-package-manager/electric/blob/master/assets/install-animation.gif?raw=true)
 
-A package manager for Windows!
-
 Highly optimized for speed and usability, Electric is anywhere from 200% to 1500% faster than other market competitors for downloading Applications and Packages, and has incredible speeds for concurrent / parallel downloading.
 
-Electric, unlike your average package manager believes in incredible effeciency, and officially supports installing packages concurrently (not one after another).
+Electric believes in incredible **effeciency**, and is the only Windows package manager that officially supports installing packages **concurrently**.
 
 Built for today's systems and with good support for lower specced systems, Electric runs smoothly even on systems with as little as 2 GB of ram!
 
-IMPORTANT: Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at [issues](https://github.com/TheBossProSniper/electric-windows/issues).
+**Note**: Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at [issues](https://github.com/electric-package-manager/electric/issues).
+<br>
 
 ## :zap: Installation
 
@@ -40,15 +39,15 @@ iwr -useb https://raw.githubusercontent.com/XtremeDevX/electric/dev/bin/electric
 ### Method 2: Install Using Official Installer
 #### Steps
 
-1. Download the latest version of the electric Installer from the [Releases Page](https://github.com/TheBossProSniper/electric-windows/releases/)
+1. Download the latest version of the electric Installer from the [Releases Page](https://github.com/electric-package-manager/electric/releases/)
 
 2. After completing the download, start the installer (double-click) and follow the simple installation prompts.
 
-NOTE: If you see warnings about the software not being trusted or from an unverified publisher, don't panic, this is a known issue as Electric is not code signed yet.
+**NOTE**: If you see warnings about the software not being trusted or from an unverified publisher, don't panic, this is a known issue as Electric is not code signed yet.
 
 3. Open your command prompt (cmd.exe) or alternatively powershell (powershell.exe) and type `electric` to get a list of help commands.
 
-4. Yaay! Electric is installed on your system!
+4. Electric is installed on your system!
 
 ### Method 3: Build From Source
 Prerequisites: **Git**, **Python 3.x**
