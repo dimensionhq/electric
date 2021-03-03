@@ -43,6 +43,11 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 
 4. Yaay! Electric is installed on your system!
 
+### Stargazers And Forkers
+[![Stargazers repo roster for @electric-package-manager/electric](https://reporoster.com/stars/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/stargazers)
+
+[![Forkers repo roster for @electric-package-manager/electric](https://reporoster.com/forks/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/network/members)
+
 ### Build Status
 | Feature                            | Build Status   |
 |------------------------------------|----------------|
@@ -61,6 +66,7 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 | Tab Completion                     | ✅            |
 
 
+
 #### Tab Completion
 When using the official Electric installer, tab completion is setup for you out of the box, however, it is possible to manually add tab completion for electric.
 Add the below lines to your powershell profile:
@@ -76,7 +82,6 @@ Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
 }
 ```
 Then, restart your powershell and voila, you've setup tab completion!
-
 
 ## Config In Alpha
 A small peek of what's coming up next for electric! `(pssst! don't tell anyone!)`!
