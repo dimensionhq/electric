@@ -204,6 +204,14 @@ def install(
         log_info('Updating SuperCache', metadata.logfile)
         # request the json response of the package
         res = send_req_package(package)
+        write_verbose(
+            f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
+        write_debug(
+            f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
+        log_info(
+            f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
+        
+        res = send_req_package(package)
         log_info('Successfully Updated SuperCache', metadata.logfile)
 
         pkg = res
@@ -234,12 +242,7 @@ def install(
             f'Finding closest match to {packet.json_name}...', metadata)
         log_info(f'Finding closest match to {packet.json_name}...', metadata.logfile)
 
-        write_verbose(
-            f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
-        write_debug(
-            f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
-        log_info(
-            f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
+        
 
         write_verbose('Generating system download path...', metadata)
         log_info('Generating system download path...', metadata.logfile)
