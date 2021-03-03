@@ -3,7 +3,7 @@ import difflib
 import hashlib
 import json
 
-
+from external import *
 from Classes.ThreadedInstaller import ThreadedInstaller
 from json.decoder import JSONDecodeError
 import os
@@ -129,6 +129,26 @@ def generate_dict(path: str, package_name: str) -> dict:
         'size': os.stat(path).st_size,
     }
 
+def download_installer(packet: Packet, download_url: str, metadata: Metadata):
+    if metadata.rate_limit == -1:
+            path = download(download_url, packet.json_name, metadata, packet.win64_type)
+    else:
+        log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
+        bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
+
+        limiter = Limiter(
+            bucket=bucket,
+            filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
+        )
+
+        urlretrieve(
+            url=download_url,
+            filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
+            reporthook=limiter
+        )
+
+        path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
+    return path
 
 def dump_pickle(data: dict, filename: str):
     """
@@ -727,6 +747,44 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     manager.handle_multi_install(paths)
                 sys.exit()
 
+
+def handle_external_installation(python: bool, node: bool, vscode: bool, sublime: bool, atom: bool, version, package_name, metadata: Metadata):
+    if python:
+        if not version:
+            version = 'latest'
+        package_names = package_name.split(',')
+
+        for name in package_names:
+            handle_python_package(name, version, 'install', metadata)
+
+        sys.exit()
+
+    if node:
+        package_names = package_name.split(',')
+        for name in package_names:
+            handle_node_package(name, 'install', metadata)
+
+        sys.exit()
+
+    if vscode:
+        package_names = package_name.split(',')
+        for name in package_names:
+            handle_vscode_extension(name, 'install', metadata)
+
+        sys.exit()
+
+    if sublime:
+        package_names = package_name.split(',')
+        for name in package_names:
+            handle_sublime_extension(name, 'install', metadata)
+        sys.exit()
+
+    if atom:
+        package_names = package_name.split(',')
+        for name in package_names:
+            handle_atom_package(name, 'install', metadata)
+
+        sys.exit()
 
 def handle_existing_installation(package, packet, force: bool, metadata: Metadata):
     log_info('Searching for existing installation of package.', metadata.logfile)

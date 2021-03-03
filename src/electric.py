@@ -167,48 +167,14 @@ def install(
         create_config(logfile, logging.INFO, 'Install')
 
     log_info('Generating metadata...', logfile)
+    
     metadata = generate_metadata(
         no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync)
+    
     log_info('Successfully generated metadata.', metadata.logfile)
 
-    if python:
-        if not version:
-            version = 'latest'
-        package_names = package_name.split(',')
-
-        for name in package_names:
-            handle_python_package(name, version, 'install', metadata)
-
-        sys.exit()
-
-    if node:
-        package_names = package_name.split(',')
-        for name in package_names:
-            handle_node_package(name, 'install', metadata)
-
-        sys.exit()
-
-    if vscode:
-        package_names = package_name.split(',')
-        for name in package_names:
-            handle_vscode_extension(name, 'install', metadata)
-
-        sys.exit()
-
-    if sublime:
-        package_names = package_name.split(',')
-        for name in package_names:
-            handle_sublime_extension(name, 'install', metadata)
-        sys.exit()
-
-    if atom:
-        package_names = package_name.split(',')
-        for name in package_names:
-            handle_atom_package(name, 'install', metadata)
-
-        sys.exit()
-
-
+    handle_external_installation(python, node, vscode, sublime, atom, version, package_name, metadata)
+    
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
     status = 'Initializing'
     setup_name = ''
@@ -225,6 +191,7 @@ def install(
     # Write install headers to debug
     write_install_headers(metadata)
     
+    # Handle multi-threaded installation (see function for further clarification)
     handle_multithreaded_installation(corrected_package_names, install_directory, metadata)
 
     # normal non-multi-threaded installation
@@ -297,26 +264,7 @@ def install(
         log_info(f"Downloading from '{download_url}'", metadata.logfile)
         status = 'Downloading'
         
-        if rate_limit == -1:
-            start = timer()
-            path = download(download_url, packet.json_name, metadata, packet.win64_type)
-            end = timer()
-        else:
-            log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
-            bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
-
-            limiter = Limiter(
-                bucket=bucket,
-                filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
-            )
-
-            urlretrieve(
-                url=download_url,
-                filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
-                reporthook=limiter
-            )
-
-            path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
+        path = download_installer(packet, download_url, metadata)
 
         status = 'Downloaded'
 
