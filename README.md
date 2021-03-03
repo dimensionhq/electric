@@ -6,16 +6,11 @@
 <h1 align="center">Electric</h1>
 <h4 align="center">A futuristic, powerful and fast package manager for Windows.</h1>
 <br>
+![Installing 7-Zip Through Electric](https://github.com/electric-package-manager/electric/blob/master/assets/install-animation.gif?raw=true)
+
 <p align="center">
   <img src="https://img.shields.io/github/v/tag/TheBossProSniper/Electric-Windows?color=green&label=electric&sort=semver"> <img src="https://img.shields.io/github/license/TheBossProSniper/Electric-Windows?color=pink"> <img src="https://img.shields.io/tokei/lines/github/TheBossProSniper/Electric-Windows?color=white&label=lines%20of%20code"> <img src="https://img.shields.io/github/languages/top/TheBossProSniper/Electric-Windows?color=%230xfffff"> <img src="https://img.shields.io/github/repo-size/TheBossProSniper/Electric?color=orange">
 </p>
-
-<figure class="video_container">
-  <video controls="true" allowfullscreen="true" poster="path/to/poster_image.png">
-    <source src="https://github.com/electric-package-manager/electric/blob/master/assets/test.mp4" type="video/mp4">
-  </video>
-</figure>
-
 
 
 A package manager for Windows!
