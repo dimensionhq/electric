@@ -94,7 +94,7 @@ pip install --editable .
 | Cleanup                            | ✅            |
 | Tab Completion                     | ✅            |
 
-
+<br>
 
 #### Tab Completion
 When using the official Electric installer, tab completion is setup for you out of the box, however, it is possible to manually add tab completion for electric.
