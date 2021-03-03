@@ -204,12 +204,7 @@ def install(
         log_info('Updating SuperCache', metadata.logfile)
         # request the json response of the package
         res = send_req_package(package)
-        write_verbose(
-            f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
-        write_debug(
-            f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
-        log_info(
-            f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
+        
         
         res = send_req_package(package)
         log_info('Successfully Updated SuperCache', metadata.logfile)
@@ -228,6 +223,13 @@ def install(
         handle_portable_installation(portable, pkg, res, metadata)
         
         packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-test'] if 'run-test' in list(res.keys()) else True)
+        
+        write_verbose(
+            f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
+        write_debug(
+            f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
+        log_info(
+            f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
         
         handle_existing_installation(package, packet, force, metadata)
 
