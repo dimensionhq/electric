@@ -43,6 +43,7 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 
 4. Yaay! Electric is installed on your system!
 
+### Stargazers And Forkers
 [![Stargazers repo roster for @electric-package-manager/electric](https://reporoster.com/stars/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/stargazers)
 
 [![Forkers repo roster for @electric-package-manager/electric](https://reporoster.com/forks/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/network/members)
