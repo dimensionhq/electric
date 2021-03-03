@@ -50,7 +50,7 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 
 4. Yaay! Electric is installed on your system!
 
-### Method 3: Built From Source
+### Method 3: Build From Source
 Prerequisites: **Git**, **Python 3.x**
 
 1. Clone the github repository using the Github CLI.
