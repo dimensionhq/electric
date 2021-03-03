@@ -50,12 +50,35 @@ NOTE: If you see warnings about the software not being trusted or from an unveri
 
 4. Yaay! Electric is installed on your system!
 
+### Method 3: Built From Source
+Prerequisites: **Git**, **Python 3.x**
+
+1. Clone the github repository using the Github CLI.
+```powershell
+git clone https://www.github.com/electric-package-manager/electric
+```
+
+2. Change to the electric directory.
+```powershell
+cd electric
+```
+
+3. Install it locally using the Python package manager (`pip`)
+```powershell
+pip install --editable .
+```
+
+4. Register [Tab Completion](https://github.com/electric-package-manager/electric#tab-completion)
+
+5. Type `electric` to get a help menu of commands.
+
+
 ## :clap: Supporters
 [![Stargazers repo roster for @electric-package-manager/electric](https://reporoster.com/stars/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/stargazers)
 
 [![Forkers repo roster for @electric-package-manager/electric](https://reporoster.com/forks/electric-package-manager/electric)](https://github.com/electric-package-manager/electric/network/members)
 
-### :hammer: Build Status
+## :hammer: Build Status
 | Feature                            | Build Status   |
 |------------------------------------|----------------|
 | Installation                       | ✅            |
@@ -88,7 +111,9 @@ Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
     }
 }
 ```
-Then, restart your powershell and voila, you've setup tab completion!
+Then, restart your powershell and you've setup tab completion!
+
+<br>
 
 ## Config In Alpha
 A small peek of what's coming up next for electric! `(pssst! don't tell anyone!)`!
