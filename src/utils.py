@@ -4,7 +4,7 @@ import hashlib
 import json
 
 from external import *
-from Classes.ThreadedInstaller import ThreadedInstaller
+import Classes.ThreadedInstaller as ti
 from json.decoder import JSONDecodeError
 import os
 import pickle
@@ -512,7 +512,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 write_verbose('Generating system download path...', metadata)
                 log_info('Generating system download path...', metadata.logfile)
 
-            manager = ThreadedInstaller(packets, metadata)
+            manager = ti.ThreadedInstaller(packets, metadata)
             paths = manager.handle_multi_download()
             cursor.show()
             log_info('Finished Rapid Download...', metadata.logfile)
@@ -576,7 +576,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                                 sys.exit()
 
                         if packet.dependencies:
-                            ThreadedInstaller.install_dependent_packages(packet, -1, install_directory, metadata)
+                            ti.ThreadedInstaller.install_dependent_packages(packet, -1, install_directory, metadata)
 
                         write_verbose(
                             f'Package to be installed: {packet.json_name}', metadata)
@@ -740,7 +740,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         write_verbose('Generating system download path...', metadata)
                         log_info('Generating system download path...', metadata.logfile)
 
-                    manager = ThreadedInstaller(packets, metadata)
+                    manager = ti.ThreadedInstaller(packets, metadata)
                     paths = manager.handle_multi_download()
                     log_info('Finished Rapid Download...', metadata.logfile)
                     log_info(

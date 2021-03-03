@@ -104,32 +104,32 @@ def cli(_):
 @click.option('--plugin', '-pl', is_flag=True, help='Specify a plugin to install')
 @click.pass_context
 def install(
-    ctx,
-    package_name: str,
-    verbose: bool,
-    debug: bool,
-    no_progress: bool,
-    no_color: bool,
-    logfile: str,
-    yes: bool,
-    silent: bool,
-    python: bool,
-    install_directory: str,
-    virus_check: bool,
-    sync: bool,
-    reduce: bool,
-    rate_limit: int,
-    node: bool,
-    vscode: bool,
-    atom: bool,
-    sublime:bool,
-    force: bool,
-    configuration: bool,
-    version: str,
-    nightly: bool,
-    portable: bool,
-    plugin: bool,
-):
+        ctx,
+        package_name: str,
+        verbose: bool,
+        debug: bool,
+        no_progress: bool,
+        no_color: bool,
+        logfile: str,
+        yes: bool,
+        silent: bool,
+        python: bool,
+        install_directory: str,
+        virus_check: bool,
+        sync: bool,
+        reduce: bool,
+        rate_limit: int,
+        node: bool,
+        vscode: bool,
+        atom: bool,
+        sublime:bool,
+        force: bool,
+        configuration: bool,
+        version: str,
+        nightly: bool,
+        portable: bool,
+        plugin: bool,
+    ):
     """
     Install a package or a list of packages.
     """
@@ -660,7 +660,8 @@ def uninstall(
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         
         if portable and not 'is-portable' in list(res.keys()):
-            keys = list(pkg.keys())
+            keys = list(pkg[pkg['latest-version']].keys())
+
             data = {
                 'display-name': pkg['display-name'],
                 'package-name': pkg['package-name'],
@@ -679,6 +680,7 @@ def uninstall(
             uninstall_portable(portable_packet, metadata)
             end = timer()
             sys.exit()
+
         elif portable and 'is-portable' in list(res.keys()):
             keys = list(pkg[pkg['latest-version']].keys())
             data = {
@@ -697,6 +699,7 @@ def uninstall(
             portable_packet = PortablePacket(data)
             uninstall_portable(portable_packet, metadata)
             sys.exit()
+
         packet = Packet(pkg, package, name, pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
         proc = None
         keyboard.add_hotkey(
