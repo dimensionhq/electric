@@ -133,8 +133,8 @@ def download_installer(packet: Packet, download_url: str, metadata: Metadata):
     if metadata.rate_limit == -1:
             path = download(download_url, packet.json_name, metadata, packet.win64_type)
     else:
-        log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
-        bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
+        log_info(f'Starting rate-limited installation => {metadata.rate_limit}', metadata.logfile)
+        bucket = TokenBucket(tokens=10 * metadata.rate_limit, fill_rate=metadata.rate_limit)
 
         limiter = Limiter(
             bucket=bucket,
@@ -148,6 +148,7 @@ def download_installer(packet: Packet, download_url: str, metadata: Metadata):
         )
 
         path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
+    
     return path
 
 def dump_pickle(data: dict, filename: str):
