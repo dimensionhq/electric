@@ -47,25 +47,27 @@ def cli(_):
     if not os.path.isdir(os.path.expanduser('~') + r'\electric'):
         os.mkdir(os.path.expanduser('~') + r'\electric')
 
-    # Check if superlog.txt exists in USERAPPDATA
-    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\superlog.txt'):
-        # Create the superlog.txt and write the current timestamp
-        with open(rf'{PathManager.get_appdata_directory()}\\superlog.txt', 'w+') as f:
-            f.write(f'{date.today().year} {date.today().month} {date.today().day}')
-
     # Create the appdata directory for electric if it doesn't exist
     if not (os.path.isdir(rf'{PathManager.get_appdata_directory()}')):
         os.mkdir(rf'{PathManager.get_appdata_directory()}')
+
+    # Check if superlog.txt exists in USERAPPDATA
+    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\superlog.txt'):
+        # Create the superlog.txt and write the current timestamp
+        with open(rf'{PathManager.get_appdata_directory()}\superlog.txt', 'w+') as f:
+            f.write(f'{date.today().year} {date.today().month} {date.today().day}')
+
+    
     
     # Check if settings.json exists in USERAPPDATA
-    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\settings.json'):
+    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\settings.json'):
         click.echo(click.style(f'Creating settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
         # Create the settings.json file and write default settings into it
         initialize_settings()
        
     
     # Check if packages.json exists in USERAPPDATA
-    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\packages.json'):
+    if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\packages.json'):
         # Otherwise create and write to packages.json   
         update_package_list()        
     
