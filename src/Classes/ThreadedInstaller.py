@@ -55,7 +55,7 @@ class ThreadedInstaller:
                     fill_c, unfill_c = '█' * complete, ' ' * (20 - complete)
                     try:
                         sys.stdout.write(
-                            f"\r({fill_c}{unfill_c}) ⚡ {round(dl / full_length * 100)} % ")
+                            f"\r({fill_c}{unfill_c}) {round(dl / full_length * 100)} % ")
                     except UnicodeEncodeError:
                         pass
                     sys.stdout.flush()
@@ -65,7 +65,7 @@ class ThreadedInstaller:
                     'path': path,
                     'display_name': download.display_name
                 }
-                })
+        })
 
         # cursor.show()
 
