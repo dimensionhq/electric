@@ -414,11 +414,12 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
             'package-name': res['package-name'],
             'latest-version': res['latest-version'],
             'url': pkg[res['latest-version']]['url'],
-            'file-type': pkg[res['latest-version']]['file-type'],
+            'file-type': pkg[res['latest-version']]['file-type'] if 'file-type' in keys else None,    
             'extract-dir': pkg[res['latest-version']]['extract-dir'],
             'chdir': pkg[res['latest-version']]['chdir'] if 'chdir' in keys else [],
             'bin': pkg[res['latest-version']]['bin'] if 'bin' in keys else [],
             'shortcuts': pkg[res['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
+            'pre-install': pkg[res['latest-version']]['pre-install'] if 'pre-install' in keys else [],
             'post-install': pkg[res['latest-version']]['post-install'] if 'post-install' in keys else [],
             'notes': pkg[res['latest-version']]['notes'] if 'notes' in keys else []
         }
@@ -438,6 +439,7 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
             'chdir': pkg[pkg['latest-version']]['chdir'] if 'chdir' in keys else [],
             'bin': pkg[pkg['latest-version']]['bin'] if 'bin' in keys else [],
             'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
+            'pre-install': pkg[pkg['latest-version']]['pre-install'] if 'pre-install' in keys else [],
             'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else [],
             'notes': pkg[pkg['latest-version']]['notes'] if 'notes' in keys else []
         }

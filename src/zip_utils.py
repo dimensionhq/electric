@@ -27,8 +27,10 @@ def delete_start_menu_shortcut(shortcut_name):
 def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata: Metadata):
     if not unzip_dir_name:
         unzip_dir_name = download_dir.replace('.zip', '')
+    
     if not os.path.isdir(rf'{home}\electric'):
         os.mkdir(rf'{home}\electric')
+    
     os.chdir(rf'{home}\electric')
 
     if metadata.silent and file_type == '.zip':
@@ -37,9 +39,10 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata:
                 zf.extractall(download_dir.replace('.zip', ''))
             except:
                 pass
+
     elif not metadata.silent and file_type == '.zip':
         os.system(rf'powershell.exe -noprofile Expand-Archive "{download_dir}" -Force')
-        
+
 
     if file_type == '.tar':
         tar = tarfile.open(download_dir, 'r:')
@@ -146,7 +149,7 @@ def install_font(src_path: str):
             winreg.SetValueEx(key, fontname, 0, winreg.REG_SZ, filename)
 
 
-def download(url: str, download_extension: str, file_path: str, metadata: Metadata, show_progress_bar=True):
+def download(packet, url: str, download_extension: str, file_path: str, metadata: Metadata, show_progress_bar=True, is_zip=False):
     '''
     Downloads A File from a URL And Saves It To A location
     url `(str)`:  Link or URL to download the file from.
@@ -160,7 +163,16 @@ def download(url: str, download_extension: str, file_path: str, metadata: Metada
     cursor.hide() # Use This If You Want to Hide The Cursor While Downloading The File In The Terminal
     if not os.path.isdir(rf'{home}\electric'):
         os.mkdir(rf'{home}\electric')
+
+    if not is_zip:
+        if not os.path.isdir(rf'{home}\electric\{packet.extract_dir}@{packet.latest_version}\electric'):
+            os.mkdir(rf'{home}\electric\{packet.extract_dir}@{packet.latest_version}\electric')
+        
+        # if not os.path.isdir(file_path.replace('\\\\', '\\')):
+        #     os.mkdir(file_path.replace('\\\\', '\\'))
+    
     try:
+        file_path = file_path.replace('\\\\', '\\')
         with open(f'{file_path}{download_extension}', 'wb') as f:
             # Get Response From URL
             response = requests.get(url, stream=True)
@@ -187,7 +199,9 @@ def download(url: str, download_extension: str, file_path: str, metadata: Metada
                         sys.stdout.write(
                             f'\r{fill_c}{unfill_c} {Fore.RESET} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
                         sys.stdout.flush()
-        write(f'\n{Fore.GREEN}Initializing Unzipper{Fore.RESET}', 'white', metadata)
+        if is_zip:
+            write(f'\n{Fore.GREEN}Initializing Unzipper{Fore.RESET}', 'white', metadata)
+    
     except KeyboardInterrupt:
         print(f'\n{Fore.RED}Download Was Interrupted!{Fore.RESET}')
         sys.exit()
@@ -226,8 +240,10 @@ def find_existing_installation(dir_name: str) -> bool:
     return False
 
 
-def display_notes(packet: PortablePacket, metadata: Metadata):
+def display_notes(packet: PortablePacket, unzip_dir: str, metadata: Metadata):
     write('\n----Notes----', 'white', metadata)
-    for line in packet.notes:
-        write(line, 'white', metadata)
-
+    if isinstance(packet.notes, list):
+        for line in packet.notes:
+            write(line.replace('$dir', unzip_dir).replace('\\\\', '\\'), 'white', metadata)
+    else:
+        write(packet.notes.replace('$dir', unzip_dir).replace('\\\\', '\\'), 'white', metadata)

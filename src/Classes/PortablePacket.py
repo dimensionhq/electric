@@ -22,10 +22,18 @@ class PortablePacket:
         except:
             self.shortcuts = None
         try:
+            self.pre_install = data['pre-install']
+        except:
+            self.pre_install = None
+        try:
             self.post_install = data['post-install']
         except:
             self.post_install = None
         try:
-            self.notes = data['notes']
+            self.install_notes = data['install-notes']
         except:
-            self.notes = None
+            self.install_notes = None
+        try:
+            self.uninstall_notes = data['uninstall-notes']
+        except:
+            self.uninstall_notes = None
