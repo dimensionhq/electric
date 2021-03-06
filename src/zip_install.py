@@ -1,4 +1,3 @@
-from subprocess import PIPE, Popen
 from Classes.Metadata import Metadata
 from Classes.PortablePacket import PortablePacket
 from timeit import default_timer as timer

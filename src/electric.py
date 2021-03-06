@@ -11,8 +11,6 @@ import logging
 import os
 import sys
 import time as tm
-from urllib.request import urlretrieve
-
 import click
 import halo
 import keyboard
@@ -29,7 +27,6 @@ from cli import SuperChargeCLI
 from external import *
 from headers import *
 from info import __version__
-from limit import Limiter, TokenBucket
 from logger import *
 from registry import get_environment_keys, get_uninstall_key
 from settings import initialize_settings, open_settings
@@ -369,6 +366,7 @@ def install(
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during uninstallation')
 @click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after bundle installation')
 @click.option('--local', '-ll', is_flag=True, help='')
+@click.option('--portable', '-p', is_flag=True, help='')
 @click.pass_context
 def update(
     ctx,
@@ -384,6 +382,7 @@ def update(
     reduce: bool,
     virus_check: bool,
     local: bool,
+    portable: bool,
 ):  
     """
     Updates an existing package
@@ -673,8 +672,11 @@ def uninstall(
                 'extract-dir': pkg[pkg['latest-version']]['extract-dir'],
                 'chdir': pkg[pkg['latest-version']]['chdir'] if 'chdir' in keys else None,
                 'bin': pkg[pkg['latest-version']]['bin'] if 'bin' in keys else None,
+                'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
+                'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
                 'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else None,
                 'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else None,
+                'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
             }
         
             portable_packet = PortablePacket(data)
@@ -695,8 +697,12 @@ def uninstall(
                 'chdir': pkg[pkg['latest-version']]['chdir'] if 'chdir' in keys else [],
                 'bin': pkg[pkg['latest-version']]['bin'] if 'bin' in keys else [],
                 'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
+                'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
+                'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
                 'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else [],
-                'notes': pkg[pkg['latest-version']]['notes'] if 'notes' in keys else []
+                'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
+                'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
+                'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
             }
             portable_packet = PortablePacket(data)
             uninstall_portable(portable_packet, metadata)

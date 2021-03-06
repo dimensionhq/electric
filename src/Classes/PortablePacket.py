@@ -37,3 +37,7 @@ class PortablePacket:
             self.uninstall_notes = data['uninstall-notes']
         except:
             self.uninstall_notes = None
+        try:
+            self.persist = data['persist']
+        except:
+            self.presist = None

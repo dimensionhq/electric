@@ -421,7 +421,9 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
             'shortcuts': pkg[res['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
             'pre-install': pkg[res['latest-version']]['pre-install'] if 'pre-install' in keys else [],
             'post-install': pkg[res['latest-version']]['post-install'] if 'post-install' in keys else [],
-            'notes': pkg[res['latest-version']]['notes'] if 'notes' in keys else []
+            'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
+            'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
+            'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
         }
         portable_packet = PortablePacket(data)
         install_portable(portable_packet, metadata)
@@ -441,7 +443,9 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
             'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
             'pre-install': pkg[pkg['latest-version']]['pre-install'] if 'pre-install' in keys else [],
             'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else [],
-            'notes': pkg[pkg['latest-version']]['notes'] if 'notes' in keys else []
+            'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
+            'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
+            'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
         }
         portable_packet = PortablePacket(data)
         install_portable(portable_packet, metadata)

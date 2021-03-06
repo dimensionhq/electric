@@ -10,7 +10,7 @@ import tarfile
 import py7zr
 import patoolib
 import winreg
-
+from shutil import copytree, move
 from Classes.Metadata import Metadata
 from Classes.PortablePacket import PortablePacket
 from extension import write
@@ -254,3 +254,20 @@ def display_notes(packet: PortablePacket, unzip_dir: str, metadata: Metadata, un
                 write(line.replace('$dir', unzip_dir).replace('\\\\', '\\'), 'white', metadata)
         else:
             write(packet.uninstall_notes.replace('$dir', unzip_dir).replace('\\\\', '\\'), 'white', metadata)
+
+
+def make_archive(source, destination):
+        base = os.path.basename(destination)
+        name = base.split('.')[0]
+        format = base.split('.')[1]
+        archive_from = os.path.dirname(source)
+        archive_to = os.path.basename(source.strip(os.sep))
+        make_archive(name, format, archive_from, archive_to)
+        move('%s.%s'%(name,format), destination)
+
+def create_folder_backup(packet: PortablePacket, folder: str):
+    if not os.path.isdir(rf'{home}\electric\Backup'):
+        os.mkdir(rf'{home}\electric\Backup')
+        os.mkdir(rf'{home}\electric\Backup\{packet.extract_dir}@{packet.latest_version}')
+        make_archive(rf'{home}\electric\{packet.extract_dir}@{packet.latest_version}\{folder}', rf'{home}\electric\{packet.extract_dir}@{packet.latest_version}')
+        copytree(rf'{home}\electric\{packet.extract_dir}@{packet.latest_version}\{folder}', rf'{home}\electric\Backup\{packet.extract_dir}@{packet.latest_version}\{folder}.zip')
