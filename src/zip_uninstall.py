@@ -1,6 +1,6 @@
 from Classes.PortablePacket import PortablePacket
 from extension import write
-from zip_utils import delete_start_menu_shortcut, find_existing_installation
+from zip_utils import delete_start_menu_shortcut, find_existing_installation, display_notes
 from Classes.Metadata import Metadata
 from subprocess import Popen, PIPE
 import os
@@ -40,5 +40,8 @@ def uninstall_portable(packet: PortablePacket, metadata: Metadata):
         loc = rf'{home}\electric\shims'
         
         write(f'Successfully Uninstalled {packet.display_name}', 'green', metadata)
+        if packet.uninstall_notes:
+            display_notes(packet, '', metadata, uninstall=True)
+
     else:
         write(f'Could Not Find Any Existing Installations Of {packet.display_name}', 'yellow', metadata)

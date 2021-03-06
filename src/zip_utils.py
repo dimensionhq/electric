@@ -240,10 +240,17 @@ def find_existing_installation(dir_name: str) -> bool:
     return False
 
 
-def display_notes(packet: PortablePacket, unzip_dir: str, metadata: Metadata):
+def display_notes(packet: PortablePacket, unzip_dir: str, metadata: Metadata, uninstall=False):
     write('\n----Notes----', 'white', metadata)
-    if isinstance(packet.notes, list):
-        for line in packet.notes:
-            write(line.replace('$dir', unzip_dir).replace('\\\\', '\\'), 'white', metadata)
+    if not uninstall:
+        if isinstance(packet.install_notes, list):
+            for line in packet.notes:
+                write(line.replace('$dir', unzip_dir).replace('\\\\', '\\'), 'white', metadata)
+        else:
+            write(packet.install_notes.replace('$dir', unzip_dir).replace('\\\\', '\\'), 'white', metadata)
     else:
-        write(packet.notes.replace('$dir', unzip_dir).replace('\\\\', '\\'), 'white', metadata)
+        if isinstance(packet.uninstall_notes, list):
+            for line in packet.notes:
+                write(line.replace('$dir', unzip_dir).replace('\\\\', '\\'), 'white', metadata)
+        else:
+            write(packet.uninstall_notes.replace('$dir', unzip_dir).replace('\\\\', '\\'), 'white', metadata)

@@ -91,7 +91,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
         for line in packet.post_install:
             eval(line.replace('<dir>', unzip_dir))
 
-    if packet.notes:
+    if packet.install_notes:
         display_notes(packet, unzip_dir, metadata)
 
     write(f'Successfully Installed {packet.display_name}', 'magenta', metadata)
