@@ -25,6 +25,7 @@ import sys
 import os
 paths = {}
 
+
 class ThreadedInstaller:
 
     def __init__(self, packets, metadata):
@@ -37,7 +38,7 @@ class ThreadedInstaller:
             os.mkdir(Rf'{tempfile.gettempdir()}\electric')
 
         path = Rf'{tempfile.gettempdir()}\electric\{download.name}{download.extension}'
-        
+
         with open(path, 'wb') as f:
             response = requests.get(download.url, stream=True)
             total_length = response.headers.get('content-length')
@@ -76,7 +77,6 @@ class ThreadedInstaller:
         custom_install_switch = install.custom_install_switch
         directory = install.directory
 
-
         if download_type == '.exe':
             if '.exe' not in path:
                 if not os.path.isfile(path + '.exe'):
@@ -100,7 +100,7 @@ class ThreadedInstaller:
                 click.echo(click.style(
                     f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
-            utils.run_cmd(command, self.metadata, 'installation',install)
+            utils.run_cmd(command, self.metadata, 'installation', install)
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i' + path + ' '
@@ -108,7 +108,6 @@ class ThreadedInstaller:
                 command = command + ' ' + switch
 
             utils.run_cmd(command, self.metadata, 'installation', install)
-
 
     def calculate_spwn(self, number: int) -> str:
         if number <= 3:
@@ -118,15 +117,18 @@ class ThreadedInstaller:
     def handle_dependencies(self):
         for packet in self.packets:
             if packet.dependencies:
-                ThreadedInstaller.install_dependent_packages(packet, self.metadata.rate_limit, packet.directory, self.metadata)
+                ThreadedInstaller.install_dependent_packages(
+                    packet, self.metadata.rate_limit, packet.directory, self.metadata)
 
     def handle_multi_download(self) -> list:
 
         self.handle_dependencies()
         metadata = self.metadata
-        package_list = [ packet.display_name for packet in  self.packets ]
-        package_list = str(package_list).replace('[', '').replace(']', '').replace('\'', '')
-        write(f'SuperCached [ {Fore.CYAN}{package_list}{Fore.RESET} ]', 'white', metadata)
+        package_list = [packet.display_name for packet in self.packets]
+        package_list = str(package_list).replace(
+            '[', '').replace(']', '').replace('\'', '')
+        write(
+            f'SuperCached [ {Fore.CYAN}{package_list}{Fore.RESET} ]', 'white', metadata)
         log_info('Initializing Rapid Download', metadata.logfile)
 
         packets = self.packets
@@ -144,8 +146,10 @@ class ThreadedInstaller:
                                            packets[0].display_name, f"{tempfile.gettempdir()}\\Setup0{packets[0].win64_type}"))
 
         for item in download_items:
-            write_verbose(f'Sending request to {item.url} for downloading {item.display_name}', self.metadata)
-            write_debug(f'Downloading {item.display_name} from {item.url} into {item.name}{item.extension}', self.metadata)
+            write_verbose(
+                f'Sending request to {item.url} for downloading {item.display_name}', self.metadata)
+            write_debug(
+                f'Downloading {item.display_name} from {item.url} into {item.name}{item.extension}', self.metadata)
 
         method = self.calculate_spwn(len(packets))
 
@@ -165,7 +169,8 @@ class ThreadedInstaller:
             processes = []
 
             for item in download_items:
-                processes.append(multiprocessing.Process(target=self.download, args=(item,)))
+                processes.append(multiprocessing.Process(
+                    target=self.download, args=(item,)))
 
             for process in processes:
                 process.start()
@@ -179,7 +184,8 @@ class ThreadedInstaller:
                     f'\nScanning {item.display_name} For Viruses...', 'blue', metadata)
                 utils.check_virus(item.path, metadata)
 
-        write_debug(f'Rapid Download Successfully Downloaded {len(download_items)} Packages Using RapidThreading', metadata)
+        write_debug(
+            f'Rapid Download Successfully Downloaded {len(download_items)} Packages Using RapidThreading', metadata)
         write_debug('Rapid Download Exiting With Code 0', metadata)
         if not self.metadata.debug:
             write('\nFinished Rapid Download...', 'green', metadata)
@@ -203,10 +209,12 @@ class ThreadedInstaller:
             for pack in packets:
                 for path in paths.items():
                     if pack.display_name == path[1]['display_name']:
-                        install_items.append(Install(
-                            pack.display_name, path[1]['path'], pack.install_switches, pack.win64_type, pack.directory, pack.custom_location, pack.install_exit_codes, pack.uninstall_exit_codes, self.metadata, pack.version))
+                        install_items.append(
+                            Install(
+                                pack.json_name,
+                                pack.display_name, path[1]['path'], pack.install_switches, pack.win64_type, pack.directory, pack.custom_location, pack.install_exit_codes, pack.uninstall_exit_codes, self.metadata, pack.version))
         else:
-            return Install(packets[0].display_name, paths[0][1]['display_name'], packets[0].install_switches, packets[0].win64_type, packets[0].directory, packets[0].custom_location, packets[0].install_exit_codes, packets[0].uninstall_exit_codes, self.metadata, packets[0].version)
+            return Install(packets[0].json_name, packets[0].display_name, paths[0][1]['display_name'], packets[0].install_switches, packets[0].win64_type, packets[0].directory, packets[0].custom_location, packets[0].install_exit_codes, packets[0].uninstall_exit_codes, self.metadata, packets[0].version)
 
         return self.generate_split(install_items)
 
@@ -223,7 +231,8 @@ class ThreadedInstaller:
             else:
                 other_list.append(item)
 
-        install_items = [{'exe': exe_list}, {'msi': msi_list}, {'other': other_list}]
+        install_items = [{'exe': exe_list}, {
+            'msi': msi_list}, {'other': other_list}]
         return install_items
 
     def handle_multi_install(self, paths):
@@ -248,9 +257,11 @@ class ThreadedInstaller:
                 else:
                     string = 'exe'
                 for val in item[string]:
-                    write_debug(f'Running Installer For <{val.display_name}> On Thread {item[string].index(val)}', self.metadata)
+                    write_debug(
+                        f'Running Installer For <{val.display_name}> On Thread {item[string].index(val)}', self.metadata)
                     processes.append(
-                        multiprocessing.Process(target=self.install_package, args=(val,))
+                        multiprocessing.Process(
+                            target=self.install_package, args=(val,))
                     )
                 for process in processes:
                     process.start()
@@ -265,7 +276,8 @@ class ThreadedInstaller:
             write('Successfully Cleaned Up Installer From Temp Directory...',
                   'green', self.metadata)
         for packet in self.packets:
-            utils.register_package_success(packet, packet.directory, self.metadata)
+            utils.register_package_success(
+                packet, packet.directory, self.metadata)
         write(
             'Successfully Installed Packages!', 'bright_magenta', self.metadata)
         log_info('Successfully Installed Packages!', self.metadata.logfile)
@@ -276,7 +288,8 @@ class ThreadedInstaller:
         start = timer()
         utils.refresh_environment_variables()
         end = timer()
-        write_debug(f'Successfully Refreshed Environment Variables in {round((end - start), 2)} seconds', self.metadata)
+        write_debug(
+            f'Successfully Refreshed Environment Variables in {round((end - start), 2)} seconds', self.metadata)
         write_verbose('Installation and setup completed.', self.metadata)
         log_info('Installation and setup completed.', self.metadata.logfile)
         write_debug(
@@ -289,13 +302,18 @@ class ThreadedInstaller:
 
     @staticmethod
     def install_dependent_packages(packet: Packet, rate_limit: int, install_directory: str, metadata: Metadata):
-        write(f'Installing Dependencies For => {packet.display_name}', 'cyan', metadata)
-        disp = str(packet.dependencies).replace("[", "").replace("]", "").replace("\'", "")
-        write(f'{packet.display_name} has the following dependencies: {disp}', 'yellow', metadata)
-        continue_install = click.confirm('Would you like to install the above dependencies ?')
+        write(
+            f'Installing Dependencies For => {packet.display_name}', 'cyan', metadata)
+        disp = str(packet.dependencies).replace(
+            "[", "").replace("]", "").replace("\'", "")
+        write(f'{packet.display_name} has the following dependencies: {disp}',
+              'yellow', metadata)
+        continue_install = click.confirm(
+            'Would you like to install the above dependencies ?')
         if continue_install:
             if len(packet.dependencies) > 1 and len(packet.dependencies) <= 5:
-                write(f'Using Parallel Installation For Installing Dependencies', 'green', metadata)
+                write(
+                    f'Using Parallel Installation For Installing Dependencies', 'green', metadata)
                 packets = []
                 for package in packet.dependencies:
                     res = utils.send_req_package(package)
@@ -310,7 +328,8 @@ class ThreadedInstaller:
                     pkg = pkg[version]
                     custom_dir = None
                     if install_directory:
-                        custom_dir = install_directory + f'\\{pkg["package-name"]}'
+                        custom_dir = install_directory + \
+                            f'\\{pkg["package-name"]}'
                     else:
                         custom_dir = install_directory
 
@@ -318,7 +337,8 @@ class ThreadedInstaller:
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
 
-                    packet = Packet(package, res['package-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None)
+                    packet = Packet(package, res['package-name'], pkg['url'], pkg['file-type'], pkg['custom-location'],
+                                    pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None)
                     installation = utils.find_existing_installation(
                         package, packet.json_name)
                     if installation:
@@ -348,8 +368,10 @@ class ThreadedInstaller:
                         f'Finding closest match to {packet.json_name}...', metadata.logfile)
                     packets.append(packet)
 
-                    write_verbose('Generating system download path...', metadata)
-                    log_info('Generating system download path...', metadata.logfile)
+                    write_verbose(
+                        'Generating system download path...', metadata)
+                    log_info('Generating system download path...',
+                             metadata.logfile)
 
                 manager = ThreadedInstaller(packets, metadata)
                 paths = manager.handle_multi_download()
@@ -363,15 +385,19 @@ class ThreadedInstaller:
                 for package in packet.dependencies:
                     res = utils.send_req_package(package)
                     pkg = res[res['latest-version']]
-                    log_info('Generating Packet For Further Installation.', metadata.logfile)
-                    
+                    log_info(
+                        'Generating Packet For Further Installation.', metadata.logfile)
+
                     install_exit_codes = None
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
-                    
-                    packet = Packet(package, pkg['package-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None)
-                    log_info('Searching for existing installation of package.', metadata.logfile)
-                    installation = utils.find_existing_installation(package, packet.json_name)
+
+                    packet = Packet(package, pkg['package-name'], pkg['url'], pkg['file-type'], pkg['custom-location'],
+                                    pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None)
+                    log_info(
+                        'Searching for existing installation of package.', metadata.logfile)
+                    installation = utils.find_existing_installation(
+                        package, packet.json_name)
 
                     if installation:
                         write_debug(
@@ -383,33 +409,43 @@ class ThreadedInstaller:
                         continue
 
                     if packet.dependencies:
-                        ThreadedInstaller.install_dependent_packages(packet, rate_limit, install_directory, metadata)
+                        ThreadedInstaller.install_dependent_packages(
+                            packet, rate_limit, install_directory, metadata)
 
                     write_verbose(
                         f'Package to be installed: {packet.json_name}', metadata)
-                    log_info(f'Package to be installed: {packet.json_name}', metadata.logfile)
+                    log_info(
+                        f'Package to be installed: {packet.json_name}', metadata.logfile)
 
-                    write_verbose('Generating system download path...', metadata)
-                    log_info('Generating system download path...', metadata.logfile)
+                    write_verbose(
+                        'Generating system download path...', metadata)
+                    log_info('Generating system download path...',
+                             metadata.logfile)
 
                     start = timer()
                     download_url = packet.win64
                     end = timer()
 
                     write('Initializing Rapid Download...', 'green', metadata)
-                    log_info('Initializing Rapid Download...', metadata.logfile)
+                    log_info('Initializing Rapid Download...',
+                             metadata.logfile)
 
                     # Downloading The File From Source
-                    write_debug(f'Downloading {packet.display_name} from => {packet.win64}', metadata)
+                    write_debug(
+                        f'Downloading {packet.display_name} from => {packet.win64}', metadata)
                     write_verbose(
                         f"Downloading from '{download_url}'", metadata)
-                    log_info(f"Downloading from '{download_url}'", metadata.logfile)
+                    log_info(
+                        f"Downloading from '{download_url}'", metadata.logfile)
 
                     if rate_limit == -1:
-                        path = utils.download(download_url, packet.json_name, metadata, packet.win64_type)
+                        path = utils.download(
+                            download_url, packet.json_name, metadata, packet.win64_type)
                     else:
-                        log_info(f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
-                        bucket = TokenBucket(tokens=10 * rate_limit, fill_rate=rate_limit)
+                        log_info(
+                            f'Starting rate-limited installation => {rate_limit}', metadata.logfile)
+                        bucket = TokenBucket(
+                            tokens=10 * rate_limit, fill_rate=rate_limit)
 
                         limiter = Limiter(
                             bucket=bucket,
@@ -448,33 +484,44 @@ class ThreadedInstaller:
 
                     final_snap = get_environment_keys()
                     if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
-                        write('Refreshing Environment Variables...', 'green', metadata)
+                        write('Refreshing Environment Variables...',
+                              'green', metadata)
                         start = timer()
-                        log_info('Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
-                        write_debug('Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
-                        write_verbose('Refreshing Environment Variables', metadata)
+                        log_info(
+                            'Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
+                        write_debug(
+                            'Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
+                        write_verbose(
+                            'Refreshing Environment Variables', metadata)
                         utils.refresh_environment_variables()
                         end = timer()
-                        write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
+                        write_debug(
+                            f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
 
                     write(
                         f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
-                    log_info(f'Successfully Installed {packet.display_name}!', metadata.logfile)
-                    utils.register_package_success(packet, install_directory, metadata)
+                    log_info(
+                        f'Successfully Installed {packet.display_name}!', metadata.logfile)
+                    utils.register_package_success(
+                        packet, install_directory, metadata)
 
                     if metadata.reduce_package:
 
                         os.remove(path)
                         try:
-                            os.remove(Rf'{tempfile.gettempdir()}\downloadcache.pickle')
+                            os.remove(
+                                Rf'{tempfile.gettempdir()}\downloadcache.pickle')
                         except:
                             pass
 
-                        log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
+                        log_info(
+                            'Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
                         write('Successfully Cleaned Up Installer From Temp Directory...',
-                            'green', metadata)
+                              'green', metadata)
 
-                    write_verbose('Dependency successfully Installed.', metadata)
-                    log_info('Dependency successfully Installed.', metadata.logfile)
+                    write_verbose(
+                        'Dependency successfully Installed.', metadata)
+                    log_info('Dependency successfully Installed.',
+                             metadata.logfile)
         else:
             os._exit(1)

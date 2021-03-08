@@ -699,13 +699,13 @@ def uninstall(
 
         if portable and not 'is-portable' in list(res.keys()):
             keys = list(pkg[pkg['latest-version']].keys())
-
+            
             data = {
                 'display-name': pkg['display-name'],
                 'package-name': pkg['package-name'],
                 'latest-version': pkg['latest-version'],
                 'url': pkg[pkg['latest-version']]['url'],
-                'file-type': pkg[pkg['latest-version']]['file-type'],
+                'file-type': pkg[pkg['latest-version']]['file-type'] if 'file-type' in keys else None,
                 'extract-dir': pkg[pkg['latest-version']]['extract-dir'],
                 'chdir': pkg[pkg['latest-version']]['chdir'] if 'chdir' in keys else None,
                 'bin': pkg[pkg['latest-version']]['bin'] if 'bin' in keys else None,

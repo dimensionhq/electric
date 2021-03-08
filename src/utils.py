@@ -51,7 +51,8 @@ appdata_dir = PathManager.get_appdata_directory()
 
 
 def copy_to_clipboard(text: str):
-    Popen(f'echo {text} | clip'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    Popen(f'echo {text} | clip'.split(), stdin=PIPE,
+          stdout=PIPE, stderr=PIPE, shell=True)
 
 
 def write_install_headers(metadata: Metadata):
@@ -65,6 +66,7 @@ def write_uninstall_headers(metadata: Metadata):
     for header in headers.install_debug_headers:
         log_info(header, metadata.logfile)
 
+
 def get_recent_logs() -> list:
     """
     Reads all recent logs from %appdata%\electric-log.log
@@ -72,7 +74,7 @@ def get_recent_logs() -> list:
 
     Returns:
         list: Recent logs in the form of a list
-    """    
+    """
     with open(Rf'{appdata_dir}\electric-log.log', 'r') as file:
         data = file.read()
     return data.splitlines()
@@ -88,7 +90,7 @@ def generate_report(name: str, version: str) -> str:
 
     Returns:
         str: Support ticket to echo to output
-    """    
+    """
     return f'''
 {{
 Name {Fore.MAGENTA}=>{Fore.RESET} {Fore.YELLOW}{name}{Fore.RESET}
@@ -104,7 +106,7 @@ def is_admin() -> bool:
 
     Returns:
         bool: If electric is run as administrator
-    """    
+    """
     try:
         is_admin = (os.getuid() == 0)
     except AttributeError:
@@ -122,19 +124,23 @@ def generate_dict(path: str, package_name: str) -> dict:
 
     Returns:
         dict: The data to dump to the downloadcache as a dictionary
-    """    
+    """
     return {
         'directory': path,
         'package_name': package_name,
         'size': os.stat(path).st_size,
     }
 
+
 def download_installer(packet: Packet, download_url: str, metadata: Metadata):
     if metadata.rate_limit == -1:
-            path = download(download_url, packet.json_name, metadata, packet.win64_type)
+        path = download(download_url, packet.json_name,
+                        metadata, packet.win64_type)
     else:
-        log_info(f'Starting rate-limited installation => {metadata.rate_limit}', metadata.logfile)
-        bucket = TokenBucket(tokens=10 * metadata.rate_limit, fill_rate=metadata.rate_limit)
+        log_info(
+            f'Starting rate-limited installation => {metadata.rate_limit}', metadata.logfile)
+        bucket = TokenBucket(tokens=10 * metadata.rate_limit,
+                             fill_rate=metadata.rate_limit)
 
         limiter = Limiter(
             bucket=bucket,
@@ -148,8 +154,9 @@ def download_installer(packet: Packet, download_url: str, metadata: Metadata):
         )
 
         path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
-    
+
     return path
+
 
 def dump_pickle(data: dict, filename: str):
     """
@@ -158,7 +165,7 @@ def dump_pickle(data: dict, filename: str):
     #### Arguments
         data (dict): Data to dump to the pickle file
         filename (str): Name of the file to dump the data to in the temp directory
-    """    
+    """
     with open(Rf'{tempfile.gettempdir()}\electric\{filename}.pickle', 'wb') as f:
         pickle.dump(data, f)
 
@@ -188,11 +195,13 @@ def check_existing_download(package_name: str, download_type) -> bool:
             except FileNotFoundError:
 
                 if download_type not in data['directory']:
-                    os.rename(data['directory'], data['directory'] + download_type)
+                    os.rename(data['directory'],
+                              data['directory'] + download_type)
                 try:
                     filesize = os.stat(data['directory']).st_size
                 except FileNotFoundError:
-                    filesize = os.stat(data['directory'] + download_type).st_size
+                    filesize = os.stat(
+                        data['directory'] + download_type).st_size
             if filesize < data['size']:
                 # Corrupt Installation
                 return False
@@ -209,7 +218,7 @@ def get_chunk_size(total_size: str) -> int:
 
     Returns:
         int: Chunk iter size for downloading the file
-    """    
+    """
     size = int(total_size)
     size = size / 1000000
     if size < 7:
@@ -233,13 +242,14 @@ def check_resume_download(package_name: str, download_url: str, metadata: Metada
     data = retrieve_data('unfinishedcache')
     try:
         if os.path.isfile(data['path']) and package_name == data['name'] and data['url'] == download_url:
-            write(f'Resuming Existing Download At => {tempfile.gettempdir()}', 'blue', metadata)
+            write(
+                f'Resuming Existing Download At => {tempfile.gettempdir()}', 'blue', metadata)
             return os.stat(data['path']).st_size, data['path']
         else:
             return (None, None)
     except:
         return (None, None)
-    
+
 
 def send_req_bundle() -> dict:
     """
@@ -247,7 +257,7 @@ def send_req_bundle() -> dict:
 
     Returns:
         dict: The json response from the network request
-    """    
+    """
     REQA = 'https://electric-package-manager.herokuapp.com/bundles/windows'
     time = 0.0
     response = requests.get(REQA, timeout=15)
@@ -259,7 +269,8 @@ def send_req_bundle() -> dict:
 def get_init_char(start, metadata) -> str:
     if start:
         try:
-            start_char = Fore.RESET + metadata.settings.raw_dictionary['customProgressBar']['start_character']
+            start_char = Fore.RESET + \
+                metadata.settings.raw_dictionary['customProgressBar']['start_character']
         except:
             return ''
         return start_char if start_char else ''
@@ -275,17 +286,18 @@ def get_init_char(start, metadata) -> str:
 def get_character_color(fill, metadata):
     if fill:
         try:
-            fill_char_color = metadata.settings.raw_dictionary['customProgressBar']['fill_character_color']
+            fill_char_color = metadata.settings.raw_dictionary[
+                'customProgressBar']['fill_character_color']
         except:
             return 'Fore.RESET'
         return f'Fore.{fill_char_color.upper()}'if fill_char_color else 'Fore.RESET'
     else:
         try:
-            unfill_char_color = metadata.settings.raw_dictionary['customProgressBar']['unfill_character_color']
+            unfill_char_color = metadata.settings.raw_dictionary[
+                'customProgressBar']['unfill_character_color']
         except:
             return 'Fore.RESET'
         return f'Fore.{unfill_char_color.upper()}' if unfill_char_color else 'Fore.RESET'
-
 
 
 def download(url: str, package_name: str, metadata: Metadata, download_type: str):
@@ -301,25 +313,26 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
     Returns:
         str: Path to the downloaded installer
-    """    
-    
+    """
+
     # Hide the cursor on the terminal
     cursor.hide()
 
     # path is the location to the previously downloaded installer
     # if the file hasn't been previously downloaded, path is False (boolean)
     path = check_existing_download(package_name, download_type)
-    
-    # Create the electric directory at %TEMP% if it doesn't exist 
+
+    # Create the electric directory at %TEMP% if it doesn't exist
     if not os.path.isdir(Rf'{tempfile.gettempdir()}\electric'):
         os.mkdir(Rf'{tempfile.gettempdir()}\electric')
-    
+
     # if path is False (no existing download found)
     if not path:
         path = Rf'{tempfile.gettempdir()}\electric\Setup{download_type}'
     # returns path to the existing installer
     else:
-        write(f'Found Existing Download At: {tempfile.gettempdir()}', 'blue', metadata)
+        write(
+            f'Found Existing Download At: {tempfile.gettempdir()}', 'blue', metadata)
         return path
 
     # Find a random name for the installer
@@ -332,33 +345,34 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
     # If the size of the existing installer is None (when the installer isn't there already)
     # Dump it into the unfinishedcache file for future downloads
     if not size:
-        dump_pickle({'path': path, 'url': url, 'name': package_name, 'download-type': download_type}, 'unfinishedcache')
+        dump_pickle({'path': path, 'url': url, 'name': package_name,
+                     'download-type': download_type}, 'unfinishedcache')
 
     # Open the file either to create or append to it
     with open(newpath if newpath else path, 'wb' if not size else 'ab') as f:
-        # If there is an existing installer, request a download from the url with a specific byte range 
+        # If there is an existing installer, request a download from the url with a specific byte range
         if size:
-            response = requests.get(url, stream=True, headers={'Range': 'bytes=%d-' % size})
+            response = requests.get(url, stream=True, headers={
+                                    'Range': 'bytes=%d-' % size})
         else:
             response = requests.get(url, stream=True)
-        
+
         # Total download size
         total_length = response.headers.get('content-length')
-        
+
         # get iteration chunk size for the download based on the file size
         chunk_size = get_chunk_size(total_length)
 
         # get the type of progress bar to display in user defined settings
         progress_type = metadata.settings.progress_bar_type
 
-        
         if not total_length:
             f.write(response.content)
         else:
-            
+
             dl = 0
             full_length = int(total_length)
-            
+
             # iterate over requests response and write to the filepath
             for data in response.iter_content(chunk_size=chunk_size):
                 dl += len(data)
@@ -373,32 +387,35 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                 # print the progress bar
                 elif not metadata.no_progress and not metadata.silent:
                     complete = int(25 * dl / full_length)
-                    fill_c = '-' # Fallback Character
-                    unfill_c = ' ' # Fallback Character           
+                    fill_c = '-'  # Fallback Character
+                    unfill_c = ' '  # Fallback Character
                     if progress_type == 'custom' or metadata.settings.use_custom_progress_bar:
-                        fill_c = eval(get_character_color(True, metadata))  + metadata.settings.raw_dictionary['customProgressBar']['fill_character'] * complete
-                        unfill_c = eval(get_character_color(False, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['unfill_character']  * (25 - complete)
+                        fill_c = eval(get_character_color(
+                            True, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['fill_character'] * complete
+                        unfill_c = eval(get_character_color(
+                            False, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['unfill_character'] * (25 - complete)
                     elif progress_type == 'accented':
-                        fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
+                        fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
                         unfill_c = Fore.BLACK + '█' * (25 - complete)
                     elif progress_type == 'zippy':
-                        fill_c =  Fore.GREEN + '=' * complete
+                        fill_c = Fore.GREEN + '=' * complete
                         unfill_c = Fore.LIGHTBLACK_EX + '-' * (25 - complete)
                     elif progress_type not in ['custom', 'accented', 'zippy'] and metadata.settings.use_custom_progress_bar == False or progress_type == 'default':
-                        fill_c =  Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
+                        fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
                         unfill_c = Fore.BLACK + '█' * (25 - complete)
 
                     if metadata.settings.electrify_progress_bar == True and not metadata.settings.use_custom_progress_bar:
                         sys.stdout.write(
-                        f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} Mb {Fore.RESET}⚡')
+                            f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} Mb {Fore.RESET}⚡')
                     else:
                         sys.stdout.write(
                             f'\r{get_init_char(True, metadata)}{fill_c}{unfill_c}{get_init_char(False, metadata)} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
                     sys.stdout.flush()
 
     os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
-    dump_pickle(generate_dict(newpath if newpath else path, package_name), 'downloadcache')
-    sys.stdout.write('\n') # Prevent /r from getting overwritten by Halo
+    dump_pickle(generate_dict(newpath if newpath else path,
+                              package_name), 'downloadcache')
+    sys.stdout.write('\n')  # Prevent /r from getting overwritten by Halo
     if not newpath:
         return path
     else:
@@ -406,7 +423,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
 
 def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
-    
+
     if portable and 'is-portable' not in list(res.keys()):
         keys = list(pkg[pkg['latest-version']].keys())
         data = {
@@ -414,7 +431,7 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
             'package-name': res['package-name'],
             'latest-version': res['latest-version'],
             'url': pkg[res['latest-version']]['url'],
-            'file-type': pkg[res['latest-version']]['file-type'] if 'file-type' in keys else None,    
+            'file-type': pkg[res['latest-version']]['file-type'] if 'file-type' in keys else None,
             'extract-dir': pkg[res['latest-version']]['extract-dir'],
             'chdir': pkg[res['latest-version']]['chdir'] if 'chdir' in keys else [],
             'bin': pkg[res['latest-version']]['bin'] if 'bin' in keys else [],
@@ -428,7 +445,7 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
         portable_packet = PortablePacket(data)
         install_portable(portable_packet, metadata)
         sys.exit()
-    
+
     elif portable and 'is-portable' in list(res.keys()):
         keys = list(pkg[pkg['latest-version']].keys())
         data = {
@@ -454,8 +471,8 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
 
 def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata):
     # Group the packages list into a 2D array
-    # grouper(['sublime-text-3', 'atom', 'vscode', 'notepad++', 'anydesk'], 3) => [['sublime-text-3', 'atom', 'vscode']['notepad++', 'anydesk']] 
-    
+    # grouper(['sublime-text-3', 'atom', 'vscode', 'notepad++', 'anydesk'], 3) => [['sublime-text-3', 'atom', 'vscode']['notepad++', 'anydesk']]
+
     def grouper(iterable, n, fillvalue=None):
         "Collect data into fixed-length chunks or blocks"
         args = [iter(iterable)] * n
@@ -464,7 +481,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
     # if there is more than 1 package to be installed and and a multi-threaded installation is fine
     if not metadata.sync and len(corrected_package_names) > 1:
         split_package_names = list(grouper(corrected_package_names, 3))
-        # grouper(['sublime-text-3', 'atom', 'vscode', 'notepad++', 'anydesk'], 3) => [['sublime-text-3', 'atom', 'vscode']['notepad++', 'anydesk']] 
+        # grouper(['sublime-text-3', 'atom', 'vscode', 'notepad++', 'anydesk'], 3) => [['sublime-text-3', 'atom', 'vscode']['notepad++', 'anydesk']]
 
         # if there is only 1 set of packages in the 2d array like [['sublime-text-3', 'atom', 'vscode']]
         if len(split_package_names) == 1:
@@ -473,7 +490,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 res = send_req_package(package)
                 pkg = res
                 custom_dir = None
-                
+
                 if install_directory:
                     custom_dir = install_directory + f'\\{pkg["package-name"]}'
                 else:
@@ -484,7 +501,8 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 install_exit_codes = None
                 if 'valid-install-exit-codes' in list(pkg.keys()):
                     install_exit_codes = pkg['valid-install-exit-codes']
-                packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
+                                custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
                 installation = find_existing_installation(
                     package, packet.display_name)
                 if installation:
@@ -496,7 +514,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         f'Found an existing installation {packet.display_name}.', 'yellow', metadata)
                     installation_continue = click.confirm(
                         f'Would you like to reinstall {packet.json_name}')
-                    
+
                     if installation_continue or metadata.yes:
                         os.system(f'electric uninstall {packet.json_name}')
                         os.system(f'electric install {packet.json_name}')
@@ -525,234 +543,268 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
             log_info(
                 f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
             manager.handle_multi_install(paths)
-            return
-        
+            sys.exit()
+
         # if there are multiple sets of packages in the 2d array
         elif len(split_package_names) > 1:
-                for package_batch in split_package_names:
-                    package_batch = list(package_batch)
-                    package_batch = [x for x in package_batch if x is not None]
-                    if len(package_batch) == 1:
-                        package = package_batch[0]
-                    
-                        spinner = Halo(color='grey')
-                        spinner.start()
-                        log_info('Handling Network Request...', metadata.logfile)
-                        
-                        write_verbose('Sending GET Request To /packages/', metadata)
-                        write_debug('Sending GET Request To /packages', metadata)
-                        log_info('Sending GET Request To /packages', metadata.logfile)
-                        res = send_req_package(package)
-                        log_info('Updating SuperCache', metadata.logfile)
+            for package_batch in split_package_names:
+                package_batch = list(package_batch)
+                package_batch = [x for x in package_batch if x is not None]
+                if len(package_batch) == 1:
+                    package = package_batch[0]
 
-                        log_info('Successfully Updated SuperCache', metadata.logfile)
-                        spinner.stop()
+                    spinner = Halo(color='grey')
+                    spinner.start()
+                    log_info('Handling Network Request...', metadata.logfile)
 
-                        pkg = res
+                    write_verbose(
+                        'Sending GET Request To /packages/', metadata)
+                    write_debug('Sending GET Request To /packages', metadata)
+                    log_info('Sending GET Request To /packages',
+                             metadata.logfile)
+                    res = send_req_package(package)
+                    log_info('Updating SuperCache', metadata.logfile)
 
-                        if not version:
-                            version = res['latest-version']
+                    log_info('Successfully Updated SuperCache',
+                             metadata.logfile)
+                    spinner.stop()
 
-                        pkg = pkg[version]
-                        log_info('Generating Packet For Further Installation.', metadata.logfile)
+                    pkg = res
 
-                        install_exit_codes = None
-                        if 'valid-install-exit-codes' in list(pkg.keys()):
-                            install_exit_codes = pkg['valid-install-exit-codes']
-
-                        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
-                        log_info('Searching for existing installation of package.', metadata.logfile)
-
-                        installation = find_existing_installation(package, packet.json_name, test=False)
-
-                        if installation:
-                            write_debug(
-                                f'Found existing installation of {packet.json_name}.', metadata)
-                            write_verbose(
-                                f'Found an existing installation of => {packet.json_name}', metadata)
-                            write(
-                                f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
-                            installation_continue = click.confirm(
-                                f'Would you like to reinstall {packet.display_name}')
-                            if installation_continue or metadata.yes:
-                                os.system(f'electric uninstall {packet.json_name}')
-                                os.system(f'electric install {packet.json_name}')
-                                return
-                            else:
-                                sys.exit()
-
-                        if packet.dependencies:
-                            ti.ThreadedInstaller.install_dependent_packages(packet, -1, install_directory, metadata)
-
-                        write_verbose(
-                            f'Package to be installed: {packet.json_name}', metadata)
-                        log_info(f'Package to be installed: {packet.json_name}', metadata.logfile)
-
-                        write_verbose(
-                            f'Finding closest match to {packet.json_name}...', metadata)
-                        log_info(f'Finding closest match to {packet.json_name}...', metadata.logfile)
-
-                        write_verbose(
-                            f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                        write_debug(
-                            f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                        log_info(
-                            f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
-
-                        write_verbose('Generating system download path...', metadata)
-                        log_info('Generating system download path...', metadata.logfile)
-
-                        if not metadata.silent:
-                            if not metadata.no_color:
-                                print(f'SuperCached [ {packet.display_name} ]')
-                            else:
-                                print(f'SuperCached [ {Fore.CYAN} {packet.display_name} {Fore.RESET} ]')
-                        start = timer()
-
-                        download_url = packet.win64
-                        
-                        log_info('Initializing Rapid Download...', metadata.logfile)
-
-                        # Downloading The File From Source
-                        write_debug(f'Downloading {packet.display_name} from => {packet.win64}', metadata)
-                        write_verbose(
-                            f"Downloading from '{download_url}'", metadata)
-                        log_info(f"Downloading from '{download_url}'", metadata.logfile)
-                        
-
-                        path = download(download_url, packet.json_name, metadata, packet.win64_type)
-                        
-                        log_info('Finished Rapid Download', metadata.logfile)
-
-                        if virus_check:
-                            with Halo('\nScanning File For Viruses...', text_color='blue'):
-                                check_virus(path, metadata)
-                        
-                        
-                        write(
-                            f'{Fore.CYAN}Installing {packet.display_name}{Fore.RESET}', 'white', metadata)
-                        log_info(
-                            f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
-
-                        write_debug(
-                            f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
-                        log_info(
-                            f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
-                        start_snap = registry.get_environment_keys()
-
-                        # Running The Installer silently And Completing Setup
-                        
-                        install_package(path, packet, metadata)
-
-                        final_snap = registry.get_environment_keys()
-                        if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
-                            write('Refreshing Environment Variables...', 'green', metadata)
-                            start = timer()
-                            log_info('Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
-                            write_debug('Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
-                            write_verbose('Refreshing Environment Variables', metadata)
-                            refresh_environment_variables()
-                            end = timer()
-                            write_debug(f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
-
-                        with Halo(f'Verifying Successful Installation', text_color='green') as h:
-                            if find_existing_installation(packet.json_name, packet.display_name):
-                                h.stop()
-                                register_package_success(package, install_directory, metadata)
-                                write(
-                                    f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
-                                log_info(f'Successfully Installed {packet.display_name}', metadata.logfile)
-                            else:
-                                h.fail()
-                                print(f'[  {Fore.GREEN}ERROR{Fore.RESET}  ]  Registry Check')
-                                write(f'Failed To Install {packet.display_name}', 'red', metadata)
-                                sys.exit()
-
-                        if metadata.reduce_package:
-                            os.remove(path)
-                            try:
-                                os.remove(Rf'{tempfile.gettempdir()}\downloadcache.pickle')
-                            except:
-                                pass
-
-                            log_info('Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
-                            write('Successfully Cleaned Up Installer From Temp Directory...',
-                                'green', metadata)
-
-                        write_verbose('Installation and setup completed.', metadata)
-                        log_info('Installation and setup completed.', metadata.logfile)
-                        write_debug(
-                            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata)
-                        log_info(
-                            f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
-                        close_log(metadata.logfile, 'Install')
-                        sys.exit()
-
-                    packets = []
-                    for package in package_batch:
-                        
-                        spinner = Halo(color='grey')
-                        spinner.start()
-                        log_info('Handling Network Request...', metadata.logfile)
-                        write_verbose('Sending GET Request To /packages/', metadata)
-                        write_debug('Sending GET Request To /packages', metadata)
-                        log_info('Sending GET Request To /packages', metadata.logfile)
-                        res = send_req_package(package)
-                        spinner.stop()
-
-                        pkg = res
-                        custom_dir = None
-                        if install_directory:
-                            custom_dir = install_directory + f'\\{pkg["package-name"]}'
-                        else:
-                            custom_dir = install_directory
-                        
+                    if not version:
                         version = res['latest-version']
-                        pkg = pkg[version]
-                        
-                        install_exit_codes = None
-                        if 'valid-install-exit-codes' in list(pkg.keys()):
-                            install_exit_codes = pkg['valid-install-exit-codes']
-                        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
-                        installation = find_existing_installation(
-                            package, packet.display_name, test=False)
-                        if installation:
-                            write_debug(
-                                f'Aborting Installation As {packet.json_name} is already installed.', metadata)
-                            write_verbose(
-                                f'Found an existing installation of => {packet.json_name}', metadata)
-                            write(
-                                f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
-                            installation_continue = click.confirm(
-                                f'Would you like to reinstall {packet.json_name}')
-                            if installation_continue or metadata.yes:
-                                os.system(f'electric uninstall {packet.json_name}')
-                                os.system(f'electric install {packet.json_name}')
-                                return
-                            else:
-                                sys.exit()
 
-                        write_verbose(
-                            f'Package to be installed: {packet.json_name}', metadata)
-                        log_info(
-                            f'Package to be installed: {packet.json_name}', metadata.logfile)
-
-                        write_verbose(
-                            f'Finding closest match to {packet.json_name}...', metadata)
-                        log_info(
-                            f'Finding closest match to {packet.json_name}...', metadata.logfile)
-                        packets.append(packet)
-
-                        write_verbose('Generating system download path...', metadata)
-                        log_info('Generating system download path...', metadata.logfile)
-
-                    manager = ti.ThreadedInstaller(packets, metadata)
-                    paths = manager.handle_multi_download()
-                    log_info('Finished Rapid Download...', metadata.logfile)
+                    pkg = pkg[version]
                     log_info(
-                        'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
-                    manager.handle_multi_install(paths)
-                sys.exit()
+                        'Generating Packet For Further Installation.', metadata.logfile)
+
+                    install_exit_codes = None
+                    if 'valid-install-exit-codes' in list(pkg.keys()):
+                        install_exit_codes = pkg['valid-install-exit-codes']
+
+                    packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
+                                    install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                    log_info(
+                        'Searching for existing installation of package.', metadata.logfile)
+
+                    installation = find_existing_installation(
+                        package, packet.json_name, test=False)
+
+                    if installation:
+                        write_debug(
+                            f'Found existing installation of {packet.json_name}.', metadata)
+                        write_verbose(
+                            f'Found an existing installation of => {packet.json_name}', metadata)
+                        write(
+                            f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
+                        installation_continue = click.confirm(
+                            f'Would you like to reinstall {packet.display_name}')
+                        if installation_continue or metadata.yes:
+                            os.system(f'electric uninstall {packet.json_name}')
+                            os.system(f'electric install {packet.json_name}')
+                            sys.exit()
+                        else:
+                            sys.exit()
+
+                    if packet.dependencies:
+                        ti.ThreadedInstaller.install_dependent_packages(
+                            packet, -1, install_directory, metadata)
+
+                    write_verbose(
+                        f'Package to be installed: {packet.json_name}', metadata)
+                    log_info(
+                        f'Package to be installed: {packet.json_name}', metadata.logfile)
+
+                    write_verbose(
+                        f'Finding closest match to {packet.json_name}...', metadata)
+                    log_info(
+                        f'Finding closest match to {packet.json_name}...', metadata.logfile)
+
+                    write_verbose(
+                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+                    write_debug(
+                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
+                    log_info(
+                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
+
+                    write_verbose(
+                        'Generating system download path...', metadata)
+                    log_info('Generating system download path...',
+                             metadata.logfile)
+
+                    if not metadata.silent:
+                        if not metadata.no_color:
+                            print(f'SuperCached [ {packet.display_name} ]')
+                        else:
+                            print(
+                                f'SuperCached [ {Fore.CYAN} {packet.display_name} {Fore.RESET} ]')
+                    start = timer()
+
+                    download_url = packet.win64
+
+                    log_info('Initializing Rapid Download...',
+                             metadata.logfile)
+
+                    # Downloading The File From Source
+                    write_debug(
+                        f'Downloading {packet.display_name} from => {packet.win64}', metadata)
+                    write_verbose(
+                        f"Downloading from '{download_url}'", metadata)
+                    log_info(
+                        f"Downloading from '{download_url}'", metadata.logfile)
+
+                    path = download(download_url, packet.json_name,
+                                    metadata, packet.win64_type)
+
+                    log_info('Finished Rapid Download', metadata.logfile)
+
+                    if virus_check:
+                        with Halo('\nScanning File For Viruses...', text_color='blue'):
+                            check_virus(path, metadata)
+
+                    write(
+                        f'{Fore.CYAN}Installing {packet.display_name}{Fore.RESET}', 'white', metadata)
+                    log_info(
+                        f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
+
+                    write_debug(
+                        f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
+                    log_info(
+                        f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
+                    start_snap = registry.get_environment_keys()
+
+                    # Running The Installer silently And Completing Setup
+
+                    install_package(path, packet, metadata)
+
+                    final_snap = registry.get_environment_keys()
+                    if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
+                        write('Refreshing Environment Variables...',
+                              'green', metadata)
+                        start = timer()
+                        log_info(
+                            'Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
+                        write_debug(
+                            'Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
+                        write_verbose(
+                            'Refreshing Environment Variables', metadata)
+                        refresh_environment_variables()
+                        end = timer()
+                        write_debug(
+                            f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
+
+                    with Halo(f'Verifying Successful Installation', text_color='green') as h:
+                        if find_existing_installation(packet.json_name, packet.display_name):
+                            h.stop()
+                            register_package_success(
+                                package, install_directory, metadata)
+                            write(
+                                f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
+                            log_info(
+                                f'Successfully Installed {packet.display_name}', metadata.logfile)
+                        else:
+                            h.fail()
+                            print(
+                                f'[  {Fore.GREEN}ERROR{Fore.RESET}  ]  Registry Check')
+                            write(
+                                f'Failed To Install {packet.display_name}', 'red', metadata)
+                            sys.exit()
+
+                    if metadata.reduce_package:
+                        os.remove(path)
+                        try:
+                            os.remove(
+                                Rf'{tempfile.gettempdir()}\downloadcache.pickle')
+                        except:
+                            pass
+
+                        log_info(
+                            'Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
+                        write('Successfully Cleaned Up Installer From Temp Directory...',
+                              'green', metadata)
+
+                    write_verbose(
+                        'Installation and setup completed.', metadata)
+                    log_info('Installation and setup completed.',
+                             metadata.logfile)
+                    write_debug(
+                        f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata)
+                    log_info(
+                        f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
+                    close_log(metadata.logfile, 'Install')
+                    sys.exit()
+
+                packets = []
+                for package in package_batch:
+
+                    spinner = Halo(color='grey')
+                    spinner.start()
+                    log_info('Handling Network Request...', metadata.logfile)
+                    write_verbose(
+                        'Sending GET Request To /packages/', metadata)
+                    write_debug('Sending GET Request To /packages', metadata)
+                    log_info('Sending GET Request To /packages',
+                             metadata.logfile)
+                    res = send_req_package(package)
+                    spinner.stop()
+
+                    pkg = res
+                    custom_dir = None
+                    if install_directory:
+                        custom_dir = install_directory + \
+                            f'\\{pkg["package-name"]}'
+                    else:
+                        custom_dir = install_directory
+
+                    version = res['latest-version']
+                    pkg = pkg[version]
+
+                    install_exit_codes = None
+                    if 'valid-install-exit-codes' in list(pkg.keys()):
+                        install_exit_codes = pkg['valid-install-exit-codes']
+                    packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
+                                    custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                    installation = find_existing_installation(
+                        package, packet.display_name, test=False)
+                    if installation:
+                        write_debug(
+                            f'Aborting Installation As {packet.json_name} is already installed.', metadata)
+                        write_verbose(
+                            f'Found an existing installation of => {packet.json_name}', metadata)
+                        write(
+                            f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
+                        installation_continue = click.confirm(
+                            f'Would you like to reinstall {packet.json_name}')
+                        if installation_continue or metadata.yes:
+                            os.system(f'electric uninstall {packet.json_name}')
+                            os.system(f'electric install {packet.json_name}')
+                            return
+                        else:
+                            sys.exit()
+
+                    write_verbose(
+                        f'Package to be installed: {packet.json_name}', metadata)
+                    log_info(
+                        f'Package to be installed: {packet.json_name}', metadata.logfile)
+
+                    write_verbose(
+                        f'Finding closest match to {packet.json_name}...', metadata)
+                    log_info(
+                        f'Finding closest match to {packet.json_name}...', metadata.logfile)
+                    packets.append(packet)
+
+                    write_verbose(
+                        'Generating system download path...', metadata)
+                    log_info('Generating system download path...',
+                             metadata.logfile)
+
+                manager = ti.ThreadedInstaller(packets, metadata)
+                paths = manager.handle_multi_download()
+                log_info('Finished Rapid Download...', metadata.logfile)
+                log_info(
+                    'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+                manager.handle_multi_install(paths)
+            sys.exit()
 
 
 def handle_external_installation(python: bool, node: bool, vscode: bool, sublime: bool, atom: bool, version, package_name, metadata: Metadata):
@@ -793,11 +845,13 @@ def handle_external_installation(python: bool, node: bool, vscode: bool, sublime
 
         sys.exit()
 
+
 def handle_existing_installation(package, packet, force: bool, metadata: Metadata):
     log_info('Searching for existing installation of package.', metadata.logfile)
 
     log_info('Finding existing installation of package...', metadata.logfile)
-    installation = find_existing_installation(package, packet.json_name, test=False)
+    installation = find_existing_installation(
+        package, packet.json_name, test=False)
 
     if installation and not force:
         log_info('Found existing installation of package...', metadata.logfile)
@@ -826,15 +880,15 @@ def get_package_version(pkg, res, version, portable: bool, nightly: bool, metada
     # if the user has not specified a specific version to install and the user the software is not portable
     if not version and not portable:
         version = pkg['latest-version']
-    
+
     # if the software is portable (or user has requested a portable installation)
     if portable:
         version = 'portable'
-    
+
     # if the user has requested a nightly or pre-release version of the package
     if nightly:
         version = 'nightly'
-    
+
     try:
         pkg = pkg[version]
     except KeyError:
@@ -842,6 +896,7 @@ def get_package_version(pkg, res, version, portable: bool, nightly: bool, metada
         write(f'\nCannot Find {name}::{version}', 'red', metadata)
         handle_exit('ERROR', None, metadata)
     return version
+
 
 def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: list, method: str, metadata: Metadata, packet: Packet) -> str:
     """
@@ -888,8 +943,10 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             for flag in get_install_flags(packet.directory, metadata):
                 flags += f' {flag}'
             sys.stdout.write('\n')
-            click.echo(click.style(f'The {packet.display_name} Installer Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
-            os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
+            click.echo(click.style(
+                f'The {packet.display_name} Installer Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
+            os.system(
+                rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
         if method == 'uninstallation' and not is_admin():
             flags = ''
@@ -898,20 +955,26 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             flags = flags.replace(' --sync', '')
             flags = flags.replace(' --install-dir', '')
             flags = flags.replace(' --reduce', '')
-            click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
-            os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
-            click.echo(click.style('\nAdministrator Elevation Required Or Fatal Installer Error. Exit Code [1603]', fg='red'))
+            click.echo(click.style(
+                f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
+            os.system(
+                rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
+            click.echo(click.style(
+                '\nAdministrator Elevation Required Or Fatal Installer Error. Exit Code [1603]', fg='red'))
             sys.exit()
         else:
-            click.echo(click.style('\nFatal Installer Error. Exit Code [1603]', fg='red'))
+            click.echo(click.style(
+                '\nFatal Installer Error. Exit Code [1603]', fg='red'))
             return get_error_message('1603', 'installation', packet.display_name, packet.version)
 
     if 'exit status 1639' in error:
-        click.echo(click.style(f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
+        click.echo(click.style(
+            f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
         return get_error_message('0002', 'installation', packet.display_name, packet.version)
 
     if 'exit status 1' in error:
-        click.echo(click.style(f'\nUnknown Error. Exited With Code [0000]', fg='red'))
+        click.echo(click.style(
+            f'\nUnknown Error. Exited With Code [0000]', fg='red'))
         handle_unknown_error(error)
         return get_error_message('0000', 'installation', packet.display_name, packet.version)
 
@@ -921,9 +984,11 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             flags = ''
             for flag in get_install_flags(packet.directory, metadata):
                 flags += f' {flag}'
-            
-            click.echo(click.style(f'The {packet.display_name} Installater Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
-            os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
+
+            click.echo(click.style(
+                f'The {packet.display_name} Installater Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
+            os.system(
+                rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
         if method == 'uninstallation':
             flags = ''
@@ -932,13 +997,15 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             flags = flags.replace(' --sync', '')
             flags = flags.replace(' --install-dir', '')
             flags = flags.replace(' --reduce', '')
-            click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
-            os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
+            click.echo(click.style(
+                f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
+            os.system(
+                rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
             sys.exit()
-        
 
     if 'exit status 2' in error or 'exit status 1' in error:
-        click.echo(click.style(f'\nAdministrative Privileges Declined. Exit Code [0101]', fg='red'))
+        click.echo(click.style(
+            f'\nAdministrative Privileges Declined. Exit Code [0101]', fg='red'))
         return get_error_message('0101', 'installation', packet.display_name, packet.version)
 
     if 'exit status 4' in error:
@@ -947,7 +1014,8 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
         return get_error_message('1111', 'installation', packet.display_name, packet.version)
 
     if '[WinError 87]' in error and 'incorrect' in error:
-        click.echo(click.style(f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
+        click.echo(click.style(
+            f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
         return get_error_message('0002', 'installation', packet.display_name, packet.version)
 
     if 'exit status 3010' or 'exit status 2359301' in error:
@@ -955,7 +1023,8 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
         return get_error_message('1010', 'installation', packet.display_name, packet.version)
 
     else:
-        click.echo(click.style(f'\nUnknown Error. Exited With Code [0000]', fg='red'))
+        click.echo(click.style(
+            f'\nUnknown Error. Exited With Code [0000]', fg='red'))
         handle_unknown_error(error)
         return get_error_message('0000', 'installation', packet.display_name, packet.version)
 
@@ -992,7 +1061,7 @@ def run_cmd(command: str, metadata: Metadata, method: str, packet: Packet) -> bo
 
     Returns:
         bool: Success (Exit Code == 0)
-    """    
+    """
     command = command.replace('\"\"', '\"').replace('  ', ' ')
     log_info(f'Running command: {command}', metadata.logfile)
     write_debug(f'{command}', metadata)
@@ -1001,8 +1070,9 @@ def run_cmd(command: str, metadata: Metadata, method: str, packet: Packet) -> bo
         return False if exit_code == 0 else True
     except (CalledProcessError, OSError, FileNotFoundError) as err:
         keyboard.add_hotkey(
-        'ctrl+c', lambda: os._exit(0))
-        disp_error_msg(get_error_cause(str(err), packet.install_exit_codes, packet.uninstall_exit_codes, method, metadata, packet), metadata)
+            'ctrl+c', lambda: os._exit(0))
+        disp_error_msg(get_error_cause(str(err), packet.install_exit_codes,
+                                       packet.uninstall_exit_codes, method, metadata, packet), metadata)
 
 
 def install_package(path, packet: Packet, metadata: Metadata) -> str:
@@ -1013,8 +1083,8 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
         path (str): Path to the installer executable
         packet (Packet): Packet for installation
         metadata (`Metadata`): Metadata for installation
-        
-    """    
+
+    """
     download_type = packet.win64_type
     custom_install_switch = packet.custom_location
     directory = packet.directory
@@ -1066,8 +1136,10 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             flags = ''
             for flag in get_install_flags(packet.directory, metadata):
                 flags += f' {flag}'
-            click.echo(click.style(f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
-            os.system(rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
+            click.echo(click.style(
+                f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
+            os.system(
+                rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
         run_test = run_cmd(command, metadata, 'installation', packet)
         packet.run_test = run_test
@@ -1084,7 +1156,8 @@ def get_configuration_data(username: str, description: str, uses_editor: bool, i
     if uses_editor and include_editor and editor:
         base_configuration.append('\n[ Editor-Configuration ]\n')
         if editor == 'Visual Studio Code':
-            base_configuration.append(f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<vscode:name>\n')
+            base_configuration.append(
+                f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<vscode:name>\n')
 
         if editor == 'Atom':
             base_configuration.append(
@@ -1100,6 +1173,8 @@ def get_configuration_data(username: str, description: str, uses_editor: bool, i
     return base_configuration
 
 # IMPORTANT: FOR FUTURE USE
+
+
 def get_hash_algorithm(checksum: str):
     # A function to detect the hash algorithm used in checksum
     hashes = {32: 'md5', 40: 'sha1', 64: 'sha256', 128: 'sha512'}
@@ -1115,18 +1190,22 @@ def get_checksum(bytecode: bytes, hash_algorithm: str):
 
     return None
 
+
 def get_day_diff(path: str) -> int:
     with open(path, 'r') as f:
         file_date = f.read()
-    
+
     current_date = date.today()
-    data = date(int(file_date.split(' ')[0]), int(file_date.split(' ')[1]), int(file_date.split(' ')[2]))
+    data = date(int(file_date.split(' ')[0]), int(
+        file_date.split(' ')[1]), int(file_date.split(' ')[2]))
     delta = current_date - data
     return delta.days
+
 
 def update_electric():
     if get_day_diff(f'{PathManager.get_appdata_directory()}\superlog.txt') >= 1:
         update_package_list()
+
 
 def send_req_package(package_name: str) -> dict:
     """
@@ -1138,11 +1217,11 @@ def send_req_package(package_name: str) -> dict:
     Returns:
         dict: Decoded JSON from the github registry response
     """
-    
+
     REQA = 'https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/packages/'
-    
+
     response = requests.get(REQA + package_name + '.json', timeout=15)
-    
+
     try:
         res = json.loads(response.text)
     except JSONDecodeError:
@@ -1160,7 +1239,7 @@ def get_pid(exe_name):
 
     Returns:
         str: PID
-    """    
+    """
     proc = Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, _ = proc.communicate()
     output = output.decode('utf-8')
@@ -1179,8 +1258,9 @@ def find_approx_pid(display_name) -> str:
 
     Returns:
         str: PID
-    """    
-    proc = Popen('tasklist /FI "Status eq RUNNING"', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    """
+    proc = Popen('tasklist /FI "Status eq RUNNING"',
+                 stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, _ = proc.communicate()
     output = output.decode('utf-8')
     lines = output.splitlines()
@@ -1188,11 +1268,13 @@ def find_approx_pid(display_name) -> str:
     cleaned_up_names = []
     for line in lines:
         try:
-            cleaned_up_names.append(line.split()[0].replace('.exe', '').lower())
+            cleaned_up_names.append(
+                line.split()[0].replace('.exe', '').lower())
         except IndexError:
             continue
 
-    matches = difflib.get_close_matches(display_name.lower(), cleaned_up_names, n=1, cutoff=0.65)
+    matches = difflib.get_close_matches(
+        display_name.lower(), cleaned_up_names, n=1, cutoff=0.65)
 
     try:
         if matches != []:
@@ -1212,7 +1294,7 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
         status (str): Status of the method
         setup_name (str): Name of the setup file being run if any
         metadata (`Metadata`): Metadata for the method
-    """    
+    """
     if status == 'Downloaded' or status == 'Installing' or status == 'Installed':
         exe_name = setup_name.split('\\')[-1]
         os.kill(int(get_pid(exe_name)), SIGTERM)
@@ -1243,6 +1325,7 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
         # print(Fore.RESET, '')
         sys.exit()
 
+
 def kill_running_proc(package_name: str, display_name: str, metadata: Metadata):
     """
     Kills a running process for an application before running the uninstaller to prevent errors
@@ -1251,7 +1334,7 @@ def kill_running_proc(package_name: str, display_name: str, metadata: Metadata):
         package_name (str): Name of the package
         display_name (str): Display name of the package
         metadata (`Metadata`): Metadata for the uninstallation
-    """    
+    """
     parts = package_name.split('-')
     name = ' '.join([p.capitalize() for p in parts])
     pid = int(find_approx_pid(display_name))
@@ -1286,7 +1369,7 @@ def kill_proc(proc, metadata: Metadata):
     #### Arguments
         proc (Popen): Popen object 
         metadata (`Metadata`): Metadata for the method
-    """    
+    """
     if proc is not None:
         proc.terminate()
         write('SafetyHarness Successfully Created Clean Exit Gateway',
@@ -1316,9 +1399,10 @@ def find_existing_installation(package_name: str, display_name: str, test=True):
 
     Returns:
         [type]: [description]
-    """    
+    """
     key = registry.get_uninstall_key(package_name, display_name)
-    installed_packages = [ ''.join(f.replace('.json', '').split('@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current') ]
+    installed_packages = [''.join(f.replace('.json', '').split(
+        '@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current')]
     if key:
         if not test:
             if package_name in installed_packages:
@@ -1338,7 +1422,7 @@ def get_install_flags(install_dir: str, metadata: Metadata):
 
     Returns:
         [type]: [description]
-    """    
+    """
     flags = []
     if metadata.verbose:
         flags.append('--verbose')
@@ -1371,10 +1455,11 @@ def get_install_flags(install_dir: str, metadata: Metadata):
 def refresh_environment_variables():
     """
     Refreshes the environment variables on the current Powershell session.
-    """    
-    proc = Popen('powershell -c "$env:Path = [System.Environment]::GetEnvironmentVariable(\'Path\',\'Machine\') + \';\' + [System.Environment]::GetEnvironmentVariable(\'Path\',\'User\')"'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    """
+    proc = Popen('powershell -c "$env:Path = [System.Environment]::GetEnvironmentVariable(\'Path\',\'Machine\') + \';\' + [System.Environment]::GetEnvironmentVariable(\'Path\',\'User\')"'.split(
+    ), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     proc.communicate()
-    
+
 
 def check_virus(path: str, metadata: Metadata):
     """
@@ -1383,14 +1468,16 @@ def check_virus(path: str, metadata: Metadata):
     #### Arguments
         path (str): Path to the executable / file
         metadata (`Metadata`): Metadata for the installation
-    """    
+    """
     detected = virus_check(path)
     if detected:
         for value in detected.items():
             if not metadata.silent and not metadata.no_color:
-                click.echo(click.style(f'\n{value[0]} => {value[1]}', fg='yellow'))
+                click.echo(click.style(
+                    f'\n{value[0]} => {value[1]}', fg='yellow'))
             elif metadata.no_color and not metadata.silent:
-                click.echo(click.style(f'\n{value[0]} => {value[1]}', fg='white'))
+                click.echo(click.style(
+                    f'\n{value[0]} => {value[1]}', fg='white'))
             else:
                 continue_install = 'y'
         if not metadata.silent:
@@ -1413,14 +1500,15 @@ def check_newer_version(package_name: str, packet: Packet) -> bool:
 
     Returns:
         bool: If there is a newer version of the package
-    """    
+    """
     install_dir = PathManager.get_appdata_directory() + r'\Current'
     with open(rf'{install_dir}\{package_name}.json', 'r') as f:
         data = json.load(f)
-    installed_version = data['version']    
+    installed_version = data['version']
     if installed_version != packet.version:
         return True
-    return False    
+    return False
+
 
 def check_newer_version_local(new_version) -> bool:
     """
@@ -1431,8 +1519,9 @@ def check_newer_version_local(new_version) -> bool:
 
     Returns:
         bool: If there is a newer version of electric availiable
-    """    
-    current_version = int(info.__version__.replace('.', '').replace('a', '').replace('b', ''))
+    """
+    current_version = int(info.__version__.replace(
+        '.', '').replace('a', '').replace('b', ''))
     new_version = int(new_version.replace('.', ''))
     if current_version < new_version:
         return True
@@ -1442,8 +1531,9 @@ def check_newer_version_local(new_version) -> bool:
 def check_for_updates():
     """
     Checks if there is a newer version of electric is availiable and automatically updates electric
-    """    
-    res = requests.get('https://electric-package-manager.herokuapp.com/version/windows', timeout=10)
+    """
+    res = requests.get(
+        'https://electric-package-manager.herokuapp.com/version/windows', timeout=10)
     js = res.json()
     version_dict = json.loads(js)
 
@@ -1461,7 +1551,6 @@ def check_for_updates():
                     except:
                         return False
 
-
                 if is_admin():
                     with open(Rf'C:\Program Files (x86)\Electric\Update.7z', 'wb') as f:
                         response = requests.get(UPDATEA, stream=True)
@@ -1478,20 +1567,21 @@ def check_for_updates():
                                 f.write(data)
 
                                 complete = int(20 * dl / full_length)
-                                fill_c, unfill_c = '#' * complete, ' ' * (20 - complete)
+                                fill_c, unfill_c = '#' * \
+                                    complete, ' ' * (20 - complete)
                                 sys.stdout.write(
                                     f'\r[{fill_c}{unfill_c}] ⚡ {round(dl / full_length * 100, 1)} % ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
                                 sys.stdout.flush()
 
-
                     command = R'"C:\Program Files (x86)\Electric\updater\updater.exe"'
 
                     Popen(command, close_fds=True, shell=True)
-                    click.echo(click.style('\nSuccessfully Updated Electric!', fg='green'))
+                    click.echo(click.style(
+                        '\nSuccessfully Updated Electric!', fg='green'))
                     sys.exit()
                 else:
-                    click.echo(click.style('Re-Run Electric As Administrator To Update', fg='red'))
-
+                    click.echo(click.style(
+                        'Re-Run Electric As Administrator To Update', fg='red'))
 
 
 def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, settings, sync):
@@ -1533,14 +1623,18 @@ def disp_error_msg(messages: list, metadata: Metadata):
             idx += 1
 
         if support_ticket:
-            click.echo('By sending a support ticket, you agree to the Terms And Conditions (https://www.electric.sh/support/terms-and-conditions)')
-            sending_ticket = click.confirm('Would you like to send the support ticket ?')
+            click.echo(
+                'By sending a support ticket, you agree to the Terms And Conditions (https://www.electric.sh/support/terms-and-conditions)')
+            sending_ticket = click.confirm(
+                'Would you like to send the support ticket ?')
             if sending_ticket:
                 with Halo('', spinner='bounce') as h:
-                    res = requests.post('https://electric-package-manager.herokuapp.com/windows/support-ticket/', json={'Logs': get_recent_logs()})
+                    res = requests.post(
+                        'https://electric-package-manager.herokuapp.com/windows/support-ticket/', json={'Logs': get_recent_logs()})
                     if res.status_code == 200:
                         h.stop()
-                        click.echo(click.style('Successfully Sent Support Ticket!', fg='green'))
+                        click.echo(click.style(
+                            'Successfully Sent Support Ticket!', fg='green'))
                     else:
                         h.fail('Failed To Send Support Ticket')
 
@@ -1556,10 +1650,12 @@ def disp_error_msg(messages: list, metadata: Metadata):
                 os.system(commands[0][0])
 
         if websites:
-            website = click.confirm('Would You Like To Visit Any Of The Above Websites?')
+            website = click.confirm(
+                'Would You Like To Visit Any Of The Above Websites?')
             if website:
                 try:
-                    webpage = int(click.prompt('Which Webpage Would You Like To Visit? ')) - 1
+                    webpage = int(click.prompt(
+                        'Which Webpage Would You Like To Visit? ')) - 1
                 except:
                     handle_exit('ERROR', None, metadata)
                 try:
@@ -1623,7 +1719,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
                 'Run `electric install python3` [ Copied To Clipboard ] To install Python(pip).\n\nHelp:',
                 '\n[1] <=> https://www.educative.io/edpresso/how-to-add-python-to-path-variable-in-windows',
                 '\n[2] <=> https://stackoverflow.com/questions/23708898/pip-is-not-recognized-as-an-internal-or-external-command'
-                ]
+            ]
 
         elif code('1010'):
             return [
@@ -1659,7 +1755,8 @@ def handle_unknown_error(err: str):
         print(err + '\n')
         with Halo('Troubleshooting ', text_color='yellow'):
             results = search(query=err, stop=3)
-            results = [f'\n\t[{index + 1}] <=> {r}' for index, r in enumerate(results)]
+            results = [f'\n\t[{index + 1}] <=> {r}' for index,
+                       r in enumerate(results)]
 
             results = ''.join(results)
 
@@ -1667,7 +1764,6 @@ def handle_unknown_error(err: str):
                 os.remove('.google-cookie')
 
         print(f'These automatically generated links may help:{results}')
-
 
     proc = Popen('tasklist', stdin=PIPE, stdout=PIPE, stderr=PIPE)
     output, err = proc.communicate()
@@ -1692,7 +1788,7 @@ def handle_unknown_error(err: str):
 def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
     pkg = res
 
-    version = pkg['latest-version']    
+    version = pkg['latest-version']
     if nightly:
         version = 'nightly'
 
@@ -1702,15 +1798,20 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
         name = res['display-name']
         click.echo(click.style(f'\nCannot Find {name}::v{version}', 'red'))
         sys.exit()
-    
+
     url = pkg['url']
     display_name = res['display-name']
     package_name = res['package-name']
-    calc_length = len(f'{Fore.MAGENTA}│ {Fore.GREEN}Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}│') - 30
-    name_line = len(f'{Fore.MAGENTA}│ {Fore.GREEN}Name {Fore.MAGENTA}=>{display_name}{Fore.GREEN}{Fore.YELLOW}{Fore.MAGENTA}') - 30
-    version_line = len(f'{Fore.MAGENTA}│{Fore.GREEN}Latest Version {Fore.MAGENTA}=>{Fore.BLUE}{version}{Fore.GREEN}{Fore.MAGENTA}│') - 30
-    url_line = len(f'{Fore.MAGENTA}│ {Fore.GREEN}Url(Windows){Fore.MAGENTA}=>{Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}│') - 30
-    command_line = len(f'{Fore.MAGENTA}│ {Fore.GREEN}Install Command{Fore.MAGENTA}=>{Fore.CYAN}{package_name}{Fore.CYAN}{Fore.MAGENTA}│') - 13
+    calc_length = len(
+        f'{Fore.MAGENTA}│ {Fore.GREEN}Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}│') - 30
+    name_line = len(
+        f'{Fore.MAGENTA}│ {Fore.GREEN}Name {Fore.MAGENTA}=>{display_name}{Fore.GREEN}{Fore.YELLOW}{Fore.MAGENTA}') - 30
+    version_line = len(
+        f'{Fore.MAGENTA}│{Fore.GREEN}Latest Version {Fore.MAGENTA}=>{Fore.BLUE}{version}{Fore.GREEN}{Fore.MAGENTA}│') - 30
+    url_line = len(
+        f'{Fore.MAGENTA}│ {Fore.GREEN}Url(Windows){Fore.MAGENTA}=>{Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}│') - 30
+    command_line = len(
+        f'{Fore.MAGENTA}│ {Fore.GREEN}Install Command{Fore.MAGENTA}=>{Fore.CYAN}{package_name}{Fore.CYAN}{Fore.MAGENTA}│') - 13
     base = '─'
     return f'''
 {Fore.MAGENTA}┌{base * calc_length}{Fore.MAGENTA}┐
@@ -1725,8 +1826,10 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
 def update_package_list():
     with Halo('Updating Electric'):
         with open(rf'{PathManager.get_appdata_directory()}\superlog.txt', 'w+') as f:
-            f.write(f'{date.today().year} {date.today().month} {date.today().day}')
-        r = requests.get('https://raw.githubusercontent.com/XtremeDevX/electric-packages/master/package-list.json')
+            f.write(
+                f'{date.today().year} {date.today().month} {date.today().day}')
+        r = requests.get(
+            'https://raw.githubusercontent.com/XtremeDevX/electric-packages/master/package-list.json')
         data = r.json()
         with open(rf'{PathManager.get_appdata_directory()}\packages.json', 'w+') as f:
             f.write(json.dumps(data, indent=4))
@@ -1738,7 +1841,8 @@ def get_correct_package_names(all=False) -> list:
             dictionary = json.load(f)
             packages = dictionary['packages']
     else:
-        req = requests.get('https://raw.githubusercontent.com/XtremeDevX/electric-packages/master/package-list.json')
+        req = requests.get(
+            'https://raw.githubusercontent.com/XtremeDevX/electric-packages/master/package-list.json')
         res = json.loads(req.text)
         packages = res['packages']
 
@@ -1757,8 +1861,8 @@ def register_package_success(packet: Packet, install_dir: str, metadata: Metadat
     pkg_dir = PathManager.get_appdata_directory() + r'\Current'
     with open(rf'{pkg_dir}\{packet.json_name}@{packet.version}.json', 'w+') as f:
         f.write(json.dumps(data, indent=4))
-    
-    
+
+
 def get_autocorrections(package_names: list, corrected_package_names: list, metadata: Metadata) -> list:
     """
     Display autocorrects for the package names
@@ -1770,14 +1874,15 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
 
     Returns:
         list: Autocorrected packages names
-    """    
+    """
     corrected_names = []
 
     for name in package_names:
         if name in corrected_package_names:
             corrected_names.append(name)
         else:
-            corrections = difflib.get_close_matches(name, corrected_package_names)
+            corrections = difflib.get_close_matches(
+                name, corrected_package_names)
             if corrections:
                 if metadata.silent and not metadata.yes:
                     click.echo(click.style(
@@ -1790,7 +1895,8 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
                     corrected_names.append(corrections[0])
 
                 if metadata.yes:
-                    write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
+                    write_all(
+                        f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
                     write(
                         f'Successfully Autocorrected To {corrections[0]}', 'green', metadata)
                     log_info(
@@ -1798,7 +1904,8 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
                     corrected_names.append(corrections[0])
 
                 else:
-                    write_all(f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
+                    write_all(
+                        f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
 
                     if click.confirm('Would You Like To Continue?'):
                         package_name = corrections[0]
@@ -1806,10 +1913,12 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
                     else:
                         handle_exit('ERROR', None, metadata)
             else:
-                req = requests.get('https://electric-package-manager.herokuapp.com/setup/name-list')
+                req = requests.get(
+                    'https://electric-package-manager.herokuapp.com/setup/name-list')
                 res = json.loads(req.text)
                 if name not in res['packages']:
-                    write_all(f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
+                    write_all(
+                        f'Could Not Find Any Packages Which Match {name}', 'bright_magenta', metadata)
                 else:
                     corrected_names.append(name)
 
