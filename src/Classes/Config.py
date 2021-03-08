@@ -102,6 +102,7 @@ class Config:
 
     @staticmethod
     def get_repr_packages(packages: list, version: bool):
+        packages = list(set(packages))
         if version:
             packages = str(packages).replace('\'', '').replace('[', '').replace(']', '').replace(',', '').replace('{', '').replace('}', '\n').replace(':', ' =>').strip()
             return packages
@@ -282,11 +283,10 @@ class Config:
                             output = output.decode().splitlines()
                             electric_packages = []
                             electric_packages = output
-
+                            res = []
                             lines[idx] = Config.get_repr_packages(electric_packages, False) + '\n'
                             
-                            lines = list(set(lines))
-
+                            
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
                         
@@ -298,7 +298,7 @@ class Config:
                             electric_packages = []
                             electric_packages = [{line.split('@')[0] : line.split('@')[1]} for line in output]
                             lines[idx] = Config.get_repr_packages(electric_packages, True).replace('\n ', '\n') + '\n'
-                            lines = list(set(lines))
+                            
 
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
@@ -332,7 +332,7 @@ class Config:
                                         json = js.load(f)
                                         current_packages = str(json['installed_packages']).replace('[', '').replace(']', '').replace('\n ', '\n').replace('\'', '').replace(', ', '\n') + '\n'
                                         lines[insert_index] = current_packages
-                                        lines = list(set(lines))
+                                        
 
                                     with open(f'{filepath}', 'w') as f:
                                         f.writelines(lines)
@@ -346,7 +346,7 @@ class Config:
                             vscode_packages = output
 
                             lines[idx] = Config.get_repr_packages(vscode_packages, False) + '\n'
-                            lines = list(set(lines))
+                            
 
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
@@ -359,7 +359,7 @@ class Config:
                             vscode_packages = []
                             vscode_packages = [{line.split('@')[0] : line.split('@')[1]} for line in output]
                             lines[idx] = Config.get_repr_packages(vscode_packages, True).replace('\n ', '\n') + '\n'
-                            lines = list(set(lines))
+                            
 
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
@@ -375,7 +375,7 @@ class Config:
                                     atom_packages.append(val.replace('├──', '').replace('└── ', '').strip().lower()[:-6])
 
                             lines[idx] = Config.get_repr_packages(atom_packages, False) + '\n'
-                            lines = list(set(lines))
+                            
 
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
@@ -394,7 +394,7 @@ class Config:
                             atom_packages.append([{line.split('@')[0].lower() : line.split('@')[1].lower()} for line in refined_output])
                             atom_packages = atom_packages[0]
                             lines[idx] = Config.get_repr_packages(atom_packages, True).replace('\n ', '\n') + '\n'
-                            lines = list(set(lines))
+                            
 
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
@@ -415,7 +415,7 @@ class Config:
                             pip_packages = pip_packages[0]
 
                             lines[idx] = Config.get_repr_packages(pip_packages, False) + '\n'
-                            lines = list(set(lines))
+                            
 
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
@@ -431,7 +431,7 @@ class Config:
                             pip_packages = pip_packages[0]
 
                             lines[idx] = Config.get_repr_packages(pip_packages, True).replace('\n ', '\n') + '\n'
-                            lines = list(set(lines))
+                            
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
 
@@ -459,7 +459,7 @@ class Config:
                                 new_packages.append(package)
                             
                             lines[idx] = Config.get_repr_packages(new_packages, False) + '\n'
-                            lines = list(set(lines))
+                            
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
 
@@ -479,7 +479,7 @@ class Config:
                                 npm_packages = npm_packages[0]
 
                                 lines[idx] = Config.get_repr_packages(npm_packages, True).replace('\n ', '\n') + '\n'
-                                lines = list(set(lines))
+                                
                                 with open(f'{filepath}', 'w') as f:
                                     f.writelines(lines)
 
