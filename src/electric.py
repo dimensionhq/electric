@@ -23,6 +23,7 @@ from Classes.Config import Config
 from Classes.Packet import Packet
 from Classes.PortablePacket import PortablePacket
 from Classes.Setting import Setting
+from Classes.ThreadedInstaller import ThreadedInstaller
 from cli import SuperChargeCLI
 from external import *
 from headers import *
@@ -84,6 +85,7 @@ def cli(_):
 @click.option('--verbose', '-vb', is_flag=True, help='Enable verbose mode for installation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for installation')
 @click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for installation')
+@click.option('--update', '-up', is_flag=True, default=False, help='Update electric before installation')
 @click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for installation')
 @click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
 @click.option('--install-dir', '-dir', 'install_directory', help='Specify an installation directory for a package')
@@ -113,6 +115,7 @@ def install(
     yes: bool,
     silent: bool,
     python: bool,
+    update: bool,
     install_directory: str,
     virus_check: bool,
     sync: bool,
@@ -133,6 +136,7 @@ def install(
     Install a package or a list of packages.
     """
     start_log()
+
     if plugin:
         if package_name == 'eel':
             os.chdir(PathManager.get_current_directory() + r'\eel')
@@ -170,6 +174,10 @@ def install(
 
     metadata = generate_metadata(
         no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync)
+
+    write('Updating Electric', 'green', metadata)
+    if update:
+        update_package_list()
 
     log_info('Successfully generated metadata.', metadata.logfile)
 
@@ -226,7 +234,7 @@ def install(
         handle_portable_installation(portable, pkg, res, metadata)
 
         packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                        install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-test'] if 'run-test' in list(res.keys()) else True)
+                        install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-test'] if 'run-test' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
 
         write_verbose(
             f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
@@ -305,6 +313,16 @@ def install(
         status = 'Installed'
         log_info('Creating final snapshot of registry...', metadata.logfile)
         final_snap = get_environment_keys()
+
+        if packet.set_env:
+            replace_install_dir = ''
+            if packet.directory:
+                replace_install_dir = packet.directory
+            elif packet.default_install_dir:
+                replace_install_dir = packet.default_install_dir
+
+            set_environment_variable(
+                packet.set_env['name'], packet.set_env['value'].replace('<install-directory>', replace_install_dir))
 
         if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
             write('Refreshing Environment Variables', 'green', metadata)
@@ -470,7 +488,7 @@ def update(
         pkg = res
         pkg = pkg[pkg['latest-version']]
         packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'],
-                        pkg['uninstall-switches'], None, pkg['dependencies'], None, [], res['latest-version'], res['run-check'] if 'run-check' in list(res.keys()) else True)
+                        pkg['uninstall-switches'], None, pkg['dependencies'], None, [], res['latest-version'], res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         installed_packages = [f.replace('.json', '').split(
             '@')[:-1] for f in os.listdir(PathManager.get_appdata_directory() + r'\Current')]
@@ -699,7 +717,7 @@ def uninstall(
 
         if portable and not 'is-portable' in list(res.keys()):
             keys = list(pkg[pkg['latest-version']].keys())
-            
+
             data = {
                 'display-name': pkg['display-name'],
                 'package-name': pkg['package-name'],
@@ -746,7 +764,7 @@ def uninstall(
             sys.exit()
 
         packet = Packet(pkg, package, name, pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                        None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                        None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
         proc = None
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
@@ -780,7 +798,7 @@ def uninstall(
 
             uninstall_exit_codes = []
             packet = Packet(pkg, package, name, pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                            None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                            None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
 
             write(
                 f'Could not find any existing installations of {packet.display_name}', 'red', metadata)

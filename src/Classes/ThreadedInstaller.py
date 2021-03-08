@@ -23,6 +23,8 @@ import cursor
 import click
 import sys
 import os
+
+from zip_utils import set_environment_variable
 paths = {}
 
 
@@ -338,7 +340,7 @@ class ThreadedInstaller:
                         install_exit_codes = pkg['valid-install-exit-codes']
 
                     packet = Packet(package, res['package-name'], pkg['url'], pkg['file-type'], pkg['custom-location'],
-                                    pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None)
+                                    pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
                     installation = utils.find_existing_installation(
                         package, packet.json_name)
                     if installation:
@@ -393,7 +395,7 @@ class ThreadedInstaller:
                         install_exit_codes = pkg['valid-install-exit-codes']
 
                     packet = Packet(package, pkg['package-name'], pkg['url'], pkg['file-type'], pkg['custom-location'],
-                                    pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None)
+                                    pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
                     log_info(
                         'Searching for existing installation of package.', metadata.logfile)
                     installation = utils.find_existing_installation(
@@ -481,6 +483,10 @@ class ThreadedInstaller:
 
                     # Running The Installer silently And Completing Setup
                     utils.install_package(path, packet, metadata, None, None)
+
+                    if packet.set_env:
+                        set_environment_variable(
+                            packet.set_env['name'], packet.set_env['value'])
 
                     final_snap = get_environment_keys()
                     if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:

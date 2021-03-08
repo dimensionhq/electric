@@ -50,6 +50,10 @@ path = ''
 appdata_dir = PathManager.get_appdata_directory()
 
 
+def set_environment_variable(name: str, value: str):
+    os.system(rf'setx {name} "{value}"')
+
+
 def copy_to_clipboard(text: str):
     Popen(f'echo {text} | clip'.split(), stdin=PIPE,
           stdout=PIPE, stderr=PIPE, shell=True)
@@ -502,7 +506,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 if 'valid-install-exit-codes' in list(pkg.keys()):
                     install_exit_codes = pkg['valid-install-exit-codes']
                 packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                                custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                                custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
                 installation = find_existing_installation(
                     package, packet.display_name)
                 if installation:
@@ -583,7 +587,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         install_exit_codes = pkg['valid-install-exit-codes']
 
                     packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                                    install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                                    install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
                     log_info(
                         'Searching for existing installation of package.', metadata.logfile)
 
@@ -763,7 +767,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
                     packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                                    custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True)
+                                    custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
                     installation = find_existing_installation(
                         package, packet.display_name, test=False)
                     if installation:
@@ -986,7 +990,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
                 flags += f' {flag}'
 
             click.echo(click.style(
-                f'The {packet.display_name} Installater Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
+                f'The {packet.display_name} Installer Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(
                 rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()

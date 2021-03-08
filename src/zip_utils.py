@@ -287,3 +287,7 @@ def create_folder_backup(packet: PortablePacket, folder: str):
                      rf'{home}\electric\{packet.extract_dir}@{packet.latest_version}')
         copytree(rf'{home}\electric\{packet.extract_dir}@{packet.latest_version}\{folder}',
                  rf'{home}\electric\Backup\{packet.extract_dir}@{packet.latest_version}\{folder}.zip')
+
+
+def set_environment_variable(name: str, value: str):
+    os.system(rf'setx {name} "{value}"')

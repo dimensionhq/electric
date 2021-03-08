@@ -22,3 +22,4 @@ src/Pipfile.lock
 src/Pipfile
 tests/__pycache__
 test.py
+src/eel/__pycache__
