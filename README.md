@@ -95,7 +95,7 @@ python -m unittest discover src/tests
 | Feature                            | Build Status   |
 |------------------------------------|----------------|
 | Installation                       | ✅            |
-| Portable Installation              | ❌            |
+| Portable Installation              | ⚠️            |
 | Uninstallation                     | ✅            |
 | Update                             | ✅            |
 | Show                               | ✅            |
@@ -104,7 +104,7 @@ python -m unittest discover src/tests
 | Code Editor Extension Installation | ❌            |
 | Python Package Installation        | ✅            |
 | NodeJS Package Installation        | ✅            |
-| Configuration Management           | ❌            |
+| Configuration Management           | ⚠️            |
 | Cleanup                            | ✅            |
 | Tab Completion                     | ✅            |
 
