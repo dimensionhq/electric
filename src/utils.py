@@ -51,7 +51,8 @@ appdata_dir = PathManager.get_appdata_directory()
 
 
 def set_environment_variable(name: str, value: str):
-    Popen(rf'setx {name} "{value}"')
+    Popen(rf'setx {name} "{value}"', stdin=PIPE,
+          stdout=PIPE, stderr=PIPE, shell=True)
 
 
 def copy_to_clipboard(text: str):

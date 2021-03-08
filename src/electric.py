@@ -321,6 +321,7 @@ def install(
                 replace_install_dir = packet.directory
             elif packet.default_install_dir:
                 replace_install_dir = packet.default_install_dir
+
             write(f'Setting Environment Variable {name}', 'green', metadata)
             
             set_environment_variable(

@@ -1,3 +1,4 @@
+from subprocess import PIPE, Popen
 from colorama import Fore
 import requests
 import sys
@@ -290,4 +291,5 @@ def create_folder_backup(packet: PortablePacket, folder: str):
 
 
 def set_environment_variable(name: str, value: str):
-    os.system(rf'setx {name} "{value}"')
+    Popen(rf'setx {name} "{value}"', stdin=PIPE,
+          stdout=PIPE, stderr=PIPE, shell=True)
