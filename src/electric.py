@@ -175,8 +175,8 @@ def install(
     metadata = generate_metadata(
         no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync)
 
-    write('Updating Electric', 'green', metadata)
     if update:
+        write('Updating Electric', 'green', metadata)
         update_package_list()
 
     log_info('Successfully generated metadata.', metadata.logfile)
@@ -315,14 +315,16 @@ def install(
         final_snap = get_environment_keys()
 
         if packet.set_env:
+            name = packet.set_env['name']
             replace_install_dir = ''
             if packet.directory:
                 replace_install_dir = packet.directory
             elif packet.default_install_dir:
                 replace_install_dir = packet.default_install_dir
-
+            write(f'Setting Environment Variable {name}', 'green', metadata)
+            
             set_environment_variable(
-                packet.set_env['name'], packet.set_env['value'].replace('<install-directory>', replace_install_dir))
+                name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
 
         if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
             write('Refreshing Environment Variables', 'green', metadata)
@@ -396,7 +398,7 @@ def install(
         close_log(metadata.logfile, 'Install')
 
 
-@cli.command(aliases=['upgrade'], context_settings=CONTEXT_SETTINGS)
+@cli.command(aliases=['upgrade', 'update'], context_settings=CONTEXT_SETTINGS)
 @click.argument('package_name', required=True)
 @click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for bundle installation')
 @click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for bundle installation')
@@ -411,7 +413,7 @@ def install(
 @click.option('--local', '-ll', is_flag=True, help='')
 @click.option('--portable', '-p', is_flag=True, help='')
 @click.pass_context
-def update(
+def up(
     ctx,
     package_name: str,
     verbose: bool,
