@@ -481,7 +481,7 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
         sys.exit()
 
 
-def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata):
+def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata, ignore: bool):
     # Group the packages list into a 2D array
     # grouper(['sublime-text-3', 'atom', 'vscode', 'notepad++', 'anydesk'], 3) => [['sublime-text-3', 'atom', 'vscode']['notepad++', 'anydesk']]
 
@@ -492,6 +492,10 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
 
     # if there is more than 1 package to be installed and and a multi-threaded installation is fine
     if not metadata.sync and len(corrected_package_names) > 1:
+        if not is_admin():
+            write('Multi-Threaded Installation Must Be Run As Administrator. Use --sync for Non-Multithreaded Installation', 'red', metadata)
+            sys.exit()
+
         split_package_names = list(grouper(corrected_package_names, 3))
         # grouper(['sublime-text-3', 'atom', 'vscode', 'notepad++', 'anydesk'], 3) => [['sublime-text-3', 'atom', 'vscode']['notepad++', 'anydesk']]
 
@@ -515,6 +519,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     install_exit_codes = pkg['valid-install-exit-codes']
                 packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
                                 custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
+                
                 installation = find_existing_installation(
                     package, packet.display_name)
                 if installation:
@@ -524,16 +529,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         f'Found an existing installation of => {packet.json_name}', metadata)
                     write(
                         f'Found an existing installation {packet.display_name}.', 'yellow', metadata)
-                    installation_continue = click.confirm(
-                        f'Would you like to reinstall {packet.json_name}')
-
-                    if installation_continue or metadata.yes:
-                        os.system(f'electric uninstall {packet.json_name}')
-                        os.system(f'electric install {packet.json_name}')
-                        sys.exit()
-                    else:
-                        sys.exit()
-
+                
                 write_verbose(
                     f'Package to be installed: {packet.json_name}', metadata)
                 log_info(
@@ -869,7 +865,7 @@ def handle_existing_installation(package, packet, force: bool, metadata: Metadat
     if ignore:
         write(
             f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
-        sys.exit()
+
 
     if installation and not force and not ignore:
         log_info('Found existing installation of package...', metadata.logfile)
@@ -884,7 +880,7 @@ def handle_existing_installation(package, packet, force: bool, metadata: Metadat
         if installation_continue or metadata.yes:
             os.system(f'electric uninstall {packet.json_name}')
             os.system(f'electric install {packet.json_name}')
-            return
+            return False
         else:
             sys.exit()
 
@@ -977,8 +973,6 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
                 f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
             os.system(
                 rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
-            click.echo(click.style(
-                '\nAdministrator Elevation Required Or Fatal Installer Error. Exit Code [1603]', fg='red'))
             sys.exit()
         else:
             click.echo(click.style(

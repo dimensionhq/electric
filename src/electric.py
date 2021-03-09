@@ -205,8 +205,9 @@ def install(
     write_install_headers(metadata)
 
     # Handle multi-threaded installation (see function for further clarification)
+    
     handle_multithreaded_installation(
-        corrected_package_names, install_directory, metadata)
+        corrected_package_names, install_directory, metadata,ignore)
 
     # normal non-multi-threaded installation
     for package in corrected_package_names:
@@ -846,6 +847,7 @@ def uninstall(
 
         write(
             f'{Fore.CYAN}Uninstalling {packet.display_name}{Fore.RESET}', 'white', metadata)
+
         if 'QuietUninstallString' in key:
             command = key['QuietUninstallString']
             command = command.replace('/I', '/X')
