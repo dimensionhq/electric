@@ -5,6 +5,7 @@
 
 # Install .msixbundle file => Add-AppxPackage Microsoft.WindowsTerminal_0.11.1191.0_8wekyb3d8bbwe.msixbundle
 # TODO: Add Conflict-With Field For Json To Differentiate Between Microsoft Visual Studio Code and Microsoft Visual Studio Code Insiders
+# TODO: Add option to add a directory to bin
 
 import difflib
 import logging
@@ -568,6 +569,7 @@ def up(
 @click.option('--portable', '--non-admin', '-p', is_flag=True, help='Install a portable version of a package')
 @click.option('--configuration', '-cf', is_flag=True, help='Specify a config file to install')
 @click.option('--ae', is_flag=True)
+@click.option('--skp', is_flag=True)
 @click.pass_context
 def uninstall(
     ctx,
@@ -585,7 +587,8 @@ def uninstall(
     configuration: bool,
     portable: bool,
     ae: bool,
-    nightly: bool
+    nightly: bool,
+    skp: bool,
 ):
     """
     Uninstalls a package or a list of packages.
@@ -675,31 +678,32 @@ def uninstall(
 
         res = send_req_package(package)
         # If the package is not installed, let the user know
-        if package not in installed_packages:
-            pkg = res
-            if 'is-portable' in list(pkg.keys()):
-                if pkg['is-portable'] == True:
-                    portable = True
+        if not skp:
+            if package not in installed_packages:
+                pkg = res
+                if 'is-portable' in list(pkg.keys()):
+                    if pkg['is-portable'] == True:
+                        portable = True
 
-            if portable:
-                version = 'portable'
-            else:
-                version = pkg['latest-version']
+                if portable:
+                    version = 'portable'
+                else:
+                    version = pkg['latest-version']
 
-            uninstall_exit_codes = []
-            if 'valid-uninstall-exit-codes' in list(pkg.keys()):
-                uninstall_exit_codes = pkg['valid-install-exit-codes']
+                uninstall_exit_codes = []
+                if 'valid-uninstall-exit-codes' in list(pkg.keys()):
+                    uninstall_exit_codes = pkg['valid-install-exit-codes']
 
-            pkg = pkg[version]
-            display_name = res['display-name']
-            write(
-                f'Could not find any existing installations of {display_name}', 'red', metadata)
-            try:
-                os.remove(
-                    rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-            except:
-                pass
-            handle_exit('ERROR', '', metadata)
+                pkg = pkg[version]
+                display_name = res['display-name']
+                write(
+                    f'Could not find any existing installations of {display_name}', 'red', metadata)
+                try:
+                    os.remove(
+                        rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                except:
+                    pass
+                handle_exit('ERROR', '', metadata)
         # Continue with normal installation because the package has not been installed yet
         pkg = res
         if 'is-portable' in list(pkg.keys()):
@@ -917,8 +921,10 @@ def uninstall(
                     packet.version = 'nightly'
                 write(
                     f'Running Tests For {packet.display_name}', 'white', metadata)
-                os.remove(
-                    rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                if not skp:
+                    os.remove(
+                        rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                
                 write(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check',
                       'white', metadata)
 
@@ -940,7 +946,8 @@ def uninstall(
                             configuration=False,
                             portable=False,
                             ae=False,
-                            nightly=nightly
+                            nightly=nightly,
+                            skp=True
                         )
                 write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)

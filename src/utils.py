@@ -49,6 +49,9 @@ path = ''
 
 appdata_dir = PathManager.get_appdata_directory()
 
+def append_to_path(dir: str):
+    Popen(f'setx PATH=%PATH%;"{dir}"', stdin=PIPE,
+          stdout=PIPE, stderr=PIPE, shell=True)
 
 def set_environment_variable(name: str, value: str):
     Popen(rf'setx {name} "{value}"', stdin=PIPE,
