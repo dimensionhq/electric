@@ -327,6 +327,8 @@ def install(
             set_environment_variable(
                 name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
 
+        
+
         if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
             write('Refreshing Environment Variables', 'green', metadata)
             start = timer()
@@ -442,7 +444,7 @@ def up(
             PathManager.get_appdata_directory() + r'\Current')]
         for package in installed_packages:
             ctx.invoke(
-                update,
+                up,
                 package_name=package,
                 verbose=verbose,
                 debug=debug,
@@ -906,6 +908,10 @@ def uninstall(
             write_verbose('Uninstallation completed.', metadata)
             log_info('Uninstallation completed.', metadata.logfile)
             index += 1
+
+            if packet.set_env:
+                delete_environment_variable(packet.set_env['name'])
+
             if not packet.run_test:
                 if nightly:
                     packet.version = 'nightly'
@@ -916,6 +922,26 @@ def uninstall(
                 write(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check',
                       'white', metadata)
 
+                if packet.uninstall:
+                    for pkg in packet.uninstall:
+                        ctx.invoke(
+                            uninstall,
+                            package_name=pkg,
+                            verbose=metadata.verbose,
+                            debug=metadata.debug,
+                            no_color=metadata.no_color,
+                            logfile=metadata.logfile,
+                            yes=metadata.yes,
+                            silent=metadata.silent,
+                            python=False,
+                            vscode=False,
+                            node=False,
+                            atom=False,
+                            configuration=False,
+                            portable=False,
+                            ae=False,
+                            nightly=nightly
+                        )
                 write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                 log_info(

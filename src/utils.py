@@ -54,6 +54,10 @@ def set_environment_variable(name: str, value: str):
     Popen(rf'setx {name} "{value}"', stdin=PIPE,
           stdout=PIPE, stderr=PIPE, shell=True)
 
+def delete_environment_variable(name: str):
+    Popen(rf'reg delete "HKCU\Environment" /F /V "{name}"', stdin=PIPE,
+          stdout=PIPE, stderr=PIPE, shell=True)
+
 
 def copy_to_clipboard(text: str):
     Popen(f'echo {text} | clip'.split(), stdin=PIPE,
