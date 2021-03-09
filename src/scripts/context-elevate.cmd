@@ -28,5 +28,5 @@ if '%errorlevel%' NEQ '0' (
     pushd "%CD%"
     CD /D "%~dp0"
 :--------------------------------------
-echo %1
+
 powershell electric config %1
