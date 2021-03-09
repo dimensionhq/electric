@@ -858,14 +858,20 @@ def handle_external_installation(python: bool, node: bool, vscode: bool, sublime
         sys.exit()
 
 
-def handle_existing_installation(package, packet, force: bool, metadata: Metadata):
+def handle_existing_installation(package, packet, force: bool, metadata: Metadata, ignore: bool):
     log_info('Searching for existing installation of package.', metadata.logfile)
 
     log_info('Finding existing installation of package...', metadata.logfile)
     installation = find_existing_installation(
         package, packet.json_name, test=False)
+    
+    
+    if ignore:
+        write(
+            f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
+        sys.exit()
 
-    if installation and not force:
+    if installation and not force and not ignore:
         log_info('Found existing installation of package...', metadata.logfile)
         write_debug(
             f'Found existing installation of {packet.json_name}.', metadata)

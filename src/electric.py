@@ -104,6 +104,7 @@ def cli(_):
 @click.option('--force', '-f', is_flag=True, help='Force install a package, ignoring any existing installations of a package.')
 @click.option('--configuration', '-cf', is_flag=True, help='Specify a config file to install')
 @click.option('--plugin', '-pl', is_flag=True, help='Specify a plugin to install')
+@click.option('--ignore', '-ig', is_flag=True, help='Ignore existing installation')
 @click.pass_context
 def install(
     ctx,
@@ -132,6 +133,7 @@ def install(
     nightly: bool,
     portable: bool,
     plugin: bool,
+    ignore: bool,
 ):
     """
     Install a package or a list of packages.
@@ -244,7 +246,7 @@ def install(
         log_info(
             f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
 
-        handle_existing_installation(package, packet, force, metadata)
+        handle_existing_installation(package, packet, force, metadata, ignore)
 
         if packet.dependencies:
             ThreadedInstaller.install_dependent_packages(

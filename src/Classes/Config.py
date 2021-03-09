@@ -544,8 +544,9 @@ class Config:
         if packages:
             click.echo(click.style('↓ Validating Electric Packages        ↓', 'cyan'))
             for package in packages:
-                proc = Popen(f'electric show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                proc = Popen(rf'electric show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
                 output, err = proc.communicate()
+                err = 'UnicodeEncodeError' not in err.decode()
                 if 'Could Not Find Any Packages' in output.decode() or err:
                     click.echo(click.style(f'`{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
                     return
@@ -607,8 +608,10 @@ class Config:
                 idx += 1
             for flag in flags:
                 command += ' ' + flag
+            
+            for pkg in command.split(','):
+                os.system(f'electric install {pkg} --ignore')
 
-            os.system(f'electric install {command}')
 
             versions = []
             package_names = []
