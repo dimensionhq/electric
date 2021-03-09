@@ -167,9 +167,12 @@ def download(packet, url: str, download_extension: str, file_path: str, metadata
         os.mkdir(rf'{home}\electric')
 
     if not is_zip:
-        if not os.path.isdir(rf'{home}\electric\{packet.extract_dir}@{packet.latest_version}\electric'):
+        if not os.path.isdir(rf'{home}\electric\extras'):
+            os.mkdir(rf'{home}\electric\extras')
+
+        if not os.path.isdir(rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}'):
             os.mkdir(
-                rf'{home}\electric\{packet.extract_dir}@{packet.latest_version}\electric')
+                rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}')
 
         # if not os.path.isdir(file_path.replace('\\\\', '\\')):
         #     os.mkdir(file_path.replace('\\\\', '\\'))
@@ -253,19 +256,19 @@ def display_notes(packet: PortablePacket, unzip_dir: str, metadata: Metadata, un
     if not uninstall:
         if isinstance(packet.install_notes, list):
             for line in packet.notes:
-                write(line.replace('$dir', unzip_dir).replace(
+                write(line.replace('$dir', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}').replace(
                     '\\\\', '\\'), 'white', metadata)
         else:
-            write(packet.install_notes.replace('$dir', unzip_dir).replace(
+            write(packet.install_notes.replace('$dir', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}').replace(
                 '\\\\', '\\'), 'white', metadata)
     else:
         if isinstance(packet.uninstall_notes, list):
             for line in packet.notes:
-                write(line.replace('$dir', unzip_dir).replace(
+                write(line.replace('$dir', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}').replace(
                     '\\\\', '\\'), 'white', metadata)
         else:
             write(packet.uninstall_notes.replace(
-                '$dir', unzip_dir).replace('\\\\', '\\'), 'white', metadata)
+                '$dir', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}').replace('\\\\', '\\'), 'white', metadata)
     write('\n', 'white', metadata)
 
 

@@ -234,7 +234,7 @@ def install(
         handle_portable_installation(portable, pkg, res, metadata)
 
         packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                        install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-test'] if 'run-test' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
+                        install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-test'] if 'run-test' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
 
         write_verbose(
             f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
@@ -491,7 +491,7 @@ def up(
         pkg = res
         pkg = pkg[pkg['latest-version']]
         packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'],
-                        pkg['uninstall-switches'], None, pkg['dependencies'], None, [], res['latest-version'], res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
+                        pkg['uninstall-switches'], None, pkg['dependencies'], None, [], res['latest-version'], res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         installed_packages = [f.replace('.json', '').split(
             '@')[:-1] for f in os.listdir(PathManager.get_appdata_directory() + r'\Current')]
@@ -767,7 +767,7 @@ def uninstall(
             sys.exit()
 
         packet = Packet(pkg, package, name, pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                        None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
+                        None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
         proc = None
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
@@ -801,7 +801,7 @@ def uninstall(
 
             uninstall_exit_codes = []
             packet = Packet(pkg, package, name, pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                            None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
+                            None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
 
             write(
                 f'Could not find any existing installations of {packet.display_name}', 'red', metadata)

@@ -277,9 +277,11 @@ class ThreadedInstaller:
                 os.remove(path)
             write('Successfully Cleaned Up Installer From Temp Directory...',
                   'green', self.metadata)
+
         for packet in self.packets:
             utils.register_package_success(
                 packet, packet.directory, self.metadata)
+
         write(
             'Successfully Installed Packages!', 'bright_magenta', self.metadata)
         log_info('Successfully Installed Packages!', self.metadata.logfile)
@@ -340,7 +342,7 @@ class ThreadedInstaller:
                         install_exit_codes = pkg['valid-install-exit-codes']
 
                     packet = Packet(package, res['package-name'], pkg['url'], pkg['file-type'], pkg['custom-location'],
-                                    pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
+                                    pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
                     installation = utils.find_existing_installation(
                         package, packet.json_name)
                     if installation:
@@ -395,7 +397,7 @@ class ThreadedInstaller:
                         install_exit_codes = pkg['valid-install-exit-codes']
 
                     packet = Packet(package, pkg['package-name'], pkg['url'], pkg['file-type'], pkg['custom-location'],
-                                    pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None)
+                                    pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
                     log_info(
                         'Searching for existing installation of package.', metadata.logfile)
                     installation = utils.find_existing_installation(
