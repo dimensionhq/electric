@@ -1257,7 +1257,6 @@ def config(
         if not '\\' in config_path:
             config_path = '\\' + config_path
         config_path = os.getcwd() + config_path
-        print(config_path)
         os.system(
             fr'{PathManager.get_current_directory()}\scripts\context-elevate.cmd {config_path}')
         sys.exit()

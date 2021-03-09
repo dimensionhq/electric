@@ -1,16 +1,16 @@
-import requests
-from utils import find_existing_installation, copy_to_clipboard
+from utils import *
 from tempfile import gettempdir
 from sys import platform
 from subprocess import Popen, PIPE
 from Classes.PathManager import PathManager
 from external import *
 import colorama
+import requests
 import socket
 import click
 import ssl
 import sys
-
+import os
 
 refreshenv = PathManager.get_current_directory() + r'\scripts\refreshvars.cmd'
 
