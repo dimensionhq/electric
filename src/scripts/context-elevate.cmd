@@ -29,4 +29,4 @@ if '%errorlevel%' NEQ '0' (
     CD /D "%~dp0"
 :--------------------------------------
 echo %1
-powershell electric install --configuration %1
+powershell electric config %1
