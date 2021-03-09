@@ -880,7 +880,7 @@ def handle_existing_installation(package, packet, force: bool, metadata: Metadat
         if installation_continue or metadata.yes:
             os.system(f'electric uninstall {packet.json_name}')
             os.system(f'electric install {packet.json_name}')
-            return False
+
         else:
             sys.exit()
 

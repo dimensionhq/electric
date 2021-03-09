@@ -396,8 +396,9 @@ class ThreadedInstaller:
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
 
-                    packet = Packet(package, pkg['package-name'], pkg['url'], pkg['file-type'], pkg['custom-location'],
-                                    pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, None, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
+                    packet = Packet(res, res['package-name'], res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'],
+                                    pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, [], None, False, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
+                    
                     log_info(
                         'Searching for existing installation of package.', metadata.logfile)
                     installation = utils.find_existing_installation(
@@ -484,7 +485,7 @@ class ThreadedInstaller:
                     start_snap = get_environment_keys()
 
                     # Running The Installer silently And Completing Setup
-                    utils.install_package(path, packet, metadata, None, None)
+                    utils.install_package(path, packet, metadata)
 
                     if packet.set_env:
                         set_environment_variable(
