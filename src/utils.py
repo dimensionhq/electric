@@ -435,7 +435,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
 
 def install_msix_package(path: str):
-    os.system(f'powershell.exe -noprofile Add-AppxPackage {path} -ForceApplicationShutdown -ForceTargetApplicationShutdown -ForceUpdateFromAnyVersion -Confirm')
+    os.system(f'powershell.exe -noprofile Add-AppxPackage -Path {path} -ForceApplicationShutdown -ForceTargetApplicationShutdown -ForceUpdateFromAnyVersion -Confirm')
 
 
 def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
@@ -1107,7 +1107,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
     package_name = packet.json_name
     switches = packet.install_switches
 
-    if download_type == '.msix' or download_type == '.msixbundle':
+    if download_type == '.msix' or download_type == '.msixbundle' or download_type == '.appxbundle':
         install_msix_package(path)
         sys.exit()
 
