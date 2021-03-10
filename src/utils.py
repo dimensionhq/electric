@@ -434,6 +434,10 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         return newpath
 
 
+def install_msix_package(path: str):
+    os.system(f'powershell.exe -noprofile Add-AppxPackage {path} -ForceApplicationShutdown -ForceTargetApplicationShutdown -ForceUpdateFromAnyVersion -Confirm')
+
+
 def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
 
     if portable and 'is-portable' not in list(res.keys()):

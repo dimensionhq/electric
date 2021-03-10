@@ -220,7 +220,6 @@ def install(
         # request the json response of the package
         res = send_req_package(package)
 
-        res = send_req_package(package)
         log_info('Successfully Updated SuperCache', metadata.logfile)
 
         pkg = res
