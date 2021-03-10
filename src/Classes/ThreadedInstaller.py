@@ -385,7 +385,7 @@ class ThreadedInstaller:
                 manager.handle_multi_install(paths)
                 return
             else:
-                write('Starting Sync Installation...', 'green', metadata)
+                write('Starting Sync Installation', 'green', metadata)
                 for package in packet.dependencies:
                     res = utils.send_req_package(package)
                     pkg = res[res['latest-version']]
@@ -431,7 +431,7 @@ class ThreadedInstaller:
                     download_url = packet.win64
                     end = timer()
 
-                    write('Initializing Rapid Download...', 'green', metadata)
+                    write('Initializing Rapid Download', 'green', metadata)
                     log_info('Initializing Rapid Download...',
                              metadata.logfile)
 

@@ -212,8 +212,12 @@ def check_existing_download(package_name: str, download_type) -> bool:
                 try:
                     filesize = os.stat(data['directory']).st_size
                 except FileNotFoundError:
-                    filesize = os.stat(
-                        data['directory'] + download_type).st_size
+                    try:
+                        filesize = os.stat(
+                            data['directory'] + download_type).st_size
+                    except:
+                        return False
+
             if filesize < data['size']:
                 # Corrupt Installation
                 return False
@@ -1258,7 +1262,10 @@ def get_pid(exe_name):
     lines = output.splitlines()
     for line in lines:
         if exe_name in line:
-            return line.split()[1]
+            try:
+                return line.split()[1]
+            except:
+                pass
 
 
 def find_approx_pid(display_name) -> str:

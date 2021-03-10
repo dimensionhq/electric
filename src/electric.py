@@ -211,6 +211,12 @@ def install(
 
     # normal non-multi-threaded installation
     for package in corrected_package_names:
+        configs = {
+            'path': None,
+            'reduce': None,
+            'virus_check': None,
+        }
+
         log_info('Handling Network Request...', metadata.logfile)
         status = 'Networking'
         write_verbose('Sending GET Request To /packages/', metadata)
@@ -288,7 +294,7 @@ def install(
         log_info(f"Downloading from '{download_url}'", metadata.logfile)
         status = 'Downloading'
 
-        path = download_installer(packet, download_url, metadata)
+        configs['path'] = download_installer(packet, download_url, metadata)
 
         status = 'Downloaded'
 
@@ -297,7 +303,7 @@ def install(
         if virus_check:
             log_info('Running requested virus scanning', metadata.logfile)
             write('Scanning File For Viruses...', 'blue', metadata)
-            check_virus(path, metadata)
+            check_virus(configs['path'], metadata)
 
         write(f'{Fore.CYAN}Installing {packet.display_name}{Fore.RESET}',
               'white', metadata)
@@ -312,7 +318,26 @@ def install(
         start_snap = get_environment_keys()
         status = 'Installing'
         # Running The Installer silently And Completing Setup
-        install_package(path, packet, metadata)
+        if 'pre-install' in list(pkg.keys()):
+            if isinstance(pkg['pre-install'], list):
+                for proc in pkg['pre-install']:
+                    if proc['type'] == 'powershell':
+                        with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
+                            for line in proc['code']:
+                                f.write(line.replace('<installer>', configs['path']) + '\n')
+
+                        os.system(rf'powershell.exe -File {tempfile.gettempdir()}\electric\temp.ps1')
+
+                    if proc['type'] == 'python':
+                        ldict = {}
+                        for line in proc['code']:
+                            exec(line.replace('<installer>', configs['path']), globals(), ldict)
+                            
+                        for k in configs:
+                            if k in ldict:
+                                configs[k] = ldict[k]
+
+        install_package(configs['path'], packet, metadata)
 
         status = 'Installed'
         log_info('Creating final snapshot of registry...', metadata.logfile)
@@ -330,8 +355,7 @@ def install(
             
             set_environment_variable(
                 name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
-
-        
+       
 
         if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
             write('Refreshing Environment Variables', 'green', metadata)
@@ -387,7 +411,7 @@ def install(
                 sys.exit()
 
         if metadata.reduce_package:
-            os.remove(f'{path}{packet.win64_type}')
+            os.remove(f'{configs["path"]}{packet.win64_type}')
             os.remove(
                 Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle')
 
@@ -1010,14 +1034,22 @@ def cleanup():
             click.echo(click.style('Nothing To Cleanup!', 'cyan'))
             sys.exit()
 
-        if len(files) == 0:
+        if 'configurations' in files:
+            if len(files) == 1:
+                h.stop()
+                click.echo(click.style('Nothing To Cleanup!', 'cyan'))
+        elif len(files) == 0:
             h.stop()
             click.echo(click.style('Nothing To Cleanup!', 'cyan'))
-
-        else:
-            h.stop()
-            with Bar(f'{Fore.CYAN}Deleting Temporary Files{Fore.RESET}', max=len(files), bar_prefix=' [ ', bar_suffix=' ] ', fill=f'{Fore.GREEN}={Fore.RESET}', empty_fill=f'{Fore.LIGHTBLACK_EX}-{Fore.RESET}') as b:
-                for f in files:
+    
+        sub = 0
+        if 'configurations' in files:
+            sub = 1
+        
+        h.stop()
+        with Bar(f'{Fore.CYAN}Deleting Temporary Files{Fore.RESET}', max=len(files) - sub, bar_prefix=' [ ', bar_suffix=' ] ', fill=f'{Fore.GREEN}={Fore.RESET}', empty_fill=f'{Fore.LIGHTBLACK_EX}-{Fore.RESET}') as b:
+            for f in files:
+                if f != 'configurations':
                     os.remove(rf'{tempfile.gettempdir()}\electric\{f}')
                     time.sleep(0.0002)
                     b.next()
