@@ -252,6 +252,7 @@ def install(
             ThreadedInstaller.install_dependent_packages(
                 packet, rate_limit, install_directory, metadata)
 
+
         write_verbose(
             f'Package to be installed: {packet.json_name}', metadata)
         log_info(
@@ -285,6 +286,7 @@ def install(
         write_verbose(
             f"Downloading from '{download_url}'", metadata)
         log_info(f"Downloading from '{download_url}'", metadata.logfile)
+
         status = 'Downloading'
 
         path = download_installer(packet, download_url, metadata)
@@ -308,6 +310,7 @@ def install(
         log_info(
             f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
         log_info('Creating start snapshot of registry...', metadata.logfile)
+        
         start_snap = get_environment_keys()
         status = 'Installing'
         # Running The Installer silently And Completing Setup

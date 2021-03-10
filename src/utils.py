@@ -1108,6 +1108,10 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
     switches = packet.install_switches
     sync = metadata.sync
 
+    if download_type == '.msix' or download_type == '.msixbundle':
+        install_msix_package(path)
+        sys.exit()
+
     if download_type == '.exe':
         if '.exe' not in path:
             if not os.path.isfile(path + '.exe'):
