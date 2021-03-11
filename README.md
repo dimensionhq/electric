@@ -101,7 +101,7 @@ python -m unittest discover src/tests
 | Show                               | ✅            |
 | List                               | ✅            |
 | Search                             | ✅            |
-| Code Editor Extension Installation | ❌            |
+| Code Editor Extension Installation | ✅            |
 | Python Package Installation        | ✅            |
 | NodeJS Package Installation        | ✅            |
 | Configuration Management           | ⚠️            |
