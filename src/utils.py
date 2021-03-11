@@ -1310,7 +1310,6 @@ def send_req_package(package_name: str) -> dict:
 
     try:
         response = requests.get(REQA + package_name + '.json', timeout=15)
-        raise requests.exceptions.ConnectionError
     except requests.exceptions.ConnectionError:
         click.echo(click.style(f'Failed to request {package_name}.json from raw.githubusercontent.com', 'red'))
         run_internet_test = input('Would you like to run a network debugger? [y/n]: ')
@@ -1328,8 +1327,6 @@ def send_req_package(package_name: str) -> dict:
             sys.stdout.write(f'\r| {Fore.GREEN}OK{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
 
             Debugger.test_internet()
-
-        sys.exit()
 
     try:
         res = json.loads(response.text)
