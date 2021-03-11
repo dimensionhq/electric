@@ -498,6 +498,8 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
         "Collect data into fixed-length chunks or blocks"
         args = [iter(iterable)] * n
         return zip_longest(*args, fillvalue=fillvalue)
+    
+    
 
     # if there is more than 1 package to be installed and and a multi-threaded installation is fine
     if not metadata.sync and len(corrected_package_names) > 1:
@@ -516,6 +518,8 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 pkg = res
                 custom_dir = None
 
+                
+
                 if install_directory:
                     custom_dir = install_directory + f'\\{pkg["package-name"]}'
                 else:
@@ -526,6 +530,26 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 install_exit_codes = None
                 if 'valid-install-exit-codes' in list(pkg.keys()):
                     install_exit_codes = pkg['valid-install-exit-codes']
+                
+                if 'pre-install' in list(pkg.keys()):
+                    if isinstance(pkg['pre-install'], list):
+                        for proc in pkg['pre-install']:
+                            if proc['type'] == 'powershell':
+                                with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
+                                    for line in proc['code']:
+                                        f.write(line.replace('<installer>', configs['path']) + '\n')
+
+                                os.system(rf'powershell.exe -File {tempfile.gettempdir()}\electric\temp.ps1')
+
+                            if proc['type'] == 'python':
+                                ldict = {}
+                                for line in proc['code']:
+                                    exec(line.replace('<installer>', configs['path']), globals(), ldict)
+                                    
+                                for k in configs:
+                                    if k in ldict:
+                                        configs[k] = ldict[k]
+
                 packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
                                 custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
                 
@@ -594,6 +618,25 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     pkg = pkg[version]
                     log_info(
                         'Generating Packet For Further Installation.', metadata.logfile)
+
+                    if 'pre-install' in list(pkg.keys()):
+                        if isinstance(pkg['pre-install'], list):
+                            for proc in pkg['pre-install']:
+                                if proc['type'] == 'powershell':
+                                    with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
+                                        for line in proc['code']:
+                                            f.write(line.replace('<installer>', configs['path']) + '\n')
+
+                                    os.system(rf'powershell.exe -File {tempfile.gettempdir()}\electric\temp.ps1')
+
+                                if proc['type'] == 'python':
+                                    ldict = {}
+                                    for line in proc['code']:
+                                        exec(line.replace('<installer>', configs['path']), globals(), ldict)
+                                        
+                                    for k in configs:
+                                        if k in ldict:
+                                            configs[k] = ldict[k]
 
                     install_exit_codes = None
                     if 'valid-install-exit-codes' in list(pkg.keys()):
