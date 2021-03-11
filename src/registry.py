@@ -52,7 +52,7 @@ def get_uninstall_key(package_name : str, display_name: str):
                 software_list.append(software)
             except EnvironmentError:
                 continue
-
+        print(software_list)
         return software_list
 
     keys = send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY) + send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY) + send_query(winreg.HKEY_CURRENT_USER, 0)
@@ -90,7 +90,7 @@ def get_uninstall_key(package_name : str, display_name: str):
                 if val != old:
                     temp_list.append(val)
                     old = val
-            
+
             for string in strings:
                 matches = difflib.get_close_matches(
                     package_name, temp_list, cutoff=0.65)
@@ -172,7 +172,8 @@ def get_uninstall_key(package_name : str, display_name: str):
         return return_array[final_index]
 
 
-    get_uninstall_string(package_name)
+    get_uninstall_string(display_name)
+
     if final_array:
         if len(final_array) > 1:
             return get_more_accurate_matches(final_array)

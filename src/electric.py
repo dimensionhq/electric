@@ -706,6 +706,24 @@ def uninstall(
         installed_packages += portable_installed_packages
 
         res = send_req_package(package)
+        if 'is-portable' in list(res.keys()):
+                    if res['is-portable'] == True:
+                        portable = True
+
+        if portable:
+            version = 'portable'
+        else:
+            version = res['latest-version']
+        pkg = res[version]
+        
+        if 'uninstall-override-command' in list(pkg.keys()):
+            pid = os.system(pkg['uninstall-override-command'])
+            if pid == 0:
+                os.remove(
+                            rf'{PathManager.get_appdata_directory()}\Current\{package}@{res["latest-version"]}.json')
+                write(f'Successfully Uninstalled {res["display-name"]}', 'magenta', metadata)
+            sys.exit()
+
         # If the package is not installed, let the user know
         if not skp:
             if package not in installed_packages:
@@ -804,6 +822,15 @@ def uninstall(
         packet = Packet(pkg, package, name, pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
                         None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
         proc = None
+
+        if 'uninstall-override-command' in list(res.keys()):
+            pid = os.system(pkg['uninstall-override-command'])
+            if pid == 0:
+                os.remove(
+                            rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                write(f'Successfully Uninstalled {packet.display_name}', 'magenta', metadata)
+            sys.exit()
+
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
 
@@ -822,6 +849,8 @@ def uninstall(
         key = get_uninstall_key(packet.json_name, packet.display_name)
 
         end = timer()
+        # print(key)
+        # sys.exit()
 
         if not key:
             log_info(
