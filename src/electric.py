@@ -7,6 +7,8 @@
 # TODO: Add Conflict-With Field For Json To Differentiate Between Microsoft Visual Studio Code and Microsoft Visual Studio Code Insiders
 # TODO: Add option to add a directory to bin
 
+import re
+import winreg
 import difflib
 import logging
 import os
@@ -30,7 +32,7 @@ from external import *
 from headers import *
 from info import __version__
 from logger import *
-from registry import get_environment_keys, get_uninstall_key
+from registry import get_environment_keys, get_uninstall_key, send_query
 from settings import initialize_settings, open_settings
 from utils import *
 from zip_uninstall import uninstall_portable
@@ -1491,12 +1493,33 @@ def ls(_, installed: bool, versions: bool):
             except:
                 print(f'{Fore.YELLOW}No installed packages found{Fore.RESET}')
     else:
-        with open(f'{PathManager.get_appdata_directory()}\packages.json', 'r') as f:
-            data = json.load(f)
-        packages = data['packages'][:99]
-        print(f'Found {Fore.GREEN}{len(packages)}{Fore.RESET} packages')
-        for package_name in packages:
-            print(package_name)
+        installed_software = send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY) + send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY) + send_query(winreg.HKEY_CURRENT_USER, 0)
+        max_length = 80
+        names = [ software['DisplayName'] for software in installed_software ]
+        
+        ids = []
+        versions = []
+        for software in installed_software:
+            id = re.findall(r'{[A-Z\d-]{36}\}',  software['UninstallString'])
+            
+            if len(id) == 1:
+                ids.append(id[0])
+            else:
+                ids.append(software['KeyName'])
+
+            version = software['Version']
+            versions.append(version)
+
+        print('Name', ' '* 96, 'ID', ' ' * 70, 'Version', ' ' * 20)
+        print('-' * 190)
+        
+        idx = 0
+        for name in names:
+            id_length = 90
+            length = len(name)
+            pkg_id = len(ids[idx])
+            print(name.strip(), ' ' * (max_length - length), ids[idx], ' ' * (id_length - pkg_id), versions[idx])
+            idx += 1
 
 
 @cli.command(aliases=['info'], context_settings=CONTEXT_SETTINGS)
@@ -1531,6 +1554,7 @@ def genpkg():
     file_type = input('Enter Download File Type: ')
     install_switches = input(
         'Enter the install switches (separated by commas): ')
+
 
 
 @cli.command()

@@ -9,16 +9,7 @@ import winreg
 
 keys = []
 
-def get_uninstall_key(package_name : str, display_name: str):
-    """
-    Finds the uninstallation key from the registry
-
-    #### Arguments
-        package_name (str): The json-name of the package ex: `sublime-text-3`
-        
-        display_name (str): The display name of the package ex: `Sublime Text 3`
-    """    
-    def send_query(hive, flag):
+def send_query(hive, flag):
         aReg = winreg.ConnectRegistry(None, hive)
         aKey = winreg.OpenKey(aReg, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall',
                             0, winreg.KEY_READ | flag)
@@ -32,28 +23,42 @@ def get_uninstall_key(package_name : str, display_name: str):
             try:
                 asubkey_name = winreg.EnumKey(aKey, i)
                 asubkey = winreg.OpenKey(aKey, asubkey_name)
+
                 software['DisplayName'] = winreg.QueryValueEx(asubkey, "DisplayName")[0]
+                software['KeyName'] = asubkey_name
                 try:
                     software['UninstallString'] = winreg.QueryValueEx(asubkey, "UninstallString")[0]
                 except:
-                    software['UninstallString'] = 'undefined'
+                    software['UninstallString'] = 'Unknown'
                 try:
                     software['Version'] = winreg.QueryValueEx(asubkey, "DisplayVersion")[0]
                 except EnvironmentError:
-                    software['Version'] = 'undefined'
+                    software['Version'] = 'Unknown'
                 try:
                     software['InstallLocation'] = winreg.QueryValueEx(asubkey, "InstallLocation")[0]
                 except EnvironmentError:
-                    software['InstallLocation'] = 'undefined'
+                    software['InstallLocation'] = 'Unknown'
                 try:
                     software['Publisher'] = winreg.QueryValueEx(asubkey, "Publisher")[0]
                 except EnvironmentError:
-                    software['Publisher'] = 'undefined'
+                    software['Publisher'] = 'Unknown'
                 software_list.append(software)
             except EnvironmentError:
                 continue
         
         return software_list
+
+
+def get_uninstall_key(package_name : str, display_name: str):
+    """
+    Finds the uninstallation key from the registry
+
+    #### Arguments
+        package_name (str): The json-name of the package ex: `sublime-text-3`
+        
+        display_name (str): The display name of the package ex: `Sublime Text 3`
+    """    
+    
 
     keys = send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY) + send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY) + send_query(winreg.HKEY_CURRENT_USER, 0)
 
