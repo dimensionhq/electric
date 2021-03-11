@@ -439,7 +439,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
 
 def install_msix_package(path: str):
-    os.system(f'powershell.exe -noprofile Add-AppxPackage -Path {path} -ForceApplicationShutdown -ForceTargetApplicationShutdown -ForceUpdateFromAnyVersion -Confirm')
+    os.system(f'powershell.exe -noprofile Add-AppxPackage -Path {path} -ForceTargetApplicationShutdown -ForceUpdateFromAnyVersion')
 
 
 def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
@@ -1113,6 +1113,8 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
 
     if download_type == '.msix' or download_type == '.msixbundle' or download_type == '.appxbundle':
         install_msix_package(path)
+        register_package_success(packet, '', metadata)
+        write(f'Successfully Installed {packet.display_name}', 'green', metadata)
         sys.exit()
 
     if download_type == '.exe':
@@ -1413,6 +1415,18 @@ def assert_cpu_compatible() -> int:
     cpu_count = os.cpu_count()
     print(cpu_count)
 
+
+def uninstall_msix(bundle_id: str):
+    proc = Popen(f'powershell.exe -noprofile Get-AppxPackage *{bundle_id}* | Remove-AppxPackage')
+    output, err = proc.communicate()
+    return proc.returncode
+
+def find_msix_installation(bundle_id: str):
+    proc = Popen(f'powershell.exe -noprofile Get-AppxPackage *{bundle_id}*', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    output, err = proc.communicate()
+    if output.decode() and not err.decode():
+        return True
+    return False
 
 def find_existing_installation(package_name: str, display_name: str, test=True):
     """

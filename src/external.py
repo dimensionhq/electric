@@ -8,6 +8,7 @@ from subprocess import PIPE, Popen
 from extension import *
 from halo import Halo
 from utils import *
+from colorama import Fore
 import json as js
 import mslex
 import sys

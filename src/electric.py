@@ -768,7 +768,7 @@ def uninstall(
 
         name = pkg['display-name']
         pkg = pkg[version]
-
+        override_uninstall_switches = pkg['override-default-uninstall-switches'] if 'override-default-uninstall-switches' in list(pkg.keys()) else False
         log_info('Generating Packet For Further Installation.', metadata.logfile)
 
         if portable and not 'is-portable' in list(res.keys()):
@@ -822,6 +822,13 @@ def uninstall(
         packet = Packet(pkg, package, name, pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
                         None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
         proc = None
+        ftp = ['.msix', '.msixbundle', '.appxbundle', '.appx']
+
+        if packet.win64_type in ftp:
+            if find_msix_installation(pkg['uninstall-bundle-identifier']):
+                if uninstall_msix(pkg['uninstall-bundle-identifier']) == 0:
+                    write(f'Successfully Uninstalled {packet.display_name}', 'green', metadata)
+                    sys.exit()
 
         if 'uninstall-override-command' in list(res.keys()):
             pid = os.system(pkg['uninstall-override-command'])
@@ -908,6 +915,12 @@ def uninstall(
             command = command.replace('/I', '/X')
             command = command.replace('/quiet', '/qn')
 
+            if override_uninstall_switches:
+                if '--' in command:
+                    command = command.split('--')[0:1][0].strip()
+                if '/' in command:
+                    command = command.split('/')[0:1][0].strip()
+
             additional_switches = None
             if packet.uninstall_switches:
                 if packet.uninstall_switches != []:
@@ -959,6 +972,12 @@ def uninstall(
             if 'msiexec.exe' in command.lower():
                 command += ' /quiet'
             # command = f'"{command}"'
+            if override_uninstall_switches:
+                if '--' in command:
+                    command = command.split('--')[0:1][0].strip()
+                if '/' in command:
+                    command = command.split('/')[0:1][0].strip()
+
             for switch in packet.uninstall_switches:
                 command += f' {switch}'
 

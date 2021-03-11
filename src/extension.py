@@ -19,7 +19,7 @@ def write(text: str, color: str, metadata: Metadata):
         color (`str`): Text color
         metadata (`Metadata`): Metadata for the method
     """
-
+    
     if not metadata.silent:
         if not metadata.no_color:
             if color:

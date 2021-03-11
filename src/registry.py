@@ -20,7 +20,7 @@ def get_uninstall_key(package_name : str, display_name: str):
     """    
     def send_query(hive, flag):
         aReg = winreg.ConnectRegistry(None, hive)
-        aKey = winreg.OpenKey(aReg, r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
+        aKey = winreg.OpenKey(aReg, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall',
                             0, winreg.KEY_READ | flag)
 
         count_subkey = winreg.QueryInfoKey(aKey)[0]
@@ -52,7 +52,7 @@ def get_uninstall_key(package_name : str, display_name: str):
                 software_list.append(software)
             except EnvironmentError:
                 continue
-        print(software_list)
+        
         return software_list
 
     keys = send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY) + send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY) + send_query(winreg.HKEY_CURRENT_USER, 0)
