@@ -1891,7 +1891,7 @@ def handle_unknown_error(err: str, pacakge_name: str, method: str, exit_code: st
         print(err + '\n')
         query = f'{pacakge_name} {method} failed {err}'
         with Halo('Troubleshooting ', text_color='yellow'):
-            results = search(query=err, stop=3)
+            results = search(query=query, stop=3)
             results = [f'\n\t[{index + 1}] <=> {r}' for index,
                        r in enumerate(results)]
 
