@@ -512,13 +512,16 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
 
         # if there is only 1 set of packages in the 2d array like [['sublime-text-3', 'atom', 'vscode']]
         if len(split_package_names) == 1:
+            configs = {
+                'path': None,
+            }
+                    
             packets = []
             for package in corrected_package_names:
                 res = send_req_package(package)
                 pkg = res
                 custom_dir = None
-
-                
+                               
 
                 if install_directory:
                     custom_dir = install_directory + f'\\{pkg["package-name"]}'
@@ -532,23 +535,8 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     install_exit_codes = pkg['valid-install-exit-codes']
                 
                 if 'pre-install' in list(pkg.keys()):
-                    if isinstance(pkg['pre-install'], list):
-                        for proc in pkg['pre-install']:
-                            if proc['type'] == 'powershell':
-                                with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
-                                    for line in proc['code']:
-                                        f.write(line.replace('<installer>', configs['path']) + '\n')
-
-                                os.system(rf'powershell.exe -File {tempfile.gettempdir()}\electric\temp.ps1')
-
-                            if proc['type'] == 'python':
-                                ldict = {}
-                                for line in proc['code']:
-                                    exec(line.replace('<installer>', configs['path']), globals(), ldict)
-                                    
-                                for k in configs:
-                                    if k in ldict:
-                                        configs[k] = ldict[k]
+                    write('Pre Install Multi-Threaded Implementation Is Still In Development, Forcing Sync Installation', 'yellow', metadata)
+                    return
 
                 packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
                                 custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
@@ -579,6 +567,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
 
             manager = ti.ThreadedInstaller(packets, metadata)
             paths = manager.handle_multi_download()
+
             cursor.show()
             log_info('Finished Rapid Download...', metadata.logfile)
             log_info(
@@ -592,6 +581,10 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 package_batch = list(package_batch)
                 package_batch = [x for x in package_batch if x is not None]
                 if len(package_batch) == 1:
+                    configs = {
+                        'path': None,
+                    }
+
                     package = package_batch[0]
 
                     spinner = Halo(color='grey')
@@ -619,25 +612,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     log_info(
                         'Generating Packet For Further Installation.', metadata.logfile)
 
-                    if 'pre-install' in list(pkg.keys()):
-                        if isinstance(pkg['pre-install'], list):
-                            for proc in pkg['pre-install']:
-                                if proc['type'] == 'powershell':
-                                    with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
-                                        for line in proc['code']:
-                                            f.write(line.replace('<installer>', configs['path']) + '\n')
-
-                                    os.system(rf'powershell.exe -File {tempfile.gettempdir()}\electric\temp.ps1')
-
-                                if proc['type'] == 'python':
-                                    ldict = {}
-                                    for line in proc['code']:
-                                        exec(line.replace('<installer>', configs['path']), globals(), ldict)
-                                        
-                                    for k in configs:
-                                        if k in ldict:
-                                            configs[k] = ldict[k]
-
+                    
                     install_exit_codes = None
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
@@ -733,8 +708,26 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
                     start_snap = registry.get_environment_keys()
 
-                    # Running The Installer silently And Completing Setup
+                    if 'pre-install' in list(pkg.keys()):
+                        if isinstance(pkg['pre-install'], list):
+                            for proc in pkg['pre-install']:
+                                if proc['type'] == 'powershell':
+                                    with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
+                                        for line in proc['code']:
+                                            f.write(line.replace('<installer>', configs['path']) + '\n')
 
+                                    os.system(rf'powershell.exe -File {tempfile.gettempdir()}\electric\temp.ps1')
+
+                                if proc['type'] == 'python':
+                                    ldict = {}
+                                    for line in proc['code']:
+                                        exec(line.replace('<installer>', configs['path']), globals(), ldict)
+                                        
+                                    for k in configs:
+                                        if k in ldict:
+                                            configs[k] = ldict[k]
+
+                    # Running The Installer silently And Completing Setup
                     install_package(path, packet, metadata)
 
                     final_snap = registry.get_environment_keys()

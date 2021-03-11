@@ -233,6 +233,7 @@ def install(
 
         version = get_package_version(
             pkg, res, version, portable, nightly, metadata)
+        
         pkg = pkg[version]
 
         install_exit_codes = []
@@ -421,7 +422,7 @@ def install(
                 'Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
             write('Successfully Cleaned Up Installer From Temp Directory',
                   'green', metadata)
-
+        version = ''
         write_verbose('Installation and setup completed.', metadata)
         log_info('Installation and setup completed.', metadata.logfile)
         write_debug(
