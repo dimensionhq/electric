@@ -83,7 +83,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
 
         if packet.pre_install['type'] == 'python':
             for l in packet.pre_install['code']:
-                eval(l)
+                exec(l)
 
     if packet.chdir:
         dir = packet.chdir
@@ -122,7 +122,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
 
     if packet.post_install:
         for line in packet.post_install:
-            eval(line.replace('<dir>', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}'))
+            exec(line.replace('<dir>', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}'))
 
     if packet.install_notes:
         display_notes(packet, unzip_dir, metadata)
