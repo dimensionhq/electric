@@ -1145,8 +1145,7 @@ def run_cmd(command: str, metadata: Metadata, method: str, packet: Packet) -> bo
         exit_code = check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         return False if exit_code == 0 else True
     except (CalledProcessError, OSError, FileNotFoundError) as err:
-        keyboard.add_hotkey(
-            'ctrl+c', lambda: os._exit(0))
+        
         disp_error_msg(get_error_cause(str(err), packet.install_exit_codes,
                                        packet.uninstall_exit_codes, method, metadata, packet), metadata)
 
@@ -1166,6 +1165,9 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
     directory = packet.directory
     package_name = packet.json_name
     switches = packet.install_switches
+
+    keyboard.add_hotkey(
+            'ctrl+c', lambda: handle_exit('Installing', path.split('\\')[-1], metadata))
 
     if download_type == '.msix' or download_type == '.msixbundle' or download_type == '.appxbundle':
         install_msix_package(path)
@@ -1400,16 +1402,21 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
         metadata (`Metadata`): Metadata for the method
     """
     if status == 'Downloaded' or status == 'Installing' or status == 'Installed':
+        write('\nTrying To Quit Installer',
+              'cyan', metadata)
         exe_name = setup_name.split('\\')[-1]
-        os.kill(int(get_pid(exe_name)), SIGTERM)
+        pid = get_pid(exe_name)
+        try:
+            pid = int(pid)
+            os.kill(pid, SIGTERM)
+        except:
+            pass
 
-        print(Fore.RESET, '')
-        write('SafetyHarness Successfully Created Clean Exit Gateway',
-              'green', metadata)
-        write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0',
-              'light_blue', metadata)
-        # print(Fore.RESET, '')
-        sys.exit()
+        sys.stdout.write(f'{Fore.RESET}{Fore.RESET}')
+        write('\nRapidExit  Successfully Exited With Code 0',
+              'cyan', metadata)
+              
+        os._exit(1)
 
     if status == 'Got Download Path':
         print(Fore.RESET, '')
@@ -1874,12 +1881,12 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
             ]
         elif code('1618'):
             return [
-                f'\n[1620] => Another instance of the installer / uninstaller is already running!',
+                f'\n[1620] => Another instance of the installer / uninstaller is already running.',
                 '\n\nHow To Fix:\n',
-                'Wait for a few minutes until the current installation / uninstallation gets completed or quit the other instance of the software uninstaller. \n',
+                'Wait for a few minutes until the current installation / uninstallation gets completed or quit the other instance of the software installer / uninstaller. \n',
                 'Help:',
                 '\n[1] <=> https://www.electric.sh/errors/1618',
-                '\n[2] <=> http://msierrors.com/msi/msi-error-1624/',
+                '\n[2] <=> http://msierrors.com/msi/msi-error-1618/',
                 '\n[3] <=> https://docs.microsoft.com/en-us/windows/win32/msi/error-codes/\n\n'
             ]
 

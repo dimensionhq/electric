@@ -296,7 +296,6 @@ def install(
         log_info(f"Downloading from '{download_url}'", metadata.logfile)
 
         status = 'Downloading'
-
         configs['path'] = download_installer(packet, download_url, metadata)
 
         status = 'Downloaded'
@@ -340,7 +339,12 @@ def install(
                         for k in configs:
                             if k in ldict:
                                 configs[k] = ldict[k]
-        install_package(configs['path'], packet, metadata)
+        setup_name = configs['path'].split('\\')[-1] + packet.win64_type
+        
+        if not get_pid(setup_name):
+            install_package(configs['path'], packet, metadata)
+        else:
+            disp_error_msg(get_error_message('1618', 'install', packet.display_name, version), metadata)
 
         status = 'Installed'
         log_info('Creating final snapshot of registry...', metadata.logfile)
