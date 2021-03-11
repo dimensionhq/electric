@@ -244,9 +244,8 @@ def install(
             install_exit_codes = pkg['valid-install-exit-codes']
 
         handle_portable_installation(portable, pkg, res, metadata)
-
         packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                        install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-test'] if 'run-test' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
+                        install_directory, pkg['dependencies'], install_exit_codes, None, version, pkg['run-test'] if 'run-test' in list(pkg.keys()) else False, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
 
         write_verbose(
             f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
@@ -341,7 +340,6 @@ def install(
                         for k in configs:
                             if k in ldict:
                                 configs[k] = ldict[k]
-
         install_package(configs['path'], packet, metadata)
 
         status = 'Installed'
@@ -360,7 +358,7 @@ def install(
             
             set_environment_variable(
                 name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
-       
+        
 
         if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
             write('Refreshing Environment Variables', 'green', metadata)
@@ -398,7 +396,7 @@ def install(
                     f'Successfully Installed {packet.display_name}', metadata.logfile)
             else:
                 write(
-                    f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check', 'red', metadata)
+                    f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check', 'white', metadata)
                 write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
                 tm.sleep(5)
                 if find_existing_installation(packet.json_name, packet.display_name):
@@ -412,7 +410,8 @@ def install(
                         f'Successfully Installed {packet.display_name}', metadata.logfile)
                 else:
                     write(
-                        f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check', 'red', metadata)
+                        f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check', 'white', metadata)
+                    write(f'Failed To Install {packet.display_name}', 'red', metadata)
                 sys.exit()
 
         if metadata.reduce_package:
@@ -1500,7 +1499,7 @@ def ls(_, installed: bool, versions: bool):
         ids = []
         versions = []
         for software in installed_software:
-            id = re.findall(r'{[A-Z\d-]{36}\}',  software['UninstallString'])
+            id = re.findall(r'{[A-Z\d-]{36}\}', software['UninstallString'])
             
             if len(id) == 1:
                 ids.append(id[0])

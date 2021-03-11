@@ -1051,7 +1051,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     if 'exit status 1' in error:
         click.echo(click.style(
             f'\nUnknown Error. Exited With Code [0000]', fg='red'))
-        handle_unknown_error(error)
+        handle_unknown_error(error, packet.display_name, method, 1)
         return get_error_message('0000', 'installation', packet.display_name, packet.version)
 
     if '[WinError 740]' in error and 'elevation' in error:
@@ -1206,7 +1206,8 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
                 command = command + ' ' + switch
 
         run_test = run_cmd(command, metadata, 'installation', packet)
-        packet.run_test = run_test
+        if not packet.run_test:
+            packet.run_test = run_test
 
     elif download_type == '.msi':
         command = 'msiexec.exe /i ' + path + ' '
@@ -1223,7 +1224,8 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
                 rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
         run_test = run_cmd(command, metadata, 'installation', packet)
-        packet.run_test = run_test
+        if not packet.run_test:
+            packet.run_test = run_test
 
 
 def get_configuration_data(username: str, description: str, uses_editor: bool, include_editor: bool, editor: str, include_python: bool, include_node: bool):
@@ -1860,13 +1862,34 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
                 '\n[2] <=> https://www.howtogeek.com/194041/how-to-open-the-command-prompt-as-administrator-in-windows-8.1/',
                 '\n[3] <=> https://www.top-password.com/blog/5-ways-to-run-powershell-as-administrator-in-windows-10/\n\n'
             ]
+        elif code('1620'):
+            return [
+                f'\n[1620] => The Installer downloaded is corrupted. This could be caused due to a download error or an incorrect URL.',
+                '\n\nHow To Fix:\n',
+                'Contact the package maintainer at electric.sh. \n',
+                '\nHelp:',
+                '\n[1] <=> https://www.electric.sh/errors/1620',
+                '\n[2] <=> http://msierrors.com/msi/msi-error-1620/',
+                '\n[3] <=> https://docs.microsoft.com/en-us/windows/win32/msi/error-codes/\n\n'
+            ]
+        elif code('1618'):
+            return [
+                f'\n[1620] => Another instance of the installer / uninstaller is already running!',
+                '\n\nHow To Fix:\n',
+                'Wait for a few minutes until the current installation / uninstallation gets completed or quit the other instance of the software uninstaller. \n',
+                'Help:',
+                '\n[1] <=> https://www.electric.sh/errors/1618',
+                '\n[2] <=> http://msierrors.com/msi/msi-error-1624/',
+                '\n[3] <=> https://docs.microsoft.com/en-us/windows/win32/msi/error-codes/\n\n'
+            ]
 
 
-def handle_unknown_error(err: str):
+def handle_unknown_error(err: str, pacakge_name: str, method: str, exit_code: str):
     error_msg = click.confirm('Would You Like To See The Error Message?')
 
     if error_msg:
         print(err + '\n')
+        query = f'{pacakge_name} {method} failed {err}'
         with Halo('Troubleshooting ', text_color='yellow'):
             results = search(query=err, stop=3)
             results = [f'\n\t[{index + 1}] <=> {r}' for index,
