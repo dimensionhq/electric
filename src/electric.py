@@ -237,13 +237,12 @@ def install(
             pkg, res, version, portable, nightly, metadata)
         
         pkg = pkg[version]
+        
+        handle_portable_installation(version == 'portable', pkg, res, metadata)
 
         install_exit_codes = []
-
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
-
-        handle_portable_installation(portable, pkg, res, metadata)
         packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
                         install_directory, pkg['dependencies'], install_exit_codes, None, version, pkg['run-test'] if 'run-test' in list(pkg.keys()) else False, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
 

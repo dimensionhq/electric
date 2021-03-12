@@ -444,7 +444,6 @@ def install_msix_package(path: str):
 
 
 def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
-
     if portable and 'is-portable' not in list(res.keys()):
         keys = list(pkg[pkg['latest-version']].keys())
         data = {
@@ -966,7 +965,7 @@ def get_package_version(pkg, res, version, portable: bool, nightly: bool, metada
     # if the user has requested a nightly or pre-release version of the package
     if nightly:
         version = 'nightly'
-
+    
     try:
         pkg = pkg[version]
     except KeyError:
