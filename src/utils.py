@@ -460,6 +460,7 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
             'post-install': pkg[res['latest-version']]['post-install'] if 'post-install' in keys else [],
             'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
             'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
+            'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
             'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
         }
         portable_packet = PortablePacket(data)
@@ -482,6 +483,7 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
             'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else [],
             'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
             'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
+            'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
             'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
         }
         portable_packet = PortablePacket(data)

@@ -28,7 +28,7 @@ class Debugger:
                 pass
 
             run_test_2 = False
-            res.status_code = 200
+
             sys.stdout.write(f'\r| {Back.GREEN if res.status_code == 200 else Back.MAGENTA}{res.status_code}{Back.RESET} | {Fore.CYAN}{round(res.elapsed.total_seconds(), 1)}s{Fore.RESET} | {Fore.GREEN}Ping {url}{Fore.RESET} ')
             
             if res.status_code == 200:

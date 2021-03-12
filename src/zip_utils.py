@@ -296,3 +296,19 @@ def create_folder_backup(packet: PortablePacket, folder: str):
 def set_environment_variable(name: str, value: str):
     Popen(rf'setx {name} "{value}"', stdin=PIPE,
           stdout=PIPE, stderr=PIPE, shell=True)
+
+def install_dependencies(packages: list):
+    for package_name in packages:
+        os.system(f'electric install {package_name}')
+
+def delete_environment_variable(name: str):
+    Popen(rf'reg delete "HKCU\Environment" /F /V "{name}"', stdin=PIPE,
+          stdout=PIPE, stderr=PIPE, shell=True)
+
+def refresh_environment_variables():
+    """
+    Refreshes the environment variables on the current Powershell session.
+    """
+    proc = Popen('powershell -c "$env:Path = [System.Environment]::GetEnvironmentVariable(\'Path\',\'Machine\') + \';\' + [System.Environment]::GetEnvironmentVariable(\'Path\',\'User\')"'.split(
+    ), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    proc.communicate()

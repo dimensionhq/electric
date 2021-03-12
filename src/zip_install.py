@@ -114,15 +114,22 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
             file_name = shortcut['file-name']
             create_start_menu_shortcut(unzip_dir, file_name, shortcut_name)
 
+    if packet.set_env:
+        changes_environment = True
+        write(f'Setting Environment Variable {packet.set_env["name"]}', 'green', metadata)
+        set_environment_variable(packet.set_env['name'], packet.set_env['value'].replace('<install-directory>', unzip_dir).replace('\\\\', '\\'))
+
     if changes_environment:
         write(
-            f'{Fore.GREEN}\nRefreshing Environment Variables{Fore.RESET}', 'white', metadata)
-        os.system(
-            rf'{home}\Desktop\Electric\Electric-Windows\src\scripts\refreshvars.cmd')
+            f'{Fore.GREEN}Refreshing Environment Variables{Fore.RESET}', 'white', metadata)
+        refresh_environment_variables()
+
+    if packet.dependencies:
+        install_dependencies(packet.dependencies)
 
     if packet.post_install:
         for line in packet.post_install:
-            exec(line.replace('<dir>', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}'))
+            exec(line.replace('<install-directory>', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}'))
 
     if packet.install_notes:
         display_notes(packet, unzip_dir, metadata)

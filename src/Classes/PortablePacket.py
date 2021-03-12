@@ -9,6 +9,7 @@ class PortablePacket:
         self.url = data['url']
         self.file_type = data['file-type']
         self.extract_dir = data['extract-dir']
+
         try:
             self.chdir = data['chdir']
         except:
@@ -41,3 +42,11 @@ class PortablePacket:
             self.persist = data['persist']
         except:
             self.presist = None
+        try:
+            self.set_env = data['set-env']
+        except:
+            self.set_env = None
+        try:
+            self.dependencies = data['dependencies']
+        except:
+            self.dependencies = None

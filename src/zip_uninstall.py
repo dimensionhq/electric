@@ -1,6 +1,6 @@
 from Classes.PortablePacket import PortablePacket
 from extension import write
-from zip_utils import delete_start_menu_shortcut, find_existing_installation, display_notes
+from zip_utils import delete_environment_variable, delete_start_menu_shortcut, find_existing_installation, display_notes
 from Classes.Metadata import Metadata
 from subprocess import Popen, PIPE
 import os
@@ -17,7 +17,7 @@ def uninstall_portable(packet: PortablePacket, metadata: Metadata):
             for sh in packet.bin:
                 shim_name = sh.split('\\')[-1].replace('.exe', '').replace('.ps1', '').replace('.cmd', '').replace('.bat', '')
                 try:
-                    os.remove(loc + '\\' + shim_name + '.bat')
+                    os.remove(loc + 'shims\\' + shim_name + '.bat')
                 except FileNotFoundError:
                     pass
 
@@ -31,6 +31,10 @@ def uninstall_portable(packet: PortablePacket, metadata: Metadata):
                 except FileNotFoundError:
                     pass
         
+        if packet.set_env:
+            write(f'Deleting {packet.set_env["name"]} Environment Variable', 'green', metadata)
+            delete_environment_variable(packet.set_env['name'])
+        
         write(f'Uninstalling {packet.display_name}', 'green', metadata)
         package_directory = loc + f'{packet.extract_dir}@{packet.latest_version}'
         proc = Popen(f'del /f/s/q {package_directory} > nul'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
@@ -38,7 +42,7 @@ def uninstall_portable(packet: PortablePacket, metadata: Metadata):
         proc = Popen(f'rmdir /s/q {package_directory}'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         proc.communicate()
         loc = rf'{home}\electric\shims'
-        
+                
         write(f'Successfully Uninstalled {packet.display_name}', 'green', metadata)
         if packet.uninstall_notes:
             display_notes(packet, '', metadata, uninstall=True)

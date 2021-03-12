@@ -792,6 +792,7 @@ def uninstall(
                 'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
                 'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else None,
                 'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else None,
+                'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
                 'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
             }
 
@@ -818,6 +819,7 @@ def uninstall(
                 'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else [],
                 'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
                 'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
+                'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
                 'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
             }
             portable_packet = PortablePacket(data)
@@ -861,8 +863,6 @@ def uninstall(
         key = get_uninstall_key(packet.json_name, packet.display_name)
 
         end = timer()
-        # print(key)
-        # sys.exit()
 
         if not key:
             log_info(
