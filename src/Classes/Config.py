@@ -105,7 +105,7 @@ class Config:
         packages = list(set(packages))
         for package in packages:
             if '(empty)' in package:
-                del packages.remove('(empty)')
+                packages.remove('(empty)')
 
         if version:
             packages = str(packages).replace('\'', '').replace('[', '').replace(']', '').replace(',', '').replace('{', '').replace('}', '\n').replace(':', ' =>').strip()
