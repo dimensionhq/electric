@@ -771,7 +771,7 @@ def uninstall(
                 if 'admin' in list(operation.keys()):
                     if operation['admin'] == True:
                         if not is_admin():
-                            write('Installation Must Be Run As Administrator', 'red', metadata)
+                            write('Uninstallation Must Be Run As Administrator', 'red', metadata)
                             os._exit(1)
 
                 if operation['type'] == 'python':
