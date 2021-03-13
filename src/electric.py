@@ -407,6 +407,36 @@ def install(
         else:
             disp_error_msg(get_error_message('1618', 'install', packet.display_name, version), metadata)
 
+        if 'post-install' in list(pkg.keys()):
+            if isinstance(pkg['post-install'], list):
+                for proc in pkg['post-install']:
+                    if 'admin' in list(proc.keys()):
+                        if proc['admin'] == True:
+                            if not is_admin():
+                                write('Installation Must Be Run As Administrator', 'red', metadata)
+                                os._exit(1)
+                    if proc['type'] == 'powershell':
+                        with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
+                            for line in proc['code']:
+                                f.write(line.replace('<installer>', configs['path']).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version).replace('<temp>', tempfile.gettempdir()) + '\n')
+
+                        os.system(rf'powershell.exe -File {tempfile.gettempdir()}\electric\temp.ps1')
+
+                    if proc['type'] == 'cmd':
+                        with open(rf'{tempfile.gettempdir()}\electric\temp.bat', 'w+') as f:
+                            for line in proc['code']:
+                                f.write(line.replace('<installer>', configs['path']).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version).replace('<temp>', tempfile.gettempdir()) + '\n')
+
+                        os.system(rf'{tempfile.gettempdir()}\electric\temp.bat')
+
+                    if proc['type'] == 'python':
+                        ldict = {}
+                        code = ''''''
+                        for line in proc['code']:
+                            code += line.replace('<installer>', configs['path']).replace('<temp>', tempfile.gettempdir()).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version) + '\n'
+                        exec(code, globals())
+
+
         status = 'Installed'
         log_info('Creating final snapshot of registry...', metadata.logfile)
         final_snap = get_environment_keys()
