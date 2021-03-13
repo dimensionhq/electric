@@ -11,6 +11,7 @@ import tarfile
 import py7zr
 import patoolib
 import winreg
+import click
 from shutil import copytree, move
 from Classes.Metadata import Metadata
 from Classes.PortablePacket import PortablePacket
@@ -297,9 +298,34 @@ def set_environment_variable(name: str, value: str):
     Popen(rf'setx {name} "{value}"', stdin=PIPE,
           stdout=PIPE, stderr=PIPE, shell=True)
 
-def install_dependencies(packages: list):
-    for package_name in packages:
-        os.system(f'electric install {package_name}')
+
+def install_dependencies(packet: PortablePacket, metadata: Metadata):
+    
+    disp = str(packet.dependencies).replace(
+            "[", "").replace("]", "").replace("\'", "")
+    write(f'{packet.display_name} has the following dependencies: {disp}',
+            'yellow', metadata)
+    continue_install = click.confirm(
+        'Would you like to install the above dependencies ?')
+    if continue_install:
+        write(
+        f'Installing Dependencies For => {packet.display_name}', 'cyan', metadata)
+        for package_name in packet.dependencies:
+            os.system(f'electric install {package_name}')
+
+
+def uninstall_dependencies(packet: PortablePacket, metadata: Metadata):
+    disp = str(packet.dependencies).replace(
+            "[", "").replace("]", "").replace("\'", "")
+    write(f'{packet.display_name} has the following dependencies: {disp}',
+            'yellow', metadata)
+    continue_install = click.confirm(
+        'Would you like to uninstall the above dependencies ?')
+    if continue_install:
+        write(
+        f'Uninstalling Dependencies For => {packet.display_name}', 'cyan', metadata)
+        for package_name in packet.dependencies:
+            os.system(f'electric uninstall {package_name}')
 
 def delete_environment_variable(name: str):
     Popen(rf'reg delete "HKCU\Environment" /F /V "{name}"', stdin=PIPE,

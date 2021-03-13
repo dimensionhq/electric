@@ -306,8 +306,6 @@ class ThreadedInstaller:
 
     @staticmethod
     def install_dependent_packages(packet: Packet, rate_limit: int, install_directory: str, metadata: Metadata):
-        write(
-            f'Installing Dependencies For => {packet.display_name}', 'cyan', metadata)
         disp = str(packet.dependencies).replace(
             "[", "").replace("]", "").replace("\'", "")
         write(f'{packet.display_name} has the following dependencies: {disp}',
@@ -315,6 +313,8 @@ class ThreadedInstaller:
         continue_install = click.confirm(
             'Would you like to install the above dependencies ?')
         if continue_install:
+            write(
+            f'Installing Dependencies For => {packet.display_name}', 'cyan', metadata)
             if len(packet.dependencies) > 1 and len(packet.dependencies) <= 5:
                 write(
                     f'Using Parallel Installation For Installing Dependencies', 'green', metadata)

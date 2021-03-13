@@ -240,6 +240,32 @@ def install(
         
         handle_portable_installation(version == 'portable', pkg, res, metadata)
 
+
+        if 'install-override-command' in list(pkg.keys()):
+            for operation in pkg['install-override-command']:
+                if operation['admin'] == True:
+                    if not is_admin():
+                        write('Installation Must Be Run As Administrator', 'red', metadata)
+                        os._exit(1)
+
+                if operation['type'] == 'python':
+                    for line in operation['code']:
+                        exec(line)
+
+                elif operation['type'] == 'powershell' or operation['type'] == 'ps1':
+                    with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
+                        for line in operation['code']:
+                            f.write(line + '\n')
+                    os.system(rf'powershell.exe -noprofile -File {tempfile.gettempdir()}\electric\temp.ps1')
+
+                elif operation['type'] == 'batch' or operation['type'] == 'cmd':
+                    with open(rf'{tempfile.gettempdir()}\electric\temp.bat', 'w+') as f:
+                        for line in operation['code']:
+                            f.write(line + '\n')
+                    os.system(rf'{tempfile.gettempdir()}\electric\temp.bat')                
+            sys.exit()
+
+
         install_exit_codes = []
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
@@ -471,7 +497,7 @@ def up(
     Updates an existing package
     """
     update_package_list()
-    if package_name == 'electric':
+    if package_name == 'electric' or package_name == 'self':
         sys.exit()
 
     if package_name == 'all':
@@ -722,13 +748,27 @@ def uninstall(
         pkg = res[version]
         
         if 'uninstall-override-command' in list(pkg.keys()):
-            pid = os.system(pkg['uninstall-override-command'])
-            if pid == 0:
-                os.remove(
-                            rf'{PathManager.get_appdata_directory()}\Current\{package}@{res["latest-version"]}.json')
-                write(f'Successfully Uninstalled {res["display-name"]}', 'magenta', metadata)
-            sys.exit()
+            for operation in pkg['uninstall-override-command']:
+                if not is_admin():
+                        write('Uninstallation Must Be Run As Administrator', 'red', metadata)
+                        os._exit(1)
+                if operation['type'] == 'python':
+                    for line in operation['code']:
+                        exec(line)
 
+                elif operation['type'] == 'powershell' or operation['type'] == 'ps1':
+                    with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
+                        for line in operation['code']:
+                            f.write(line + '\n')
+                    os.system(rf'powershell.exe -noprofile -File {tempfile.gettempdir()}\electric\temp.ps1')
+
+                elif operation['type'] == 'batch' or operation['type'] == 'cmd':
+                    with open(rf'{tempfile.gettempdir()}\electric\temp.bat', 'w+') as f:
+                        for line in operation['code']:
+                            f.write(line + '\n')
+                    os.system(rf'{tempfile.gettempdir()}\electric\temp.bat')                
+            sys.exit()
+            
         # If the package is not installed, let the user know
         if not skp:
             if package not in installed_packages:
@@ -793,6 +833,7 @@ def uninstall(
                 'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else None,
                 'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else None,
                 'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
+                'dependencies': pkg[pkg['latest-version']]['dependencies'] if 'dependencies' in keys else None,
                 'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
             }
 
@@ -821,6 +862,7 @@ def uninstall(
                 'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
                 'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
                 'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
+                'dependencies': pkg[pkg['latest-version']]['dependencies'] if 'dependencies' in keys else None,
             }
             portable_packet = PortablePacket(data)
             uninstall_portable(portable_packet, metadata)
@@ -830,20 +872,15 @@ def uninstall(
                         None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
         proc = None
         ftp = ['.msix', '.msixbundle', '.appxbundle', '.appx']
+        
+        if packet.dependencies:
+            handle_uninstall_dependencies(packet.dependencies)
 
         if packet.win64_type in ftp:
             if find_msix_installation(pkg['uninstall-bundle-identifier']):
                 if uninstall_msix(pkg['uninstall-bundle-identifier']) == 0:
                     write(f'Successfully Uninstalled {packet.display_name}', 'green', metadata)
                     sys.exit()
-
-        if 'uninstall-override-command' in list(res.keys()):
-            pid = os.system(pkg['uninstall-override-command'])
-            if pid == 0:
-                os.remove(
-                            rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                write(f'Successfully Uninstalled {packet.display_name}', 'magenta', metadata)
-            sys.exit()
 
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
@@ -1305,6 +1342,55 @@ def new(
         )
     click.echo(click.style(
         f'Successfully Created {Fore.LIGHTBLUE_EX}`{project_name}.electric`{Fore.GREEN} at {os.getcwd()}\\', 'green'))
+
+
+@cli.command(context_settings=CONTEXT_SETTINGS)
+@click.argument('package_name', required=True)
+@click.option('--version', '-v', 'version', help='Register a specific version')
+@click.option('--install-dir', '-id', 'install_dir', help='Register a specific installation directory')
+def register(
+    package_name: str,
+    version: str,
+    install_dir: str
+):
+    res = send_req_package(package_name)
+    display_name = res['display-name']
+    package_name = res['package-name']
+    if 'is-portable' in list(res.keys()):
+        latest_version = res['portable']['latest-version']
+    if not version and not 'is-portable' in list(res.keys()):
+        latest_version = res['latest-version']
+    else:
+        latest_version = version
+    custom_directory = install_dir if install_dir else ''
+    with open(rf'{PathManager.get_appdata_directory()}\electric\Current\{package_name}@{latest_version}.json', 'w+') as f:
+        f.write(
+            json.dumps(
+                {
+                    'display-name': display_name,
+                    'json-name': package_name,
+                    'version': latest_version,
+                    'custom-location-switch': '',
+                    'custom-install-directory': custom_directory,
+                    'flags': []
+                }
+            )
+        )
+
+@cli.command(context_settings=CONTEXT_SETTINGS)
+@click.argument('package_name', required=True)
+@click.option('--version', '-v', 'version', help='Deregister a specific version')
+def deregister(package_name: str, version: str):
+    res = send_req_package(package_name)
+    if 'is-portable' in list(res.keys()):
+        latest_version = res['portable']['latest-version']
+    if not version and not 'is-portable' in list(res.keys()):
+        latest_version = res['latest-version']
+    
+    try:
+        os.remove(rf'{PathManager.get_appdata_directory()}\electric\Current\{package_name}@{latest_version}')
+    except:
+        pass
 
 
 @cli.command(context_settings=CONTEXT_SETTINGS)

@@ -462,6 +462,7 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
             'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
             'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
             'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
+            'dependencies': pkg[pkg['latest-version']]['dependencies'] if 'dependencies' in keys else None,
         }
         portable_packet = PortablePacket(data)
         install_portable(portable_packet, metadata)
@@ -485,11 +486,22 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
             'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
             'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
             'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
+            'dependencies': pkg[pkg['latest-version']]['dependencies'] if 'dependencies' in keys else None,
         }
         portable_packet = PortablePacket(data)
         install_portable(portable_packet, metadata)
         sys.exit()
 
+
+def handle_uninstall_dependencies(packet: Packet, metadata):
+    disp = str(packet.dependencies).replace(
+            "[", "").replace("]", "").replace("\'", "")
+    disp = packet.dependencies.replace('[', '').replace(']', '')
+    write(f'{packet.display_name} has the following dependencies: {disp}',
+              'yellow', metadata)
+
+    for package_name in packet.dependencies:
+        os.system(f'electric uninstall {package_name}')
 
 def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata, ignore: bool):
     # Group the packages list into a 2D array
@@ -923,10 +935,30 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
             else:
                 sys.exit()
 
+    
+    if 'test-existing-installation' in list(packet.raw.keys()):
+        configs = {
+            'existing_installation': False
+        }
+
+        ldict = {}
+
+        exec(packet.raw['test-existing-installation'], globals(), ldict)
+        
+        for k in configs:
+            if k in ldict:
+                configs[k] = ldict[k]
+    
+        if configs['existing_installation'] == True:
+            write(f'Detected an existing installation of {packet.display_name}', 'yellow', metadata)
+        else:
+            os.system('electric deregister rust')
+            write(f'Could not find any existing installation of {packet.display_name}', 'yellow', metadata)
+            os._exit(1)
+
     installation = find_existing_installation(
     package, packet.json_name, test=False)
-    
-    
+        
     if ignore:
         write(
             f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
@@ -1307,7 +1339,7 @@ def send_req_package(package_name: str) -> dict:
     REQA = 'https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/packages/'
 
     try:
-        response = requests.get(REQA + package_name + '.json', timeout=15)
+        response = requests.get(REQA + package_name + '.json', timeout=5)
     except requests.exceptions.ConnectionError:
         click.echo(click.style(f'Failed to request {package_name}.json from raw.githubusercontent.com', 'red'))
         run_internet_test = input('Would you like to run a network debugger? [y/n]: ')
@@ -1325,6 +1357,7 @@ def send_req_package(package_name: str) -> dict:
             sys.stdout.write(f'\r| {Fore.GREEN}OK{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
 
             Debugger.test_internet()
+            sys.exit()
 
     try:
         res = json.loads(response.text)
@@ -1973,9 +2006,29 @@ def update_package_list():
         with open(rf'{PathManager.get_appdata_directory()}\superlog.txt', 'w+') as f:
             f.write(
                 f'{date.today().year} {date.today().month} {date.today().day}')
-        r = requests.get(
-            'https://raw.githubusercontent.com/XtremeDevX/electric-packages/master/package-list.json')
-        data = r.json()
+        try:
+            res = requests.get(
+                'https://raw.githubusercontent.com/XtremeDevX/electric-packages/master/package-list.json', timeout=5)
+        except requests.exceptions.ConnectionError:
+            click.echo(click.style(f'Failed to request package-list.json from raw.githubusercontent.com', 'red'))
+            run_internet_test = input('Would you like to run a network debugger? [y/n]: ')
+            if run_internet_test in ['y', 'yes', 'Y', 'YES']:
+                sys.stdout.write(f'\r| {Fore.CYAN}\{Fore.RESET}  |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+                time.sleep(0.1)
+                sys.stdout.write(f'\r| {Fore.CYAN}|{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+                time.sleep(0.1)
+                sys.stdout.write(f'\r| {Fore.CYAN}/{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+                time.sleep(0.1)
+                sys.stdout.write(f'\r| {Fore.CYAN}-{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+                time.sleep(0.1)
+                sys.stdout.write(f'\r| {Fore.CYAN}\{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+
+                sys.stdout.write(f'\r| {Fore.GREEN}OK{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+
+                Debugger.test_internet()
+                sys.exit()
+
+        data = res.json()
         with open(rf'{PathManager.get_appdata_directory()}\packages.json', 'w+') as f:
             f.write(json.dumps(data, indent=4))
 

@@ -22,6 +22,9 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
         else:
             sys.exit()
 
+    if packet.dependencies:
+        install_dependencies(packet, metadata)
+
     write(
         f'Installing [ {Fore.CYAN}{packet.display_name}{Fore.RESET} ]', 'white', metadata)
 
@@ -124,8 +127,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
             f'{Fore.GREEN}Refreshing Environment Variables{Fore.RESET}', 'white', metadata)
         refresh_environment_variables()
 
-    if packet.dependencies:
-        install_dependencies(packet.dependencies)
+    
 
     if packet.post_install:
         for line in packet.post_install:

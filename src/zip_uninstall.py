@@ -1,6 +1,6 @@
 from Classes.PortablePacket import PortablePacket
 from extension import write
-from zip_utils import delete_environment_variable, delete_start_menu_shortcut, find_existing_installation, display_notes
+from zip_utils import delete_environment_variable, delete_start_menu_shortcut, find_existing_installation, display_notes, uninstall_dependencies
 from Classes.Metadata import Metadata
 from subprocess import Popen, PIPE
 import os
@@ -11,6 +11,9 @@ def uninstall_portable(packet: PortablePacket, metadata: Metadata):
     if find_existing_installation(f'{packet.extract_dir}@{packet.latest_version}'):
 
         loc = rf'{home}\electric\\'
+
+        if packet.dependencies:
+            uninstall_dependencies(packet, metadata)
 
         if packet.bin:
             write(f'Deleting Shims For {packet.display_name}', 'cyan', metadata)
