@@ -154,7 +154,6 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
             f'{Fore.GREEN}Refreshing Environment Variables{Fore.RESET}', 'white', metadata)
         refresh_environment_variables()
   
-
     if packet.post_install:
         for line in packet.post_install:
             exec(line.replace('<install-directory>', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}'))
