@@ -84,9 +84,36 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                 rf'powershell -executionpolicy bypass -File {home}\electric\temp\Scripts\temp.ps1')
             write('Successfully Executed Pre-Install Code', 'green', metadata)
 
+        if packet.pre_install['type'] == 'bat' or packet.pre_install['type'] == 'cmd':
+            packet.pre_install['code'] = [l.replace('<dir>', unzip_dir.replace(
+                '\\\\', '\\')) for l in packet.pre_install['code']]
+            
+            packet.pre_install['code'] = [l.replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}'.replace(
+                '\\\\', '\\')) for l in packet.pre_install['code']]
+
+            if not os.path.isdir(rf'{home}\electric\temp\Scripts'):
+                try:
+                    os.mkdir(rf'{home}\electric\temp')
+                except:
+                    # temp directory already exists
+                    pass
+
+                os.mkdir(rf'{home}\electric\temp\Scripts')
+
+            with open(rf'{home}\electric\temp\Scripts\temp.bat', 'w+') as f:
+                for line in packet.pre_install['code']:
+                    f.write(f'\n{line}')
+            os.system(
+                rf'{home}\electric\temp\Scripts\temp.bat')
+            write('Successfully Executed Pre-Install Code', 'green', metadata)
+
         if packet.pre_install['type'] == 'python':
+            code = ''''''
+
             for l in packet.pre_install['code']:
-                exec(l)
+                code += l + '\n'
+            
+            exec(code)
 
     if packet.chdir:
         dir = packet.chdir
@@ -126,8 +153,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
         write(
             f'{Fore.GREEN}Refreshing Environment Variables{Fore.RESET}', 'white', metadata)
         refresh_environment_variables()
-
-    
+  
 
     if packet.post_install:
         for line in packet.post_install:
