@@ -243,14 +243,17 @@ def install(
 
         if 'install-override-command' in list(pkg.keys()):
             for operation in pkg['install-override-command']:
-                if operation['admin'] == True:
-                    if not is_admin():
-                        write('Installation Must Be Run As Administrator', 'red', metadata)
-                        os._exit(1)
+                if 'admin' in list(operation.keys()):
+                    if operation['admin'] == True:
+                        if not is_admin():
+                            write('Installation Must Be Run As Administrator', 'red', metadata)
+                            os._exit(1)
 
                 if operation['type'] == 'python':
+                    code = ''''''
                     for line in operation['code']:
-                        exec(line)
+                        code += line + '\n'
+                    exec(code)
 
                 elif operation['type'] == 'powershell' or operation['type'] == 'ps1':
                     with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
@@ -349,21 +352,35 @@ def install(
         if 'pre-install' in list(pkg.keys()):
             if isinstance(pkg['pre-install'], list):
                 for proc in pkg['pre-install']:
+                    if 'admin' in list(proc.keys()):
+                        if proc['admin'] == True:
+                            if not is_admin():
+                                write('Installation Must Be Run As Administrator', 'red', metadata)
+                                os._exit(1)
                     if proc['type'] == 'powershell':
                         with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
                             for line in proc['code']:
-                                f.write(line.replace('<installer>', configs['path']) + '\n')
+                                f.write(line.replace('<installer>', configs['path']).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version).replace('<temp>', tempfile.gettempdir()) + '\n')
 
                         os.system(rf'powershell.exe -File {tempfile.gettempdir()}\electric\temp.ps1')
 
+                    if proc['type'] == 'cmd':
+                        with open(rf'{tempfile.gettempdir()}\electric\temp.bat', 'w+') as f:
+                            for line in proc['code']:
+                                f.write(line.replace('<installer>', configs['path']).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version).replace('<temp>', tempfile.gettempdir()) + '\n')
+
+                        os.system(rf'{tempfile.gettempdir()}\electric\temp.bat')
+
                     if proc['type'] == 'python':
                         ldict = {}
+                        code = ''''''
                         for line in proc['code']:
-                            exec(line.replace('<installer>', configs['path']), globals(), ldict)
-                            
+                            code += line.replace('<installer>', configs['path']).replace('<temp>', tempfile.gettempdir()).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version) + '\n'
+                        exec(code, globals(), ldict)
                         for k in configs:
                             if k in ldict:
                                 configs[k] = ldict[k]
+
         setup_name = configs['path'].split('\\')[-1] + packet.win64_type
         
         if not get_pid(setup_name):
@@ -736,7 +753,9 @@ def uninstall(
             f.split('@')[:1]) for f in os.listdir(os.path.expanduser('~') + r'\electric')]
         installed_packages += portable_installed_packages
 
+
         res = send_req_package(package)
+
         if 'is-portable' in list(res.keys()):
                     if res['is-portable'] == True:
                         portable = True
@@ -749,12 +768,17 @@ def uninstall(
         
         if 'uninstall-override-command' in list(pkg.keys()):
             for operation in pkg['uninstall-override-command']:
-                if not is_admin():
-                        write('Uninstallation Must Be Run As Administrator', 'red', metadata)
-                        os._exit(1)
+                if 'admin' in list(operation.keys()):
+                    if operation['admin'] == True:
+                        if not is_admin():
+                            write('Installation Must Be Run As Administrator', 'red', metadata)
+                            os._exit(1)
+
                 if operation['type'] == 'python':
+                    code = ''''''
                     for line in operation['code']:
-                        exec(line)
+                        code += line.replace('<display-name>', res['display-name']).replace('<package-name>', res['package-name']).replace('<version>', version) + '\n'
+                    exec(code)
 
                 elif operation['type'] == 'powershell' or operation['type'] == 'ps1':
                     with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
@@ -813,6 +837,7 @@ def uninstall(
 
         name = pkg['display-name']
         pkg = pkg[version]
+        #
         override_uninstall_switches = pkg['override-default-uninstall-switches'] if 'override-default-uninstall-switches' in list(pkg.keys()) else False
         log_info('Generating Packet For Further Installation.', metadata.logfile)
 

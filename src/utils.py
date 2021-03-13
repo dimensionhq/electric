@@ -942,19 +942,24 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
         }
 
         ldict = {}
+        code = ''''''
+        for line in packet.raw['test-existing-installation']['code']:
+            code += line + '\n'
 
-        exec(packet.raw['test-existing-installation'], globals(), ldict)
+        exec(code, globals(), ldict)
         
         for k in configs:
             if k in ldict:
                 configs[k] = ldict[k]
-    
+        
+        print(configs)
         if configs['existing_installation'] == True:
             write(f'Detected an existing installation of {packet.display_name}', 'yellow', metadata)
         else:
-            os.system('electric deregister rust')
-            write(f'Could not find any existing installation of {packet.display_name}', 'yellow', metadata)
-            os._exit(1)
+            return False
+            # os.system('electric deregister rust')
+            # write(f'Could not find any existing installation of {packet.display_name}', 'yellow', metadata)
+            # os._exit(1)
 
     installation = find_existing_installation(
     package, packet.json_name, test=False)
