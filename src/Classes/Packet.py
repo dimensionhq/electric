@@ -7,7 +7,7 @@ class Packet:
     Used to store data related to the package being installed
     """
 
-    def __init__(self, raw, json_name, display_name, win64, win64_type, custom_location, install_switches, uninstall_switches, directory, dependencies, install_exit_codes, uninstall_exit_codes, version, run_test, set_env, default_install_dir, uninstall):
+    def __init__(self, raw, json_name, display_name, win64, win64_type, custom_location, install_switches, uninstall_switches, directory, dependencies, install_exit_codes, uninstall_exit_codes, version, run_test, set_env, default_install_dir, uninstall, add_path):
         self.raw = raw
         self.json_name = json_name
         self.display_name = display_name
@@ -25,3 +25,4 @@ class Packet:
         self.set_env = set_env
         self.default_install_dir = default_install_dir
         self.uninstall = uninstall
+        self.add_path = add_path

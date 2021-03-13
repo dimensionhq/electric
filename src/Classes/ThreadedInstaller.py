@@ -341,8 +341,24 @@ class ThreadedInstaller:
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
 
-                    packet = Packet(package, res['package-name'], pkg['url'], pkg['file-type'], pkg['custom-location'],
-                                    pkg['install-switches'], pkg['uninstall-switches'], custom_dir, pkg['dependencies'], install_exit_codes, None, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
+                    packet = Packet(
+                        package, 
+                        res['package-name'], 
+                        pkg['url'], 
+                        pkg['file-type'], 
+                        pkg['custom-location'],
+                        pkg['install-switches'], 
+                        pkg['uninstall-switches'], 
+                        custom_dir, 
+                        pkg['dependencies'], 
+                        install_exit_codes, 
+                        None, 
+                        pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, 
+                        pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
+                        pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
+                        pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+                    )
+                    
                     installation = utils.find_existing_installation(
                         package, packet.json_name)
                     if installation:
@@ -396,8 +412,26 @@ class ThreadedInstaller:
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
 
-                    packet = Packet(res, res['package-name'], res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'],
-                                    pkg['install-switches'], pkg['uninstall-switches'], install_directory, pkg['dependencies'], install_exit_codes, [], None, False, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
+                    packet = Packet(
+                        res, 
+                        res['package-name'], 
+                        res['display-name'], 
+                        pkg['url'], 
+                        pkg['file-type'], 
+                        pkg['custom-location'],
+                        pkg['install-switches'], 
+                        pkg['uninstall-switches'], 
+                        install_directory, 
+                        pkg['dependencies'], 
+                        install_exit_codes, 
+                        [], 
+                        None, 
+                        False, 
+                        pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, 
+                        pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
+                        pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
+                        pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+                    )
                     
                     log_info(
                         'Searching for existing installation of package.', metadata.logfile)
@@ -487,9 +521,33 @@ class ThreadedInstaller:
                     # Running The Installer silently And Completing Setup
                     utils.install_package(path, packet, metadata)
 
+                    if packet.add_path:
+                        
+                        replace_install_dir = ''
+
+                        if packet.directory:
+                            replace_install_dir = packet.directory
+
+                        elif packet.default_install_dir:
+                            replace_install_dir = packet.default_install_dir
+                        
+                        write(f'Appending {packet.add_path.replace("<install-directory>", replace_install_dir)} To PATH', 'green', metadata)
+                        utils.append_to_path(packet.add_path.replace('<install-directory>', replace_install_dir))
+
                     if packet.set_env:
+                        name = packet.set_env['name']
+                        replace_install_dir = ''
+
+                        if packet.directory:
+                            replace_install_dir = packet.directory
+
+                        elif packet.default_install_dir:
+                            replace_install_dir = packet.default_install_dir
+
+                        write(f'Setting Environment Variable {name}', 'green', metadata)
+                        
                         set_environment_variable(
-                            packet.set_env['name'], packet.set_env['value'])
+                            name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
 
                     final_snap = get_environment_keys()
                     if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:

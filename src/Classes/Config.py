@@ -103,6 +103,10 @@ class Config:
     @staticmethod
     def get_repr_packages(packages: list, version: bool):
         packages = list(set(packages))
+        for package in packages:
+            if '(empty)' in package:
+                del packages.index('(empty)')
+
         if version:
             packages = str(packages).replace('\'', '').replace('[', '').replace(']', '').replace(',', '').replace('{', '').replace('}', '\n').replace(':', ' =>').strip()
             return packages

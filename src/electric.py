@@ -272,8 +272,27 @@ def install(
         install_exit_codes = []
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
-        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                        install_directory, pkg['dependencies'], install_exit_codes, None, version, pkg['run-test'] if 'run-test' in list(pkg.keys()) else False, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
+        
+        packet = Packet(
+            pkg,
+            package, 
+            res['display-name'], 
+            pkg['url'], 
+            pkg['file-type'], 
+            pkg['custom-location'], 
+            pkg['install-switches'], 
+            pkg['uninstall-switches'],
+            install_directory, 
+            pkg['dependencies'], 
+            install_exit_codes, 
+            None, 
+            version, 
+            pkg['run-test'] if 'run-test' in list(pkg.keys()) else False, 
+            pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, 
+            pkg['default-install-dir'].replace('<appdata>', os.environ['APPDATA'].replace('\\Roaming', '')) if 'default-install-dir' in list(pkg.keys()) else None, 
+            pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
+            pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+            )
 
         write_verbose(
             f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
@@ -392,11 +411,25 @@ def install(
         log_info('Creating final snapshot of registry...', metadata.logfile)
         final_snap = get_environment_keys()
 
+        if packet.add_path:
+            replace_install_dir = ''
+
+            if packet.directory:
+                replace_install_dir = packet.directory
+
+            elif packet.default_install_dir:
+                replace_install_dir = packet.default_install_dir
+            
+            write(f'Appending {packet.add_path.replace("<install-directory>", replace_install_dir)} To PATH', 'green', metadata)
+            append_to_path(packet.add_path.replace('<install-directory>', replace_install_dir))
+
         if packet.set_env:
             name = packet.set_env['name']
             replace_install_dir = ''
+
             if packet.directory:
                 replace_install_dir = packet.directory
+
             elif packet.default_install_dir:
                 replace_install_dir = packet.default_install_dir
 
@@ -570,8 +603,26 @@ def up(
 
         pkg = res
         pkg = pkg[pkg['latest-version']]
-        packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'],
-                        pkg['uninstall-switches'], None, pkg['dependencies'], None, [], res['latest-version'], res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
+        packet = Packet(
+            pkg,
+            package, 
+            res['display-name'], 
+            pkg['url'], 
+            pkg['file-type'], 
+            pkg['custom-location'], 
+            pkg['install-switches'],
+            pkg['uninstall-switches'], 
+            None, 
+            pkg['dependencies'], 
+            None, 
+            [], 
+            res['latest-version'], 
+            pkg['run-check'] if 'run-check' in list(res.keys()) else True, 
+            pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, 
+            pkg['default-install-dir'].replace('<appdata>', os.environ['APPDATA'].replace('\\Roaming', '')) if 'default-install-dir' in list(pkg.keys()) else None, 
+            pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
+            pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+        )
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         installed_packages = [f.replace('.json', '').split(
             '@')[:-1] for f in os.listdir(PathManager.get_appdata_directory() + r'\Current')]
@@ -893,8 +944,27 @@ def uninstall(
             uninstall_portable(portable_packet, metadata)
             sys.exit()
 
-        packet = Packet(pkg, package, name, pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                        None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
+        packet = Packet(
+            pkg, 
+            package, 
+            name, 
+            pkg['url'], 
+            pkg['file-type'], 
+            pkg['custom-location'], 
+            pkg['install-switches'], 
+            pkg['uninstall-switches'],
+            None, 
+            pkg['dependencies'], 
+            None, 
+            uninstall_exit_codes, 
+            version, 
+            res['run-check'] if 'run-check' in list(res.keys()) else True, 
+            pkg['set-env'] if 'set-env' in list(pkg.keys()) else None,
+            pkg['default-install-dir'].replace('<appdata>', os.environ['APPDATA'].replace('\\Roaming', '')) if 'default-install-dir' in list(pkg.keys()) else None, 
+            pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
+            pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+        )
+
         proc = None
         ftp = ['.msix', '.msixbundle', '.appxbundle', '.appx']
         
@@ -938,8 +1008,26 @@ def uninstall(
                      metadata.logfile)
 
             uninstall_exit_codes = []
-            packet = Packet(pkg, package, name, pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                            None, pkg['dependencies'], None, uninstall_exit_codes, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
+            packet = Packet(
+                pkg, 
+                package, 
+                name, 
+                pkg['url'], 
+                pkg['file-type'], 
+                pkg['custom-location'], 
+                pkg['install-switches'], 
+                pkg['uninstall-switches'],
+                None, 
+                pkg['dependencies'], 
+                None, 
+                uninstall_exit_codes, 
+                version, 
+                pkg['run-check'] if 'run-check' in list(res.keys()) else True, 
+                pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, 
+                pkg['default-install-dir'].replace('<appdata>', os.environ['APPDATA'].replace('\\Roaming', '')) if 'default-install-dir' in list(pkg.keys()) else None, 
+                pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
+                pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+            )
 
             write(
                 f'Could not find any existing installations of {packet.display_name}', 'red', metadata)
@@ -1610,28 +1698,21 @@ def ls(_, installed: bool, versions: bool):
         max_length = 80
         names = [ software['DisplayName'] for software in installed_software ]
         
-        ids = []
         versions = []
         for software in installed_software:
             id = re.findall(r'{[A-Z\d-]{36}\}', software['UninstallString'])
             
-            if len(id) == 1:
-                ids.append(id[0])
-            else:
-                ids.append(software['KeyName'])
-
             version = software['Version']
             versions.append(version)
 
-        print('Name', ' '* 96, 'ID', ' ' * 70, 'Version', ' ' * 20)
-        print('-' * 190)
+        print('Name', ' ' * 76, 'Version')
+        print('-' * 105)
         
         idx = 0
         for name in names:
             id_length = 90
             length = len(name)
-            pkg_id = len(ids[idx])
-            print(name.strip(), ' ' * (max_length - length), ids[idx], ' ' * (id_length - pkg_id), versions[idx])
+            print(name.strip(), ' ' * (max_length - length), versions[idx])
             idx += 1
 
 

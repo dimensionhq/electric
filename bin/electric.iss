@@ -22,10 +22,10 @@ DefaultDirName={autopf}\{#MyAppName}
 DisableDirPage=yes
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-LicenseFile=C:\Users\xtrem\Desktop\Electric\electric\LICENSE
+LicenseFile=C:\Users\xtrem\Desktop\electric-dev\electric\LICENSE
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir=C:\Users\xtrem\Desktop\Electric\electric\bin
+OutputDir=C:\Users\xtrem\Desktop\electric-dev\electric\bin
 OutputBaseFilename=Electric v1.0.0 Alpha Setup
 Compression=lzma
 SolidCompression=yes
@@ -141,5 +141,5 @@ SetupWindowTitle = Electric Alpha Setup
 Type: filesandordirs; Name: "C:\Program Files (x86)\Electric\bin"
 
 [Files]
-Source: "C:\Users\xtrem\Desktop\electric\electric-dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\Users\xtrem\Desktop\electric\electric-dist\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\xtrem\Desktop\electric-dev\electric-dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\xtrem\Desktop\electric-dev\electric-dist\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion

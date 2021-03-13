@@ -551,9 +551,27 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     write('Pre Install Multi-Threaded Implementation Is Still In Development, Forcing Sync Installation', 'yellow', metadata)
                     return
 
-                packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                                custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
-                
+                packet = Packet(
+                    pkg, 
+                    package, 
+                    res['display-name'], 
+                    pkg['url'], 
+                    pkg['file-type'], 
+                    pkg['custom-location'], 
+                    pkg['install-switches'], 
+                    pkg['uninstall-switches'],
+                    custom_dir, 
+                    pkg['dependencies'], 
+                    install_exit_codes, 
+                    None, 
+                    version, 
+                    res['run-check'] if 'run-check' in list(res.keys()) else True, 
+                    pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, 
+                    pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
+                    pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
+                    pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+                )
+
                 installation = find_existing_installation(
                     package, packet.display_name)
                 if installation:
@@ -630,8 +648,27 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
 
-                    packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                                    install_directory, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
+                    packet = Packet(
+                        pkg, 
+                        package, 
+                        res['display-name'], 
+                        pkg['url'], 
+                        pkg['file-type'], 
+                        pkg['custom-location'], 
+                        pkg['install-switches'], 
+                        pkg['uninstall-switches'],
+                        install_directory, 
+                        pkg['dependencies'], 
+                        install_exit_codes, 
+                        None, 
+                        version, 
+                        pkg['run-check'] if 'run-check' in list(res.keys()) else True, 
+                        pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, 
+                        pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
+                        pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
+                        pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+                    )
+
                     log_info(
                         'Searching for existing installation of package.', metadata.logfile)
 
@@ -828,8 +865,27 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     install_exit_codes = None
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
-                    packet = Packet(pkg, package, res['display-name'], pkg['url'], pkg['file-type'], pkg['custom-location'], pkg['install-switches'], pkg['uninstall-switches'],
-                                    custom_dir, pkg['dependencies'], install_exit_codes, None, version, res['run-check'] if 'run-check' in list(res.keys()) else True, pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [])
+                    packet = Packet(
+                        pkg, 
+                        package, 
+                        res['display-name'], 
+                        pkg['url'], 
+                        pkg['file-type'], 
+                        pkg['custom-location'], 
+                        pkg['install-switches'], 
+                        pkg['uninstall-switches'],
+                        custom_dir, 
+                        pkg['dependencies'], 
+                        install_exit_codes, 
+                        None, 
+                        version, 
+                        pkg['run-check'] if 'run-check' in list(res.keys()) else True, 
+                        pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, 
+                        pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
+                        pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
+                        pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+                    )
+
                     installation = find_existing_installation(
                         package, packet.display_name, test=False)
                     if installation:
@@ -945,7 +1001,7 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
         code = ''''''
         for line in packet.raw['test-existing-installation']['code']:
             code += line + '\n'
-
+        # print(code)
         exec(code, globals(), ldict)
         
         for k in configs:
