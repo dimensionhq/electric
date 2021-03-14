@@ -531,7 +531,7 @@ class ThreadedInstaller:
                         elif packet.default_install_dir:
                             replace_install_dir = packet.default_install_dir
                         
-                        write(f'Appending {packet.add_path.replace("<install-directory>", replace_install_dir)} To PATH', 'green', metadata)
+                        write(f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'green', metadata)
                         utils.append_to_path(packet.add_path.replace('<install-directory>', replace_install_dir))
 
                     if packet.set_env:

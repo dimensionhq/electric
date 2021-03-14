@@ -240,6 +240,8 @@ def install(
         
         handle_portable_installation(version == 'portable', pkg, res, metadata)
 
+        
+
 
         if 'install-override-command' in list(pkg.keys()):
             for operation in pkg['install-override-command']:
@@ -302,6 +304,11 @@ def install(
             f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
 
         handle_existing_installation(package, packet, force, metadata, ignore)
+
+        if 'add-path' in list(pkg.keys()):
+            if not is_admin():
+                write('Installation Must Be Run As Administrator', 'red', metadata)
+                os._exit(1)
 
         if packet.dependencies:
             ThreadedInstaller.install_dependent_packages(
@@ -450,7 +457,7 @@ def install(
             elif packet.default_install_dir:
                 replace_install_dir = packet.default_install_dir
             
-            write(f'Appending {packet.add_path.replace("<install-directory>", replace_install_dir)} To PATH', 'green', metadata)
+            write(f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'green', metadata)
             append_to_path(packet.add_path.replace('<install-directory>', replace_install_dir))
 
         if packet.set_env:
@@ -1112,7 +1119,7 @@ def uninstall(
                     write_verbose(
                         'Adding additional uninstall switches', metadata)
                     write_debug(
-                        'Appending / Adding additional uninstallation switches', metadata)
+                        'Appending additional uninstallation switches', metadata)
                     log_info('Adding additional uninstall switches',
                              metadata.logfile)
                     additional_switches = packet.uninstall_switches
