@@ -273,19 +273,24 @@ def check_resume_download(package_name: str, download_url: str, metadata: Metada
         return (None, None)
 
 
-def send_req_bundle() -> dict:
+def send_req_bundle(bundle_name: str) -> dict:
     """
     Send a network request to the API for the bundles to be installed
+
+    #### Arguments
+        url (str): The name of the bundle to request
 
     Returns:
         dict: The json response from the network request
     """
-    REQA = 'https://electric-package-manager.herokuapp.com/bundles/windows'
+    REQA = 'https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/bundles/'
     time = 0.0
-    response = requests.get(REQA, timeout=15)
+    response = requests.get(REQA + '', timeout=15)
+    if response.status_code != 200:
+        print(f'{Fore.RED} {bundle_name} not found! {Fore.RESET}')
     res = response.json()
-    time = response.elapsed.total_seconds()
-    return res, time
+    
+    return res
 
 
 def get_init_char(start, metadata) -> str:

@@ -16,6 +16,8 @@ from shutil import copytree, move
 from Classes.Metadata import Metadata
 from Classes.PortablePacket import PortablePacket
 from extension import write
+from zipfile import ZipFile
+from tqdm import tqdm
 
 home = os.path.expanduser('~')
 
@@ -28,6 +30,7 @@ def delete_start_menu_shortcut(shortcut_name):
 
 
 def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata: Metadata):
+
     if not unzip_dir_name:
         unzip_dir_name = download_dir.replace('.zip', '')
 
@@ -43,9 +46,14 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata:
             except:
                 pass
 
-    elif not metadata.silent and file_type == '.zip':
-        os.system(
-            rf'powershell.exe -noprofile Expand-Archive "{download_dir}" -Force')
+    if not metadata.silent and file_type == '.zip':
+        with zipfile.ZipFile(download_dir, 'r') as zf:
+            for member in tqdm(zf.infolist(), desc='Extracting ', bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}', smoothing=0.0, unit='files'):
+                try:
+                    zf.extract(member, download_dir.replace('.zip', ''))
+                except zipfile.error:
+                    pass
+
 
     if file_type == '.tar':
         tar = tarfile.open(download_dir, 'r:')
@@ -58,6 +66,7 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata:
     if file_type == '.7z':
         with py7zr.SevenZipFile(download_dir) as z:
             z.extractall(unzip_dir_name)
+
     if file_type == '.rar':
         patoolib.extract_archive(download_dir, outdir=unzip_dir_name)
 

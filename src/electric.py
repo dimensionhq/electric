@@ -1288,8 +1288,9 @@ def bundle(
     exclude: str,
 ):
     """
-    Installs a bunlde of packages from the official electric repository.
+    Installs a bundle of packages from the official electric repository.
     """
+
     metadata = generate_metadata(
         no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync)
 
@@ -1305,16 +1306,16 @@ def bundle(
         keyboard.add_hotkey(
             'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
 
-        spinner = halo.Halo(color='grey')
-        spinner.start()
         log_info('Handling Network Request...', metadata.logfile)
         status = 'Networking'
         write_verbose('Sending GET Request To /bundles', metadata)
         write_debug('Sending GET Request To /bundles', metadata)
         log_info('Sending GET Request To /bundles', metadata.logfile)
-        res = send_req_bundle()
-        del res['_id']
-        spinner.stop()
+        res = send_req_bundle(bundle_name)
+
+
+        write(f'SuperCached [ {bundle_name} (bundle) ]')
+
         package_names = ''
         idx = 0
 
@@ -1322,6 +1323,8 @@ def bundle(
 
         corrected_package_names = get_autocorrections(
             [bundle_name], correct_names, metadata)
+
+        
 
         for value in res[corrected_package_names[0]]['dependencies']:
             if idx == 0:
@@ -1368,9 +1371,10 @@ def bundle(
                 reduce=reduce,
                 rate_limit=rate_limit
             )
+
     else:
         click.echo(click.style(
-            '\nAdministrator Elevation Required. Exit Code [0001]', 'red'), err=True)
+            '\nAdministrator Elevation Required For Bundle Installation. Exit Code [0001]', 'red'), err=True)
         disp_error_msg(get_error_message(
             '0001', 'installation', 'None', None), metadata)
 
