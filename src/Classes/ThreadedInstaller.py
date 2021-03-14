@@ -404,6 +404,7 @@ class ThreadedInstaller:
                 write('Starting Sync Installation', 'green', metadata)
                 for package in packet.dependencies:
                     res = utils.send_req_package(package)
+                    write(f'SuperCached [ {Fore.CYAN}{res["display-name"]}{Fore.RESET} ]', 'white', metadata)
                     pkg = res[res['latest-version']]
                     log_info(
                         'Generating Packet For Further Installation.', metadata.logfile)

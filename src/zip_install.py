@@ -25,9 +25,6 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
     if packet.dependencies:
         install_dependencies(packet, metadata)
 
-    write(
-        f'Installing [ {Fore.CYAN}{packet.display_name}{Fore.RESET} ]', 'white', metadata)
-
     changes_environment = False
     shortcuts = packet.shortcuts
     extract_dir = packet.extract_dir

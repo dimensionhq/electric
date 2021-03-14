@@ -43,6 +43,7 @@ from limit import *
 from logger import *
 from viruscheck import virus_check
 from zip_install import install_portable
+from zip_uninstall import uninstall_portable
 
 index = 0
 final_value = None
@@ -507,6 +508,59 @@ def handle_uninstall_dependencies(packet: Packet, metadata):
     for package_name in packet.dependencies:
         os.system(f'electric uninstall {package_name}')
 
+
+def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadata: Metadata):
+    if portable and not 'is-portable' in list(res.keys()):
+        keys = list(pkg[pkg['latest-version']].keys())
+
+        data = {
+            'display-name': pkg['display-name'],
+            'package-name': pkg['package-name'],
+            'latest-version': pkg['latest-version'],
+            'url': pkg[pkg['latest-version']]['url'],
+            'file-type': pkg[pkg['latest-version']]['file-type'] if 'file-type' in keys else None,
+            'extract-dir': pkg[pkg['latest-version']]['extract-dir'],
+            'chdir': pkg[pkg['latest-version']]['chdir'] if 'chdir' in keys else None,
+            'bin': pkg[pkg['latest-version']]['bin'] if 'bin' in keys else None,
+            'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
+            'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
+            'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else None,
+            'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else None,
+            'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
+            'dependencies': pkg[pkg['latest-version']]['dependencies'] if 'dependencies' in keys else None,
+            'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
+        }
+
+        portable_packet = PortablePacket(data)
+        uninstall_portable(portable_packet, metadata)
+        sys.exit()
+
+    elif portable and 'is-portable' in list(res.keys()):
+        keys = list(pkg[pkg['latest-version']].keys())
+        data = {
+            'display-name': pkg['display-name'],
+            'package-name': pkg['package-name'],
+            'latest-version': pkg['latest-version'],
+            'url': pkg[pkg['latest-version']]['url'],
+            'file-type': pkg[pkg['latest-version']]['file-type'],
+            'extract-dir': pkg[pkg['latest-version']]['extract-dir'],
+            'chdir': pkg[pkg['latest-version']]['chdir'] if 'chdir' in keys else [],
+            'bin': pkg[pkg['latest-version']]['bin'] if 'bin' in keys else [],
+            'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
+            'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
+            'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
+            'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else [],
+            'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
+            'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
+            'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
+            'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
+            'dependencies': pkg[pkg['latest-version']]['dependencies'] if 'dependencies' in keys else None,
+        }
+        portable_packet = PortablePacket(data)
+        uninstall_portable(portable_packet, metadata)
+        sys.exit()
+
+
 def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata, ignore: bool):
     # Group the packages list into a 2D array
     # grouper(['sublime-text-3', 'atom', 'vscode', 'notepad++', 'anydesk'], 3) => [['sublime-text-3', 'atom', 'vscode']['notepad++', 'anydesk']]
@@ -576,16 +630,9 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
                 )
 
-                installation = find_existing_installation(
-                    package, packet.display_name)
-                if installation:
-                    write_debug(
-                        f'Aborting Installation As {packet.json_name} is already installed.', metadata)
-                    write_verbose(
-                        f'Found an existing installation of => {packet.json_name}', metadata)
-                    write(
-                        f'Found an existing installation {packet.display_name}.', 'yellow', metadata)
                 
+                handle_existing_installation(packet.json_name, packet, False, metadata, False)
+
                 write_verbose(
                     f'Package to be installed: {packet.json_name}', metadata)
                 log_info(
@@ -1005,14 +1052,12 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
         code = ''''''
         for line in packet.raw['test-existing-installation']['code']:
             code += line + '\n'
-        # print(code)
         exec(code, globals(), ldict)
         
         for k in configs:
             if k in ldict:
                 configs[k] = ldict[k]
         
-        print(configs)
         if configs['existing_installation'] == True:
             write(f'Detected an existing installation of {packet.display_name}', 'yellow', metadata)
         else:

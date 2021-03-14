@@ -35,7 +35,6 @@ from logger import *
 from registry import get_environment_keys, get_uninstall_key, send_query
 from settings import initialize_settings, open_settings
 from utils import *
-from zip_uninstall import uninstall_portable
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 
@@ -228,6 +227,13 @@ def install(
         # request the json response of the package
         res = send_req_package(package)
 
+        if not metadata.silent:
+            if not metadata.no_color:
+                print('SuperCached [', Fore.CYAN +
+                      f'{res["display-name"]}' + Fore.RESET + ' ]')
+            else:
+                print(f'SuperCached [ {res["display-name"]} ]')
+
         log_info('Successfully Updated SuperCache', metadata.logfile)
 
         pkg = res
@@ -328,12 +334,7 @@ def install(
         write_verbose('Generating system download path...', metadata)
         log_info('Generating system download path...', metadata.logfile)
 
-        if not metadata.silent:
-            if not metadata.no_color:
-                print('SuperCached [', Fore.CYAN +
-                      f'{packet.display_name}' + Fore.RESET + ' ]')
-            else:
-                print(f'SuperCached [ {packet.display_name} ]')
+        
 
         status = 'Download Path'
         download_url = packet.win64
@@ -844,6 +845,10 @@ def uninstall(
 
         res = send_req_package(package)
 
+        write(
+            f'SuperCached [ {Fore.CYAN}{res["display-name"]}{Fore.RESET} ]', 'white', metadata)
+        
+
         if 'is-portable' in list(res.keys()):
                     if res['is-portable'] == True:
                         portable = True
@@ -929,57 +934,7 @@ def uninstall(
         override_uninstall_switches = pkg['override-default-uninstall-switches'] if 'override-default-uninstall-switches' in list(pkg.keys()) else False
         log_info('Generating Packet For Further Installation.', metadata.logfile)
 
-        if portable and not 'is-portable' in list(res.keys()):
-            keys = list(pkg[pkg['latest-version']].keys())
-
-            data = {
-                'display-name': pkg['display-name'],
-                'package-name': pkg['package-name'],
-                'latest-version': pkg['latest-version'],
-                'url': pkg[pkg['latest-version']]['url'],
-                'file-type': pkg[pkg['latest-version']]['file-type'] if 'file-type' in keys else None,
-                'extract-dir': pkg[pkg['latest-version']]['extract-dir'],
-                'chdir': pkg[pkg['latest-version']]['chdir'] if 'chdir' in keys else None,
-                'bin': pkg[pkg['latest-version']]['bin'] if 'bin' in keys else None,
-                'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
-                'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
-                'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else None,
-                'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else None,
-                'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
-                'dependencies': pkg[pkg['latest-version']]['dependencies'] if 'dependencies' in keys else None,
-                'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
-            }
-
-            portable_packet = PortablePacket(data)
-            start = timer()
-            uninstall_portable(portable_packet, metadata)
-            end = timer()
-            sys.exit()
-
-        elif portable and 'is-portable' in list(res.keys()):
-            keys = list(pkg[pkg['latest-version']].keys())
-            data = {
-                'display-name': pkg['display-name'],
-                'package-name': pkg['package-name'],
-                'latest-version': pkg['latest-version'],
-                'url': pkg[pkg['latest-version']]['url'],
-                'file-type': pkg[pkg['latest-version']]['file-type'],
-                'extract-dir': pkg[pkg['latest-version']]['extract-dir'],
-                'chdir': pkg[pkg['latest-version']]['chdir'] if 'chdir' in keys else [],
-                'bin': pkg[pkg['latest-version']]['bin'] if 'bin' in keys else [],
-                'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
-                'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
-                'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
-                'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else [],
-                'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
-                'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
-                'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
-                'persist': pkg[pkg['latest-version']]['persist'] if 'presist' in keys else None,
-                'dependencies': pkg[pkg['latest-version']]['dependencies'] if 'dependencies' in keys else None,
-            }
-            portable_packet = PortablePacket(data)
-            uninstall_portable(portable_packet, metadata)
-            sys.exit()
+        handle_portable_uninstallation(version == 'portable', res, pkg, metadata)
 
         packet = Packet(
             pkg, 
@@ -1017,8 +972,7 @@ def uninstall(
         keyboard.add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
 
-        write(
-            f'SuperCached [ {Fore.CYAN}{packet.display_name}{Fore.RESET} ]', 'white', metadata)
+        
         log_info(
             f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
 
@@ -1045,6 +999,7 @@ def uninstall(
                      metadata.logfile)
 
             uninstall_exit_codes = []
+            
             packet = Packet(
                 pkg, 
                 package, 
