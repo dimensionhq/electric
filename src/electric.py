@@ -189,10 +189,6 @@ def install(
         python, node, vscode, sublime, atom, version, package_name, metadata)
 
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
-    status = 'Initializing'
-    setup_name = ''
-    keyboard.add_hotkey(
-        'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
 
     # Split the supplied package_name by ,
     # For example : 'sublime-text-3,atom' becomes ['sublime-text-3', 'atom']
@@ -319,7 +315,6 @@ def install(
             ThreadedInstaller.install_dependent_packages(
                 packet, rate_limit, install_directory, metadata)
 
-
         write_verbose(
             f'Package to be installed: {packet.json_name}', metadata)
         log_info(
@@ -333,11 +328,7 @@ def install(
         write_verbose('Generating system download path...', metadata)
         log_info('Generating system download path...', metadata.logfile)
 
-        
-
-        status = 'Download Path'
         download_url = packet.win64
-        status = 'Got Download Path'
 
         log_info(f'Recieved download path : {download_url}', metadata.logfile)
         log_info('Initializing Rapid Download...', metadata.logfile)
@@ -348,16 +339,12 @@ def install(
         write_verbose(
             f"Downloading from '{download_url}'", metadata)
         log_info(f"Downloading from '{download_url}'", metadata.logfile)
-
-        status = 'Downloading'
         
         configs['path'] = download_installer(packet, download_url, metadata)
 
 
         if packet.checksum:
             verify_checksum(configs['path'], packet.checksum, metadata)
-
-        status = 'Downloaded'
 
         log_info('Finished Rapid Download', metadata.logfile)
 
@@ -376,9 +363,9 @@ def install(
         log_info(
             f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
         log_info('Creating start snapshot of registry...', metadata.logfile)
-        
+
         start_snap = get_environment_keys()
-        status = 'Installing'
+
         # Running The Installer silently And Completing Setup
         if 'pre-install' in list(pkg.keys()):
             if isinstance(pkg['pre-install'], list):
@@ -413,11 +400,16 @@ def install(
                                 configs[k] = ldict[k]
 
         setup_name = configs['path'].split('\\')[-1] + packet.win64_type
-        
+        status = 'Installing'
+
+        keyboard.add_hotkey('ctrl+c', lambda: handle_exit(status, setup_name, metadata))
+
         if not get_pid(setup_name):
             install_package(configs['path'], packet, metadata)
         else:
             disp_error_msg(get_error_message('1618', 'install', packet.display_name, version), metadata)
+
+        keyboard.remove_hotkey('ctrl+c')
 
         if 'post-install' in list(pkg.keys()):
             if isinstance(pkg['post-install'], list):
@@ -447,7 +439,6 @@ def install(
                         for line in proc['code']:
                             code += line.replace('<installer>', configs['path']).replace('<temp>', tempfile.gettempdir()).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version) + '\n'
                         exec(code, globals())
-
 
         status = 'Installed'
         log_info('Creating final snapshot of registry...', metadata.logfile)

@@ -1580,10 +1580,11 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
         setup_name (str): Name of the setup file being run if any
         metadata (`Metadata`): Metadata for the method
     """
-    if status == 'Downloaded' or status == 'Installing' or status == 'Installed':
-        write('\nTrying To Quit Installer',
+    if status == 'Installing':
+        write('Trying To Quit Installer',
               'cyan', metadata)
-        exe_name = setup_name.split('\\')[-1]
+        exe_name = setup_name.split('\\')[-1].replace('.exe.exe', '').replace('.msi.msi', '')
+        
         pid = get_pid(exe_name)
         try:
             pid = int(pid)
@@ -1592,22 +1593,10 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
             pass
 
         sys.stdout.write(f'{Fore.RESET}{Fore.RESET}')
-        write('\nRapidExit  Successfully Exited With Code 0',
-              'cyan', metadata)
+        write('RapidExit Successfully Exited With Code 0',
+              'green', metadata)
               
         os._exit(1)
-
-    if status == 'Got Download Path':
-        print(Fore.RESET, '')
-        write('\nRapidExit Successfully Exited With Code 0', 'green', metadata)
-        # print(Fore.RESET, '')
-        sys.exit()
-
-    if status == 'Downloading':
-        print(Fore.RESET, '')
-        write('\n\nRapidExit Successfully Exited With Code 0', 'green', metadata)
-        # print(Fore.RESET, '')
-        sys.exit()
 
     else:
         print(Fore.RESET, '')
