@@ -3,9 +3,7 @@
 #                 SPDX-License-Identifier: Apache-2.0                #
 ######################################################################
 
-# Install .msixbundle file => Add-AppxPackage Microsoft.WindowsTerminal_0.11.1191.0_8wekyb3d8bbwe.msixbundle
 # TODO: Add Conflict-With Field For Json To Differentiate Between Microsoft Visual Studio Code and Microsoft Visual Studio Code Insiders
-# TODO: Add option to add a directory to bin
 
 import re
 import winreg
@@ -21,6 +19,8 @@ from colorama import Fore
 from progress.bar import Bar
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
+from multiprocessing import freeze_support
+
 
 from Classes.Config import Config
 from Classes.Packet import Packet
@@ -1872,4 +1872,5 @@ def complete(
 
 
 if __name__ == '__main__':
+    freeze_support()
     cli()  # pylint: disable=no-value-for-parameter

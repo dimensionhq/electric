@@ -349,6 +349,13 @@ def delete_environment_variable(name: str):
     Popen(rf'reg delete "HKCU\Environment" /F /V "{name}"', stdin=PIPE,
           stdout=PIPE, stderr=PIPE, shell=True)
 
+
+def append_to_path(input_dir: str):
+    proc = Popen(f'setx /M path "%PATH%;{input_dir}"', stdin=PIPE,
+          stdout=PIPE, stderr=PIPE, shell=True)
+    _, _ = proc.communicate()
+
+
 def refresh_environment_variables():
     """
     Refreshes the environment variables on the current Powershell session.

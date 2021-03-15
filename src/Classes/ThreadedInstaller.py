@@ -78,7 +78,7 @@ class ThreadedInstaller:
         download_type = install.download_type
         custom_install_switch = install.custom_install_switch
         directory = install.directory
-
+        
         if download_type == '.exe':
             if '.exe' not in path:
                 if not os.path.isfile(path + '.exe'):
@@ -94,9 +94,6 @@ class ThreadedInstaller:
                     command += ' ' + custom_install_switch + f'{directory}'
                 else:
                     command += ' ' + custom_install_switch + f'"{directory}"'
-                # if custom_install_switch == '':
-                #     click.echo(click.style(
-                #         f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
 
             if custom_install_switch == 'None' and install.directory:
                 click.echo(click.style(
@@ -190,9 +187,9 @@ class ThreadedInstaller:
             f'Rapid Download Successfully Downloaded {len(download_items)} Packages Using RapidThreading', metadata)
         write_debug('Rapid Download Exiting With Code 0', metadata)
         if not self.metadata.debug:
-            write('\nSuccessfully Downloaded Installers', 'green', metadata)
+            write('\nSuccessfully Downloaded Installation Files', 'green', metadata)
         else:
-            write('Successfully Downloaded Installers', 'green', metadata)
+            write('Successfully Downloaded Installation Files', 'green', metadata)
         log_info('Finished Rapid Download', metadata.logfile)
         write(
             'Installing Packages', 'cyan', metadata)
@@ -265,11 +262,15 @@ class ThreadedInstaller:
                         multiprocessing.Process(
                             target=self.install_package, args=(val,))
                     )
+
                 for process in processes:
                     process.start()
+
                 for x in processes:
                     x.join()
+
                 processes.clear()
+            
             idx += 1
 
         if self.metadata.reduce_package:

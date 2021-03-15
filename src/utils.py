@@ -676,6 +676,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
             log_info('Finished Rapid Download...', metadata.logfile)
             log_info(
                 f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
+            
             manager.handle_multi_install(paths)
             sys.exit()
 
@@ -713,6 +714,11 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         version = res['latest-version']
 
                     pkg = pkg[version]
+                    
+                    if os.path.isdir(f'{PathManager.get_appdata_directory()}\Current\{package}@{version}.json'):
+                        write(f'{res["display-name"]} Is Already Installed!')
+                        sys.exit()
+
                     log_info(
                         'Generating Packet For Further Installation.', metadata.logfile)
 
@@ -851,6 +857,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                                         if k in ldict:
                                             configs[k] = ldict[k]
 
+
                     # Running The Installer silently And Completing Setup
                     install_package(path, packet, metadata)
 
@@ -935,6 +942,10 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
 
                     version = res['latest-version']
                     pkg = pkg[version]
+
+                    if os.path.isdir(f'{PathManager.get_appdata_directory()}\Current\{package}@{version}.json'):
+                        write(f'{res["display-name"]} Is Already Installed!')
+                        sys.exit()
 
                     install_exit_codes = None
                     if 'valid-install-exit-codes' in list(pkg.keys()):
