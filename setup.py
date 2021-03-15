@@ -47,6 +47,7 @@ setup(
         'py7zr',
         'pywin32',
         'patool',
+        'tqdm'
     ],
     package_dir={'': 'src'},
     entry_points =

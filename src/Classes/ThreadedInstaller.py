@@ -362,6 +362,7 @@ class ThreadedInstaller:
                     
                     installation = utils.find_existing_installation(
                         package, packet.json_name)
+
                     if installation:
                         write_debug(
                             f'Aborting Installation As {packet.json_name} is already installed.', metadata)
