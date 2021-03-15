@@ -357,6 +357,7 @@ class ThreadedInstaller:
                         pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
                         pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
                         pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+                        pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
                     )
                     
                     installation = utils.find_existing_installation(
@@ -432,6 +433,7 @@ class ThreadedInstaller:
                         pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
                         pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
                         pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+                        pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
                     )
                     
                     log_info(

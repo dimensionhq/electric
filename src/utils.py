@@ -132,6 +132,18 @@ def is_admin() -> bool:
     return is_admin
 
 
+def verify_checksum(path: str, checksum: str, metadata: Metadata):
+    if hashlib.sha256(open(path, 'rb').read()).hexdigest() == checksum:
+        write('Verified Installer Hash', 'green', metadata)
+    else:
+        write('Hashes Don\'t Match!', 'green', metadata)
+        continue_installation = input('Would you like to continue with installation? [Y/n]: ') 
+        if continue_installation:
+            return
+        else:
+            os._exit(1)
+
+
 def generate_dict(path: str, package_name: str) -> dict:
     """
     Generates dictionary to dump to the downloadcache.pickle
@@ -633,6 +645,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
                     pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
                     pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+                    pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
                 )
 
                 
@@ -723,6 +736,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
                         pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
                         pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+                        pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
                     )
 
                     log_info(
@@ -940,6 +954,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
                         pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
                         pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+                        pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
                     )
 
                     installation = find_existing_installation(

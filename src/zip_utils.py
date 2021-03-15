@@ -18,6 +18,8 @@ from Classes.PortablePacket import PortablePacket
 from extension import write
 from zipfile import ZipFile
 from tqdm import tqdm
+from hashlib import sha256
+
 
 home = os.path.expanduser('~')
 
@@ -27,6 +29,13 @@ def delete_start_menu_shortcut(shortcut_name):
         R'\Microsoft\Windows\Start Menu\Programs\Electric'
     path = os.path.join(start_menu, f'{shortcut_name}.lnk')
     os.remove(path)
+
+
+def verify_checksum(path: str, checksum: str):
+    if sha256(open(path, 'rb').read()).hexdigest() == checksum:
+        print('Hashes Match!')
+    else:
+        print('Hashes Don\'t Match!')
 
 
 def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata: Metadata):

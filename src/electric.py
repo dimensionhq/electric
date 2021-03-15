@@ -245,9 +245,7 @@ def install(
         pkg = pkg[version]
         
         handle_portable_installation(version == 'portable', pkg, res, metadata)
-
-        
-
+      
 
         if 'install-override-command' in list(pkg.keys()):
             for operation in pkg['install-override-command']:
@@ -300,7 +298,8 @@ def install(
             pkg['default-install-dir'].replace('<appdata>', os.environ['APPDATA'].replace('\\Roaming', '')) if 'default-install-dir' in list(pkg.keys()) else None, 
             pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
             pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
-            )
+            pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
+        )
 
         write_verbose(
             f'Rapidquery Successfully Received {packet.json_name}.json', metadata)
@@ -351,7 +350,12 @@ def install(
         log_info(f"Downloading from '{download_url}'", metadata.logfile)
 
         status = 'Downloading'
+        
         configs['path'] = download_installer(packet, download_url, metadata)
+
+
+        if packet.checksum:
+            verify_checksum(configs['path'], packet.checksum, metadata)
 
         status = 'Downloaded'
 
@@ -660,6 +664,7 @@ def up(
             pkg['default-install-dir'].replace('<appdata>', os.environ['APPDATA'].replace('\\Roaming', '')) if 'default-install-dir' in list(pkg.keys()) else None, 
             pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
             pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+            pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
         )
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         installed_packages = [f.replace('.json', '').split(
@@ -955,6 +960,7 @@ def uninstall(
             pkg['default-install-dir'].replace('<appdata>', os.environ['APPDATA'].replace('\\Roaming', '')) if 'default-install-dir' in list(pkg.keys()) else None, 
             pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
             pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+            pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
         )
 
         proc = None
@@ -1019,6 +1025,7 @@ def uninstall(
                 pkg['default-install-dir'].replace('<appdata>', os.environ['APPDATA'].replace('\\Roaming', '')) if 'default-install-dir' in list(pkg.keys()) else None, 
                 pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
                 pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
+                pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
             )
 
             write(
