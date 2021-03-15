@@ -1775,7 +1775,7 @@ def autoupdate(
 
     url = data[data['latest-version']]['url']
 
-    webpage = input(f'{Fore.RESET}Enter URL For Download Page:{Fore.CYAN} ')
+    webpage = data[data['latest-version']]['auto-update']['webpage']
     
     print(f'{Fore.GREEN}Sending Request To {webpage}{Fore.RESET}')
     
