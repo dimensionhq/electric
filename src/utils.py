@@ -1,16 +1,11 @@
-import ctypes
 import difflib
-import hashlib
 import json
 from debugger import Debugger
 
 from external import *
-import Classes.ThreadedInstaller as ti
 from json.decoder import JSONDecodeError
 import os
 import pickle
-import random
-import re
 from itertools import zip_longest
 import sys
 import tempfile
@@ -125,6 +120,8 @@ def is_admin() -> bool:
     Returns:
         bool: If electric is run as administrator
     """
+    import ctypes
+
     try:
         is_admin = (os.getuid() == 0)
     except AttributeError:
@@ -133,6 +130,8 @@ def is_admin() -> bool:
 
 
 def verify_checksum(path: str, checksum: str, metadata: Metadata):
+    import hashlib
+
     if hashlib.sha256(open(path, 'rb').read()).hexdigest() == checksum:
         write('Verified Installer Hash', 'green', metadata)
     else:
@@ -357,9 +356,11 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
     Returns:
         str: Path to the downloaded installer
     """
+    import random
 
     # Hide the cursor on the terminal
     cursor.hide()
+
 
     # path is the location to the previously downloaded installer
     # if the file hasn't been previously downloaded, path is False (boolean)
@@ -583,6 +584,8 @@ def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadat
 
 
 def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata, ignore: bool):
+    import Classes.ThreadedInstaller as ti
+    
     # Group the packages list into a 2D array
     # grouper(['sublime-text-3', 'atom', 'vscode', 'notepad++', 'anydesk'], 3) => [['sublime-text-3', 'atom', 'vscode']['notepad++', 'anydesk']]
 
@@ -1880,6 +1883,8 @@ def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfil
 
 
 def disp_error_msg(messages: list, metadata: Metadata):
+    import re
+    
     if messages:
         if 'no-error' in messages:
             return
