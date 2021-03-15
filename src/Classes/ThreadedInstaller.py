@@ -190,9 +190,9 @@ class ThreadedInstaller:
             f'Rapid Download Successfully Downloaded {len(download_items)} Packages Using RapidThreading', metadata)
         write_debug('Rapid Download Exiting With Code 0', metadata)
         if not self.metadata.debug:
-            write('\nFinished Rapid Download...', 'green', metadata)
+            write('\nSuccessfully Downloaded Installers', 'green', metadata)
         else:
-            write('Finished Rapid Download...', 'green', metadata)
+            write('Successfully Downloaded Installers', 'green', metadata)
         log_info('Finished Rapid Download', metadata.logfile)
         write(
             'Installing Packages', 'cyan', metadata)

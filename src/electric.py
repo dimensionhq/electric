@@ -1753,6 +1753,63 @@ def genpkg():
         'Enter the install switches (separated by commas): ')
 
 
+@cli.command(context_settings=CONTEXT_SETTINGS)
+@click.pass_context
+def autoupdate(
+    ctx,
+):
+    from bs4 import BeautifulSoup
+    
+    message = '''AU - The Official Electric Auto-Update CLI For Generating Automatically Updating Manifests.
+    '''
+    print(message)
+    
+    print('Enter the path to the manifest / json file: ')
+    fp = input(F'>{Fore.YELLOW} ')
+    
+    with open(fp, 'r') as f:
+        data = json.load(f)
+
+    latest_version = data['latest-version']
+ 
+
+    url = data[data['latest-version']]['url']
+
+    webpage = input(f'{Fore.RESET}Enter URL For Download Page:{Fore.CYAN} ')
+    
+    print(f'{Fore.GREEN}Sending Request To {webpage}{Fore.RESET}')
+    
+    html = swc(webpage.strip())
+    show_html = prompt('Would you like to see the response of the request? [Y/n]: ')
+    if show_html == 'y' or show_html == 'Y' or show_html == 'yes' or show_html == 'YES' or show_html == 'Yes':
+        print(html)
+    
+    soup = BeautifulSoup(html, features="html.parser")
+
+    version_list = {}
+    
+    for tag in soup.find_all('h4', class_='flex-auto min-width-0 pr-2 pb-1 commit-title'):
+        if tag:
+            try:
+                version_list[tag.find('a').text.strip().replace('v', '').replace('V', '')] = int(tag.find('a').text.strip().replace('.', '').replace('v', '').replace('V', ''))
+            except:
+                pass
+    
+    print(f'Detected Versions On Webpage:', list(version_list.keys()))
+    try:
+        latest_version = max(version_list, key=version_list.get)
+    except:
+        print(f'{Fore.RED}No Versions Detected On Webpage!{Fore.RESET}')
+        sys.exit()
+    print(f'{Fore.GREEN}Latest Version Detected:{Fore.RESET} {latest_version}')
+    try:
+        int_current_version = current_version.strip().replace('v', '').replace('V', '').replace('.', '')
+    except:
+        print(f'{Fore.RED}The Current Version Must Not Contain Any Characters')
+    
+    if int_current_version < latest_version:
+        print(f'A Newer Version Of {package_name} Is Availiable! Updating Manifest')
+
 
 @cli.command()
 @click.option('--word', required=True)

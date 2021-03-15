@@ -144,6 +144,10 @@ def verify_checksum(path: str, checksum: str, metadata: Metadata):
             os._exit(1)
 
 
+def swc(url: str):
+    res = requests.get(url)
+    return res.text
+
 def generate_dict(path: str, package_name: str) -> dict:
     """
     Generates dictionary to dump to the downloadcache.pickle
@@ -622,8 +626,8 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 if 'valid-install-exit-codes' in list(pkg.keys()):
                     install_exit_codes = pkg['valid-install-exit-codes']
                 
-                if 'pre-install' in list(pkg.keys()):
-                    write('Pre Install Multi-Threaded Implementation Is Still In Development, Forcing Sync Installation', 'yellow', metadata)
+                if 'pre-install' in list(pkg.keys()) or 'post-install' in list(pkg.keys()):
+                    write('Pre Or Post Install Multi-Threaded Implementation Is Still In Development, Forcing Sync Installation', 'yellow', metadata)
                     return
 
                 packet = Packet(
