@@ -1,24 +1,11 @@
 from subprocess import PIPE, Popen
 from colorama import Fore
-import requests
-import sys
-import cursor
 import os
-import win32com
-import win32com.client
-import zipfile
-import tarfile
-import py7zr
-import patoolib
 import winreg
 import click
-from shutil import copytree, move
 from Classes.Metadata import Metadata
 from Classes.PortablePacket import PortablePacket
 from extension import write
-from zipfile import ZipFile
-from tqdm import tqdm
-from hashlib import sha256
 
 
 home = os.path.expanduser('~')
@@ -32,6 +19,8 @@ def delete_start_menu_shortcut(shortcut_name):
 
 
 def verify_checksum(path: str, checksum: str):
+    from hashlib import sha256
+    
     if sha256(open(path, 'rb').read()).hexdigest() == checksum:
         print('Hashes Match!')
     else:
@@ -39,6 +28,8 @@ def verify_checksum(path: str, checksum: str):
 
 
 def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata: Metadata):
+    import zipfile
+    import tarfile
 
     if not unzip_dir_name:
         unzip_dir_name = download_dir.replace('.zip', '')
@@ -56,6 +47,7 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata:
                 pass
 
     if not metadata.silent and file_type == '.zip':
+        from tqdm import tqdm
         with zipfile.ZipFile(download_dir, 'r') as zf:
             for member in tqdm(zf.infolist(), desc='Extracting ', bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}', smoothing=0.0, unit='files'):
                 try:
@@ -71,10 +63,13 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata:
 
     if file_type == '.tar.gz':
         tar = tarfile.open(download_dir, 'r:gz')
-
+    
+    import py7zr
     if file_type == '.7z':
         with py7zr.SevenZipFile(download_dir) as z:
             z.extractall(unzip_dir_name)
+
+    import patoolib
 
     if file_type == '.rar':
         patoolib.extract_archive(download_dir, outdir=unzip_dir_name)
@@ -181,6 +176,10 @@ def download(packet, url: str, download_extension: str, file_path: str, metadata
     show_progress_bar `[Optional]` `(bool)`: Whether or not to show the progress bar while downloading.
     >>> download('https://atom.io/download/windows_x64', '.exe', 'C:\MyDir\Installer')
     '''
+    import requests
+    import sys
+    import cursor
+
     cursor.hide()  # Use This If You Want to Hide The Cursor While Downloading The File In The Terminal
     if not os.path.isdir(rf'{home}\electric'):
         os.mkdir(rf'{home}\electric')
@@ -237,6 +236,8 @@ def download(packet, url: str, download_extension: str, file_path: str, metadata
 
 
 def create_start_menu_shortcut(unzip_dir, file_name, shortcut_name):
+    import win32com.client
+
     start_menu = os.environ['APPDATA'] + \
         R'\Microsoft\Windows\Start Menu\Programs\Electric'
     if not os.path.isdir(start_menu):
@@ -292,6 +293,8 @@ def display_notes(packet: PortablePacket, unzip_dir: str, metadata: Metadata, un
 
 
 def make_archive(source, destination):
+    from shutil import copytree, move
+    
     base = os.path.basename(destination)
     name = base.split('.')[0]
     format = base.split('.')[1]

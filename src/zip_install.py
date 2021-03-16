@@ -51,7 +51,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                     f'{packet.extract_dir}@{packet.latest_version}' + '.zip', extract_dir, url['file-type'], metadata)
 
             else:
-                write(f'Downloading {url["file-name"]}{url["file-type"]} from {url["url"]}', 'cyan', metadata)
+                write(f'Downloading {url["file-name"]}{url["file-type"]}', 'cyan', metadata)
                 download(packet, url['url'], url['file-type'],
                          rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}\\{url["file-name"]}', metadata, show_progress_bar=False, is_zip=False)
 

@@ -5,8 +5,9 @@
 
 # TODO: Add Conflict-With Field For Json To Differentiate Between Microsoft Visual Studio Code and Microsoft Visual Studio Code Insiders
 
+from timeit import default_timer as timer
 import difflib
-import logging
+from logging import INFO
 import os
 import sys
 import time as tm
@@ -16,8 +17,6 @@ import keyboard
 from colorama import Fore
 from multiprocessing import freeze_support
 
-
-from Classes.Config import Config
 from Classes.Packet import Packet
 from Classes.PortablePacket import PortablePacket
 from Classes.Setting import Setting
@@ -167,7 +166,7 @@ def install(
     if logfile:
         logfile = logfile.replace('=', '')
         logfile = logfile.replace('.txt', '.log')
-        create_config(logfile, logging.INFO, 'Install')
+        create_config(logfile, INFO, 'Install')
 
     log_info('Generating metadata...', logfile)
 
@@ -781,7 +780,7 @@ def uninstall(
 
     if logfile:
         logfile = logfile.replace('.txt', '.log')
-        create_config(logfile, logging.INFO, 'Install')
+        create_config(logfile, INFO, 'Install')
 
     if python:
         package_names = package_name.split(',')
@@ -1292,7 +1291,7 @@ def bundle(
         if logfile:
             logfile = logfile.replace('=', '')
             logfile = logfile.replace('.txt', '.log')
-            create_config(logfile, logging.INFO, 'Install')
+            create_config(logfile, INFO, 'Install')
 
         log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
         status = 'Initializing'
@@ -1532,6 +1531,8 @@ def config(
     '''
     Installs and configures packages from a .electric configuration file.
     '''
+    from Classes.Config import Config
+
     if not is_admin():
         if '.\\' in config_path:
             config_path = config_path.replace('.\\', '')
@@ -1563,6 +1564,8 @@ def sign(
     '''
     Signs and validates a .electric configuration file.
     '''
+    from Classes.Config import Config
+
     config = Config.generate_configuration(filepath, False)
     click.echo(click.style('No syntax errors found!', 'green'))
 

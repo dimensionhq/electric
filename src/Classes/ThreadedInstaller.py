@@ -5,17 +5,13 @@
 
 from timeit import default_timer as timer
 from urllib.request import urlretrieve
-from limit import Limiter, TokenBucket
 from logger import log_info, close_log
 from Classes.Download import Download
 from Classes.Install import Install
 from Classes.Packet import Packet
-from threading import Thread
 from extension import *
 import multiprocessing
-from registry import get_environment_keys
-import utils
-from time import *
+from time import sleep
 from colorama import Fore
 import tempfile
 import requests
@@ -23,12 +19,13 @@ import cursor
 import click
 import sys
 import os
-
 from zip_utils import set_environment_variable
+
 paths = {}
 
 
 class ThreadedInstaller:
+    import utils
 
     def __init__(self, packets, metadata):
         self.packets = packets
@@ -120,6 +117,7 @@ class ThreadedInstaller:
                     packet, self.metadata.rate_limit, packet.directory, self.metadata)
 
     def handle_multi_download(self) -> list:
+        from threading import Thread
 
         self.handle_dependencies()
         metadata = self.metadata
@@ -307,6 +305,9 @@ class ThreadedInstaller:
 
     @staticmethod
     def install_dependent_packages(packet: Packet, rate_limit: int, install_directory: str, metadata: Metadata):
+        from limit import Limiter, TokenBucket
+        from registry import get_environment_keys
+
         disp = str(packet.dependencies).replace(
             "[", "").replace("]", "").replace("\'", "")
         write(f'{packet.display_name} has the following dependencies: {disp}',
@@ -466,9 +467,7 @@ class ThreadedInstaller:
                     log_info('Generating system download path...',
                              metadata.logfile)
 
-                    start = timer()
                     download_url = packet.win64
-                    end = timer()
 
                     write('Initializing Rapid Download', 'green', metadata)
                     log_info('Initializing Rapid Download...',
