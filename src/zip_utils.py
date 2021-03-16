@@ -320,13 +320,22 @@ def set_environment_variable(name: str, value: str):
           stdout=PIPE, stderr=PIPE, shell=True)
 
 
+
+def confirm(prompt: str):
+    value = input(f'{prompt} (Y/n): ')
+    if value in ['y', 'yes', 'Y', 'YES', 'Yes']:
+        return True
+    else:
+        return False
+
+
 def install_dependencies(packet: PortablePacket, metadata: Metadata):
     
     disp = str(packet.dependencies).replace(
             "[", "").replace("]", "").replace("\'", "")
     write(f'{packet.display_name} has the following dependencies: {disp}',
             'yellow', metadata)
-    continue_install = click.confirm(
+    continue_install = confirm(
         'Would you like to install the above dependencies ?')
     if continue_install:
         write(
@@ -340,7 +349,7 @@ def uninstall_dependencies(packet: PortablePacket, metadata: Metadata):
             "[", "").replace("]", "").replace("\'", "")
     write(f'{packet.display_name} has the following dependencies: {disp}',
             'yellow', metadata)
-    continue_install = click.confirm(
+    continue_install = confirm(
         'Would you like to uninstall the above dependencies ?')
     if continue_install:
         write(

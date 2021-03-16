@@ -7,6 +7,7 @@ from colorama import Fore
 from zip_utils import *
 import click
 import os
+import sys
 
 home = os.path.expanduser('~')
 
@@ -15,7 +16,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
     if find_existing_installation(f'{packet.extract_dir}@{packet.latest_version}'):
         write(
             f'Found Existing Installation Of {packet.display_name}', 'yellow', metadata)
-        continue_installation = click.confirm(
+        continue_installation = confirm(
             f'Would you like to reinstall {packet.display_name}?')
         if continue_installation:
             pass

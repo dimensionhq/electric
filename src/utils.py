@@ -46,6 +46,12 @@ path = ''
 
 appdata_dir = PathManager.get_appdata_directory()
 
+def confirm(prompt: str):
+    value = input(f'{prompt} (Y/n): ')
+    if value in ['y', 'yes', 'Y', 'YES', 'Yes']:
+        return True
+    else:
+        return False
 
 def append_to_path(input_dir: str):
     proc = Popen(f'setx /M path "%PATH%;{input_dir}"', stdin=PIPE,
@@ -765,7 +771,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                             f'Found an existing installation of => {packet.json_name}', metadata)
                         write(
                             f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
-                        installation_continue = click.confirm(
+                        installation_continue = confirm(
                             f'Would you like to reinstall {packet.display_name}')
                         if installation_continue or metadata.yes:
                             os.system(f'electric uninstall {packet.json_name}')
@@ -984,7 +990,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                             f'Found an existing installation of => {packet.json_name}', metadata)
                         write(
                             f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
-                        installation_continue = click.confirm(
+                        installation_continue = confirm(
                             f'Would you like to reinstall {packet.json_name}')
                         if installation_continue or metadata.yes:
                             os.system(f'electric uninstall {packet.json_name}')
@@ -1071,7 +1077,7 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
                 f'Found an existing installation of => {packet.json_name}', metadata)
             write(
                 f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
-            installation_continue = click.confirm(
+            installation_continue = confirm(
                 f'Would you like to reinstall {packet.display_name}?')
             if installation_continue or metadata.yes:
                 os.system(f'electric uninstall {packet.json_name}')
@@ -1120,7 +1126,7 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
             f'Found an existing installation of => {packet.json_name}', metadata)
         write(
             f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
-        installation_continue = click.confirm(
+        installation_continue = confirm(
             f'Would you like to reinstall {packet.display_name}?')
         if installation_continue or metadata.yes:
             os.system(f'electric uninstall {packet.json_name}')
@@ -1630,7 +1636,7 @@ def kill_running_proc(package_name: str, display_name: str, metadata: Metadata):
         if metadata.silent:
             os.kill(pid, SIGTERM)
             return
-        terminate = click.confirm(
+        terminate = confirm(
             f'Electric Detected {name} Running In The Background. Would You Like To Terminate It?')
         if terminate:
             write(f'Terminating {name}.', 'green', metadata)
@@ -1775,7 +1781,7 @@ def check_virus(path: str, metadata: Metadata):
             else:
                 continue_install = 'y'
         if not metadata.silent:
-            continue_install = click.confirm('Would You Like To Continue?')
+            continue_install = confirm('Would You Like To Continue?')
             if continue_install:
                 pass
             else:
@@ -1835,7 +1841,7 @@ def check_for_updates():
         new_version = version_dict['version']
         if check_newer_version_local(new_version):
             # Implement Version Check
-            if click.confirm('A new update for electric is available, would you like to proceed with the update?'):
+            if confirm('A new update for electric is available, would you like to proceed with the update?'):
                 click.echo(click.style('Updating Electric..', fg='green'))
                 UPDATEA = 'https://electric-package-manager.herokuapp.com/update/windows'
 
@@ -1921,7 +1927,7 @@ def disp_error_msg(messages: list, metadata: Metadata):
         if support_ticket:
             click.echo(
                 'By sending a support ticket, you agree to the Terms And Conditions (https://www.electric.sh/support/terms-and-conditions)')
-            sending_ticket = click.confirm(
+            sending_ticket = confirm(
                 'Would you like to send the support ticket ?')
             if sending_ticket:
                 with Halo('', spinner='bounce') as h:
@@ -1935,18 +1941,18 @@ def disp_error_msg(messages: list, metadata: Metadata):
                         h.fail('Failed To Send Support Ticket')
 
         if reboot:
-            reboot = click.confirm('Would you like to reboot?')
+            reboot = confirm('Would you like to reboot?')
             if reboot:
                 os.system('shutdown /R')
 
         if commands:
-            run = click.confirm('Would You Like To Install Node?')
+            run = confirm('Would You Like To Install Node?')
             if run:
                 print('\n')
                 os.system(commands[0][0])
 
         if websites:
-            website = click.confirm(
+            website = confirm(
                 'Would You Like To Visit Any Of The Above Websites?')
             if website:
                 try:
@@ -2065,7 +2071,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
 
 
 def handle_unknown_error(err: str, pacakge_name: str, method: str, exit_code: str):
-    error_msg = click.confirm('Would You Like To See The Error Message?')
+    error_msg = confirm('Would You Like To See The Error Message?')
 
     if error_msg:
         print(err + '\n')
@@ -2244,7 +2250,7 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
                     write_all(
                         f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
 
-                    if click.confirm('Would You Like To Continue?'):
+                    if confirm('Would You Like To Continue?'):
                         package_name = corrections[0]
                         corrected_names.append(package_name)
                     else:

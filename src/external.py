@@ -68,7 +68,7 @@ def handle_python_package(package_name: str, version: str, mode: str, metadata: 
                     f'Python v{py_version[0]} :: Successfully Installed {package_name} {ver}', 'green', metadata)
 
             if 'You should consider upgrading via' in line:
-                wants = click.confirm(
+                wants = confirm(
                     'Would you like to upgrade your pip version?')
                 if wants:
                     write('Updating Pip Version', 'green', metadata)

@@ -662,7 +662,7 @@ def up(
                 installed_version = data['version']
                 if not yes:
                     if not local:
-                        continue_update = click.confirm(
+                        continue_update = confirm(
                             f'{package} would be updated from version {installed_version} to {packet.version}')
                     else:
                         write(
@@ -1619,7 +1619,7 @@ def generate(
     include_editor = False
     editor = ''
     if use_editor:
-        include_editor = click.confirm(
+        include_editor = confirm(
             'Do You Want To Include Your Editor Extensions And Configuration?')
         if include_editor:
             editor = prompt('Enter The Development Text Editor You Use => ',
@@ -1631,7 +1631,7 @@ def generate(
                      stdout=PIPE, stderr=PIPE, shell=True)
         _, err = proc.communicate()
         if not err:
-            include_python = click.confirm(
+            include_python = confirm(
                 'Would you like to include your Python Configuration?')
     except FileNotFoundError:
         pass
@@ -1642,7 +1642,7 @@ def generate(
                      stdout=PIPE, stderr=PIPE, shell=True)
         _, err = proc.communicate()
         if not err:
-            include_npm = click.confirm(
+            include_npm = confirm(
                 'Would you like to include your Npm Or Node Configuration?')
     except FileNotFoundError:
         pass

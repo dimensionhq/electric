@@ -65,7 +65,7 @@ class Config:
 
             if platform == 'win32' and not self.os == 'Windows':
                 if self.os:
-                    if not click.confirm(f'WARNING: This Config Has A Target OS Of {self.os}. Would you like to continue?'):
+                    if not confirm(f'WARNING: This Config Has A Target OS Of {self.os}. Would you like to continue?'):
                         sys.exit()
 
         packages = self.dictionary['Packages'] if 'Packages' in self.headers else None
@@ -647,7 +647,7 @@ class Config:
                     try:
                         os.system(command)
                     except:
-                        if not click.confirm('Would you like to continue configuration installation?'):
+                        if not confirm('Would you like to continue configuration installation?'):
                             sys.exit()
 
             if editor_type == 'Sublime Text 3' and editor_extensions:
@@ -658,7 +658,7 @@ class Config:
                     try:
                         os.system(command)
                     except:
-                        if not click.confirm('Would you like to continue configuration installation?'):
+                        if not confirm('Would you like to continue configuration installation?'):
                             sys.exit()
 
             if editor_type == 'Atom' and editor_extensions:
@@ -669,7 +669,7 @@ class Config:
                     try:
                         os.system(command)
                     except:
-                        if not click.confirm('Would you like to continue configuration installation?'):
+                        if not confirm('Would you like to continue configuration installation?'):
                             sys.exit()
 
             if node_packages:
@@ -678,7 +678,7 @@ class Config:
                     try:
                         os.system(f'{refreshenv} & electric install --node {node_package}')
                     except:
-                        if not click.confirm('Would you like to continue configuration installation?'):
+                        if not confirm('Would you like to continue configuration installation?'):
                             sys.exit()
 
         else:
@@ -698,7 +698,7 @@ class Config:
                     try:
                         os.system(f'electric uninstall {list(package.keys())[0]}')
                     except:
-                        if not click.confirm('Would you like to continue configuration installation?'):
+                        if not confirm('Would you like to continue configuration installation?'):
                             sys.exit()
 
             if python_packages:
@@ -707,7 +707,7 @@ class Config:
                     try:
                         os.system(command)
                     except:
-                        if not click.confirm('Would you like to continue configuration installation?'):
+                        if not confirm('Would you like to continue configuration installation?'):
                             sys.exit()
 
             if editor_type == 'Visual Studio Code' and editor_extensions:
@@ -718,7 +718,7 @@ class Config:
                     try:
                         os.system(command)
                     except:
-                        if not click.confirm('Would you like to continue configuration installation?'):
+                        if not confirm('Would you like to continue configuration installation?'):
                             sys.exit()
 
             if editor_type == 'Atom' and editor_extensions:
@@ -729,7 +729,7 @@ class Config:
                     try:
                         os.system(command)
                     except:
-                        if not click.confirm('Would you like to continue configuration'):
+                        if not confirm('Would you like to continue configuration'):
                             sys.exit()
 
             if node_packages:
@@ -738,7 +738,7 @@ class Config:
                     try:
                         os.system(f'electric uninstall --node {node_package}')
                     except:
-                        if not click.confirm('Would you like to continue configuration installation?'):
+                        if not confirm('Would you like to continue configuration installation?'):
                             sys.exit()
         else:
             click.echo(click.style('Config installation must be ran as administrator!', fg='red'), err=True)

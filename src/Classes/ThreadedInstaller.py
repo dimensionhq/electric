@@ -19,7 +19,7 @@ import cursor
 import click
 import sys
 import os
-from zip_utils import set_environment_variable
+from zip_utils import set_environment_variable, confirm
 
 paths = {}
 
@@ -312,7 +312,7 @@ class ThreadedInstaller:
             "[", "").replace("]", "").replace("\'", "")
         write(f'{packet.display_name} has the following dependencies: {disp}',
               'yellow', metadata)
-        continue_install = click.confirm(
+        continue_install = confirm(
             'Would you like to install the above dependencies ?')
         if continue_install:
             write(
@@ -372,7 +372,7 @@ class ThreadedInstaller:
                             f'Found an existing installation of => {packet.json_name}', metadata)
                         write(
                             f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
-                        installation_continue = click.confirm(
+                        installation_continue = confirm(
                             f'Would you like to reinstall {packet.json_name}')
                         if installation_continue or metadata.yes:
                             os.system(f'electric uninstall {packet.json_name}')
