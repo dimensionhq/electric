@@ -143,8 +143,3 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 ## License
 
 This project is licensed under the Apache 2.0 License - see the [LICENSE.md](LICENSE) file for details.
-
-## Config In Alpha
-A small peek of what's coming up next for electric! `(pssst! don't tell anyone!)`!
-
-![Demonstration](https://github.com/XtremeDevX/Electric-Windows/blob/dev/assets/config-extension.gif?raw=true)
