@@ -4,13 +4,14 @@ class Setting:
     """
     Stores settings for access
     """
-    def __init__(self, raw_dictionary, progress_bar_type, show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar):
+    def __init__(self, raw_dictionary, progress_bar_type, show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar, install_metrics):
         self.raw_dictionary = raw_dictionary
         self.progress_bar_type = progress_bar_type
         self.show_progress_bar = show_progress_bar
         self.electrify_progress_bar = electrify_progress_bar
         self.use_custom_progress_bar = use_custom_progress_bar
         self.custom_progress_bar = custom_progress_bar
+        self.install_metrics = install_metrics
 
     @staticmethod
     def new():
@@ -19,10 +20,16 @@ class Setting:
 
         Returns:
             Setting: The new settings object
-        """        
+        """
+
         settings = read_settings()
-        progress_bar_type,  show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar = '', '', False, False, ''
-        
+        progress_bar_type,  show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar, install_metrics = '', '', False, False, '', True
+
+        try:
+            install_metrics = settings['installMetrics']
+        except:
+            pass
+
         try:
             progress_bar_type = settings['progressBarType']
         except KeyError:
@@ -69,4 +76,4 @@ class Setting:
             except KeyError:
                 use_custom_progress_bar = False
 
-        return Setting(settings, progress_bar_type, show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar)
+        return Setting(settings, progress_bar_type, show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar, install_metrics)

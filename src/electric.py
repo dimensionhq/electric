@@ -534,7 +534,6 @@ def install(
                         f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
                 else:
                     write(f'[ OK ] Registry Check', 'white', metadata)
-
                 write_debug('Passed Registry Check. Registering Package Success', metadata)
                 register_package_success(packet, install_directory, metadata)
                 write(
@@ -575,6 +574,10 @@ def install(
                   'green', metadata)
         
         version = ''
+
+        if metadata.settings.install_metrics == True:
+            f_and_f(packet.json_name, 'success')
+
         write_verbose('Installation and setup completed with exit code 0', metadata)
         write_verbose('Terminating verbose logger', metadata)
         log_info('Installation and setup completed.', metadata.logfile)

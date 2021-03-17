@@ -1190,6 +1190,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     write_verbose(f'{error} => {method}', metadata)
     write_debug(f'{error} => {method}', metadata)
     log_info(f'{error} ==> {method}', metadata.logfile)
+
     valid_i_exit_codes = valid_install_exit_codes
     valid_u_exit_codes = valid_uninstall_exit_codes
 
@@ -1204,13 +1205,14 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     if method == 'installation':
         for code in valid_i_exit_codes:
             if f'exit status {code}' in error:
-                return ['no-error']
+                return 'no-error'
 
     if method == 'uninstallation':
         for code in valid_u_exit_codes:
             if f'exit status {code}' in error:
-                return ['no-error']
+                return 'no-error'
 
+    
     if 'exit status 1603' in error:
         if method == 'installation' and not is_admin():
             flags = ''
@@ -1238,6 +1240,9 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             click.echo(click.style(
                 '\nFatal Installer Error. Exit Code [1603]', fg='red'))
             return get_error_message('1603', 'installation', packet.display_name, packet.version)
+
+    
+
 
     if 'exit status 1639' in error:
         click.echo(click.style(
@@ -1888,6 +1893,15 @@ def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfil
     return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce, rate_limit, settings, sync)
 
 
+def f_and_f(package_name: str, status: str):
+    threading.Thread(target=send_install_metrics, args=(package_name, status,)).start()
+
+
+def send_install_metrics(package_name: str, status: str):
+    URL = '/increment/'
+    requests.post(URL + package_name + '@' + status)
+
+
 def disp_error_msg(messages: list, metadata: Metadata):
     import re
     
@@ -1968,6 +1982,8 @@ def disp_error_msg(messages: list, metadata: Metadata):
 
 
 def get_error_message(code: str, method: str, display_name: str, version: str):
+    if metadata.settings.install_metrics == True:
+        f_and_f(packet.json_name, 'fail')
     attr = method.replace('ation', '')
     with Switch(code) as code:
         if code('0001'):
