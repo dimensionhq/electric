@@ -367,7 +367,6 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
     # Hide the cursor on the terminal
     cursor.hide()
 
-
     # path is the location to the previously downloaded installer
     # if the file hasn't been previously downloaded, path is False (boolean)
     path = check_existing_download(package_name, download_type)
@@ -379,10 +378,18 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
     # if path is False (no existing download found)
     if not path:
         path = Rf'{tempfile.gettempdir()}\electric\Setup{download_type}'
+    
     # returns path to the existing installer
     else:
+
+        write_verbose(f'Using existing installer previously downloaded at {path}', metadata)
+        log_info(f'Using existing installer previously downloaded at {path}', metadata.logfile)
+
         write(
             f'Found Existing Download At: {tempfile.gettempdir()}', 'blue', metadata)
+
+        write_debug(f'Requested file has already been downloaded at {path}', metadata)
+
         return path
 
     # Find a random name for the installer
@@ -1066,11 +1073,11 @@ def handle_external_installation(python: bool, node: bool, vscode: bool, sublime
 def handle_existing_installation(package, packet: Packet, force: bool, metadata: Metadata, ignore: bool):
     log_info('Searching for existing installation of package.', metadata.logfile)
 
-    log_info('Finding existing installation of package...', metadata.logfile)
+    log_info('Finding existing installation of package', metadata.logfile)
     
     if packet.win64_type in ['.msix', '.msixbundle', '.appx', '.appxbundle']:
         if find_msix_installation(packet.raw['uninstall-bundle-identifier']):
-            log_info('Found existing installation of package...', metadata.logfile)
+            log_info('Found existing installation of package', metadata.logfile)
             write_debug(
                 f'Found existing installation of {packet.json_name}.', metadata)
             write_verbose(
@@ -1119,7 +1126,7 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
 
 
     if installation and not force and not ignore:
-        log_info('Found existing installation of package...', metadata.logfile)
+        log_info('Found existing installation of package', metadata.logfile)
         write_debug(
             f'Found existing installation of {packet.json_name}.', metadata)
         write_verbose(

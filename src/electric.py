@@ -346,23 +346,29 @@ def install(
             log_info('Running requested virus scanning', metadata.logfile)
             write('Scanning File For Viruses...', 'blue', metadata)
             check_virus(configs['path'], metadata)
-
+        write_debug(
+            f'Installing {packet.display_name} through Setup{packet.win64_type}', metadata)        
         write(f'{Fore.CYAN}Installing {packet.display_name}{Fore.RESET}',
               'white', metadata)
         log_info(
             'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
-        write_debug(
-            f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
+
         log_info(
-            f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
+            f'Installing {packet.display_name} through Setup{packet.win64_type}', metadata.logfile)
+        write_verbose('Creating registry start snapshot', metadata)
         log_info('Creating start snapshot of registry...', metadata.logfile)
 
         start_snap = get_environment_keys()
 
-        # Running The Installer silently And Completing Setup
+        write_verbose('Checking for pre install code', metadata)
+        log_info('Checking for pre install code', metadata.logfile)
+
         if 'pre-install' in list(pkg.keys()):
             if isinstance(pkg['pre-install'], list):
+                write_verbose('Executing Pre-Installation Code', metadata)
+                log_info('Executing Pre-Installation Code', metadata.logfile)
+
                 for proc in pkg['pre-install']:
                     if 'admin' in list(proc.keys()):
                         if proc['admin'] == True:
@@ -399,11 +405,18 @@ def install(
         keyboard.add_hotkey('ctrl+c', lambda: handle_exit(status, setup_name, metadata))
 
         if not get_pid(setup_name):
+            # Running The Installer silently And Completing Setup
+            write_verbose(f'Running {packet.display_name} Installer at {configs["path"]}', metadata)
+            log_info(f'Running {packet.display_name} Installer at {configs["path"]}', metadata.logfile)
             install_package(configs['path'], packet, metadata)
         else:
             disp_error_msg(get_error_message('1618', 'install', packet.display_name, version), metadata)
 
+        log_info('Deregistering ctrl+c abort shortcut', metadata.logfile)
+        write_verbose('Deregistering ctrl+c abort shortcut', metadata)
         keyboard.remove_hotkey('ctrl+c')
+        write_verbose('Checking for post install code', metadata)
+        log_info('Checking for post install code', metadata.logfile)
 
         if 'post-install' in list(pkg.keys()):
             if isinstance(pkg['post-install'], list):
@@ -435,7 +448,9 @@ def install(
                         exec(code, globals())
 
         status = 'Installed'
-        log_info('Creating final snapshot of registry...', metadata.logfile)
+        write_verbose('Creating registry end snapshot', metadata)
+        log_info('Creating final snapshot of registry', metadata.logfile)
+        
         final_snap = get_environment_keys()
 
         if packet.add_path:
@@ -448,6 +463,8 @@ def install(
                 replace_install_dir = packet.default_install_dir
             
             write(f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'green', metadata)
+            write_verbose(f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'green', metadata)
+            log_info(f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', metadata.logfile)
             append_to_path(packet.add_path.replace('<install-directory>', replace_install_dir))
 
         if packet.set_env:
@@ -461,11 +478,12 @@ def install(
                 replace_install_dir = packet.default_install_dir
 
             write(f'Setting Environment Variable {name}', 'green', metadata)
+            write_verbose(f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', 'green', metadata)
+            log_info(f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
             
             set_environment_variable(
                 name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
-        
-
+       
         if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
             write('Refreshing Environment Variables', 'green', metadata)
             start = timer()
@@ -480,21 +498,39 @@ def install(
                 f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
 
         if not packet.run_test:
+            write_verbose(f'Running tests for {packet.display_name}', metadata)
+            
+            write_debug(f'No Pre-Defined Tests found for {packet.display_name}', metadata)
+            log_info(f'No Pre-Defined Tests found for {packet.display_name}', metadata.logfile)
+            
             write(
                 f'Running Tests For {packet.display_name}', 'white', metadata)
-            write(f'[{Fore.GREEN} OK {Fore.RESET}] Registry Check',
+            
+            write_debug(f'All Pre-Defined checks for {packet.display_name} passed. Registering successful package installation', metadata)
+            write_verbose(f'All Pre-Defined checks for {packet.display_name} passed', metadata)
+            log_info(f'All Pre-Defined checks for {packet.display_name} passed', metadata.logfile)
+            
+            write(f'[{Fore.GREEN} OK {Fore.RESET}] Pre-Defined Checks',
                   'white', metadata)
+            
             register_package_success(packet, install_directory, metadata)
+            
             write(
                 f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
+            
             log_info(
                 f'Successfully Installed {packet.display_name}', metadata.logfile)
         else:
+            write_verbose(f'Running tests for {packet.display_name}', metadata)
+            write_debug(f'Pre-Defined Checks found for {packet.display_name}', metadata)
+            log_info(
+                    f'Running pre-defined checks found for {packet.display_name}', metadata.logfile)
             write(
                 f'Running Tests For {packet.display_name}', 'white', metadata)
             if find_existing_installation(packet.json_name, packet.display_name):
                 write(
                     f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
+                write_debug('Passed Registry Check. Registering Package Success', metadata)
                 register_package_success(packet, install_directory, metadata)
                 write(
                     f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
@@ -521,6 +557,9 @@ def install(
                 sys.exit()
 
         if metadata.reduce_package:
+            write_verbose(f'Deleting installer files at {tempfile.gettempdir()}', metadata)
+            log_info(f'Deleting installer files at {tempfile.gettempdir()}', metadata.logfile)
+            write_debug(f'Deleting installer files at {tempfile.gettempdir()}. Path : ({configs["path"]}{packet.win64_type})', metadata)
             os.remove(f'{configs["path"]}{packet.win64_type}')
             os.remove(
                 Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle')
@@ -529,8 +568,10 @@ def install(
                 'Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
             write('Successfully Cleaned Up Installer From Temp Directory',
                   'green', metadata)
+        
         version = ''
-        write_verbose('Installation and setup completed.', metadata)
+        write_verbose('Installation and setup completed with exit code 0', metadata)
+        write_verbose('Terminating verbose logger', metadata)
         log_info('Installation and setup completed.', metadata.logfile)
         write_debug(
             f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata)
@@ -1231,6 +1272,7 @@ def cleanup():
         elif len(files) == 0:
             h.stop()
             click.echo(click.style('Nothing To Cleanup!', 'cyan'))
+            sys.exit()
     
         sub = 0
         if 'configurations' in files:

@@ -3,6 +3,7 @@
 ######################################################################
 
 
+from time import strftime
 from timeit import default_timer as timer
 from urllib.request import urlretrieve
 from logger import log_info, close_log
@@ -11,7 +12,6 @@ from Classes.Install import Install
 from Classes.Packet import Packet
 from extension import *
 import multiprocessing
-from time import sleep
 from colorama import Fore
 import tempfile
 import requests
@@ -19,14 +19,13 @@ import cursor
 import click
 import sys
 import os
+import utils
 from zip_utils import set_environment_variable, confirm
 
 paths = {}
 
 
 class ThreadedInstaller:
-    import utils
-
     def __init__(self, packets, metadata):
         self.packets = packets
         self.metadata = metadata
@@ -64,9 +63,9 @@ class ThreadedInstaller:
                 {
                     'path': path,
                     'display_name': download.display_name
-                }
+                }       
         })
-
+        sys.stdout.write('')
         # cursor.show()
 
     def install_package(self, install: Install) -> str:
