@@ -11,7 +11,7 @@ def write(text: str, color: str, metadata: Metadata):
     """
     Prints to output and automatically handles metadata properties.
     
-    >>> write('Hello!', 'green', metadata)
+    >>> write('Hello!', 'bright_green', metadata)
     >>> Hello!
     
     #### Arguments
@@ -94,7 +94,7 @@ def write_all(text: str, color: str, metadata: Metadata):
     Writes text to all 3 levels (standard, verbose and debug)
     
     #### Usage
-    >>> write_all('Writing to all 3 levels!', 'green', metadata)
+    >>> write_all('Writing to all 3 levels!', 'bright_green', metadata)
     
     ##### Output
     `Writing to all 3 levels!`

@@ -129,7 +129,7 @@ Copyright (c) Electric Inc.
 
 Usage: eel <command> [<options>]
 
-{Fore.GREEN}Commands:{Fore.RESET}
+{Fore.LIGHTGREEN_EX}Commands:{Fore.RESET}
     convert'''
         click.echo(message)
 
@@ -142,7 +142,7 @@ class SuperChargeCLI(DYMMixin, click.Group):  # pylint: disable=too-many-public-
     """
     # def format_help(self, ctx, formatter):
     #     # Custom Help Message =>
-    #     click.echo(click.style('Commands :', fg='green'))
+    #     click.echo(click.style('Commands :', fg='bright_green'))
     #     click.echo('Next Line')
 
 

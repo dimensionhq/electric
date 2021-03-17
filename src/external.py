@@ -51,30 +51,30 @@ def handle_python_package(package_name: str, version: str, mode: str, metadata: 
             line = line.decode('utf-8')
 
             if f'Collecting {package_name}' in line:
-                write(f'Python v{py_version[0]} :: Collecting {package_name}', 'green', metadata)
+                write(f'Python v{py_version[0]} :: Collecting {package_name}', 'bright_green', metadata)
             if 'Downloading' in line and package_name in line:
                 write(
-                    f'Python v{py_version[0]} :: Downloading {package_name}', 'green', metadata)
+                    f'Python v{py_version[0]} :: Downloading {package_name}', 'bright_green', metadata)
 
             if 'Installing collected packages' in line and package_name in line:
                 write(
-                    f'Python v{py_version[0]} :: Installing {package_name}', 'green', metadata)
+                    f'Python v{py_version[0]} :: Installing {package_name}', 'bright_green', metadata)
 
             if f'Requirement ' in line and package_name in line:
                 write(
-                    f'Python v{py_version[0]} :: {package_name} Is Already Installed And On The Latest Version ==> {line.split()[-1]}', 'yellow', metadata)
+                    f'Python v{py_version[0]} :: {package_name} Is Already Installed And On The Latest Version ==> {line.split()[-1]}', 'bright_yellow', metadata)
                 break
 
             if 'Successfully installed' in line and package_name in line:
                 ver = line.split('-')[1]
                 write(
-                    f'Python v{py_version[0]} :: Successfully Installed {package_name} {ver}', 'green', metadata)
+                    f'Python v{py_version[0]} :: Successfully Installed {package_name} {ver}', 'bright_green', metadata)
 
             if 'You should consider upgrading via' in line:
                 wants = utils.confirm(
                     'Would you like to upgrade your pip version?')
                 if wants:
-                    write('Updating Pip Version', 'green', metadata)
+                    write('Updating Pip Version', 'bright_green', metadata)
                     Popen(mslex.split('python -m pip install --upgrade pip'))
 
     elif mode == 'uninstall':
@@ -91,12 +91,12 @@ def handle_python_package(package_name: str, version: str, mode: str, metadata: 
             line = line.decode('utf-8')
             if 'Uninstalling' in line and package_name in line:
                 write(
-                    f'Python v{py_version[0]} :: Uninstalling {package_name}', 'green', metadata)
+                    f'Python v{py_version[0]} :: Uninstalling {package_name}', 'bright_green', metadata)
 
             if 'Successfully uninstalled' in line and package_name in line:
                 ver = line.split('-')[1]
                 write(
-                    f'Python v{py_version[0]} :: Successfully Uninstalled {package_name} {ver}', 'green', metadata)
+                    f'Python v{py_version[0]} :: Successfully Uninstalled {package_name} {ver}', 'bright_green', metadata)
 
         _, err = proc.communicate()
 
@@ -104,7 +104,7 @@ def handle_python_package(package_name: str, version: str, mode: str, metadata: 
             err = err.decode('utf-8')
             if f'WARNING: Skipping {package_name}' in err:
                 write(
-                    f'Python v{py_version[0]} :: Could Not Find Any Installations Of {package_name}', 'yellow', metadata)
+                    f'Python v{py_version[0]} :: Could Not Find Any Installations Of {package_name}', 'bright_yellow', metadata)
 
 
 def handle_node_package(package_name: str, mode: str, metadata: Metadata):
@@ -129,24 +129,24 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
 
     if mode == 'install':
         proc = Popen(mslex.split(f'npm i {package_name} -g'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-        write(f'npm v{version} :: Collecting {package_name}', 'green', metadata)
+        write(f'npm v{version} :: Collecting {package_name}', 'bright_green', metadata)
         package_version = None
         for line in proc.stdout:
             line = line.decode()
 
             if 'node install.js' in line:
-                write(f'npm v{version} :: Running `node install.js` for {package_name}', 'green', metadata)
+                write(f'npm v{version} :: Running `node install.js` for {package_name}', 'bright_green', metadata)
             if package_name in line and '@' in line and 'install' in line or ' postinstall' in line:
                 package_version = line.split()[1]
-                write(f'npm v{version} :: {package_version} Installing To <=> "{line.split()[3]}"', 'green', metadata)
+                write(f'npm v{version} :: {package_version} Installing To <=> "{line.split()[3]}"', 'bright_green', metadata)
 
             if 'Success' in line and package_name in line or 'added' in line:
-                write(f'npm v{version} :: Successfully Installed {package_version}', 'green', metadata)
+                write(f'npm v{version} :: Successfully Installed {package_version}', 'bright_green', metadata)
             if 'updated' in line:
                 if package_version:
-                    write(f'npm v{version} :: Sucessfully Updated {package_version}', 'green', metadata)
+                    write(f'npm v{version} :: Sucessfully Updated {package_version}', 'bright_green', metadata)
                 else:
-                    write(f'npm v{version} :: Sucessfully Updated {package_name}', 'green', metadata)
+                    write(f'npm v{version} :: Sucessfully Updated {package_name}', 'bright_green', metadata)
 
 
     else:
@@ -154,11 +154,11 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
         for line in proc.stdout:
             line = line.decode()
             if 'up to date' in line:
-                write(f'npm v{version} :: Could Not Find Any Existing Installations Of {package_name}', 'yellow', metadata)
+                write(f'npm v{version} :: Could Not Find Any Existing Installations Of {package_name}', 'bright_yellow', metadata)
             if 'removed' in line:
                 number = line.split(' ')[1].strip()
                 time = line.split(' ')[4].strip()
-                write(f'npm v{version} :: Sucessfully Uninstalled {package_name} And {number} Other Dependencies in {time}', 'green', metadata)
+                write(f'npm v{version} :: Sucessfully Uninstalled {package_name} And {number} Other Dependencies in {time}', 'bright_green', metadata)
 
 
 def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
@@ -196,19 +196,19 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
 
             if 'Installing extensions' in line:
                 if not metadata.no_color:
-                    write(f'Code v{version} :: Installing {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+                    write(f'Code v{version} :: Installing {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
                 else:
                     write(f'Code v{version} :: Installing {package_name}', 'white', metadata)
 
             if 'is already installed' in line:
                 if not metadata.no_color:
-                    write(f'{Fore.GREEN}Code v{version} :: {Fore.MAGENTA}{package_name}{Fore.YELLOW} Is Already Installed!', 'white', metadata)
+                    write(f'{Fore.LIGHTGREEN_EX}Code v{version} :: {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.LIGHTYELLOW_EX} Is Already Installed!', 'white', metadata)
                 else:
                     write(f'Code v{version} :: {package_name} Is Already Installed!', 'white', metadata)
 
             if 'was successfully installed' in line:
                 if not metadata.no_color:
-                    write(f'{Fore.GREEN}Code v{version} :: Successfully Installed {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+                    write(f'{Fore.LIGHTGREEN_EX}Code v{version} :: Successfully Installed {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
                 else:
                     write(f'Code v{version} :: Successfully Installed {package_name}', 'white', metadata)
 
@@ -219,13 +219,13 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
             line = line.decode()
 
             if 'Uninstalling' in line:
-                write(f'Code v{version} :: Uninstalling {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+                write(f'Code v{version} :: Uninstalling {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
 
             if 'is not installed' in line:
-                write(f'{Fore.GREEN}Code v{version} :: {Fore.MAGENTA}{package_name}{Fore.YELLOW} is not installed!', 'white', metadata)
+                write(f'{Fore.LIGHTGREEN_EX}Code v{version} :: {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.LIGHTYELLOW_EX} is not installed!', 'white', metadata)
 
             if 'was successfully uninstalled' in line:
-                write(f'{Fore.GREEN}Code v{version} :: Successfully Uninstalled {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+                write(f'{Fore.LIGHTGREEN_EX}Code v{version} :: Successfully Uninstalled {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
 
 
 def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
@@ -329,7 +329,7 @@ def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
 
                 if 'done' in line:
                     h.stop()
-                    click.echo(click.style(f' Successfully Installed {package_name} to <=> {line.split()[3]}', 'green'))
+                    click.echo(click.style(f' Successfully Installed {package_name} to <=> {line.split()[3]}', 'bright_green'))
 
         if mode == 'uninstall':
             try:
@@ -348,7 +348,7 @@ def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
 
                     if 'done' in line:
                         h.stop()
-                        click.echo(click.style(f' Successfully Installed {package_name} to <=> {line.split()[3]}', 'green'))
+                        click.echo(click.style(f' Successfully Installed {package_name} to <=> {line.split()[3]}', 'bright_green'))
     if mode == 'uninstall':
         try:
             proc = Popen('apm --version --no-color'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
@@ -366,5 +366,5 @@ def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
 
                 if 'done' in line:
                     h.stop()
-                    click.echo(click.style(f' Successfully Uninstalled {package_name}', 'green'))
+                    click.echo(click.style(f' Successfully Uninstalled {package_name}', 'bright_green'))
 

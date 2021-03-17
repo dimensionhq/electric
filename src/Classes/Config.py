@@ -61,7 +61,7 @@ class Config:
         if 'Info' in headers:
 
             click.echo(click.style(f'Publisher => {self.publisher}'))
-            click.echo(click.style(f'Description => {self.description}', fg='yellow'))
+            click.echo(click.style(f'Description => {self.description}', fg='bright_yellow'))
 
             if platform == 'win32' and not self.os == 'Windows':
                 if self.os:
@@ -97,7 +97,7 @@ class Config:
                     except FileNotFoundError:
                         click.echo(click.style('Visual Studio Code Found But Shell Extension Not Found, Aborting Config Installation!', fg='red'))
 
-        click.echo(click.style('All Tests Passed!', 'green'))
+        click.echo(click.style('All Tests Passed!', 'bright_green'))
 
 
     @staticmethod
@@ -250,7 +250,7 @@ class Config:
                                         idx += 1
                                     click.echo(click.style(f'Error On Line {ln_number + 1} At {filepath}', fg='red'))
                                     message = line.replace(':', '')
-                                    click.echo(click.style(f'ValueNotFoundError : No Value Provided For Key :: {colorama.Fore.CYAN}{message}', fg='yellow'))
+                                    click.echo(click.style(f'ValueNotFoundError : No Value Provided For Key :: {colorama.Fore.LIGHTCYAN_EX}{message}', fg='bright_yellow'))
                                     sys.exit()
                             except ValueError:
                                 if header in ['Packages', 'Pip-Packages', 'Editor-Extensions', 'Node-Packages']:
@@ -268,7 +268,7 @@ class Config:
 
                                     click.echo(click.style(f'Error On Line {ln_number + 1} At {filepath}', fg='red'))
                                     message = line.replace(':', '')
-                                    click.echo(click.style(f'ValueNotFoundError : Expecting A Value Pair With `=>` Operator For Key :: {colorama.Fore.CYAN}{message}', fg='yellow'))
+                                    click.echo(click.style(f'ValueNotFoundError : Expecting A Value Pair With `=>` Operator For Key :: {colorama.Fore.LIGHTCYAN_EX}{message}', fg='bright_yellow'))
                                     sys.exit()
 
                             d[header].append({ k : v.replace('"', '') })
@@ -523,14 +523,14 @@ class Config:
 
                         sha256_checksum = sha256_hash_checksum.hexdigest()
                         if md5 == md5_checksum and sha256 == sha256_checksum:
-                            click.echo(click.style('Hashes Match!', 'green'))
+                            click.echo(click.style('Hashes Match!', 'bright_green'))
                         else:
                             click.echo(click.style('Hashes Don\'t Match!', 'red'))
                             os.remove(rf'{gettempdir()}\electric\configuration.electric')
                             exit(1)
                         os.remove(rf'{gettempdir()}\electric\configuration.electric')
         except FileNotFoundError:
-            click.echo(click.style(f'Could Not Find {Fore.BLUE}{filepath}{Fore.RESET}.', fg='red'), err=True)
+            click.echo(click.style(f'Could Not Find {Fore.LIGHTCYAN_EX}{filepath}{Fore.RESET}.', fg='red'), err=True)
             time.sleep(2)
             sys.exit()
         d.pop('')
