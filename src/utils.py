@@ -1912,14 +1912,10 @@ def write_install_metrics(package_name: str, success: bool):
         with open(f'{PathManager.get_appdata_directory()}\install.json', 'r') as f:
             initial_data = json.load(f)
 
-        initial_data[softwares] = initial_data[softwares].append({'name': package_name, 'status': success})
+        initial_data['softwares'] = initial_data['softwares'].append({'name': package_name, 'status': success})
         
         with open(f'{PathManager.get_appdata_directory()}\install.json', 'w') as f:
             f.write(json.dumps(initial_data))
-
-    
-
-    with open(f'{PathManager.get_appdata_directory()}\install.json', mode) as f:
 
 def send_install_metrics(package_name: str, status: str):
     URL = 'https://electric-package-manager-api.herokuapp.com/increment/'
