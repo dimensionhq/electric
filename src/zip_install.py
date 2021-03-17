@@ -15,7 +15,7 @@ home = os.path.expanduser('~')
 def install_portable(packet: PortablePacket, metadata: Metadata):
     if find_existing_installation(f'{packet.extract_dir}@{packet.latest_version}'):
         write(
-            f'Found Existing Installation Of {packet.display_name}', 'yellow', metadata)
+            f'Found Existing Installation Of {packet.display_name}', 'bright_yellow', metadata)
         continue_installation = confirm(
             f'Would you like to reinstall {packet.display_name}?')
         if continue_installation:
@@ -80,7 +80,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                     f.write(f'\n{line}')
             os.system(
                 rf'powershell -executionpolicy bypass -File {home}\electric\temp\Scripts\temp.ps1')
-            write('Successfully Executed Pre-Install Code', 'green', metadata)
+            write('Successfully Executed Pre-Install Code', 'bright_green', metadata)
 
         if packet.pre_install['type'] == 'bat' or packet.pre_install['type'] == 'cmd':
             packet.pre_install['code'] = [l.replace('<dir>', unzip_dir.replace(
@@ -103,7 +103,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                     f.write(f'\n{line}')
             os.system(
                 rf'{home}\electric\temp\Scripts\temp.bat')
-            write('Successfully Executed Pre-Install Code', 'green', metadata)
+            write('Successfully Executed Pre-Install Code', 'bright_green', metadata)
 
         if packet.pre_install['type'] == 'python':
             code = ''''''
@@ -144,7 +144,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
 
     if packet.set_env:
         changes_environment = True
-        write(f'Setting Environment Variable {packet.set_env["name"]}', 'green', metadata)
+        write(f'Setting Environment Variable {packet.set_env["name"]}', 'bright_green', metadata)
         set_environment_variable(packet.set_env['name'], packet.set_env['value'].replace('<install-directory>', unzip_dir).replace('\\\\', '\\'))
 
     if changes_environment:

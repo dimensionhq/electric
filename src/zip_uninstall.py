@@ -35,10 +35,10 @@ def uninstall_portable(packet: PortablePacket, metadata: Metadata):
                     pass
         
         if packet.set_env:
-            write(f'Deleting {packet.set_env["name"]} Environment Variable', 'green', metadata)
+            write(f'Deleting {packet.set_env["name"]} Environment Variable', 'bright_green', metadata)
             delete_environment_variable(packet.set_env['name'])
         
-        write(f'Uninstalling {packet.display_name}', 'green', metadata)
+        write(f'Uninstalling {packet.display_name}', 'bright_green', metadata)
         package_directory = loc + f'{packet.extract_dir}@{packet.latest_version}'
         proc = Popen(f'del /f/s/q {package_directory} > nul'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         proc.communicate()
@@ -46,9 +46,9 @@ def uninstall_portable(packet: PortablePacket, metadata: Metadata):
         proc.communicate()
         loc = rf'{home}\electric\shims'
                 
-        write(f'Successfully Uninstalled {packet.display_name}', 'green', metadata)
+        write(f'Successfully Uninstalled {packet.display_name}', 'bright_green', metadata)
         if packet.uninstall_notes:
             display_notes(packet, '', metadata, uninstall=True)
 
     else:
-        write(f'Could Not Find Any Existing Installations Of {packet.display_name}', 'yellow', metadata)
+        write(f'Could Not Find Any Existing Installations Of {packet.display_name}', 'bright_yellow', metadata)

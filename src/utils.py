@@ -139,9 +139,9 @@ def verify_checksum(path: str, checksum: str, metadata: Metadata):
     import hashlib
 
     if hashlib.sha256(open(path, 'rb').read()).hexdigest() == checksum:
-        write('Verified Installer Hash', 'green', metadata)
+        write('Verified Installer Hash', 'bright_green', metadata)
     else:
-        write('Hashes Don\'t Match!', 'green', metadata)
+        write('Hashes Don\'t Match!', 'bright_green', metadata)
         continue_installation = input('Would you like to continue with installation? [Y/n]: ') 
         if continue_installation:
             return
@@ -286,7 +286,7 @@ def check_resume_download(package_name: str, download_url: str, metadata: Metada
     try:
         if os.path.isfile(data['path']) and package_name == data['name'] and data['url'] == download_url:
             write(
-                f'Resuming Existing Download At => {tempfile.gettempdir()}', 'blue', metadata)
+                f'Resuming Existing Download At => {tempfile.gettempdir()}', 'bright_cyan', metadata)
             return os.stat(data['path']).st_size, data['path']
         else:
             return (None, None)
@@ -386,7 +386,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         log_info(f'Using existing installer previously downloaded at {path}', metadata.logfile)
 
         write(
-            f'Found Existing Download At: {tempfile.gettempdir()}', 'blue', metadata)
+            f'Found Existing Download At: {tempfile.gettempdir()}', 'bright_cyan', metadata)
 
         write_debug(f'Requested file has already been downloaded at {path}', metadata)
 
@@ -538,7 +538,7 @@ def handle_uninstall_dependencies(packet: Packet, metadata):
             "[", "").replace("]", "").replace("\'", "")
     disp = packet.dependencies.replace('[', '').replace(']', '')
     write(f'{packet.display_name} has the following dependencies: {disp}',
-              'yellow', metadata)
+              'bright_yellow', metadata)
 
     for package_name in packet.dependencies:
         os.system(f'electric uninstall {package_name}')
@@ -643,7 +643,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     install_exit_codes = pkg['valid-install-exit-codes']
                 
                 if 'pre-install' in list(pkg.keys()) or 'post-install' in list(pkg.keys()):
-                    write('Pre Or Post Install Multi-Threaded Implementation Is Still In Development, Forcing Sync Installation', 'yellow', metadata)
+                    write('Pre Or Post Install Multi-Threaded Implementation Is Still In Development, Forcing Sync Installation', 'bright_yellow', metadata)
                     return
 
                 packet = Packet(
@@ -777,7 +777,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         write_verbose(
                             f'Found an existing installation of => {packet.json_name}', metadata)
                         write(
-                            f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
+                            f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
                         installation_continue = confirm(
                             f'Would you like to reinstall {packet.display_name}')
                         if installation_continue or metadata.yes:
@@ -840,7 +840,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     log_info('Finished Rapid Download', metadata.logfile)
 
                     if virus_check:
-                        with Halo('\nScanning File For Viruses...', text_color='blue'):
+                        with Halo('\nScanning File For Viruses...', text_color='bright_cyan'):
                             check_virus(path, metadata)
 
                     write(
@@ -880,7 +880,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     final_snap = registry.get_environment_keys()
                     if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
                         write('Refreshing Environment Variables...',
-                              'green', metadata)
+                              'bright_green', metadata)
                         start = timer()
                         log_info(
                             'Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
@@ -893,7 +893,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         write_debug(
                             f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
 
-                    with Halo(f'Verifying Successful Installation', text_color='green') as h:
+                    with Halo(f'Verifying Successful Installation', text_color='bright_green') as h:
                         if find_existing_installation(packet.json_name, packet.display_name):
                             h.stop()
                             register_package_success(
@@ -921,7 +921,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         log_info(
                             'Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
                         write('Successfully Cleaned Up Installer From Temp Directory...',
-                              'green', metadata)
+                              'bright_green', metadata)
 
                     write_verbose(
                         'Installation and setup completed.', metadata)
@@ -1083,7 +1083,7 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
             write_verbose(
                 f'Found an existing installation of => {packet.json_name}', metadata)
             write(
-                f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
+                f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
             installation_continue = confirm(
                 f'Would you like to reinstall {packet.display_name}?')
             if installation_continue or metadata.yes:
@@ -1110,11 +1110,11 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
                 configs[k] = ldict[k]
         
         if configs['existing_installation'] == True:
-            write(f'Detected an existing installation of {packet.display_name}', 'yellow', metadata)
+            write(f'Detected an existing installation of {packet.display_name}', 'bright_yellow', metadata)
         else:
             return False
             # os.system('electric deregister rust')
-            # write(f'Could not find any existing installation of {packet.display_name}', 'yellow', metadata)
+            # write(f'Could not find any existing installation of {packet.display_name}', 'bright_yellow', metadata)
             # os._exit(1)
 
     installation = find_existing_installation(
@@ -1122,7 +1122,7 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
         
     if ignore:
         write(
-            f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
+            f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
 
 
     if installation and not force and not ignore:
@@ -1132,7 +1132,7 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
         write_verbose(
             f'Found an existing installation of => {packet.json_name}', metadata)
         write(
-            f'Detected an existing installation {packet.display_name}.', 'yellow', metadata)
+            f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
         installation_continue = confirm(
             f'Would you like to reinstall {packet.display_name}?')
         if installation_continue or metadata.yes:
@@ -1218,7 +1218,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
                 flags += f' {flag}'
             sys.stdout.write('\n')
             click.echo(click.style(
-                f'The {packet.display_name} Installer Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
+                f'The {packet.display_name} Installer Has Requested Administrator Permissions, Using Auto-Elevate', 'bright_yellow'))
             os.system(
                 rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
@@ -1230,7 +1230,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             flags = flags.replace(' --install-dir', '')
             flags = flags.replace(' --reduce', '')
             click.echo(click.style(
-                f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
+                f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'bright_yellow'))
             os.system(
                 rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
             sys.exit()
@@ -1258,7 +1258,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
                 flags += f' {flag}'
 
             click.echo(click.style(
-                f'The {packet.display_name} Installer Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
+                f'The {packet.display_name} Installer Requested Administrator Permissions, Using Auto-Elevate', 'bright_yellow'))
             os.system(
                 rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
@@ -1270,7 +1270,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             flags = flags.replace(' --install-dir', '')
             flags = flags.replace(' --reduce', '')
             click.echo(click.style(
-                f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
+                f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'bright_yellow'))
             os.system(
                 rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
             sys.exit()
@@ -1368,7 +1368,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
     if download_type == '.msix' or download_type == '.msixbundle' or download_type == '.appxbundle':
         install_msix_package(path)
         register_package_success(packet, '', metadata)
-        write(f'Successfully Installed {packet.display_name}', 'green', metadata)
+        write(f'Successfully Installed {packet.display_name}', 'bright_green', metadata)
         sys.exit()
 
     if download_type == '.exe':
@@ -1399,7 +1399,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
                 
                 if custom_install_switch == 'None':
                     write(
-                        f'Installing {packet.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', 'yellow', metadata)
+                        f'Installing {packet.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', 'bright_yellow', metadata)
 
         if not directory:
             for switch in switches:
@@ -1419,7 +1419,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             for flag in get_install_flags(packet.directory, metadata):
                 flags += f' {flag}'
             click.echo(click.style(
-                f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'yellow'))
+                f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'bright_yellow'))
             os.system(
                 rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
@@ -1602,13 +1602,13 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
 
         sys.stdout.write(f'{Fore.RESET}{Fore.RESET}')
         write('RapidExit Successfully Exited With Code 0',
-              'green', metadata)
+              'bright_green', metadata)
               
         os._exit(1)
 
     else:
         print(Fore.RESET, '')
-        write('RapidExit Successfully Exited With Code 0', 'green', metadata)
+        write('RapidExit Successfully Exited With Code 0', 'bright_green', metadata)
         # print(Fore.RESET, '')
         sys.exit()
 
@@ -1629,7 +1629,7 @@ def kill_running_proc(package_name: str, display_name: str, metadata: Metadata):
         return
     if pid and pid != 1:
         if metadata.yes:
-            write(f'Terminating {name}.', 'green', metadata)
+            write(f'Terminating {name}.', 'bright_green', metadata)
             os.kill(pid, SIGTERM)
             return
         if metadata.silent:
@@ -1638,7 +1638,7 @@ def kill_running_proc(package_name: str, display_name: str, metadata: Metadata):
         terminate = confirm(
             f'Electric Detected {name} Running In The Background. Would You Like To Terminate It?')
         if terminate:
-            write(f'Terminating {name}.', 'green', metadata)
+            write(f'Terminating {name}.', 'bright_green', metadata)
             os.kill(pid, SIGTERM)
         else:
             write('Aborting Installation!', 'red', metadata)
@@ -1660,13 +1660,13 @@ def kill_proc(proc, metadata: Metadata):
     if proc is not None:
         proc.terminate()
         write('SafetyHarness Successfully Created Clean Exit Gateway',
-              'green', metadata)
+              'bright_green', metadata)
         write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0',
-              'light_blue', metadata)
+              'bright_cyan', metadata)
         os._exit(0)
     else:
         write('\nRapidExit Successfully Exited With Code 0',
-              'green', metadata)
+              'bright_green', metadata)
         os._exit(0)
 
 
@@ -1773,7 +1773,7 @@ def check_virus(path: str, metadata: Metadata):
         for value in detected.items():
             if not metadata.silent and not metadata.no_color:
                 click.echo(click.style(
-                    f'\n{value[0]} => {value[1]}', fg='yellow'))
+                    f'\n{value[0]} => {value[1]}', fg='bright_yellow'))
             elif metadata.no_color and not metadata.silent:
                 click.echo(click.style(
                     f'\n{value[0]} => {value[1]}', fg='white'))
@@ -1786,7 +1786,7 @@ def check_virus(path: str, metadata: Metadata):
             else:
                 handle_exit('Virus Check', '', metadata)
     else:
-        click.echo(click.style('No Viruses Detected!', fg='green'))
+        click.echo(click.style('No Viruses Detected!', fg='bright_green'))
 
 
 def check_newer_version(package_name: str, packet: Packet) -> bool:
@@ -1842,7 +1842,7 @@ def check_for_updates():
         if check_newer_version_local(new_version):
             # Implement Version Check
             if confirm('A new update for electric is available, would you like to proceed with the update?'):
-                click.echo(click.style('Updating Electric..', fg='green'))
+                click.echo(click.style('Updating Electric..', fg='bright_green'))
                 UPDATEA = 'https://electric-package-manager.herokuapp.com/update/windows'
 
                 def is_admin():
@@ -1877,7 +1877,7 @@ def check_for_updates():
 
                     Popen(command, close_fds=True, shell=True)
                     click.echo(click.style(
-                        '\nSuccessfully Updated Electric!', fg='green'))
+                        '\nSuccessfully Updated Electric!', fg='bright_green'))
                     sys.exit()
                 else:
                     click.echo(click.style(
@@ -1902,7 +1902,7 @@ def disp_error_msg(messages: list, metadata: Metadata):
         idx = 0
         for msg in messages:
             if idx == 0:
-                click.echo(click.style(msg, fg='yellow'))
+                click.echo(click.style(msg, fg='bright_yellow'))
                 idx += 1
                 continue
             if 'Reboot' in msg:
@@ -1910,13 +1910,13 @@ def disp_error_msg(messages: list, metadata: Metadata):
                 break
             if 'http' in msg:
                 websites.append(msg.strip())
-                click.echo(click.style(msg, fg='blue'))
+                click.echo(click.style(msg, fg='bright_cyan'))
                 idx += 1
                 continue
             if 'electric install' in msg:
                 commands.append(re.findall(r'\`(.*?)`', msg))
             if 'NAME' and 'VERSION' in msg:
-                click.echo(click.style(msg, fg='green'))
+                click.echo(click.style(msg, fg='bright_green'))
                 support_ticket = True
                 break
             else:
@@ -1936,7 +1936,7 @@ def disp_error_msg(messages: list, metadata: Metadata):
                     if res.status_code == 200:
                         h.stop()
                         click.echo(click.style(
-                            'Successfully Sent Support Ticket!', fg='green'))
+                            'Successfully Sent Support Ticket!', fg='bright_green'))
                     else:
                         h.fail('Failed To Send Support Ticket')
 
@@ -2100,7 +2100,7 @@ def handle_unknown_error(err: str, pacakge_name: str, method: str, exit_code: st
     if error_msg:
         print(err + '\n')
         query = f'{pacakge_name} {method} failed {err}'
-        with Halo('Troubleshooting ', text_color='yellow'):
+        with Halo('Troubleshooting ', text_color='bright_yellow'):
             results = search(query=query, stop=3)
             results = [f'\n\t[{index + 1}] <=> {r}' for index,
                        r in enumerate(results)]
@@ -2265,7 +2265,7 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
                     write_all(
                         f'Autocorrecting To {corrections[0]}', 'bright_magenta', metadata)
                     write(
-                        f'Successfully Autocorrected To {corrections[0]}', 'green', metadata)
+                        f'Successfully Autocorrected To {corrections[0]}', 'bright_green', metadata)
                     log_info(
                         f'Successfully Autocorrected To {corrections[0]}', metadata.logfile)
                     corrected_names.append(corrections[0])

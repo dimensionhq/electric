@@ -334,7 +334,7 @@ def install_dependencies(packet: PortablePacket, metadata: Metadata):
     disp = str(packet.dependencies).replace(
             "[", "").replace("]", "").replace("\'", "")
     write(f'{packet.display_name} has the following dependencies: {disp}',
-            'yellow', metadata)
+            'bright_yellow', metadata)
     continue_install = confirm(
         'Would you like to install the above dependencies ?')
     if continue_install:
@@ -348,7 +348,7 @@ def uninstall_dependencies(packet: PortablePacket, metadata: Metadata):
     disp = str(packet.dependencies).replace(
             "[", "").replace("]", "").replace("\'", "")
     write(f'{packet.display_name} has the following dependencies: {disp}',
-            'yellow', metadata)
+            'bright_yellow', metadata)
     continue_install = confirm(
         'Would you like to uninstall the above dependencies ?')
     if continue_install:

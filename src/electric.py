@@ -369,7 +369,7 @@ def install(
 
         if virus_check:
             log_info('Running requested virus scanning', metadata.logfile)
-            write('Scanning File For Viruses...', 'blue', metadata)
+            write('Scanning File For Viruses...', 'bright_cyan', metadata)
             check_virus(configs['path'], metadata)
         write_debug(
             f'Installing {packet.display_name} through Setup{packet.win64_type}', metadata)        
@@ -1804,7 +1804,7 @@ def settings():
             f'Creating settings.json at {Fore.LIGHTCYAN_EX}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='bright_green'))
         initialize_settings()
     cursor.hide()
-    with Halo('Opening Settings... ', text_color='blue'):
+    with Halo('Opening Settings... ', text_color='bright_cyan'):
         open_settings()
     cursor.show()
 

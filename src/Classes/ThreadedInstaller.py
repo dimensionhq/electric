@@ -93,7 +93,7 @@ class ThreadedInstaller:
 
             if custom_install_switch == 'None' and install.directory:
                 click.echo(click.style(
-                    f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
+                    f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='bright_yellow'))
 
             utils.run_cmd(command, self.metadata, 'installation', install)
 
@@ -177,16 +177,16 @@ class ThreadedInstaller:
         for item in download_items:
             if self.metadata.virus_check:
                 write(
-                    f'\nScanning {item.display_name} For Viruses...', 'blue', metadata)
+                    f'\nScanning {item.display_name} For Viruses...', 'bright_cyan', metadata)
                 utils.check_virus(item.path, metadata)
 
         write_debug(
             f'Rapid Download Successfully Downloaded {len(download_items)} Packages Using RapidThreading', metadata)
         write_debug('Rapid Download Exiting With Code 0', metadata)
         if not self.metadata.debug:
-            write('\nSuccessfully Downloaded Installation Files', 'green', metadata)
+            write('\nSuccessfully Downloaded Installation Files', 'bright_green', metadata)
         else:
-            write('Successfully Downloaded Installation Files', 'green', metadata)
+            write('Successfully Downloaded Installation Files', 'bright_green', metadata)
         log_info('Finished Rapid Download', metadata.logfile)
         write(
             'Installing Packages', 'cyan', metadata)
@@ -274,7 +274,7 @@ class ThreadedInstaller:
             for path in paths:
                 os.remove(path)
             write('Successfully Cleaned Up Installer From Temp Directory...',
-                  'green', self.metadata)
+                  'bright_green', self.metadata)
 
         for packet in self.packets:
             utils.register_package_success(
@@ -310,7 +310,7 @@ class ThreadedInstaller:
         disp = str(packet.dependencies).replace(
             "[", "").replace("]", "").replace("\'", "")
         write(f'{packet.display_name} has the following dependencies: {disp}',
-              'yellow', metadata)
+              'bright_yellow', metadata)
         continue_install = confirm(
             'Would you like to install the above dependencies ?')
         if continue_install:
@@ -318,7 +318,7 @@ class ThreadedInstaller:
             f'Installing Dependencies For => {packet.display_name}', 'cyan', metadata)
             if len(packet.dependencies) > 1 and len(packet.dependencies) <= 5:
                 write(
-                    f'Using Parallel Installation For Installing Dependencies', 'green', metadata)
+                    f'Using Parallel Installation For Installing Dependencies', 'bright_green', metadata)
                 packets = []
                 for package in packet.dependencies:
                     res = utils.send_req_package(package)
@@ -404,7 +404,7 @@ class ThreadedInstaller:
                 manager.handle_multi_install(paths)
                 return
             else:
-                write('Starting Sync Installation', 'green', metadata)
+                write('Starting Sync Installation', 'bright_green', metadata)
                 for package in packet.dependencies:
                     res = utils.send_req_package(package)
                     write(f'SuperCached [ {Fore.LIGHTCYAN_EX}{res["display-name"]}{Fore.RESET} ]', 'white', metadata)
@@ -468,7 +468,7 @@ class ThreadedInstaller:
 
                     download_url = packet.win64
 
-                    write('Initializing Rapid Download', 'green', metadata)
+                    write('Initializing Rapid Download', 'bright_green', metadata)
                     log_info('Initializing Rapid Download...',
                              metadata.logfile)
 
@@ -502,12 +502,12 @@ class ThreadedInstaller:
 
                         path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
 
-                    write('Completed Rapid Download', 'green', metadata)
+                    write('Completed Rapid Download', 'bright_green', metadata)
 
                     log_info('Finished Rapid Download', metadata.logfile)
 
                     if metadata.virus_check:
-                        write('Scanning File For Viruses...', 'blue', metadata)
+                        write('Scanning File For Viruses...', 'bright_cyan', metadata)
                         utils.check_virus(path, metadata)
 
                     write(
@@ -534,7 +534,7 @@ class ThreadedInstaller:
                         elif packet.default_install_dir:
                             replace_install_dir = packet.default_install_dir
                         
-                        write(f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'green', metadata)
+                        write(f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
                         utils.append_to_path(packet.add_path.replace('<install-directory>', replace_install_dir))
 
                     if packet.set_env:
@@ -547,7 +547,7 @@ class ThreadedInstaller:
                         elif packet.default_install_dir:
                             replace_install_dir = packet.default_install_dir
 
-                        write(f'Setting Environment Variable {name}', 'green', metadata)
+                        write(f'Setting Environment Variable {name}', 'bright_green', metadata)
                         
                         set_environment_variable(
                             name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
@@ -555,7 +555,7 @@ class ThreadedInstaller:
                     final_snap = get_environment_keys()
                     if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
                         write('Refreshing Environment Variables...',
-                              'green', metadata)
+                              'bright_green', metadata)
                         start = timer()
                         log_info(
                             'Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
@@ -587,7 +587,7 @@ class ThreadedInstaller:
                         log_info(
                             'Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
                         write('Successfully Cleaned Up Installer From Temp Directory...',
-                              'green', metadata)
+                              'bright_green', metadata)
 
                     write_verbose(
                         'Dependency successfully Installed.', metadata)
