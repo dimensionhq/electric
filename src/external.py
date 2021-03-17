@@ -9,7 +9,6 @@ from Classes.Metadata import Metadata
 from subprocess import PIPE, Popen
 from extension import *
 from halo import Halo
-from utils import *
 from colorama import Fore
 import json as js
 import mslex
@@ -34,8 +33,9 @@ def handle_python_package(package_name: str, version: str, mode: str, metadata: 
 
     if err:
         click.echo(click.style('Python Is Not Installed. Exit Code [0011]', fg='red'))
-        disp_error_msg(get_error_message('0011', 'install', package_name, None), metadata)
-        handle_exit('ERROR', None, metadata)
+        utils.disp_error_msg(utils.get_error_message('0011', 'install', package_name, None), metadata)
+        utils.handle_exit('ERROR', None, metadata)
+    
     if mode == 'install':
         command = 'python -m pip install --upgrade --no-input'
 
@@ -71,7 +71,7 @@ def handle_python_package(package_name: str, version: str, mode: str, metadata: 
                     f'Python v{py_version[0]} :: Successfully Installed {package_name} {ver}', 'green', metadata)
 
             if 'You should consider upgrading via' in line:
-                wants = confirm(
+                wants = utils.confirm(
                     'Would you like to upgrade your pip version?')
                 if wants:
                     write('Updating Pip Version', 'green', metadata)
@@ -123,8 +123,8 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
 
     if err:
         click.echo(click.style('npm Or node Is Not Installed. Exit Code [0011]', fg='bright_yellow'))
-        disp_error_msg(get_error_message('0011', 'install', package_name, None), metadata)
-        handle_exit('ERROR', None, metadata)
+        utils.disp_error_msg(utils.get_error_message('0011', 'install', package_name, None), metadata)
+        utils.handle_exit('ERROR', None, metadata)
 
 
     if mode == 'install':
@@ -183,8 +183,8 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
         base_c = 'code-insiders'
         if output.returncode != 0:
             click.echo(click.style('Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
-            disp_error_msg(get_error_message('0111', 'install', package_name, None), metadata)
-            handle_exit('error', metadata)
+            utils.disp_error_msg(utils.get_error_message('0111', 'install', package_name, None), metadata)
+            utils.handle_exit('error', metadata)
 
     version = version.strip().split('\n')[0]
     
@@ -259,7 +259,7 @@ def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
                     json = js.load(f)
                     current_packages = json['installed_packages']
                     if package_name in current_packages:
-                        print(f'{package_name} is already installed!')
+                        write(f'{package_name} Is Already Installed!', 'white', metadata)
                         sys.exit()
 
                     current_packages.append(package_name)
@@ -268,7 +268,7 @@ def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
                 json['installed_packages'] = updated_packages
                 with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w+') as f:
                     f.write(js.dumps(json, indent=4))
-                click.echo(f'Successfully Added {package_name} to Sublime Text 3')
+                write(f'Successfully Added {package_name} to Sublime Text 3', 'white', metadata)
             else:
                 if not os.path.isdir(location):
                     os.mkdir(location)
@@ -292,11 +292,14 @@ def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
                             "Package Control"
                         ]},
                         indent=4
-                        ))
+                        )
+                    )
 
                 handle_sublime_extension(package_name, mode, metadata)
         else:
-            print('Sublime Text 3 is not installed!')
+            click.echo(click.style('Sublime Text 3 Is Not Installed. Exit Code [0112]', fg='bright_yellow'))
+            utils.disp_error_msg(utils.get_error_message('0112', 'install', package_name, None), metadata)
+            utils.handle_exit('error', metadata)
 
 
 def handle_atom_package(package_name: str, mode: str, metadata: Metadata):

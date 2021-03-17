@@ -1187,6 +1187,8 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     Returns:
         str: Error message to log
     """
+    write_verbose(f'{error} => {method}', metadata)
+    write_debug(f'{error} => {method}', metadata)
     log_info(f'{error} ==> {method}', metadata.logfile)
     valid_i_exit_codes = valid_install_exit_codes
     valid_u_exit_codes = valid_uninstall_exit_codes
@@ -1453,23 +1455,11 @@ def get_configuration_data(username: str, description: str, uses_editor: bool, i
     base_configuration.insert(4, f'\n[ Packages ]\n<electric:name>\n')
     return base_configuration
 
-# IMPORTANT: FOR FUTURE USE
-
 
 def get_hash_algorithm(checksum: str):
     # A function to detect the hash algorithm used in checksum
     hashes = {32: 'md5', 40: 'sha1', 64: 'sha256', 128: 'sha512'}
     return hashes[len(checksum)] if len(checksum) in hashes else None
-
-
-def get_checksum(bytecode: bytes, hash_algorithm: str):
-    # A function to get the checksum from bytecode
-    hash_type = getattr(hashlib, hash_algorithm, None)
-
-    if hash_type:
-        return hash_type(bytecode).hexdigest()
-
-    return None
 
 
 def get_day_diff(path: str) -> int:
@@ -1841,6 +1831,7 @@ def check_for_updates():
     """
     Checks if there is a newer version of electric is availiable and automatically updates electric
     """
+    import ctypes
     res = requests.get(
         'https://electric-package-manager.herokuapp.com/version/windows', timeout=10)
     js = res.json()
@@ -1955,7 +1946,7 @@ def disp_error_msg(messages: list, metadata: Metadata):
                 os.system('shutdown /R')
 
         if commands:
-            run = confirm('Would You Like To Install Node?')
+            run = confirm('Would You Like To Install Required Software For Installing This Package?')
             if run:
                 print('\n')
                 os.system(commands[0][0])
@@ -1994,7 +1985,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
                 '\nWe recommend you raise a support ticket with the data generated below:',
                 generate_report(display_name, version),
                 '\nHelp:\n',
-                'https://www.electric.sh/troubleshoot'
+                'https://www.electric.sh/troubleshoot\n\n'
             ]
 
         elif code('0000'):
@@ -2003,7 +1994,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
                 '\nWe recommend you raise a support ticket with the data generated below:',
                 generate_report(display_name, version),
                 '\nHelp:',
-                f'\n[1] <=> https://www.electric.sh/troubleshoot'
+                f'\n[1] <=> https://www.electric.sh/troubleshoot\n\n'
             ]
 
         elif code('0011'):
@@ -2011,7 +2002,8 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
             return [
                 '\n[0011] => Node(npm) is not installed on your system.',
                 '\n\nHow To Fix:\n',
-                'Run `electric install nodejs` [ Copied To Clipboard ] To Install Node(npm)'
+                'Run `electric install nodejs` [ Copied To Clipboard ] To Install Node(npm)\n\nHelp:',
+                '\n[1] <=> https://electric.sh/errors/0011\n\n'
             ]
 
         elif code('1603'):
@@ -2028,8 +2020,10 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
                 '\n[0010] => Python(pip) is not installed on your system.',
                 '\n\nHow To Fix:\n',
                 'Run `electric install python3` [ Copied To Clipboard ] To install Python(pip).\n\nHelp:',
+
                 '\n[1] <=> https://www.educative.io/edpresso/how-to-add-python-to-path-variable-in-windows',
-                '\n[2] <=> https://stackoverflow.com/questions/23708898/pip-is-not-recognized-as-an-internal-or-external-command'
+                '\n[2] <=> https://electric.sh/errors/0010',
+                '\n[3] <=> https://stackoverflow.com/questions/23708898/pip-is-not-recognized-as-an-internal-or-external-command\n\n'
             ]
 
         elif code('1010'):
@@ -2044,7 +2038,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
                 generate_report(display_name, version),
                 '\nHelp:\n',
                 '\n[1] <=> https://www.electric.sh/errors/1111',
-                '\n[2] <=> https://www.electric.sh/support',
+                '\n[2] <=> https://www.electric.sh/support\n\n',
             ]
 
         elif code('0101'):
@@ -2057,6 +2051,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
                 '\n[2] <=> https://www.howtogeek.com/194041/how-to-open-the-command-prompt-as-administrator-in-windows-8.1/',
                 '\n[3] <=> https://www.top-password.com/blog/5-ways-to-run-powershell-as-administrator-in-windows-10/\n\n'
             ]
+        
         elif code('1620'):
             return [
                 f'\n[1620] => The Installer downloaded is corrupted. This could be caused due to a download error or an incorrect URL.',
@@ -2067,6 +2062,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
                 '\n[2] <=> http://msierrors.com/msi/msi-error-1620/',
                 '\n[3] <=> https://docs.microsoft.com/en-us/windows/win32/msi/error-codes/\n\n'
             ]
+        
         elif code('1618'):
             return [
                 f'\n[1620] => Another instance of the installer / uninstaller is already running.',
@@ -2076,6 +2072,25 @@ def get_error_message(code: str, method: str, display_name: str, version: str):
                 '\n[1] <=> https://www.electric.sh/errors/1618',
                 '\n[2] <=> http://msierrors.com/msi/msi-error-1618/',
                 '\n[3] <=> https://docs.microsoft.com/en-us/windows/win32/msi/error-codes/\n\n'
+            ]
+        
+        elif code('0111'):
+            copy_to_clipboard('electric install visual-studio-code')
+            return [
+                '\n[0010] => Microsoft Visual Studio Code is not installed on your system.',
+                '\n\nHow To Fix:\n',
+                'Run `electric install visual-studio-code` [ Copied To Clipboard ] To install Visual Studio Code.\n\nHelp:',
+                '\n[1] <=> https://electric.sh/errors/0111',
+                '\n[2] <=> https://stackoverflow.com/questions/46638944/code-is-not-recognized-as-an-internal-or-external-command\n\n',
+            ]
+
+        elif code('0112'):
+            copy_to_clipboard('electric install sublime-text-3')
+            return [
+                '\n[0010] => Sublime Text 3 is not installed on your system.',
+                '\n\nHow To Fix:\n',
+                'Run `electric install sublime-text-3` [ Copied To Clipboard ] To install Sublime Text 3.\n\nHelp:',
+                '\n[1] <=> https://electric.sh/errors/0112\n\n',
             ]
 
 
