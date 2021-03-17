@@ -1893,14 +1893,38 @@ def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfil
     return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce, rate_limit, settings, sync)
 
 
-def f_and_f(package_name: str, status: str):
-    threading.Thread(target=send_install_metrics, args=(package_name, status,)).start()
+def write_install_metrics(package_name: str, success: bool):
+    if not os.path.isfile(f'{PathManager.get_appdata_directory()}\install.json'):
+        with open(f'{PathManager.get_appdata_directory()}\install.json', 'w+') as f:
+            f.write(
+                json.dumps(
+                    {
+                        'softwares': [
+                            {
+                                'name': package_name,
+                                'status': success,
+                            }
+                        ]
+                    }
+                )
+            )
+    else:
+        with open(f'{PathManager.get_appdata_directory()}\install.json', 'r') as f:
+            initial_data = json.load(f)
 
+        initial_data[softwares] = initial_data[softwares].append({'name': package_name, 'status': success})
+        
+        with open(f'{PathManager.get_appdata_directory()}\install.json', 'w') as f:
+            f.write(json.dumps(initial_data))
+
+    
+
+    with open(f'{PathManager.get_appdata_directory()}\install.json', mode) as f:
 
 def send_install_metrics(package_name: str, status: str):
     URL = 'https://electric-package-manager-api.herokuapp.com/increment/'
     try:
-        requests.post(URL + package_name + '@' + status)
+        requests.get(URL + package_name + '@' + status, timeout=0.01)
     except:
         pass
 
@@ -1986,7 +2010,7 @@ def disp_error_msg(messages: list, metadata: Metadata):
 
 def get_error_message(code: str, method: str, display_name: str, version: str, metadata: Metadata, package_name: str):
     if metadata.settings.install_metrics == True:
-        f_and_f(package_name, 'fail')
+        write_install_metrics(package_name, False)
 
     attr = method.replace('ation', '')
     with Switch(code) as code:

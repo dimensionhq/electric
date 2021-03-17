@@ -32,6 +32,5 @@ def virus_check(path : str):
     EICAR_MD5 = hashlib.md5(EICAR).hexdigest()
     URL = 'http://electric-package-manager-api.herokuapp.com/virus-check/' + EICAR_MD5
     res = requests.get(URL)
-    print(res.text)
-    data = res.json()
-    print(data)
+    return res.json()
+    

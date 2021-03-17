@@ -598,6 +598,8 @@ def install(
                     write(f'Failed To Install {packet.display_name}', 'bright_red', metadata)
                 sys.exit()
 
+
+
         if metadata.reduce_package:
             write_verbose(f'Deleting installer files at {tempfile.gettempdir()}', metadata)
             log_info(f'Deleting installer files at {tempfile.gettempdir()}', metadata.logfile)
@@ -614,8 +616,8 @@ def install(
         version = ''
 
         if metadata.settings.install_metrics == True:
-            f_and_f(packet.json_name, 'success')
-
+            write_install_metrics(packet.json_name, True)
+        
         write_verbose('Installation and setup completed with exit code 0', metadata)
         write_verbose('Terminating verbose logger', metadata)
         log_info('Installation and setup completed.', metadata.logfile)
@@ -624,6 +626,7 @@ def install(
         log_info(
             f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
         close_log(metadata.logfile, 'Install')
+        
 
 
 @cli.command(aliases=['upgrade', 'update'], context_settings=CONTEXT_SETTINGS)
