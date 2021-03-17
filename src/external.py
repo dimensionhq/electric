@@ -175,7 +175,7 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
     version = version.decode()         
     if output.returncode != 0:
         output = Popen(mslex.split('code-insiders --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-        version, err = output.communicate()
+        version, _ = output.communicate()
         version = version.decode()
         base_c = 'code-insiders'
         if output.returncode != 0:
@@ -192,13 +192,23 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
             line = line.decode()
 
             if 'Installing extensions' in line:
-                write(f'Code v{version} :: Installing {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+                if not metadata.no_color:
+                    write(f'Code v{version} :: Installing {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+                else:
+                    write(f'Code v{version} :: Installing {package_name}', 'white', metadata)
 
             if 'is already installed' in line:
-                write(f'{Fore.GREEN}Code v{version} :: {Fore.MAGENTA}{package_name}{Fore.YELLOW} is already installed!', 'white', metadata)
+                if not metadata.no_color:
+                    write(f'{Fore.GREEN}Code v{version} :: {Fore.MAGENTA}{package_name}{Fore.YELLOW} Is Already Installed!', 'white', metadata)
+                else:
+                    write(f'Code v{version} :: {package_name} Is Already Installed!', 'white', metadata)
 
             if 'was successfully installed' in line:
-                write(f'{Fore.GREEN}Code v{version} :: Successfully Installed {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+                if not metadata.no_color:
+                    write(f'{Fore.GREEN}Code v{version} :: Successfully Installed {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+                else:
+                    write(f'Code v{version} :: Successfully Installed {package_name}', 'white', metadata)
+
     if mode == 'uninstall':
         command = f'{base_c} --uninstall-extension {package_name} --force'
         proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
