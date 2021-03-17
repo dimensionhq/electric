@@ -2,6 +2,8 @@
 #                              EXTERNAL                              #
 ######################################################################
 
+import utils
+from Classes.PathManager import PathManager
 from urllib.request import urlretrieve
 from Classes.Metadata import Metadata
 from subprocess import PIPE, Popen
@@ -12,6 +14,7 @@ from colorama import Fore
 import json as js
 import mslex
 import sys
+import os
 
 
 def handle_python_package(package_name: str, version: str, mode: str, metadata: Metadata):
@@ -171,7 +174,7 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
     base_c = 'code'
     
     output = Popen(mslex.split('code --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-    version, err = output.communicate()
+    version, _ = output.communicate()
     version = version.decode()         
     if output.returncode != 0:
         output = Popen(mslex.split('code-insiders --version'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
@@ -236,7 +239,7 @@ def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
         metadata (`Metadata`): Metadata for the method
     """
     if mode == 'install':
-        if find_existing_installation('sublime-text-3', 'Sublime Text 3'):
+        if utils.find_existing_installation('sublime-text-3', 'Sublime Text 3'):
             location = PathManager.get_appdata_directory().replace('\electric', '') + '\Sublime Text 3'
             if os.path.isdir(location) and os.path.isfile(fr'{location}\Packages\User\Package Control.sublime-settings'):
                 with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'r') as f:
