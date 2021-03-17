@@ -25,11 +25,10 @@ def write(text: str, color: str, metadata: Metadata):
             if color:
                 click.echo(click.style(text, fg=color))
             else:
-                click.echo(text)
+                print(text)
         
         if metadata.no_color:
-            if not color:
-                click.echo(text)
+            print(text)
 
 
 def write_verbose(log: str, metadata: Metadata):

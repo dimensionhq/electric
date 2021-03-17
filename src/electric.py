@@ -336,7 +336,6 @@ def install(
         
         configs['path'] = download_installer(packet, download_url, metadata)
 
-
         if packet.checksum:
             verify_checksum(configs['path'], packet.checksum, metadata)
 
@@ -348,8 +347,9 @@ def install(
             check_virus(configs['path'], metadata)
         write_debug(
             f'Installing {packet.display_name} through Setup{packet.win64_type}', metadata)        
-        write(f'{Fore.CYAN}Installing {packet.display_name}{Fore.RESET}',
-              'white', metadata)
+        
+        write(f'Installing {packet.display_name}',
+              'cyan', metadata)
         log_info(
             'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
@@ -509,10 +509,11 @@ def install(
             write_debug(f'All Pre-Defined checks for {packet.display_name} passed. Registering successful package installation', metadata)
             write_verbose(f'All Pre-Defined checks for {packet.display_name} passed', metadata)
             log_info(f'All Pre-Defined checks for {packet.display_name} passed', metadata.logfile)
-            
-            write(f'[{Fore.GREEN} OK {Fore.RESET}] Pre-Defined Checks',
+            if not metadata.no_color:
+                write(f'[{Fore.GREEN} OK {Fore.RESET}] Pre-Defined Checks',
                   'white', metadata)
-            
+            else:
+                write(f'[ OK ] Pre-Defined Checks', 'white', metadata)
             register_package_success(packet, install_directory, metadata)
             
             write(
@@ -528,8 +529,12 @@ def install(
             write(
                 f'Running Tests For {packet.display_name}', 'white', metadata)
             if find_existing_installation(packet.json_name, packet.display_name):
-                write(
-                    f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
+                if not metadata.no_color:
+                    write(
+                        f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
+                else:
+                    write(f'[ OK ] Registry Check', 'white', metadata)
+
                 write_debug('Passed Registry Check. Registering Package Success', metadata)
                 register_package_success(packet, install_directory, metadata)
                 write(
