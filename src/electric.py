@@ -299,6 +299,7 @@ def install(
 
 
         install_exit_codes = []
+        uninstall_exit_codes = []
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
         
@@ -612,8 +613,8 @@ def install(
         
         version = ''
 
-        # if metadata.settings.install_metrics == True:
-        #     f_and_f(packet.json_name, 'success')
+        if metadata.settings.install_metrics == True:
+            f_and_f(packet.json_name, 'success')
 
         write_verbose('Installation and setup completed with exit code 0', metadata)
         write_verbose('Terminating verbose logger', metadata)

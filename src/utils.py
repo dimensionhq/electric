@@ -1898,8 +1898,11 @@ def f_and_f(package_name: str, status: str):
 
 
 def send_install_metrics(package_name: str, status: str):
-    URL = '/increment/'
-    requests.post(URL + package_name + '@' + status)
+    URL = 'https://electric-package-manager-api.herokuapp.com/increment/'
+    try:
+        requests.post(URL + package_name + '@' + status)
+    except:
+        pass
 
 
 def disp_error_msg(messages: list, metadata: Metadata):
@@ -1982,8 +1985,9 @@ def disp_error_msg(messages: list, metadata: Metadata):
 
 
 def get_error_message(code: str, method: str, display_name: str, version: str, metadata: Metadata, package_name: str):
-    # if metadata.settings.install_metrics == True:
-    #     f_and_f(package_name, 'fail')
+    if metadata.settings.install_metrics == True:
+        f_and_f(package_name, 'fail')
+
     attr = method.replace('ation', '')
     with Switch(code) as code:
         if code('0001'):
