@@ -33,7 +33,7 @@ def handle_python_package(package_name: str, version: str, mode: str, metadata: 
 
     if err:
         click.echo(click.style('Python Is Not Installed. Exit Code [0011]', fg='red'))
-        utils.disp_error_msg(utils.get_error_message('0011', 'install', package_name, None), metadata)
+        utils.disp_error_msg(utils.get_error_message('0011', 'install', package_name, None, metadata, packet.json_name), metadata)
         utils.handle_exit('ERROR', None, metadata)
     
     if mode == 'install':
@@ -123,7 +123,7 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
 
     if err:
         click.echo(click.style('npm Or node Is Not Installed. Exit Code [0011]', fg='bright_yellow'))
-        utils.disp_error_msg(utils.get_error_message('0011', 'install', package_name, None), metadata)
+        utils.disp_error_msg(utils.get_error_message('0011', 'install', package_name, None, metadata, packet.json_name), metadata)
         utils.handle_exit('ERROR', None, metadata)
 
 
@@ -183,7 +183,7 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
         base_c = 'code-insiders'
         if output.returncode != 0:
             click.echo(click.style('Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
-            utils.disp_error_msg(utils.get_error_message('0111', 'install', package_name, None), metadata)
+            utils.disp_error_msg(utils.get_error_message('0111', 'install', package_name, None, metadata, packet.json_name), metadata)
             utils.handle_exit('error', metadata)
 
     version = version.strip().split('\n')[0]
@@ -298,7 +298,7 @@ def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
                 handle_sublime_extension(package_name, mode, metadata)
         else:
             click.echo(click.style('Sublime Text 3 Is Not Installed. Exit Code [0112]', fg='bright_yellow'))
-            utils.disp_error_msg(utils.get_error_message('0112', 'install', package_name, None), metadata)
+            utils.disp_error_msg(utils.get_error_message('0112', 'install', package_name, None, metadata, packet.json_name), metadata)
             utils.handle_exit('error', metadata)
 
 

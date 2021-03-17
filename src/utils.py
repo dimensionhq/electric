@@ -840,7 +840,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     log_info('Finished Rapid Download', metadata.logfile)
 
                     if virus_check:
-                        with Halo('\nScanning File For Viruses...', text_color='bright_cyan'):
+                        with Halo('\nScanning File For Viruses...', text_color='cyan'):
                             check_virus(path, metadata)
 
                     write(
@@ -893,7 +893,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         write_debug(
                             f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
 
-                    with Halo(f'Verifying Successful Installation', text_color='bright_green') as h:
+                    with Halo(f'Verifying Successful Installation', text_color='green') as h:
                         if find_existing_installation(packet.json_name, packet.display_name):
                             h.stop()
                             register_package_success(
@@ -1205,12 +1205,12 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     if method == 'installation':
         for code in valid_i_exit_codes:
             if f'exit status {code}' in error:
-                return 'no-error'
+                return ['no-error']
 
     if method == 'uninstallation':
         for code in valid_u_exit_codes:
             if f'exit status {code}' in error:
-                return 'no-error'
+                return ['no-error']
 
     
     if 'exit status 1603' in error:
@@ -1239,7 +1239,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
         else:
             click.echo(click.style(
                 '\nFatal Installer Error. Exit Code [1603]', fg='red'))
-            return get_error_message('1603', 'installation', packet.display_name, packet.version)
+            return get_error_message('1603', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
     
 
@@ -1247,13 +1247,13 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     if 'exit status 1639' in error:
         click.echo(click.style(
             f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
-        return get_error_message('0002', 'installation', packet.display_name, packet.version)
+        return get_error_message('0002', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
     if 'exit status 1' in error:
         click.echo(click.style(
             f'\nUnknown Error. Exited With Code [0000]', fg='red'))
         handle_unknown_error(error, packet.display_name, method, 1)
-        return get_error_message('0000', 'installation', packet.display_name, packet.version)
+        return get_error_message('0000', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
     if '[WinError 740]' in error and 'elevation' in error:
         # Process Needs Elevation To Execute
@@ -1283,27 +1283,27 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     if 'exit status 2' in error or 'exit status 1' in error:
         click.echo(click.style(
             f'\nAdministrative Privileges Declined. Exit Code [0101]', fg='red'))
-        return get_error_message('0101', 'installation', packet.display_name, packet.version)
+        return get_error_message('0101', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
     if 'exit status 4' in error:
         # Fatal Error During Installation
         click.echo(click.style(f'\nFatal Error. Exit Code [1111]', fg='red'))
-        return get_error_message('1111', 'installation', packet.display_name, packet.version)
+        return get_error_message('1111', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
     if '[WinError 87]' in error and 'incorrect' in error:
         click.echo(click.style(
             f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
-        return get_error_message('0002', 'installation', packet.display_name, packet.version)
+        return get_error_message('0002', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
     if 'exit status 3010' or 'exit status 2359301' in error:
         # Installer Requesting Reboot
-        return get_error_message('1010', 'installation', packet.display_name, packet.version)
+        return get_error_message('1010', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
     else:
         click.echo(click.style(
             f'\nUnknown Error. Exited With Code [0000]', fg='red'))
         handle_unknown_error(error)
-        return get_error_message('0000', 'installation', packet.display_name, packet.version)
+        return get_error_message('0000', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
 
 def get_file_type(command: str) -> str:
@@ -1346,7 +1346,7 @@ def run_cmd(command: str, metadata: Metadata, method: str, packet: Packet) -> bo
         exit_code = check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         return False if exit_code == 0 else True
     except (CalledProcessError, OSError, FileNotFoundError) as err:
-        
+
         disp_error_msg(get_error_cause(str(err), packet.install_exit_codes,
                                        packet.uninstall_exit_codes, method, metadata, packet), metadata)
 
@@ -1981,9 +1981,9 @@ def disp_error_msg(messages: list, metadata: Metadata):
     handle_exit('ERROR', None, metadata)
 
 
-def get_error_message(code: str, method: str, display_name: str, version: str):
-    if metadata.settings.install_metrics == True:
-        f_and_f(packet.json_name, 'fail')
+def get_error_message(code: str, method: str, display_name: str, version: str, metadata: Metadata, package_name: str):
+    # if metadata.settings.install_metrics == True:
+    #     f_and_f(package_name, 'fail')
     attr = method.replace('ation', '')
     with Switch(code) as code:
         if code('0001'):
@@ -2116,8 +2116,8 @@ def handle_unknown_error(err: str, pacakge_name: str, method: str, exit_code: st
     if error_msg:
         print(err + '\n')
         query = f'{pacakge_name} {method} failed {err}'
-        with Halo('Troubleshooting ', text_color='bright_yellow'):
-            results = search(query=query, stop=3)
+        with Halo('Troubleshooting ', text_color='yellow'):
+            results = search(query, num_results=3)
             results = [f'\n\t[{index + 1}] <=> {r}' for index,
                        r in enumerate(results)]
 

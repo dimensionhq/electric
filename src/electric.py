@@ -198,9 +198,12 @@ def install(
         write('Cannot Install Multiple Packages From A Single Manifest. Make sure you install only 1 package at a time while specifying --manifest', 'bright_red', metadata)
         sys.exit()
 
-    # Autocorrect all package names provided
-    corrected_package_names = list(set(get_autocorrections(
-        packages, get_correct_package_names(), metadata)))
+    if not manifest:
+        # Autocorrect all package names provided
+        corrected_package_names = list(set(get_autocorrections(
+            packages, get_correct_package_names(), metadata)))
+    else:
+        corrected_package_names = ['']
 
     # Write install headers to debug
     write_install_headers(metadata)
@@ -209,6 +212,7 @@ def install(
     
     handle_multithreaded_installation(
         corrected_package_names, install_directory, metadata,ignore)
+
 
     # normal non-multi-threaded installation
     for package in corrected_package_names:
@@ -234,14 +238,17 @@ def install(
                 try:
                     res = json.load(f)
                 except JSONDecodeError as e:
-                    print('Invalid Manifest JSON Syntax : ', e.msg)
+                    print(f'Invalid Manifest JSON Syntax : {Fore.LIGHTRED_EX}{e}{Fore.RESET}')
+                    sys.exit()
+                package = res['package-name'] 
 
             except FileNotFoundError:
                 write(f'{manifest} Does Not Exist!', 'bright_red', metadata)
                 write_verbose(f'{manifest} File Path Not Found!', metadata)
                 write_debug(f'{manifest} FileNotFoundError, Specified Manifest Cannot Be Found!', metadata)
                 log_info(f'{manifest} FileNotFoundError, Specified Manifest Cannot Be Found!', metadata.logfile)
-                sys.exit(1)                
+                sys.exit(1)
+
 
         if not metadata.silent:
             if not metadata.no_color:
@@ -295,6 +302,9 @@ def install(
         if 'valid-install-exit-codes' in list(pkg.keys()):
             install_exit_codes = pkg['valid-install-exit-codes']
         
+        if 'valid-uninstall-exit-codes' in list(pkg.keys()):
+            uninstall_exit_codes = pkg['valid-uninstall-exit-codes']
+
         packet = Packet(
             pkg,
             package, 
@@ -307,7 +317,7 @@ def install(
             install_directory, 
             pkg['dependencies'], 
             install_exit_codes, 
-            None, 
+            uninstall_exit_codes, 
             version, 
             pkg['run-test'] if 'run-test' in list(pkg.keys()) else False, 
             pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, 
@@ -436,7 +446,7 @@ def install(
             log_info(f'Running {packet.display_name} Installer at {configs["path"]}', metadata.logfile)
             install_package(configs['path'], packet, metadata)
         else:
-            disp_error_msg(get_error_message('1618', 'install', packet.display_name, version), metadata)
+            disp_error_msg(get_error_message('1618', 'install', packet.display_name, version, metadata, packet.json_name), metadata)
 
         log_info('Deregistering ctrl+c abort shortcut', metadata.logfile)
         write_verbose('Deregistering ctrl+c abort shortcut', metadata)
@@ -602,8 +612,8 @@ def install(
         
         version = ''
 
-        if metadata.settings.install_metrics == True:
-            f_and_f(packet.json_name, 'success')
+        # if metadata.settings.install_metrics == True:
+        #     f_and_f(packet.json_name, 'success')
 
         write_verbose('Installation and setup completed with exit code 0', metadata)
         write_verbose('Terminating verbose logger', metadata)
@@ -706,6 +716,8 @@ def up(
 
         pkg = res
         pkg = pkg[pkg['latest-version']]
+     
+        
         packet = Packet(
             pkg,
             package, 
@@ -786,7 +798,8 @@ def up(
 
 
 @cli.command(aliases=['remove', 'u'], context_settings=CONTEXT_SETTINGS)
-@click.argument('package_name', required=True)
+@click.argument('package_name', required=False, default='test')
+@click.option('--manifest', '-m', 'manifest', help='Read from a manifest file instead of querying from the community repository')
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for uninstallation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for uninstallation')
 @click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for uninstallation')
@@ -821,10 +834,16 @@ def uninstall(
     ae: bool,
     nightly: bool,
     skp: bool,
+    manifest: str
 ):
     """
     Uninstalls a package or a list of packages.
     """
+
+    if not manifest and package_name == 'test':
+        print(f'{Fore.LIGHTRED_EX}A Package Name Must Be Supplied\nUsage: electric uninstall <package-name>\n\nExamples:\nelectric uninstall {Fore.LIGHTGREEN_EX}sublime-text-3{Fore.RESET}\n{Fore.LIGHTRED_EX}electric uninstall {Fore.LIGHTGREEN_EX}sublime-text-3,notepad++{Fore.RESET}')
+        sys.exit()
+
     start_log()
     if configuration:
         ctx.invoke(
@@ -893,9 +912,16 @@ def uninstall(
 
     packages = package_name.split(',')
 
-    corrected_package_names = get_autocorrections(
-        packages, get_correct_package_names(), metadata)
-    corrected_package_names = list(set(corrected_package_names))
+    if len(packages) > 1 and manifest:
+        write('Cannot Install Multiple Packages From A Single Manifest. Make sure you install only 1 package at a time while specifying --manifest', 'bright_red', metadata)
+        sys.exit()
+
+    if not manifest:
+        corrected_package_names = get_autocorrections(
+            packages, get_correct_package_names(), metadata)
+        corrected_package_names = list(set(corrected_package_names))
+    else:
+        corrected_package_names = ['']
 
     write_uninstall_headers(metadata)
 
@@ -909,7 +935,25 @@ def uninstall(
         installed_packages += portable_installed_packages
 
 
-        res = send_req_package(package)
+        if not manifest:
+            res = send_req_package(package)
+        else:
+            try:
+                f = open(manifest, 'r')
+                try:
+                    res = json.load(f)
+                except JSONDecodeError as e:
+                    print('Invalid Manifest JSON Syntax : ', e.msg)
+                    sys.exit()
+                
+                package = res['package-name'] 
+
+            except FileNotFoundError:
+                write(f'{manifest} Does Not Exist!', 'bright_red', metadata)
+                write_verbose(f'{manifest} File Path Not Found!', metadata)
+                write_debug(f'{manifest} FileNotFoundError, Specified Manifest Cannot Be Found!', metadata)
+                log_info(f'{manifest} FileNotFoundError, Specified Manifest Cannot Be Found!', metadata.logfile)
+                sys.exit(1)
 
         write(
             f'SuperCached [ {Fore.LIGHTCYAN_EX}{res["display-name"]}{Fore.RESET} ]', 'bright_white', metadata)
@@ -979,6 +1023,7 @@ def uninstall(
                 except:
                     pass
                 handle_exit('ERROR', '', metadata)
+        
         # Continue with normal installation because the package has not been installed yet
         pkg = res
         if 'is-portable' in list(pkg.keys()):
@@ -990,10 +1035,7 @@ def uninstall(
         else:
             version = pkg['latest-version']
 
-        uninstall_exit_codes = []
-        if 'valid-uninstall-exit-codes' in list(pkg.keys()):
-            uninstall_exit_codes = pkg['valid-install-exit-codes']
-
+        
         name = pkg['display-name']
         pkg = pkg[version]
         #
@@ -1001,6 +1043,16 @@ def uninstall(
         log_info('Generating Packet For Further Installation.', metadata.logfile)
 
         handle_portable_uninstallation(version == 'portable', res, pkg, metadata)
+
+        install_exit_codes = []
+        uninstall_exit_codes = []
+        
+        if 'valid-install-exit-codes' in list(pkg.keys()):
+            install_exit_codes = pkg['valid-install-exit-codes']
+
+
+        if 'valid-uninstall-exit-codes' in list(pkg.keys()):
+            uninstall_exit_codes = pkg['valid-uninstall-exit-codes']
 
         packet = Packet(
             pkg, 
@@ -1013,7 +1065,7 @@ def uninstall(
             pkg['uninstall-switches'],
             None, 
             pkg['dependencies'], 
-            None, 
+            install_exit_codes, 
             uninstall_exit_codes, 
             version, 
             res['run-check'] if 'run-check' in list(res.keys()) else True, 
@@ -1291,7 +1343,7 @@ def cleanup():
     Clean up all temporary files generated by electric.
     '''
     from progress.bar import Bar
-    with Halo('Cleaning Up ', text_color='bright_green') as h:
+    with Halo('Cleaning Up ', text_color='green') as h:
         try:
             files = os.listdir(rf'{tempfile.gettempdir()}\electric')
         except:
@@ -1446,7 +1498,7 @@ def bundle(
         click.echo(click.style(
             '\nAdministrator Elevation Required For Bundle Installation. Exit Code [0001]', 'bright_red'), err=True)
         disp_error_msg(get_error_message(
-            '0001', 'installation', 'None', None), metadata)
+            '0001', 'installation', 'None', None, metadata, packet.json_name), metadata)
 
 
 @cli.command(aliases=['find'], context_settings=CONTEXT_SETTINGS)
@@ -1808,7 +1860,7 @@ def settings():
             f'Creating settings.json at {Fore.LIGHTCYAN_EX}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='bright_green'))
         initialize_settings()
     cursor.hide()
-    with Halo('Opening Settings... ', text_color='bright_cyan'):
+    with Halo('Opening Settings... ', text_color='cyan'):
         open_settings()
     cursor.show()
 
