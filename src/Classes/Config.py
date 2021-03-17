@@ -250,7 +250,7 @@ class Config:
                                         idx += 1
                                     click.echo(click.style(f'Error On Line {ln_number + 1} At {filepath}', fg='red'))
                                     message = line.replace(':', '')
-                                    click.echo(click.style(f'ValueNotFoundError : No Value Provided For Key :: {colorama.Fore.CYAN}{message}', fg='yellow'))
+                                    click.echo(click.style(f'ValueNotFoundError : No Value Provided For Key :: {colorama.Fore.LIGHTCYAN_EX}{message}', fg='yellow'))
                                     sys.exit()
                             except ValueError:
                                 if header in ['Packages', 'Pip-Packages', 'Editor-Extensions', 'Node-Packages']:
@@ -268,7 +268,7 @@ class Config:
 
                                     click.echo(click.style(f'Error On Line {ln_number + 1} At {filepath}', fg='red'))
                                     message = line.replace(':', '')
-                                    click.echo(click.style(f'ValueNotFoundError : Expecting A Value Pair With `=>` Operator For Key :: {colorama.Fore.CYAN}{message}', fg='yellow'))
+                                    click.echo(click.style(f'ValueNotFoundError : Expecting A Value Pair With `=>` Operator For Key :: {colorama.Fore.LIGHTCYAN_EX}{message}', fg='yellow'))
                                     sys.exit()
 
                             d[header].append({ k : v.replace('"', '') })
@@ -530,7 +530,7 @@ class Config:
                             exit(1)
                         os.remove(rf'{gettempdir()}\electric\configuration.electric')
         except FileNotFoundError:
-            click.echo(click.style(f'Could Not Find {Fore.BLUE}{filepath}{Fore.RESET}.', fg='red'), err=True)
+            click.echo(click.style(f'Could Not Find {Fore.LIGHTCYAN_EX}{filepath}{Fore.RESET}.', fg='red'), err=True)
             time.sleep(2)
             sys.exit()
         d.pop('')

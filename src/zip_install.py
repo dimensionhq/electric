@@ -134,7 +134,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                 generate_shim(f'{shim_dir}', shim, shim_ext)
                 end = timer()
                 write(
-                    f'{Fore.CYAN}Successfully Generated {shim} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)
+                    f'{Fore.LIGHTCYAN_EX}Successfully Generated {shim} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)
 
     if shortcuts:
         for shortcut in shortcuts:
@@ -149,7 +149,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
 
     if changes_environment:
         write(
-            f'{Fore.GREEN}Refreshing Environment Variables{Fore.RESET}', 'white', metadata)
+            f'{Fore.LIGHTGREEN_EX}Refreshing Environment Variables{Fore.RESET}', 'white', metadata)
         refresh_environment_variables()
   
     if packet.post_install:

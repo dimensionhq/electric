@@ -219,14 +219,14 @@ def download(packet, url: str, download_extension: str, file_path: str, metadata
                     if show_progress_bar:
                         complete = int(25 * dl / full_length)
                         # Replace '=' with the character you want like '#' or '$'
-                        fill_c = Fore.GREEN + '=' * complete
+                        fill_c = Fore.LIGHTGREEN_EX + '=' * complete
                         # Replace '-' with the character you want like ' ' (whitespace)
                         unfill_c = Fore.LIGHTBLACK_EX + '-' * (25 - complete)
                         sys.stdout.write(
                             f'\r{fill_c}{unfill_c} {Fore.RESET} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
                         sys.stdout.flush()
         if is_zip:
-            write(f'\n{Fore.GREEN}Initializing Unzipper{Fore.RESET}',
+            write(f'\n{Fore.LIGHTGREEN_EX}Initializing Unzipper{Fore.RESET}',
                   'white', metadata)
 
     except KeyboardInterrupt:

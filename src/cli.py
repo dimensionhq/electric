@@ -129,24 +129,24 @@ Copyright (c) Electric Inc.
 
 Usage: electric <command> [<options>]
 
-{Fore.GREEN}Commands:{Fore.RESET}
-  {Fore.CYAN}Software Management{Fore.RESET}
-    {Fore.MAGENTA}*{Fore.RESET} install
-    {Fore.MAGENTA}*{Fore.RESET} uninstall
-    {Fore.MAGENTA}*{Fore.RESET} update
-    {Fore.MAGENTA}*{Fore.RESET} bundle
-  {Fore.CYAN}Explore Packages{Fore.RESET}
-    {Fore.MAGENTA}*{Fore.RESET} list
-    {Fore.MAGENTA}*{Fore.RESET} search
-    {Fore.MAGENTA}*{Fore.RESET} show
-  {Fore.CYAN}Configuration Development And Management{Fore.RESET}
-    {Fore.MAGENTA}*{Fore.RESET} new
-    {Fore.MAGENTA}*{Fore.RESET} config
-    {Fore.MAGENTA}*{Fore.RESET} generate
-    {Fore.MAGENTA}*{Fore.RESET} sign
-  {Fore.CYAN}Customization And Cleanup{Fore.RESET}
-    {Fore.MAGENTA}*{Fore.RESET} settings
-    {Fore.MAGENTA}*{Fore.RESET} cleanup'''
+{Fore.LIGHTGREEN_EX}Commands:{Fore.RESET}
+  {Fore.LIGHTCYAN_EX}Software Management{Fore.RESET}
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} install
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} uninstall
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} update
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} bundle
+  {Fore.LIGHTCYAN_EX}Explore Packages{Fore.RESET}
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} list
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} search
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} show
+  {Fore.LIGHTCYAN_EX}Configuration Development And Management{Fore.RESET}
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} new
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} config
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} generate
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} sign
+  {Fore.LIGHTCYAN_EX}Customization And Cleanup{Fore.RESET}
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} settings
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} cleanup'''
         click.echo(message)
 
 

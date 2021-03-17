@@ -129,7 +129,7 @@ Copyright (c) Electric Inc.
 
 Usage: eel <command> [<options>]
 
-{Fore.GREEN}Commands:{Fore.RESET}
+{Fore.LIGHTGREEN_EX}Commands:{Fore.RESET}
     convert'''
         click.echo(message)
 

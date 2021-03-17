@@ -29,7 +29,7 @@ class Debugger:
 
             run_test_2 = False
 
-            sys.stdout.write(f'\r| {Back.GREEN if res.status_code == 200 else Back.MAGENTA}{res.status_code}{Back.RESET} | {Fore.CYAN}{round(res.elapsed.total_seconds(), 1)}s{Fore.RESET} | {Fore.GREEN}Ping {url}{Fore.RESET} ')
+            sys.stdout.write(f'\r| {Back.GREEN if res.status_code == 200 else Back.MAGENTA}{res.status_code}{Back.RESET} | {Fore.LIGHTCYAN_EX}{round(res.elapsed.total_seconds(), 1)}s{Fore.RESET} | {Fore.LIGHTGREEN_EX}Ping {url}{Fore.RESET} ')
             
             if res.status_code == 200:
                 status_arr.append(True)
@@ -49,13 +49,13 @@ class Debugger:
                 else:
                     false_count += 1
 
-            print(f'{Fore.GREEN}\nSuccessfully Debugged Network Connection{Fore.RESET}')
+            print(f'{Fore.LIGHTGREEN_EX}\nSuccessfully Debugged Network Connection{Fore.RESET}')
             print(f'Report:')
-            print(f'Your internet connection is {Fore.RED}unstable{Fore.RESET}. {Fore.GREEN}{true_count}{Fore.RESET} of {Fore.YELLOW}5{Fore.RESET} the pings worked while others didn\'t. Try moving to an area with {Fore.GREEN}better internet{Fore.RESET} coverage.\nStill not working? Check the google server status: {Fore.CYAN}https://downdetector.in/status/google/{Fore.RESET}\n')
+            print(f'Your internet connection is {Fore.LIGHTRED_EX}unstable{Fore.RESET}. {Fore.LIGHTGREEN_EX}{true_count}{Fore.RESET} of {Fore.LIGHTYELLOW_EX}5{Fore.RESET} the pings worked while others didn\'t. Try moving to an area with {Fore.LIGHTGREEN_EX}better internet{Fore.RESET} coverage.\nStill not working? Check the google server status: {Fore.LIGHTCYAN_EX}https://downdetector.in/status/google/{Fore.RESET}\n')
             sys.exit()
 
         if run_test_2:
-            print(f'{Fore.GREEN}Failed to debug error. your internet connection is unstable{Fore.RESET}')
+            print(f'{Fore.LIGHTGREEN_EX}Failed to debug error. your internet connection is unstable{Fore.RESET}')
 
         else:
-            print(f'{Fore.GREEN}No Internet Issues Found! Retry the command.')
+            print(f'{Fore.LIGHTGREEN_EX}No Internet Issues Found! Retry the command.')

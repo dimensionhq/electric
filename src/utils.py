@@ -112,9 +112,9 @@ def generate_report(name: str, version: str) -> str:
     """
     return f'''
 {{
-Name {Fore.MAGENTA}=>{Fore.RESET} {Fore.YELLOW}{name}{Fore.RESET}
-{Fore.LIGHTRED_EX}Version {Fore.MAGENTA}=>{Fore.RESET} {Fore.BLUE}{version}{Fore.GREEN}
-{Fore.LIGHTBLUE_EX}Logfile {Fore.MAGENTA}=>{Fore.RESET} {Fore.CYAN}<--attachment-->{Fore.GREEN}
+Name {Fore.LIGHTMAGENTA_EX}=>{Fore.RESET} {Fore.LIGHTYELLOW_EX}{name}{Fore.RESET}
+{Fore.LIGHTRED_EX}Version {Fore.LIGHTMAGENTA_EX}=>{Fore.RESET} {Fore.LIGHTCYAN_EX}{version}{Fore.LIGHTGREEN_EX}
+{Fore.LIGHTBLUE_EX}Logfile {Fore.LIGHTMAGENTA_EX}=>{Fore.RESET} {Fore.LIGHTCYAN_EX}<--attachment-->{Fore.LIGHTGREEN_EX}
 }}{Fore.RESET}
     '''
 
@@ -308,7 +308,7 @@ def send_req_bundle(bundle_name: str) -> dict:
     time = 0.0
     response = requests.get(REQA + '', timeout=15)
     if response.status_code != 200:
-        print(f'{Fore.RED} {bundle_name} not found! {Fore.RESET}')
+        print(f'{Fore.LIGHTRED_EX} {bundle_name} not found! {Fore.RESET}')
     res = response.json()
     
     return res
@@ -455,7 +455,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                         fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
                         unfill_c = Fore.BLACK + '█' * (25 - complete)
                     elif progress_type == 'zippy':
-                        fill_c = Fore.GREEN + '=' * complete
+                        fill_c = Fore.LIGHTGREEN_EX + '=' * complete
                         unfill_c = Fore.LIGHTBLACK_EX + '-' * (25 - complete)
                     elif progress_type not in ['custom', 'accented', 'zippy'] and metadata.settings.use_custom_progress_bar == False or progress_type == 'default':
                         fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
@@ -818,7 +818,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                             print(f'SuperCached [ {packet.display_name} ]')
                         else:
                             print(
-                                f'SuperCached [ {Fore.CYAN} {packet.display_name} {Fore.RESET} ]')
+                                f'SuperCached [ {Fore.LIGHTCYAN_EX} {packet.display_name} {Fore.RESET} ]')
                     start = timer()
 
                     download_url = packet.win64
@@ -844,7 +844,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                             check_virus(path, metadata)
 
                     write(
-                        f'{Fore.CYAN}Installing {packet.display_name}{Fore.RESET}', 'white', metadata)
+                        f'{Fore.LIGHTCYAN_EX}Installing {packet.display_name}{Fore.RESET}', 'white', metadata)
                     log_info(
                         f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
 
@@ -905,7 +905,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         else:
                             h.fail()
                             print(
-                                f'[  {Fore.GREEN}ERROR{Fore.RESET}  ]  Registry Check')
+                                f'[  {Fore.LIGHTGREEN_EX}ERROR{Fore.RESET}  ]  Registry Check')
                             write(
                                 f'Failed To Install {packet.display_name}', 'red', metadata)
                             sys.exit()
@@ -1497,17 +1497,17 @@ def send_req_package(package_name: str) -> dict:
         click.echo(click.style(f'Failed to request {package_name}.json from raw.githubusercontent.com', 'red'))
         run_internet_test = input('Would you like to run a network debugger? [y/n]: ')
         if run_internet_test in ['y', 'yes', 'Y', 'YES']:
-            sys.stdout.write(f'\r| {Fore.CYAN}\{Fore.RESET}  |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+            sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET}  |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
             time.sleep(0.1)
-            sys.stdout.write(f'\r| {Fore.CYAN}|{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+            sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}|{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
             time.sleep(0.1)
-            sys.stdout.write(f'\r| {Fore.CYAN}/{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+            sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}/{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
             time.sleep(0.1)
-            sys.stdout.write(f'\r| {Fore.CYAN}-{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+            sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}-{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
             time.sleep(0.1)
-            sys.stdout.write(f'\r| {Fore.CYAN}\{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+            sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
-            sys.stdout.write(f'\r| {Fore.GREEN}OK{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+            sys.stdout.write(f'\r| {Fore.LIGHTGREEN_EX}OK{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
             Debugger.test_internet()
             sys.exit()
@@ -2150,23 +2150,23 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
     display_name = res['display-name']
     package_name = res['package-name']
     calc_length = len(
-        f'{Fore.MAGENTA}│ {Fore.GREEN}Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}│') - 30
+        f'{Fore.LIGHTMAGENTA_EX}│ {Fore.LIGHTGREEN_EX}Url(Windows) {Fore.LIGHTMAGENTA_EX}=> {Fore.LIGHTCYAN_EX}{url}{Fore.LIGHTCYAN_EX}{Fore.LIGHTMAGENTA_EX}│') - 30
     name_line = len(
-        f'{Fore.MAGENTA}│ {Fore.GREEN}Name {Fore.MAGENTA}=>{display_name}{Fore.GREEN}{Fore.YELLOW}{Fore.MAGENTA}') - 30
+        f'{Fore.LIGHTMAGENTA_EX}│ {Fore.LIGHTGREEN_EX}Name {Fore.LIGHTMAGENTA_EX}=>{display_name}{Fore.LIGHTGREEN_EX}{Fore.LIGHTYELLOW_EX}{Fore.LIGHTMAGENTA_EX}') - 30
     version_line = len(
-        f'{Fore.MAGENTA}│{Fore.GREEN}Latest Version {Fore.MAGENTA}=>{Fore.BLUE}{version}{Fore.GREEN}{Fore.MAGENTA}│') - 30
+        f'{Fore.LIGHTMAGENTA_EX}│{Fore.LIGHTGREEN_EX}Latest Version {Fore.LIGHTMAGENTA_EX}=>{Fore.LIGHTCYAN_EX}{version}{Fore.LIGHTGREEN_EX}{Fore.LIGHTMAGENTA_EX}│') - 30
     url_line = len(
-        f'{Fore.MAGENTA}│ {Fore.GREEN}Url(Windows){Fore.MAGENTA}=>{Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}│') - 30
+        f'{Fore.LIGHTMAGENTA_EX}│ {Fore.LIGHTGREEN_EX}Url(Windows){Fore.LIGHTMAGENTA_EX}=>{Fore.LIGHTCYAN_EX}{url}{Fore.LIGHTCYAN_EX}{Fore.LIGHTMAGENTA_EX}│') - 30
     command_line = len(
-        f'{Fore.MAGENTA}│ {Fore.GREEN}Install Command{Fore.MAGENTA}=>{Fore.CYAN}{package_name}{Fore.CYAN}{Fore.MAGENTA}│') - 13
+        f'{Fore.LIGHTMAGENTA_EX}│ {Fore.LIGHTGREEN_EX}Install Command{Fore.LIGHTMAGENTA_EX}=>{Fore.LIGHTCYAN_EX}{package_name}{Fore.LIGHTCYAN_EX}{Fore.LIGHTMAGENTA_EX}│') - 13
     base = '─'
     return f'''
-{Fore.MAGENTA}┌{base * calc_length}{Fore.MAGENTA}┐
-{Fore.MAGENTA}| {Fore.GREEN}Name {Fore.MAGENTA}=>{Fore.GREEN}{Fore.YELLOW} {display_name}{Fore.MAGENTA}{' ' * (calc_length - name_line)}|
-{Fore.MAGENTA}| {Fore.GREEN}Latest Version {Fore.MAGENTA}=> {Fore.BLUE}{version}{Fore.GREEN}{Fore.MAGENTA}{' ' * (calc_length - version_line)}|
-{Fore.MAGENTA}| {Fore.GREEN}Url(Windows) {Fore.MAGENTA}=> {Fore.CYAN}{url}{Fore.CYAN}{Fore.MAGENTA}{' ' * (calc_length - url_line)}|
-{Fore.MAGENTA}| {Fore.GREEN}Install Command {Fore.MAGENTA}=> {Fore.CYAN}electric install {package_name}{Fore.CYAN}{Fore.MAGENTA}{' ' * (calc_length - command_line)}|
-{Fore.MAGENTA}└{base * calc_length}{Fore.MAGENTA}┘
+{Fore.LIGHTMAGENTA_EX}┌{base * calc_length}{Fore.LIGHTMAGENTA_EX}┐
+{Fore.LIGHTMAGENTA_EX}| {Fore.LIGHTGREEN_EX}Name {Fore.LIGHTMAGENTA_EX}=>{Fore.LIGHTGREEN_EX}{Fore.LIGHTYELLOW_EX} {display_name}{Fore.LIGHTMAGENTA_EX}{' ' * (calc_length - name_line)}|
+{Fore.LIGHTMAGENTA_EX}| {Fore.LIGHTGREEN_EX}Latest Version {Fore.LIGHTMAGENTA_EX}=> {Fore.LIGHTCYAN_EX}{version}{Fore.LIGHTGREEN_EX}{Fore.LIGHTMAGENTA_EX}{' ' * (calc_length - version_line)}|
+{Fore.LIGHTMAGENTA_EX}| {Fore.LIGHTGREEN_EX}Url(Windows) {Fore.LIGHTMAGENTA_EX}=> {Fore.LIGHTCYAN_EX}{url}{Fore.LIGHTCYAN_EX}{Fore.LIGHTMAGENTA_EX}{' ' * (calc_length - url_line)}|
+{Fore.LIGHTMAGENTA_EX}| {Fore.LIGHTGREEN_EX}Install Command {Fore.LIGHTMAGENTA_EX}=> {Fore.LIGHTCYAN_EX}electric install {package_name}{Fore.LIGHTCYAN_EX}{Fore.LIGHTMAGENTA_EX}{' ' * (calc_length - command_line)}|
+{Fore.LIGHTMAGENTA_EX}└{base * calc_length}{Fore.LIGHTMAGENTA_EX}┘
 '''
 
 
@@ -2182,17 +2182,17 @@ def update_package_list():
             click.echo(click.style(f'Failed to request package-list.json from raw.githubusercontent.com', 'red'))
             run_internet_test = input('Would you like to run a network debugger? [y/n]: ')
             if run_internet_test in ['y', 'yes', 'Y', 'YES']:
-                sys.stdout.write(f'\r| {Fore.CYAN}\{Fore.RESET}  |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+                sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET}  |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
                 time.sleep(0.1)
-                sys.stdout.write(f'\r| {Fore.CYAN}|{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+                sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}|{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
                 time.sleep(0.1)
-                sys.stdout.write(f'\r| {Fore.CYAN}/{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+                sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}/{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
                 time.sleep(0.1)
-                sys.stdout.write(f'\r| {Fore.CYAN}-{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+                sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}-{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
                 time.sleep(0.1)
-                sys.stdout.write(f'\r| {Fore.CYAN}\{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+                sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
-                sys.stdout.write(f'\r| {Fore.GREEN}OK{Fore.RESET} |{Fore.YELLOW} Initializing Network Debugger{Fore.RESET}')
+                sys.stdout.write(f'\r| {Fore.LIGHTGREEN_EX}OK{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
                 Debugger.test_internet()
                 sys.exit()

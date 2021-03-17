@@ -124,7 +124,7 @@ class ThreadedInstaller:
         package_list = str(package_list).replace(
             '[', '').replace(']', '').replace('\'', '')
         write(
-            f'SuperCached [ {Fore.CYAN}{package_list}{Fore.RESET} ]', 'white', metadata)
+            f'SuperCached [ {Fore.LIGHTCYAN_EX}{package_list}{Fore.RESET} ]', 'white', metadata)
         log_info('Initializing Rapid Download', metadata.logfile)
 
         packets = self.packets
@@ -407,7 +407,7 @@ class ThreadedInstaller:
                 write('Starting Sync Installation', 'green', metadata)
                 for package in packet.dependencies:
                     res = utils.send_req_package(package)
-                    write(f'SuperCached [ {Fore.CYAN}{res["display-name"]}{Fore.RESET} ]', 'white', metadata)
+                    write(f'SuperCached [ {Fore.LIGHTCYAN_EX}{res["display-name"]}{Fore.RESET} ]', 'white', metadata)
                     pkg = res[res['latest-version']]
                     log_info(
                         'Generating Packet For Further Installation.', metadata.logfile)

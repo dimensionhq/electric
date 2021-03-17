@@ -56,7 +56,7 @@ def cli(_):
     # Check if settings.json exists in USERAPPDATA
     if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\settings.json'):
         click.echo(click.style(
-            f'Creating settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
+            f'Creating settings.json at {Fore.LIGHTCYAN_EX}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='bright_green'))
         # Create the settings.json file and write default settings into it
         initialize_settings()
 
@@ -74,7 +74,7 @@ def cli(_):
 
 
 @cli.command(aliases=['i'], context_settings=CONTEXT_SETTINGS)
-@click.argument('package_name', required=True)
+@click.argument('package_name', required=False, default='test')
 @click.option('--version', '-v', type=str, help='Install a certain version of a package')
 @click.option('--nightly', '--pre-release', is_flag=True, help='Install a nightly or pre-release build of a package')
 @click.option('--portable', '--non-admin', '-p', is_flag=True, help='Install a portable version of a package')
@@ -100,6 +100,7 @@ def cli(_):
 @click.option('--configuration', '-cf', is_flag=True, help='Specify a config file to install')
 @click.option('--plugin', '-pl', is_flag=True, help='Specify a plugin to install')
 @click.option('--ignore', '-ig', is_flag=True, help='Ignore existing installation')
+@click.option('--manifest', '-m', 'manifest', help='Read from a manifest file instead of querying from the community repository')
 @click.pass_context
 def install(
     ctx,
@@ -129,18 +130,23 @@ def install(
     portable: bool,
     plugin: bool,
     ignore: bool,
+    manifest: str,
 ):
     """
     Install a package or a list of packages.
     """
     start_log()
 
+    if not manifest and package_name == 'test':
+        print(f'{Fore.LIGHTRED_EX}A Package Name Must Be Supplied\nUsage: electric install <package-name>\n\nExamples:\nelectric install {Fore.LIGHTGREEN_EX}sublime-text-3{Fore.RESET}\n{Fore.LIGHTRED_EX}electric install {Fore.LIGHTGREEN_EX}sublime-text-3,notepad++{Fore.RESET}')
+        sys.exit()
+
     if plugin:
         if package_name == 'eel':
             os.chdir(PathManager.get_current_directory() + r'\eel')
             os.system('pip install -e .')
             click.echo(
-                f'{Fore.GREEN}Successfully Installed eel Plugin, {Fore.CYAN}Refreshing Environment Variables.{Fore.RESET}')
+                f'{Fore.LIGHTGREEN_EX}Successfully Installed eel Plugin, {Fore.LIGHTCYAN_EX}Refreshing Environment Variables.{Fore.RESET}')
             refresh_environment_variables()
         sys.exit()
 
@@ -174,7 +180,7 @@ def install(
         no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync)
 
     if update:
-        write('Updating Electric', 'green', metadata)
+        write('Updating Electric', 'bright_green', metadata)
         update_package_list()
 
     log_info('Successfully generated metadata.', metadata.logfile)
@@ -187,6 +193,10 @@ def install(
     # Split the supplied package_name by ,
     # For example : 'sublime-text-3,atom' becomes ['sublime-text-3', 'atom']
     packages = package_name.strip(' ').split(',')
+    
+    if len(packages) > 1 and manifest:
+        write('Cannot Install Multiple Packages From A Single Manifest. Make sure you install only 1 package at a time while specifying --manifest', 'bright_red', metadata)
+        sys.exit()
 
     # Autocorrect all package names provided
     corrected_package_names = list(set(get_autocorrections(
@@ -215,11 +225,27 @@ def install(
         log_info('Sending GET Request To /packages', metadata.logfile)
         log_info('Updating SuperCache', metadata.logfile)
         # request the json response of the package
-        res = send_req_package(package)
+
+        if not manifest:
+            res = send_req_package(package)
+        else:
+            try:
+                f = open(manifest, 'r')
+                try:
+                    res = json.load(f)
+                except JSONDecodeError as e:
+                    print('Invalid Manifest JSON Syntax : ', e.msg)
+
+            except FileNotFoundError:
+                write(f'{manifest} Does Not Exist!', 'bright_red', metadata)
+                write_verbose(f'{manifest} File Path Not Found!', metadata)
+                write_debug(f'{manifest} FileNotFoundError, Specified Manifest Cannot Be Found!', metadata)
+                log_info(f'{manifest} FileNotFoundError, Specified Manifest Cannot Be Found!', metadata.logfile)
+                sys.exit(1)                
 
         if not metadata.silent:
             if not metadata.no_color:
-                print('SuperCached [', Fore.CYAN +
+                print('SuperCached [', Fore.LIGHTCYAN_EX +
                       f'{res["display-name"]}' + Fore.RESET + ' ]')
             else:
                 print(f'SuperCached [ {res["display-name"]} ]')
@@ -242,7 +268,7 @@ def install(
                 if 'admin' in list(operation.keys()):
                     if operation['admin'] == True:
                         if not is_admin():
-                            write('Installation Must Be Run As Administrator', 'red', metadata)
+                            write('Installation Must Be Run As Administrator', 'bright_red', metadata)
                             os._exit(1)
 
                 if operation['type'] == 'python':
@@ -302,7 +328,7 @@ def install(
 
         if 'add-path' in list(pkg.keys()):
             if not is_admin():
-                write('Installation Must Be Run As Administrator', 'red', metadata)
+                write('Installation Must Be Run As Administrator', 'bright_red', metadata)
                 os._exit(1)
 
         if packet.dependencies:
@@ -349,7 +375,7 @@ def install(
             f'Installing {packet.display_name} through Setup{packet.win64_type}', metadata)        
         
         write(f'Installing {packet.display_name}',
-              'cyan', metadata)
+              'bright_cyan', metadata)
         log_info(
             'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
@@ -373,7 +399,7 @@ def install(
                     if 'admin' in list(proc.keys()):
                         if proc['admin'] == True:
                             if not is_admin():
-                                write('Installation Must Be Run As Administrator', 'red', metadata)
+                                write('Installation Must Be Run As Administrator', 'bright_red', metadata)
                                 os._exit(1)
                     if proc['type'] == 'powershell':
                         with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
@@ -424,7 +450,7 @@ def install(
                     if 'admin' in list(proc.keys()):
                         if proc['admin'] == True:
                             if not is_admin():
-                                write('Installation Must Be Run As Administrator', 'red', metadata)
+                                write('Installation Must Be Run As Administrator', 'bright_red', metadata)
                                 os._exit(1)
                     if proc['type'] == 'powershell':
                         with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
@@ -462,8 +488,8 @@ def install(
             elif packet.default_install_dir:
                 replace_install_dir = packet.default_install_dir
             
-            write(f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'green', metadata)
-            write_verbose(f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'green', metadata)
+            write(f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
+            write_verbose(f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
             log_info(f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', metadata.logfile)
             append_to_path(packet.add_path.replace('<install-directory>', replace_install_dir))
 
@@ -477,15 +503,15 @@ def install(
             elif packet.default_install_dir:
                 replace_install_dir = packet.default_install_dir
 
-            write(f'Setting Environment Variable {name}', 'green', metadata)
-            write_verbose(f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', 'green', metadata)
+            write(f'Setting Environment Variable {name}', 'bright_green', metadata)
+            write_verbose(f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', 'bright_green', metadata)
             log_info(f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
             
             set_environment_variable(
                 name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
        
         if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
-            write('Refreshing Environment Variables', 'green', metadata)
+            write('Refreshing Environment Variables', 'bright_green', metadata)
             start = timer()
             log_info(
                 'Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
@@ -504,16 +530,16 @@ def install(
             log_info(f'No Pre-Defined Tests found for {packet.display_name}', metadata.logfile)
             
             write(
-                f'Running Tests For {packet.display_name}', 'white', metadata)
+                f'Running Tests For {packet.display_name}', 'bright_white', metadata)
             
             write_debug(f'All Pre-Defined checks for {packet.display_name} passed. Registering successful package installation', metadata)
             write_verbose(f'All Pre-Defined checks for {packet.display_name} passed', metadata)
             log_info(f'All Pre-Defined checks for {packet.display_name} passed', metadata.logfile)
             if not metadata.no_color:
-                write(f'[{Fore.GREEN} OK {Fore.RESET}] Pre-Defined Checks',
-                  'white', metadata)
+                write(f'[{Fore.LIGHTGREEN_EX} OK {Fore.RESET}] Pre-Defined Checks',
+                  'bright_white', metadata)
             else:
-                write(f'[ OK ] Pre-Defined Checks', 'white', metadata)
+                write(f'[ OK ] Pre-Defined Checks', 'bright_white', metadata)
             register_package_success(packet, install_directory, metadata)
             
             write(
@@ -527,13 +553,13 @@ def install(
             log_info(
                     f'Running pre-defined checks found for {packet.display_name}', metadata.logfile)
             write(
-                f'Running Tests For {packet.display_name}', 'white', metadata)
+                f'Running Tests For {packet.display_name}', 'bright_white', metadata)
             if find_existing_installation(packet.json_name, packet.display_name):
                 if not metadata.no_color:
                     write(
-                        f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
+                        f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ]  Registry Check', 'bright_white', metadata)
                 else:
-                    write(f'[ OK ] Registry Check', 'white', metadata)
+                    write(f'[ OK ] Registry Check', 'bright_white', metadata)
 
                 write_debug('Passed Registry Check. Registering Package Success', metadata)
                 register_package_success(packet, install_directory, metadata)
@@ -543,12 +569,12 @@ def install(
                     f'Successfully Installed {packet.display_name}', metadata.logfile)
             else:
                 write(
-                    f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check', 'white', metadata)
-                write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
+                    f'[ {Fore.LIGHTRED_EX}ERROR{Fore.RESET} ] Registry Check', 'bright_white', metadata)
+                write('Retrying Registry Check In 5 seconds', 'bright_yellow', metadata)
                 tm.sleep(5)
                 if find_existing_installation(packet.json_name, packet.display_name):
                     write(
-                        f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
+                        f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ]  Registry Check', 'bright_white', metadata)
                     register_package_success(
                         packet, install_directory, metadata)
                     write(
@@ -557,8 +583,8 @@ def install(
                         f'Successfully Installed {packet.display_name}', metadata.logfile)
                 else:
                     write(
-                        f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check', 'white', metadata)
-                    write(f'Failed To Install {packet.display_name}', 'red', metadata)
+                        f'[ {Fore.LIGHTRED_EX}ERROR{Fore.RESET} ] Registry Check', 'bright_white', metadata)
+                    write(f'Failed To Install {packet.display_name}', 'bright_red', metadata)
                 sys.exit()
 
         if metadata.reduce_package:
@@ -572,7 +598,7 @@ def install(
             log_info(
                 'Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
             write('Successfully Cleaned Up Installer From Temp Directory',
-                  'green', metadata)
+                  'bright_green', metadata)
         
         version = ''
         write_verbose('Installation and setup completed with exit code 0', metadata)
@@ -712,7 +738,7 @@ def up(
                             f'{package} would be updated from version {installed_version} to {packet.version}')
                     else:
                         write(
-                            rf'There is a newer version of {packet.display_name} Availiable ({installed_version}) => ({packet.version})', 'yellow', metadata)
+                            rf'There is a newer version of {packet.display_name} Availiable ({installed_version}) => ({packet.version})', 'bright_yellow', metadata)
                         sys.exit()
                 else:
                     continue_update = True
@@ -745,14 +771,14 @@ def up(
                         rate_limit=rate_limit
                     )
                     write(
-                        f'Successfully Updated {package} to latest version.', 'green', metadata)
+                        f'Successfully Updated {package} to latest version.', 'bright_green', metadata)
                 else:
                     handle_exit('Error', '', metadata)
 
             else:
                 print(f'{package} is already on the latest version')
         else:
-            write(f'{packet.display_name} Is Not Installed', 'red', metadata)
+            write(f'{packet.display_name} Is Not Installed', 'bright_red', metadata)
 
 
 @cli.command(aliases=['remove', 'u'], context_settings=CONTEXT_SETTINGS)
@@ -882,7 +908,7 @@ def uninstall(
         res = send_req_package(package)
 
         write(
-            f'SuperCached [ {Fore.CYAN}{res["display-name"]}{Fore.RESET} ]', 'white', metadata)
+            f'SuperCached [ {Fore.LIGHTCYAN_EX}{res["display-name"]}{Fore.RESET} ]', 'bright_white', metadata)
         
 
         if 'is-portable' in list(res.keys()):
@@ -900,7 +926,7 @@ def uninstall(
                 if 'admin' in list(operation.keys()):
                     if operation['admin'] == True:
                         if not is_admin():
-                            write('Uninstallation Must Be Run As Administrator', 'red', metadata)
+                            write('Uninstallation Must Be Run As Administrator', 'bright_red', metadata)
                             os._exit(1)
 
                 if operation['type'] == 'python':
@@ -942,7 +968,7 @@ def uninstall(
                 pkg = pkg[version]
                 display_name = res['display-name']
                 write(
-                    f'Could not find any existing installations of {display_name}', 'red', metadata)
+                    f'Could not find any existing installations of {display_name}', 'bright_red', metadata)
                 try:
                     os.remove(
                         rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
@@ -1003,7 +1029,7 @@ def uninstall(
         if packet.win64_type in ftp:
             if find_msix_installation(pkg['uninstall-bundle-identifier']):
                 if uninstall_msix(pkg['uninstall-bundle-identifier']) == 0:
-                    write(f'Successfully Uninstalled {packet.display_name}', 'green', metadata)
+                    write(f'Successfully Uninstalled {packet.display_name}', 'bright_green', metadata)
                     sys.exit()
 
         keyboard.add_hotkey(
@@ -1060,7 +1086,7 @@ def uninstall(
             )
 
             write(
-                f'Could not find any existing installations of {packet.display_name}', 'red', metadata)
+                f'Could not find any existing installations of {packet.display_name}', 'bright_red', metadata)
             try:
                 os.remove(
                     rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
@@ -1080,7 +1106,7 @@ def uninstall(
                 'Successfully Recieved UninstallString from Windows Registry', metadata)
 
             write(
-                f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', 'green', metadata)
+                f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', 'bright_green', metadata)
             log_info(
                 f'Successfully Retrieved Uninstall Key In {round(end - start, 4)}s', metadata.logfile)
 
@@ -1093,7 +1119,7 @@ def uninstall(
                 key = key[0]
 
         write(
-            f'{Fore.CYAN}Uninstalling {packet.display_name}{Fore.RESET}', 'white', metadata)
+            f'{Fore.LIGHTCYAN_EX}Uninstalling {packet.display_name}{Fore.RESET}', 'bright_white', metadata)
 
         if 'QuietUninstallString' in key:
             command = key['QuietUninstallString']
@@ -1183,13 +1209,13 @@ def uninstall(
                 if nightly:
                     packet.version = 'nightly'
                 write(
-                    f'Running Tests For {packet.display_name}', 'white', metadata)
+                    f'Running Tests For {packet.display_name}', 'bright_white', metadata)
                 if not skp:
                     os.remove(
                         rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                 
-                write(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check',
-                      'white', metadata)
+                write(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check',
+                      'bright_white', metadata)
 
                 if packet.uninstall:
                     for pkg in packet.uninstall:
@@ -1225,7 +1251,7 @@ def uninstall(
 
         if packet.run_test:
             write(
-                f'Running Tests For {packet.display_name}', 'white', metadata)
+                f'Running Tests For {packet.display_name}', 'bright_white', metadata)
             if not find_existing_installation(packet.json_name, packet.display_name):
                 if nightly:
                     os.remove(
@@ -1233,17 +1259,17 @@ def uninstall(
                 else:
                     os.remove(
                         rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                print(f'[ {Fore.GREEN}OK{Fore.RESET} ] Registry Check')
+                print(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check')
                 write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
             else:
-                print(f'[ {Fore.RED}ERROR{Fore.RESET} ] Registry Check')
-                write(f'Failed: Registry Check', 'red', metadata)
-                write('Retrying Registry Check In 5 seconds', 'yellow', metadata)
+                print(f'[ {Fore.LIGHTRED_EX}ERROR{Fore.RESET} ] Registry Check')
+                write(f'Failed: Registry Check', 'bright_red', metadata)
+                write('Retrying Registry Check In 5 seconds', 'bright_yellow', metadata)
                 tm.sleep(5)
                 if not find_existing_installation(packet.json_name, packet.display_name):
                     write(
-                        f'[ {Fore.GREEN}OK{Fore.RESET} ]  Registry Check', 'white', metadata)
+                        f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ]  Registry Check', 'bright_white', metadata)
                     os.remove(
                         rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                     write(
@@ -1261,22 +1287,22 @@ def cleanup():
     Clean up all temporary files generated by electric.
     '''
     from progress.bar import Bar
-    with Halo('Cleaning Up ', text_color='green') as h:
+    with Halo('Cleaning Up ', text_color='bright_green') as h:
         try:
             files = os.listdir(rf'{tempfile.gettempdir()}\electric')
         except:
             os.mkdir(rf'{tempfile.gettempdir()}\electric')
             h.stop()
-            click.echo(click.style('Nothing To Cleanup!', 'cyan'))
+            click.echo(click.style('Nothing To Cleanup!', 'bright_cyan'))
             sys.exit()
 
         if 'configurations' in files:
             if len(files) == 1:
                 h.stop()
-                click.echo(click.style('Nothing To Cleanup!', 'cyan'))
+                click.echo(click.style('Nothing To Cleanup!', 'bright_cyan'))
         elif len(files) == 0:
             h.stop()
-            click.echo(click.style('Nothing To Cleanup!', 'cyan'))
+            click.echo(click.style('Nothing To Cleanup!', 'bright_cyan'))
             sys.exit()
     
         sub = 0
@@ -1284,7 +1310,7 @@ def cleanup():
             sub = 1
         
         h.stop()
-        with Bar(f'{Fore.CYAN}Deleting Temporary Files{Fore.RESET}', max=len(files) - sub, bar_prefix=' [ ', bar_suffix=' ] ', fill=f'{Fore.GREEN}={Fore.RESET}', empty_fill=f'{Fore.LIGHTBLACK_EX}-{Fore.RESET}') as b:
+        with Bar(f'{Fore.LIGHTCYAN_EX}Deleting Temporary Files{Fore.RESET}', max=len(files) - sub, bar_prefix=' [ ', bar_suffix=' ] ', fill=f'{Fore.LIGHTGREEN_EX}={Fore.RESET}', empty_fill=f'{Fore.LIGHTBLACK_EX}-{Fore.RESET}') as b:
             for f in files:
                 if f != 'configurations':
                     os.remove(rf'{tempfile.gettempdir()}\electric\{f}')
@@ -1414,7 +1440,7 @@ def bundle(
 
     else:
         click.echo(click.style(
-            '\nAdministrator Elevation Required For Bundle Installation. Exit Code [0001]', 'red'), err=True)
+            '\nAdministrator Elevation Required For Bundle Installation. Exit Code [0001]', 'bright_red'), err=True)
         disp_error_msg(get_error_message(
             '0001', 'installation', 'None', None), metadata)
 
@@ -1457,12 +1483,12 @@ def search(
                 print(match)
         if len(matches) != 1:
             click.echo(click.style(
-                f'{len(matches)} packages found.', fg='green'))
+                f'{len(matches)} packages found.', fg='bright_green'))
         else:
-            click.echo(click.style('1 package found.', fg='yellow'))
+            click.echo(click.style('1 package found.', fg='bright_yellow'))
 
     else:
-        click.echo(click.style('0 packages found!', fg='red'))
+        click.echo(click.style('0 packages found!', fg='bright_red'))
 
 
 @cli.command(aliases=['create'], context_settings=CONTEXT_SETTINGS)
@@ -1490,7 +1516,7 @@ def new(
             ]
         )
     click.echo(click.style(
-        f'Successfully Created {Fore.LIGHTBLUE_EX}`{project_name}.electric`{Fore.GREEN} at {os.getcwd()}\\', 'green'))
+        f'Successfully Created {Fore.LIGHTBLUE_EX}`{project_name}.electric`{Fore.LIGHTGREEN_EX} at {os.getcwd()}\\', 'bright_green'))
 
 
 @cli.command(context_settings=CONTEXT_SETTINGS)
@@ -1614,7 +1640,7 @@ def sign(
     from Classes.Config import Config
 
     config = Config.generate_configuration(filepath, False)
-    click.echo(click.style('No syntax errors found!', 'green'))
+    click.echo(click.style('No syntax errors found!', 'bright_green'))
 
     config.verify()
 
@@ -1631,7 +1657,7 @@ def sign(
 
         if '# --------------------Checksum Start-------------------------- #' in l and '# --------------------Checksum End--------------------------- #' in l:
             click.echo(click.style(
-                'File Already Signed, Aborting Signing!', fg='red'))
+                'File Already Signed, Aborting Signing!', fg='bright_red'))
             sys.exit()
 
     with open(filepath, 'a') as f:
@@ -1646,7 +1672,7 @@ def sign(
             '# --------------------Checksum End--------------------------- #'
         ])
 
-    click.echo(click.style(f'Successfully Signed {filepath}', fg='green'))
+    click.echo(click.style(f'Successfully Signed {filepath}', fg='bright_green'))
 
 
 @cli.command(aliases=['gen'], context_settings=CONTEXT_SETTINGS)
@@ -1727,7 +1753,7 @@ def ls(_, installed: bool, versions: bool):
                 for package_name in installed_packages:
                     print(package_name)
             except:
-                print(f'{Fore.YELLOW}No installed packages found{Fore.RESET}')
+                print(f'{Fore.LIGHTYELLOW_EX}No installed packages found{Fore.RESET}')
         else:
             os.chdir(PathManager.get_appdata_directory() + r'\Current')
             try:
@@ -1736,7 +1762,7 @@ def ls(_, installed: bool, versions: bool):
                 for package_name in installed_packages:
                     print(package_name)
             except:
-                print(f'{Fore.YELLOW}No installed packages found{Fore.RESET}')
+                print(f'{Fore.LIGHTYELLOW_EX}No installed packages found{Fore.RESET}')
     else:
         installed_software = send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY) + send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY) + send_query(winreg.HKEY_CURRENT_USER, 0)
         max_length = 80
@@ -1768,14 +1794,14 @@ def show(package_name: str, nightly: bool):
     Displays information about the specified package.
     '''
     res = send_req_package(package_name)
-    click.echo(click.style(display_info(res, nightly=nightly), fg='green'))
+    click.echo(click.style(display_info(res, nightly=nightly), fg='bright_green'))
 
 
 @cli.command(context_settings=CONTEXT_SETTINGS)
 def settings():
     if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\settings.json'):
         click.echo(click.style(
-            f'Creating settings.json at {Fore.CYAN}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='green'))
+            f'Creating settings.json at {Fore.LIGHTCYAN_EX}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='bright_green'))
         initialize_settings()
     cursor.hide()
     with Halo('Opening Settings... ', text_color='blue'):
@@ -1807,7 +1833,7 @@ def autoupdate(
     print(message)
     
     print('Enter the path to the manifest / json file: ')
-    fp = input(F'>{Fore.YELLOW} ').replace('\"', '')
+    fp = input(F'>{Fore.LIGHTYELLOW_EX} ').replace('\"', '')
     
     with open(fp, 'r') as f:
         data = json.load(f)
@@ -1820,7 +1846,7 @@ def autoupdate(
 
     webpage = data['auto-update']['vercheck']['webpage']
     
-    print(f'{Fore.GREEN}Sending Request To {webpage}{Fore.RESET}')
+    print(f'{Fore.LIGHTGREEN_EX}Sending Request To {webpage}{Fore.RESET}')
     
     html = swc(webpage.strip())
     show_html = input('Would you like to see the response of the request? [Y/n]: ')
@@ -1843,17 +1869,17 @@ def autoupdate(
     try:
         web_version = max(version_list, key=version_list.get)
     except:
-        print(f'{Fore.RED}No Versions Detected On Webpage!{Fore.RESET}')
+        print(f'{Fore.LIGHTRED_EX}No Versions Detected On Webpage!{Fore.RESET}')
         sys.exit()
     
-    print(f'{Fore.GREEN}Latest Version Detected:{Fore.RESET} {web_version}')
+    print(f'{Fore.LIGHTGREEN_EX}Latest Version Detected:{Fore.RESET} {web_version}')
     
     int_web_version = int(web_version.strip().replace('v', '').replace('V', '').replace('.', ''))
 
     try:
         int_current_version = int(latest_version.strip().replace('v', '').replace('V', '').replace('.', ''))
     except:
-        print(f'{Fore.RED}The Current Version Must Not Contain Any Characters')
+        print(f'{Fore.LIGHTRED_EX}The Current Version Must Not Contain Any Characters')
     
     if int_current_version < int_web_version:
         print(f'A Newer Version Of {package_name} Is Availiable! Updating Manifest')

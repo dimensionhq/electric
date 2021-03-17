@@ -196,19 +196,19 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
 
             if 'Installing extensions' in line:
                 if not metadata.no_color:
-                    write(f'Code v{version} :: Installing {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+                    write(f'Code v{version} :: Installing {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'green', metadata)
                 else:
                     write(f'Code v{version} :: Installing {package_name}', 'white', metadata)
 
             if 'is already installed' in line:
                 if not metadata.no_color:
-                    write(f'{Fore.GREEN}Code v{version} :: {Fore.MAGENTA}{package_name}{Fore.YELLOW} Is Already Installed!', 'white', metadata)
+                    write(f'{Fore.LIGHTGREEN_EX}Code v{version} :: {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.LIGHTYELLOW_EX} Is Already Installed!', 'white', metadata)
                 else:
                     write(f'Code v{version} :: {package_name} Is Already Installed!', 'white', metadata)
 
             if 'was successfully installed' in line:
                 if not metadata.no_color:
-                    write(f'{Fore.GREEN}Code v{version} :: Successfully Installed {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+                    write(f'{Fore.LIGHTGREEN_EX}Code v{version} :: Successfully Installed {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'green', metadata)
                 else:
                     write(f'Code v{version} :: Successfully Installed {package_name}', 'white', metadata)
 
@@ -219,13 +219,13 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
             line = line.decode()
 
             if 'Uninstalling' in line:
-                write(f'Code v{version} :: Uninstalling {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+                write(f'Code v{version} :: Uninstalling {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'green', metadata)
 
             if 'is not installed' in line:
-                write(f'{Fore.GREEN}Code v{version} :: {Fore.MAGENTA}{package_name}{Fore.YELLOW} is not installed!', 'white', metadata)
+                write(f'{Fore.LIGHTGREEN_EX}Code v{version} :: {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.LIGHTYELLOW_EX} is not installed!', 'white', metadata)
 
             if 'was successfully uninstalled' in line:
-                write(f'{Fore.GREEN}Code v{version} :: Successfully Uninstalled {Fore.MAGENTA}{package_name}{Fore.RESET}', 'green', metadata)
+                write(f'{Fore.LIGHTGREEN_EX}Code v{version} :: Successfully Uninstalled {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'green', metadata)
 
 
 def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
