@@ -1388,14 +1388,16 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
                         idx += 1
 
                     command += ' ' + custom_install_switch + f'{directory}'
+                
                 else:
                     for switch in switches:
                         command += ' ' + switch
 
                     command += ' ' + custom_install_switch + f'"{directory}"'
-                if directory == '':
-                    click.echo(click.style(
-                        f'Installing {package_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='yellow'))
+                
+                if custom_install_switch == 'None':
+                    write(
+                        f'Installing {packet.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', 'yellow', metadata)
 
         if not directory:
             for switch in switches:
