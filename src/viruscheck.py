@@ -25,7 +25,7 @@ def virus_check(path : str):
         EICAR = content
 
     # Read a .py File
-    # with open(R'C:\Users\tejas\Desktop\electric\setup.py', 'r') as f:
+    # with open(R'C:\Users\xtrem\Desktop\electric\setup.py', 'r') as f:
     #     content = f.read()
     #     EICAR = content.encode('utf-8')
 

@@ -1439,7 +1439,7 @@ def search(
             if name.startswith(approx_name):
                 matches.append(name)
     elif not exact and not starts_with:
-        matches = difflib.get_close_matches(approx_name, correct_names)
+        matches = difflib.get_close_matches(approx_name, correct_names, cutoff=0.7)
 
     if len(matches) > 0:
         idx = 0
