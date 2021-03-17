@@ -559,12 +559,8 @@ def install(
                     write(
                         f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ]  Registry Check', 'bright_white', metadata)
                 else:
-<<<<<<< HEAD
-                    write(f'[ OK ] Registry Check', 'white', metadata)
-=======
                     write(f'[ OK ] Registry Check', 'bright_white', metadata)
 
->>>>>>> 1bf4e7d5a2f335cbf094a7ed379961224333d6c3
                 write_debug('Passed Registry Check. Registering Package Success', metadata)
                 register_package_success(packet, install_directory, metadata)
                 write(
