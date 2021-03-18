@@ -606,7 +606,7 @@ def install(
             write_verbose(f'Deleting installer files at {tempfile.gettempdir()}', metadata)
             log_info(f'Deleting installer files at {tempfile.gettempdir()}', metadata.logfile)
             write_debug(f'Deleting installer files at {tempfile.gettempdir()}. Path : ({configs["path"]}{packet.win64_type})', metadata)
-            os.remove(f'{configs["path"]}{packet.win64_type}')
+            os.remove(f'{configs["path"]}')
             os.remove(
                 Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle')
 
