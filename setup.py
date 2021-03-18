@@ -2,7 +2,6 @@
 #                                SETUP                               #
 ######################################################################
 
-
 from setuptools import setup, find_packages
 from getpass import getuser
 from sys import platform

@@ -1897,17 +1897,6 @@ def settings():
 
 
 @cli.command(context_settings=CONTEXT_SETTINGS)
-def genpkg():
-    package_name = input('Package Name: ')
-    display_name = input('Package Display Name: ')
-    latest_version = input('Latest Package Version: ')
-    package_url = input('Download Url For The Package: ')
-    file_type = input('Enter Download File Type: ')
-    install_switches = input(
-        'Enter the install switches (separated by commas): ')
-
-
-@cli.command(context_settings=CONTEXT_SETTINGS)
 @click.pass_context
 def autoupdate(
     ctx,
