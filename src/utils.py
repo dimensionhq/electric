@@ -394,7 +394,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
         write_debug(f'Requested file has already been downloaded at {path}', metadata)
 
-        return path
+        return path + download_type
 
     # Find a random name for the installer
     while os.path.isfile(path):
@@ -1769,7 +1769,7 @@ def refresh_environment_variables():
     proc.communicate()
 
 
-def check_virus(path: str, metadata: Metadata):
+def check_virus(path: str, metadata: Metadata, h: Halo):
     """
     Checks for a virus given the path of the executable / file
 
@@ -1778,14 +1778,19 @@ def check_virus(path: str, metadata: Metadata):
         metadata (`Metadata`): Metadata for the installation
     """
     detected = virus_check(path)
+
+    h.stop()
+
+    print(f'{len(detected)} Of 70 Antiviruses Detected The Software As A Virus')
+
     if detected:
         for value in detected.items():
             if not metadata.silent and not metadata.no_color:
                 click.echo(click.style(
-                    f'\n{value[0]} => {value[1]}', fg='bright_yellow'))
+                    f'\n{value[0]} : {value[1]}', fg='bright_yellow'))
             elif metadata.no_color and not metadata.silent:
                 click.echo(click.style(
-                    f'\n{value[0]} => {value[1]}', fg='white'))
+                    f'\n{value[0]} : {value[1]}', fg='white'))
             else:
                 continue_install = 'y'
         if not metadata.silent:

@@ -380,8 +380,11 @@ def install(
 
         if virus_check:
             log_info('Running requested virus scanning', metadata.logfile)
-            write('Scanning File For Viruses...', 'bright_cyan', metadata)
-            check_virus(configs['path'], metadata)
+            if not metadata.silent:
+                with Halo(text='Scanning File For Viruses ', text_color='cyan' if not metadata.no_color else 'white', color='green' if not metadata.no_color else 'white') as h:
+                    check_virus(configs['path'], metadata, h)
+
+
         write_debug(
             f'Installing {packet.display_name} through Setup{packet.win64_type}', metadata)        
         
