@@ -46,12 +46,19 @@ path = ''
 
 appdata_dir = PathManager.get_appdata_directory()
 
+
 def confirm(prompt: str):
     value = input(f'{prompt} (Y/n): ')
     if value in ['y', 'yes', 'Y', 'YES', 'Yes']:
         return True
     else:
         return False
+
+
+def send_package_request(package_name: str):
+    URL = 'https://electric-package-manager-api.herokuapp.com/submit-package-request/'
+    res = requests.get(URL + package_name)
+
 
 def append_to_path(input_dir: str):
     proc = Popen(f'setx /M path "%PATH%;{input_dir}"', stdin=PIPE,
@@ -1781,7 +1788,7 @@ def check_virus(path: str, metadata: Metadata, h: Halo):
 
     h.stop()
 
-    print(f'{len(detected)} Of 70 Antiviruses Detected The Software As A Virus')
+    write(f'{len(detected)} Of 70 Antiviruses Detected The Software As A Virus', 'white', metadata)
 
     if detected:
         for value in detected.items():

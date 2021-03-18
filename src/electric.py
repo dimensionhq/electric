@@ -18,7 +18,6 @@ from colorama import Fore
 from multiprocessing import freeze_support
 
 from Classes.Packet import Packet
-from Classes.PortablePacket import PortablePacket
 from Classes.Setting import Setting
 from Classes.ThreadedInstaller import ThreadedInstaller
 from cli import SuperChargeCLI
@@ -1570,7 +1569,13 @@ def search(
             click.echo(click.style('1 package found.', fg='bright_yellow'))
 
     else:
-        click.echo(click.style('0 packages found!', fg='bright_red'))
+        click.echo(click.style('0 Packages Found!', fg='bright_red'))
+        upload = confirm('Would you like to request this package to be added to electric?')
+        with Halo(text='Uploading Package Request') as h:
+            if upload:
+                send_package_request(approx_name)
+            h.stop()
+            print(f'{Fore.GREEN}Successfully Uploaded Package Request For {approx_name}{Fore.RESET}')
 
 
 @cli.command(aliases=['create'], context_settings=CONTEXT_SETTINGS)
