@@ -771,7 +771,7 @@ def up(
                 if not yes:
                     if not local:
                         continue_update = confirm(
-                            f'{package} would be updated from version {installed_version} to {packet.version}')
+                            f'{package_name} would be updated from version {installed_version} to {packet.version}')
                     else:
                         write(
                             rf'There is a newer version of {packet.display_name} Availiable ({installed_version}) => ({packet.version})', 'bright_yellow', metadata)
