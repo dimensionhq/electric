@@ -364,6 +364,10 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
     """
     import random
 
+    # Send install metrics
+    if metadata.settings.install_metrics == True:
+        f_and_f(package_name)
+
     # Hide the cursor on the terminal
     cursor.hide()
 
@@ -443,23 +447,23 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
                 # print the progress bar
                 elif not metadata.no_progress and not metadata.silent:
-                    complete = int(25 * dl / full_length)
+                    complete = int(30 * dl / full_length)
                     fill_c = '-'  # Fallback Character
                     unfill_c = ' '  # Fallback Character
                     if progress_type == 'custom' or metadata.settings.use_custom_progress_bar:
                         fill_c = eval(get_character_color(
                             True, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['fill_character'] * complete
                         unfill_c = eval(get_character_color(
-                            False, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['unfill_character'] * (25 - complete)
+                            False, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['unfill_character'] * (30 - complete)
                     elif progress_type == 'accented':
                         fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
-                        unfill_c = Fore.BLACK + '█' * (25 - complete)
+                        unfill_c = Fore.BLACK + '█' * (30 - complete)
                     elif progress_type == 'zippy':
                         fill_c = Fore.LIGHTGREEN_EX + '=' * complete
-                        unfill_c = Fore.LIGHTBLACK_EX + '-' * (25 - complete)
+                        unfill_c = Fore.LIGHTBLACK_EX + '-' * (30 - complete)
                     elif progress_type not in ['custom', 'accented', 'zippy'] and metadata.settings.use_custom_progress_bar == False or progress_type == 'default':
                         fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
-                        unfill_c = Fore.BLACK + '█' * (25 - complete)
+                        unfill_c = Fore.BLACK + '█' * (30 - complete)
 
                     if metadata.settings.electrify_progress_bar == True and not metadata.settings.use_custom_progress_bar:
                         sys.stdout.write(
@@ -1794,7 +1798,7 @@ def check_virus(path: str, metadata: Metadata):
         click.echo(click.style('No Viruses Detected!', fg='bright_green'))
 
 
-def check_newer_version(package_name: str, packet: Packet) -> bool:
+def check_newer_version(package_name: str, packet: Packet, installed_packages: list) -> bool:
     """
     Checks if a newer version of a package exists, used for updating packages
 
@@ -1805,9 +1809,17 @@ def check_newer_version(package_name: str, packet: Packet) -> bool:
     Returns:
         bool: If there is a newer version of the package
     """
+    
     install_dir = PathManager.get_appdata_directory() + r'\Current'
-    with open(rf'{install_dir}\{package_name}.json', 'r') as f:
+    version = ''
+
+    for package in installed_packages:
+        if list(package.keys())[0] == package_name:
+            version = package[list(package.keys())[0]].replace('.json', '')
+
+    with open(rf'{install_dir}\{package_name}@{version}.json', 'r') as f:
         data = json.load(f)
+
     installed_version = data['version']
     if installed_version != packet.version:
         return True
@@ -1893,36 +1905,17 @@ def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfil
     return Metadata(no_progress, no_color, yes, silent, verbose, debug, logfile, virus_check, reduce, rate_limit, settings, sync)
 
 
-def write_install_metrics(package_name: str, success: bool):
-    if not os.path.isfile(f'{PathManager.get_appdata_directory()}\install.json'):
-        with open(f'{PathManager.get_appdata_directory()}\install.json', 'w+') as f:
-            f.write(
-                json.dumps(
-                    {
-                        'softwares': [
-                            {
-                                'name': package_name,
-                                'status': success,
-                            }
-                        ]
-                    }
-                )
-            )
-    else:
-        with open(f'{PathManager.get_appdata_directory()}\install.json', 'r') as f:
-            initial_data = json.load(f)
-
-        initial_data['softwares'] = initial_data['softwares'].append({'name': package_name, 'status': success})
-        
-        with open(f'{PathManager.get_appdata_directory()}\install.json', 'w') as f:
-            f.write(json.dumps(initial_data))
-
-def send_install_metrics(package_name: str, status: str):
+def send_install_metrics(package_name: str):
     URL = 'https://electric-package-manager-api.herokuapp.com/increment/'
-    try:
-        requests.get(URL + package_name + '@' + status, timeout=0.01)
+
+    try:    
+        requests.get(URL + package_name)
     except:
         pass
+
+
+def f_and_f(package_name: str):
+    threading.Thread(target=send_install_metrics, args=(package_name,), daemon=True).start()
 
 
 def disp_error_msg(messages: list, metadata: Metadata):
@@ -2005,9 +1998,6 @@ def disp_error_msg(messages: list, metadata: Metadata):
 
 
 def get_error_message(code: str, method: str, display_name: str, version: str, metadata: Metadata, package_name: str):
-    if metadata.settings.install_metrics == True:
-        write_install_metrics(package_name, False)
-
     attr = method.replace('ation', '')
     with Switch(code) as code:
         if code('0001'):

@@ -615,8 +615,6 @@ def install(
         
         version = ''
 
-        if metadata.settings.install_metrics == True:
-            write_install_metrics(packet.json_name, True)
         
         write_verbose('Installation and setup completed with exit code 0', metadata)
         write_verbose('Terminating verbose logger', metadata)
@@ -671,9 +669,10 @@ def up(
         installed_packages = [f.replace('.json', '') for f in os.listdir(
             PathManager.get_appdata_directory() + r'\Current')]
         for package in installed_packages:
+            # print(package.split('@')[0])
             ctx.invoke(
                 up,
-                package_name=package,
+                package_name=package.split('@')[0],
                 verbose=verbose,
                 debug=debug,
                 no_color=no_color,
@@ -743,14 +742,31 @@ def up(
             pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
             pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
         )
+
         log_info('Generating Packet For Further Installation.', metadata.logfile)
-        installed_packages = [f.replace('.json', '').split(
-            '@')[:-1] for f in os.listdir(PathManager.get_appdata_directory() + r'\Current')]
+        installed_packages_dict = [{ f.split('@')[0] : f.split('@')[1] } for f in os.listdir(PathManager.get_appdata_directory() + r'\Current')]
+        installed_packages = []
+
+        for f in os.listdir(PathManager.get_appdata_directory() + r'\Current'):
+            installed_packages.append(f.split('@')[0])
+        
+        idx = 0
         if package in installed_packages:
-            if check_newer_version(package, packet):
+            if check_newer_version(package, packet, installed_packages_dict):
                 install_dir = PathManager.get_appdata_directory() + r'\Current'
-                with open(rf'{install_dir}\{package}.json', 'r') as f:
+                dictionary = installed_packages_dict[idx]
+                package_name = list(dictionary.keys())[0]
+        
+                version = ''
+
+                for package in installed_packages_dict:
+                    if list(package.keys())[0] == package_name:
+                        version = package[list(package.keys())[0]].replace('.json', '')
+            
+
+                with open(rf'{install_dir}\{package_name}@{version}.json', 'r') as f:
                     data = json.load(f)
+
                 installed_version = data['version']
                 if not yes:
                     if not local:
@@ -762,6 +778,7 @@ def up(
                         sys.exit()
                 else:
                     continue_update = True
+
                 if continue_update:
                     ctx.invoke(
                         uninstall,
@@ -792,11 +809,13 @@ def up(
                     )
                     write(
                         f'Successfully Updated {package} to latest version.', 'bright_green', metadata)
+                    
+                    index += 1
                 else:
                     handle_exit('Error', '', metadata)
 
             else:
-                print(f'{package} is already on the latest version')
+                print(f'{packet.display_name} Is Already On The Latest Version')
         else:
             write(f'{packet.display_name} Is Not Installed', 'bright_red', metadata)
 
