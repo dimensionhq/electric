@@ -414,17 +414,18 @@ def install(
                             if not is_admin():
                                 write('Installation Must Be Run As Administrator', 'bright_red', metadata)
                                 os._exit(1)
+
                     if proc['type'] == 'powershell':
                         with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
                             for line in proc['code']:
-                                f.write(line.replace('<installer>', configs['path']).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version).replace('<temp>', tempfile.gettempdir()) + '\n')
+                                f.write(line.replace('<installer>', configs['path']).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version).replace('<directory>', packet.directory).replace('<temp>', tempfile.gettempdir()) + '\n')
 
                         os.system(rf'powershell.exe -File {tempfile.gettempdir()}\electric\temp.ps1')
 
                     if proc['type'] == 'cmd':
                         with open(rf'{tempfile.gettempdir()}\electric\temp.bat', 'w+') as f:
                             for line in proc['code']:
-                                f.write(line.replace('<installer>', configs['path']).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version).replace('<temp>', tempfile.gettempdir()) + '\n')
+                                f.write(line.replace('<installer>', configs['path']).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version).replace('<directory>', packet.directory).replace('<temp>', tempfile.gettempdir()) + '\n')
 
                         os.system(rf'{tempfile.gettempdir()}\electric\temp.bat')
 
@@ -432,21 +433,24 @@ def install(
                         ldict = {}
                         code = ''''''
                         for line in proc['code']:
-                            add = line.replace('<installer>', configs['path']).replace('<temp>', tempfile.gettempdir()).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version) + '\n'
+                            add = line.replace('<installer>', configs['path']).replace('<temp>', tempfile.gettempdir()).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<directory>', packet.directory if packet.directory else '').replace('<version>', version) + '\n'
 
                             if f'{packet.win64_type}{packet.win64_type}' in add:
                                 add = add.replace(f'{packet.win64_type}{packet.win64_type}', f'{packet.win64_type}')
 
                             code += add
+                        print(code)
                         exec(code, globals(), ldict)
                         for k in configs:
                             if k in ldict:
                                 configs[k] = ldict[k]
-        
+                    if proc['override'] == True:
+                        sys.exit()
+
         setup_name = configs['path']
 
         if not 'pre-install' in list(pkg.keys()):
-            setup_name = configs['path'].split('\\')[-1] + packet.win64_type if packet.win64_type not in configs['path'] else ''
+            setup_name = configs['path'].split('\\')[-1] + packet.win64_type
         
         status = 'Installing'
 
@@ -1629,7 +1633,7 @@ def register(
     else:
         latest_version = version
     custom_directory = install_dir if install_dir else ''
-    with open(rf'{PathManager.get_appdata_directory()}\electric\Current\{package_name}@{latest_version}.json', 'w+') as f:
+    with open(rf'{PathManager.get_appdata_directory()}\Current\{package_name}@{latest_version}.json', 'w+') as f:
         f.write(
             json.dumps(
                 {

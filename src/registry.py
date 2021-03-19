@@ -45,7 +45,7 @@ def send_query(hive, flag):
                 software_list.append(software)
             except EnvironmentError:
                 continue
-        
+            
         return software_list
 
 
@@ -61,7 +61,7 @@ def get_uninstall_key(package_name : str, display_name: str):
     
 
     keys = send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY) + send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY) + send_query(winreg.HKEY_CURRENT_USER, 0)
-
+    
     final_array = []
     total = []
 

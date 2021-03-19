@@ -10,7 +10,7 @@ def initialize_settings():
     Initializes the settings file and directory if it doesn't exist. Writes default settings to the file.
     """    
     default_electric_settings = {
-        "$schema": "https://electric-package-manager.herokuapp.com/schemas/settings",
+        "$schema": "https://github.com/electric-package-manager/electric/blob/master/settings-schema.json",
         "progressBarType": "accented",
         "showProgressBar": True,
         "electrifyProgressBar": False

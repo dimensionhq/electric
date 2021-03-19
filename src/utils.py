@@ -1375,7 +1375,6 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
     download_type = packet.win64_type
     custom_install_switch = packet.custom_location
     directory = packet.directory
-    package_name = packet.json_name
     switches = packet.install_switches
 
     keyboard.add_hotkey(
