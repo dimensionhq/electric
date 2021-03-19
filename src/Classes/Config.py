@@ -39,6 +39,9 @@ tags = [
     '<sublime>',
     '<sublime:name>',
     '<sublime:name,version>',
+    '<electric>',
+    '<electric:name>',
+    '<electric:name,version>'
 ]
 
 class Config:
@@ -102,7 +105,12 @@ class Config:
 
     @staticmethod
     def get_repr_packages(packages: list, version: bool):
-        packages = list(set(packages))
+        
+        try:
+            packages = list(set(packages))
+        except:
+            pass
+
         for package in packages:
             if '(empty)' in package:
                 packages.remove('(empty)')
@@ -116,7 +124,7 @@ class Config:
 
 
     @staticmethod
-    def check_pypi_name(pypi_package_name, pypi_registry_host=None):
+    def check_pypi_name(pypi_package_name):
         """
         Check if a package name exists on pypi.
 
@@ -130,62 +138,11 @@ class Config:
 
         It will return False if the package name, or any equivalent variation as defined by PEP 503 normalisation
         rules (https://www.python.org/dev/peps/pep-0503/#normalized-names) is not registered in the PyPI registry.
-
-        >>> check_pypi_name('testy_mc-test_case-has.a.cousin_who_should_never_write_a_package')
-        False
-
-        :param pypi_package_name:
-        :param pypi_registry_host:
-        :return:
         """
+        extension_url = 'https://pypi.org/project'
+        res = requests.get(f'{extension_url}/{pypi_package_name}/')
+        return True if res.status_code == 200 else False
 
-        if pypi_registry_host is None:
-            pypi_registry_host = 'pypi.org'
-
-        receive_buffer = bytearray(b'------------')
-        context = ssl.create_default_context()
-        ssl_http_socket = context.wrap_socket(socket.socket(socket.AF_INET), server_hostname=pypi_registry_host)
-        ssl_http_socket.connect((pypi_registry_host, 443))
-        ssl_http_socket.send(b''.join([
-            b"HEAD /simple/", pypi_package_name.encode('ascii'), b"/ HTTP/1.0", b"\r\n",
-            b"Host: ", pypi_registry_host.encode('ascii'), b"\r\n",
-            b"\r\n\r\n"
-        ]))
-        ssl_http_socket.recv_into(receive_buffer)
-
-        # Early return when possible.
-        if b'HTTP/1.1 200' in receive_buffer:
-            ssl_http_socket.shutdown(1)
-            ssl_http_socket.close()
-            return True
-        elif b'HTTP/1.1 404' in receive_buffer:
-            ssl_http_socket.shutdown(1)
-            ssl_http_socket.close()
-            return False
-
-        remaining_bytes = ssl_http_socket.recv(2048)
-        redirect_path_location_start = remaining_bytes.find(b'Location:') + 10
-        redirect_path_location_end = remaining_bytes.find(b'\r\n', redirect_path_location_start)
-        # Append the trailing slash to avoid a needless extra redirect.
-        redirect_path = remaining_bytes[redirect_path_location_start:redirect_path_location_end] + b'/'
-
-        ssl_http_socket.shutdown(1)
-        ssl_http_socket.close()
-        ssl_http_socket = context.wrap_socket(socket.socket(socket.AF_INET), server_hostname=pypi_registry_host)
-        ssl_http_socket.connect((pypi_registry_host, 443))
-
-        ssl_http_socket.send(b''.join([
-            b"HEAD ", redirect_path, b" HTTP/1.0", b"\r\n",
-            b"Host: ", pypi_registry_host.encode('ascii'), b"\r\n",
-            b"\r\n\r\n"]))
-        ssl_http_socket.recv_into(receive_buffer)
-
-        if b'HTTP/1.1 200' in receive_buffer:
-            return True
-        elif b'HTTP/1.1 404' in receive_buffer:
-            return False
-        else:
-            NotImplementedError('A definitive answer was not found by primary or secondary lookups.')
 
     @staticmethod
     def check_vscode_name(extension_name):
@@ -224,6 +181,7 @@ class Config:
 
     @staticmethod
     def generate_configuration(filepath: str, signed=True):
+        import hashlib
         d = {}
         try:
             with open(f'{filepath}', 'r') as f:
@@ -252,6 +210,7 @@ class Config:
                                     message = line.replace(':', '')
                                     click.echo(click.style(f'ValueNotFoundError : No Value Provided For Key :: {colorama.Fore.LIGHTCYAN_EX}{message}', fg='bright_yellow'))
                                     sys.exit()
+
                             except ValueError:
                                 if header in ['Packages', 'Pip-Packages', 'Editor-Extensions', 'Node-Packages']:
                                     k, v = line, "latest"
@@ -277,9 +236,8 @@ class Config:
                     with open(f'{filepath}', 'r') as f:
 
                         lines = f.readlines()
-
+                    
                     for line in lines:
-
                         if '<electric:name>' in line or '<electric>' in line:
                             idx = lines.index(line)
                             proc = Popen('electric list --installed'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
@@ -287,9 +245,9 @@ class Config:
                             output = output.decode().splitlines()
                             electric_packages = []
                             electric_packages = output
-                            res = []
-                            lines[idx] = Config.get_repr_packages(electric_packages, False) + '\n'
                             
+                            lines[idx] = Config.get_repr_packages(electric_packages, False) + '\n'
+                            d['Packages'] = lines[idx].split('\n')
                             
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
@@ -302,7 +260,7 @@ class Config:
                             electric_packages = []
                             electric_packages = [{line.split('@')[0] : line.split('@')[1]} for line in output]
                             lines[idx] = Config.get_repr_packages(electric_packages, True).replace('\n ', '\n') + '\n'
-                            
+                            d['Packages'] = [ line.split('@')[0] for line in output ]
 
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
@@ -336,8 +294,8 @@ class Config:
                                         json = js.load(f)
                                         current_packages = str(json['installed_packages']).replace('[', '').replace(']', '').replace('\n ', '\n').replace('\'', '').replace(', ', '\n') + '\n'
                                         lines[insert_index] = current_packages
-                                        
-
+                                        d['Editor-Extensions'] = lines[insert_index].split('\n')
+                                    
                                     with open(f'{filepath}', 'w') as f:
                                         f.writelines(lines)
 
@@ -348,8 +306,9 @@ class Config:
                             output = output.decode().splitlines()
                             vscode_packages = []
                             vscode_packages = output
-
+                            
                             lines[idx] = Config.get_repr_packages(vscode_packages, False) + '\n'
+                            d['Editor-Extensions'] = lines[idx].split('\n')
                             
 
                             with open(f'{filepath}', 'w') as f:
@@ -363,7 +322,7 @@ class Config:
                             vscode_packages = []
                             vscode_packages = [{line.split('@')[0] : line.split('@')[1]} for line in output]
                             lines[idx] = Config.get_repr_packages(vscode_packages, True).replace('\n ', '\n') + '\n'
-                            
+                            d['Editor-Extensions'] = [ line.split('@')[0] for line in output ]
 
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
@@ -379,7 +338,7 @@ class Config:
                                     atom_packages.append(val.replace('├──', '').replace('└── ', '').strip().lower()[:-6])
 
                             lines[idx] = Config.get_repr_packages(atom_packages, False) + '\n'
-                            
+                            d['Editor-Extensions'] = lines[idx].split('\n')
 
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
@@ -398,7 +357,7 @@ class Config:
                             atom_packages.append([{line.split('@')[0].lower() : line.split('@')[1].lower()} for line in refined_output])
                             atom_packages = atom_packages[0]
                             lines[idx] = Config.get_repr_packages(atom_packages, True).replace('\n ', '\n') + '\n'
-                            
+                            d['Editor-Extensions'] = [ line.split('@')[0] for line in output ]
 
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
@@ -419,6 +378,7 @@ class Config:
                             pip_packages = pip_packages[0]
 
                             lines[idx] = Config.get_repr_packages(pip_packages, False) + '\n'
+                            d['Pip-Packages'] = lines[idx].split('\n')
                             
 
                             with open(f'{filepath}', 'w') as f:
@@ -433,7 +393,7 @@ class Config:
 
                             pip_packages.append([{line.lower().split()[0] : line.lower().split()[1]} for line in output])
                             pip_packages = pip_packages[0]
-
+                            d['Pip-Packages'] = [ line.lower().split()[0] for line in output ]
                             lines[idx] = Config.get_repr_packages(pip_packages, True).replace('\n ', '\n') + '\n'
                             
                             with open(f'{filepath}', 'w') as f:
@@ -463,6 +423,7 @@ class Config:
                                 new_packages.append(package)
                             
                             lines[idx] = Config.get_repr_packages(new_packages, False) + '\n'
+                            d['Node-Packages'] = lines[idx].split('\n')
                             
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
@@ -483,6 +444,7 @@ class Config:
                                 npm_packages = npm_packages[0]
 
                                 lines[idx] = Config.get_repr_packages(npm_packages, True).replace('\n ', '\n') + '\n'
+                                d['Node-Packages'] = [ line.split('@')[0] for line in refined_output ]
                                 
                                 with open(f'{filepath}', 'w') as f:
                                     f.writelines(lines)
@@ -540,53 +502,106 @@ class Config:
 
     def verify(self):
         config = self.dictionary
+        
         python_packages = config['Pip-Packages'] if 'Pip-Packages' in self.headers else None
         node_packages = config['Node-Packages'] if 'Node-Packages' in self.headers else None
         editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
         packages = config['Packages'] if 'Packages' in self.headers else None
         editor_type = config['Editor-Configuration'][0]['Editor'] if 'Editor-Configuration' in self.headers else None
+        
         if packages:
             click.echo(click.style('↓ Validating Electric Packages        ↓', 'cyan'))
             for package in packages:
-                proc = Popen(rf'electric show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
-                output, err = proc.communicate()
-                err = 'UnicodeEncodeError' not in err.decode()
-                if 'Could Not Find Any Packages' in output.decode() or err:
-                    click.echo(click.style(f'`{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
-                    return
+                if isinstance(package, dict):
+                    if package:
+                        proc = Popen(rf'electric show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                        output, err = proc.communicate()
+                        err = 'UnicodeEncodeError' not in err.decode()
+                        
+                        if 'Could Not Find Any Packages' in output.decode() or err:
+                            click.echo(click.style(f'`{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
+                            return
+
+                else:
+                    if package:
+                        proc = Popen(rf'electric show {package}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
+                        output, err = proc.communicate()
+                        err = 'UnicodeEncodeError' not in err.decode()
+                        if 'Could Not Find Any Packages' in output.decode() or err:
+                            click.echo(click.style(f'`{package}` does not exist or has been removed.', 'red'))
+                            return
 
         if node_packages:
             click.echo(click.style('↓ Validating Node or Npm Modules      ↓', 'cyan'))
             for package_name in node_packages:
-                if not Config.check_node_name(package_name):
-                    click.echo(click.style(f'The ( npm | node ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
-                    return
+                if isinstance(package_name, dict):
+                    if package_name:
+                        if not Config.check_node_name(list(package_name.keys())[0]):
+                            click.echo(click.style(f'The ( npm | node ) module => `{list(package_name.keys())[0]}` does not exist or has been removed.', 'red'))
+                            return
+                else:
+                    if package_name:
+                        if not Config.check_node_name(package_name):
+                            click.echo(click.style(f'The ( npm | node ) module => `{package_name}` does not exist or has been removed.', 'red'))
+                            return
 
         click.echo(click.style('↓ Validating Python or Pip Modules    ↓', 'cyan'))
-
+        
         if python_packages:
             for package in python_packages:
-                if not Config.check_pypi_name(list(package.keys())[0].lower()):
-                    click.echo(click.style(f'The ( python | pip ) module => `{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
-                    return
+                if isinstance(package, dict):
+                    if package:
+                        if not Config.check_pypi_name(list(package.keys())[0]):
+                            click.echo(click.style(f'The ( npm | node ) module => `{list(package.keys()[0])}` does not exist or has been removed.', 'red'))
+                            return
+                else:
+                    if package:
+                        if not Config.check_pypi_name(package):
+                            click.echo(click.style(f'The ( python | pip ) module => `{package}` does not exist or has been removed.', 'red'))
+                            return
 
         if editor_type:
             if not editor_type in ['Visual Studio Code', 'Atom', 'Sublime Text 3']:
-                click.echo(click.style(f'The editor => {editor_type} is not supported by electric yet!', 'red'))
+                click.echo(click.style(f'{editor_type} is not supported by electric yet!', 'red'))
             else:
                 if editor_extensions:
                     click.echo(click.style('↓ Validating Editor Extensions        ↓', 'cyan'))
                     if editor_type == 'Visual Studio Code':
                         for package_name in editor_extensions:
-                            if not Config.check_vscode_name(package_name):
-                                click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
-                                return
+                            if isinstance(package_name, dict):
+                                if package_name:
+                                    if not Config.check_vscode_name(list(package_name.keys())[0]):
+                                        click.echo(click.style(f'Invalid Extension Name => {list(package_name.keys())[0]}', 'red'))
+                                        return
+                            else:
+                                if package_name:
+                                    if not Config.check_vscode_name(package_name):
+                                        click.echo(click.style(f'Invalid Extension Name => {package_name}', 'red'))
+                                        return
+
+                    if editor_type == 'Sublime Text 3':
+                        for package_name in editor_extensions:
+                            if isinstance(package_name, dict):
+                                if package_name:
+                                    if not Config.check_sublime_name(list(package_name.keys())[0]):
+                                        click.echo(click.style(f'Invalid Extension Name => {list(package_name.keys())[0]}', 'red'))
+                                        return
+                            else:
+                                if package_name:
+                                    if not Config.check_sublime_name(package_name):
+                                        click.echo(click.style(f'Invalid Extension Name => {package_name}', 'red'))
 
                     if editor_type == 'Atom':
                         for package_name in editor_extensions:
-                            if not Config.check_atom_name(package_name):
-                                click.echo(click.style(f'Invalid Extension Name => {list(package.keys())[0]}', 'red'))
-                                return
+                            if isinstance(package_name, dict):
+                                if package_name:
+                                    if not Config.check_atom_name(list(package_name.keys())[0]):
+                                        click.echo(click.style(f'Invalid Extension Name => {list(package_name.keys())[0]}', 'red'))
+                                        return
+                            else:
+                                if package_name:
+                                    if not Config.check_atom_name(package_name):
+                                        click.echo(click.style(f'Invalid Extension Name => {package_name}', 'red'))
         
 
     def install(self, exclude_versions: bool, install_directory: str, sync: bool, metadata: Metadata):

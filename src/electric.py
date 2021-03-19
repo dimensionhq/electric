@@ -1725,6 +1725,7 @@ def sign(
     Signs and validates a .electric configuration file.
     '''
     from Classes.Config import Config
+    import hashlib
 
     config = Config.generate_configuration(filepath, False)
     click.echo(click.style('No syntax errors found!', 'bright_green'))
