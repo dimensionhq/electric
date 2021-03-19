@@ -30,6 +30,9 @@ tags = [
     '<vscode>',
     '<vscode:name>',
     '<vscode:name,version>',
+    '<vscode-insiders>',
+    '<vscode-insiders:name>',
+    '<vscode-insiders:name,version>',
     '<atom>',
     '<atom:name>',
     '<atom:name,version>',
@@ -326,6 +329,34 @@ class Config:
 
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
+                        
+                        if '<vscode-insiders:name>' in line or '<vscode-insiders>' in line:
+                            idx = lines.index(line)
+                            proc = Popen('code-insiders --list-extensions'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                            output, _ = proc.communicate()
+                            output = output.decode().splitlines()
+                            vscode_packages = []
+                            vscode_packages = output
+                            
+                            lines[idx] = Config.get_repr_packages(vscode_packages, False) + '\n'
+                            d['Editor-Extensions'] = lines[idx].split('\n')
+                            
+
+                            with open(f'{filepath}', 'w') as f:
+                                f.writelines(lines)
+
+                        if '<vscode-insiders:name,version>' in line:
+                            idx = lines.index(line)
+                            proc = Popen('code-insiders --list-extensions --show-versions'.split(), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                            output, _ = proc.communicate()
+                            output = output.decode().splitlines()
+                            vscode_packages = []
+                            vscode_packages = [{line.split('@')[0] : line.split('@')[1]} for line in output]
+                            lines[idx] = Config.get_repr_packages(vscode_packages, True).replace('\n ', '\n') + '\n'
+                            d['Editor-Extensions'] = [ line.split('@')[0] for line in output ]
+
+                            with open(f'{filepath}', 'w') as f:
+                                f.writelines(lines)
 
                         if '<atom>' in line or '<atom:name>' in line or '<apm>' in line or '<apm:name>' in line:
                             idx = lines.index(line)
@@ -561,12 +592,12 @@ class Config:
                             return
 
         if editor_type:
-            if not editor_type in ['Visual Studio Code', 'Atom', 'Sublime Text 3']:
+            if not editor_type in ['Visual Studio Code', 'Visual Studio Code Insiders', 'Atom', 'Sublime Text 3']:
                 click.echo(click.style(f'{editor_type} is not supported by electric yet!', 'red'))
             else:
                 if editor_extensions:
                     click.echo(click.style('↓ Validating Editor Extensions        ↓', 'cyan'))
-                    if editor_type == 'Visual Studio Code':
+                    if editor_type == 'Visual Studio Code' or editor_type == 'Visual Studio Code Insiders':
                         for package_name in editor_extensions:
                             if isinstance(package_name, dict):
                                 if package_name:
@@ -578,6 +609,7 @@ class Config:
                                     if not Config.check_vscode_name(package_name):
                                         click.echo(click.style(f'Invalid Extension Name => {package_name}', 'red'))
                                         return
+
 
                     if editor_type == 'Sublime Text 3':
                         for package_name in editor_extensions:
@@ -625,6 +657,7 @@ class Config:
                     continue
                 command += list(package.keys())[0] + ','
                 idx += 1
+
             for flag in flags:
                 command += ' ' + flag
             
@@ -654,7 +687,7 @@ class Config:
                 idx += 1
 
 
-            if editor_type == 'Visual Studio Code' and editor_extensions:
+            if editor_type == 'Visual Studio Code' or editor_type == 'Visual Studio Code Insiders' and editor_extensions != []:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
                 for extension in editor_extensions:
                     extension = list(extension.keys())[0]

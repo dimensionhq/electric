@@ -1458,6 +1458,11 @@ def get_configuration_data(username: str, description: str, uses_editor: bool, i
             base_configuration.append(
                 f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<vscode:name>\n')
 
+        if editor == 'Visual Studio Code Insiders':
+            base_configuration.append(
+                f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<vscode-insiders:name>\n')
+            
+
         if editor == 'Atom':
             base_configuration.append(
                 f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<atom:name>\n')

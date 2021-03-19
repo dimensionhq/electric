@@ -1771,7 +1771,8 @@ def generate(
     from prompt_toolkit.completion import WordCompleter
     from prompt_toolkit import prompt
     editor_completion = WordCompleter(
-        ['Visual Studio Code', 'Sublime Text 3', 'Atom'])
+        ['Visual Studio Code', 'Visual Studio Code Insiders', 'Sublime Text 3', 'Atom'])
+
     username = prompt('Enter Publisher Name => ')
     description = prompt('Enter Configuration Description => ')
     use_editor = prompt(
