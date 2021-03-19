@@ -432,13 +432,22 @@ def install(
                         ldict = {}
                         code = ''''''
                         for line in proc['code']:
-                            code += line.replace('<installer>', configs['path']).replace('<temp>', tempfile.gettempdir()).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version) + '\n'
+                            add = line.replace('<installer>', configs['path']).replace('<temp>', tempfile.gettempdir()).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version) + '\n'
+
+                            if f'{packet.win64_type}{packet.win64_type}' in add:
+                                add = add.replace(f'{packet.win64_type}{packet.win64_type}', f'{packet.win64_type}')
+
+                            code += add
                         exec(code, globals(), ldict)
                         for k in configs:
                             if k in ldict:
                                 configs[k] = ldict[k]
+        
+        setup_name = configs['path']
 
-        setup_name = configs['path'].split('\\')[-1] + packet.win64_type
+        if not 'pre-install' in list(pkg.keys()):
+            setup_name = configs['path'].split('\\')[-1] + packet.win64_type if packet.win64_type not in configs['path'] else ''
+        
         status = 'Installing'
 
         keyboard.add_hotkey('ctrl+c', lambda: handle_exit(status, setup_name, metadata))
@@ -1466,20 +1475,15 @@ def bundle(
         package_names = ''
         idx = 0
 
-        correct_names = get_correct_package_names(res)
-
-        corrected_package_names = get_autocorrections(
-            [bundle_name], correct_names, metadata)
-
-        
-
-        for value in res[corrected_package_names[0]]['dependencies']:
+        for value in res['dependencies']:
             if idx == 0:
                 package_names += value
                 idx += 1
                 continue
 
             package_names += f',{value}'
+
+        print(package_names)
 
         if exclude:
             package_names = package_names.replace(exclude, '')
@@ -1523,7 +1527,7 @@ def bundle(
         click.echo(click.style(
             '\nAdministrator Elevation Required For Bundle Installation. Exit Code [0001]', 'bright_red'), err=True)
         disp_error_msg(get_error_message(
-            '0001', 'installation', 'None', None, metadata, packet.json_name), metadata)
+            '0001', 'installation', 'None', None, metadata, ''), metadata)
 
 
 @cli.command(aliases=['find'], context_settings=CONTEXT_SETTINGS)
