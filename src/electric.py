@@ -439,7 +439,7 @@ def install(
                                 add = add.replace(f'{packet.win64_type}{packet.win64_type}', f'{packet.win64_type}')
 
                             code += add
-                        print(code)
+                        
                         exec(code, globals(), ldict)
                         for k in configs:
                             if k in ldict:
