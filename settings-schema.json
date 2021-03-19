@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "JSON Schema for settings.json",
-  "$id": "https://raw.githubusercontent.com/TheBossProSniper/Electric-Windows/dev/settings-schema.json",
+  "$id": "https://raw.githubusercontent.com/electric-package-manager/electric/master/settings-schema.json",
   "version": 1.0,
   "type": "object",
   "description": "Provides autocompletion and validation for settings.json files",
