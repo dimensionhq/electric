@@ -1,5 +1,5 @@
 from subprocess import PIPE, Popen
-from colorama import Fore
+from colorama import Fore, Style
 import os
 import winreg
 from Classes.Metadata import Metadata
@@ -163,6 +163,40 @@ def install_font(src_path: str):
         winreg.SetValueEx(key, fontname, 0, winreg.REG_SZ, filename)
 
 
+def get_character_color(fill, metadata):
+    if fill:
+        try:
+            fill_char_color = metadata.settings.raw_dictionary[
+                'customProgressBar']['fill_character_color']
+        except:
+            return 'Fore.RESET'
+        return f'Fore.{fill_char_color.upper()}'if fill_char_color else 'Fore.RESET'
+    else:
+        try:
+            unfill_char_color = metadata.settings.raw_dictionary[
+                'customProgressBar']['unfill_character_color']
+        except:
+            return 'Fore.RESET'
+        return f'Fore.{unfill_char_color.upper()}' if unfill_char_color else 'Fore.RESET'
+
+
+def get_init_char(start, metadata) -> str:
+    if start:
+        try:
+            start_char = Fore.RESET + \
+                metadata.settings.raw_dictionary['customProgressBar']['start_character']
+        except:
+            return ''
+        return start_char if start_char else ''
+    else:
+        try:
+            end_char = Fore.RESET + \
+                metadata.settings.raw_dictionary['customProgressBar']['end_character']
+        except:
+            return ''
+        return end_char if end_char else ''
+
+
 def download(packet, url: str, download_extension: str, file_path: str, metadata: Metadata, show_progress_bar=True, is_zip=False):
     '''
     Downloads A File from a URL And Saves It To A location
@@ -190,9 +224,6 @@ def download(packet, url: str, download_extension: str, file_path: str, metadata
             os.mkdir(
                 rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}')
 
-        # if not os.path.isdir(file_path.replace('\\\\', '\\')):
-        #     os.mkdir(file_path.replace('\\\\', '\\'))
-
     try:
         file_path = file_path.replace('\\\\', '\\')
         with open(f'{file_path}{download_extension}', 'wb') as f:
@@ -209,20 +240,48 @@ def download(packet, url: str, download_extension: str, file_path: str, metadata
                 dl = 0
                 full_length = int(total_length)
 
+                progress_type = metadata.settings.progress_bar_type
                 # Write Data To File
                 for data in response.iter_content(chunk_size=chunk_size):
                     dl += len(data)
                     f.write(data)
+                    # if no_progress is True or show_progress_bar (user settings) is false
+                    if metadata.no_progress == True or metadata.settings.show_progress_bar == False:
+                        sys.stdout.write(
+                            f'\r{round(dl / 1000000, 1)} Mb / {round(full_length / 1000000, 1)} Mb')
+                        sys.stdout.flush()
 
                     if show_progress_bar:
-                        complete = int(25 * dl / full_length)
-                        # Replace '=' with the character you want like '#' or '$'
-                        fill_c = Fore.LIGHTGREEN_EX + '=' * complete
-                        # Replace '-' with the character you want like ' ' (whitespace)
-                        unfill_c = Fore.LIGHTBLACK_EX + '-' * (25 - complete)
-                        sys.stdout.write(
-                            f'\r{fill_c}{unfill_c} {Fore.RESET} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
-                        sys.stdout.flush()
+                        # print the progress bar
+                        if not metadata.no_progress and not metadata.silent:
+                            complete = int(30 * dl / full_length)
+                            fill_c = '-'  # Fallback Character
+                            unfill_c = ' '  # Fallback Character
+                            if progress_type == 'custom' or metadata.settings.use_custom_progress_bar:
+                                fill_c = eval(get_character_color(
+                                    True, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['fill_character'] * complete
+                                unfill_c = eval(get_character_color(
+                                    False, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['unfill_character'] * (30 - complete)
+                            elif progress_type == 'accented':
+                                fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
+                                unfill_c = Fore.BLACK + '█' * (30 - complete)
+                            elif progress_type == 'zippy':
+                                fill_c = Fore.LIGHTGREEN_EX + '=' * complete
+                                unfill_c = Fore.LIGHTBLACK_EX + \
+                                    '-' * (30 - complete)
+                            elif progress_type not in ['custom', 'accented', 'zippy'] and metadata.settings.use_custom_progress_bar == False or progress_type == 'default':
+                                fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
+                                unfill_c = Fore.BLACK + '█' * (30 - complete)
+
+                            if metadata.settings.electrify_progress_bar == True and not metadata.settings.use_custom_progress_bar:
+                                sys.stdout.write(
+                                    f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} Mb {Fore.RESET}⚡')
+                            else:
+                                sys.stdout.write(
+                                    f'\r{get_init_char(True, metadata)}{fill_c}{unfill_c}{get_init_char(False, metadata)} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
+                            sys.stdout.flush()
+
+
         if is_zip:
             write(f'\n{Fore.LIGHTGREEN_EX}Initializing Unzipper{Fore.RESET}',
                   'white', metadata)
@@ -364,4 +423,3 @@ def append_to_path(input_dir: str):
     proc = Popen(f'setx /M path "%PATH%;{input_dir}"', stdin=PIPE,
                  stdout=PIPE, stderr=PIPE, shell=True)
     _, _ = proc.communicate()
-
