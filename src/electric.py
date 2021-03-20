@@ -376,24 +376,7 @@ def install(
 
         configs['path'] = download_installer(packet, download_url, metadata)
 
-        if packet.checksum:
-            verify_checksum(configs['path'], packet.checksum, metadata)
-
         log_info('Finished Rapid Download', metadata.logfile)
-
-        if virus_check:
-            log_info('Running requested virus scanning', metadata.logfile)
-            if not metadata.silent:
-                with Halo(text='Scanning File For Viruses ', text_color='cyan' if not metadata.no_color else 'white', color='green' if not metadata.no_color else 'white') as h:
-                    check_virus(configs['path'], metadata, h)
-
-        write_debug(
-            f'Installing {packet.display_name} through Setup{packet.win64_type}', metadata)
-
-        write(f'Installing {packet.display_name}',
-              'bright_cyan', metadata)
-        log_info(
-            'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
         log_info(
             f'Installing {packet.display_name} through Setup{packet.win64_type}', metadata.logfile)
@@ -476,6 +459,23 @@ def install(
         if f'{packet.win64_type}{packet.win64_type}' in configs['path']:
             configs['path'] = configs['path'].replace(
                 f'{packet.win64_type}{packet.win64_type}', f'{packet.win64_type}')
+
+        if virus_check:
+            log_info('Running requested virus scanning', metadata.logfile)
+            if not metadata.silent:
+                with Halo(text='Scanning File For Viruses ', text_color='cyan' if not metadata.no_color else 'white', color='green' if not metadata.no_color else 'white') as h:
+                    check_virus(configs['path'], metadata, h)
+
+        if packet.checksum:
+            verify_checksum(configs['path'], packet.checksum, metadata)
+
+        write_debug(
+            f'Installing {packet.display_name} through Setup{packet.win64_type}', metadata)
+
+        write(f'Installing {packet.display_name}',
+              'bright_cyan', metadata)
+        log_info(
+            'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
         if not get_pid(setup_name):
             # Running The Installer silently And Completing Setup

@@ -145,12 +145,12 @@ def is_admin() -> bool:
 def verify_checksum(path: str, checksum: str, metadata: Metadata):
     import hashlib
 
-    if hashlib.sha256(open(path, 'rb').read()).hexdigest() == checksum:
+    if hashlib.sha256(open(path, 'rb').read()).hexdigest().upper() == checksum:
         write('Verified Installer Hash', 'bright_green', metadata)
     else:
         write('Hashes Don\'t Match!', 'bright_green', metadata)
-        continue_installation = input(
-            'Would you like to continue with installation? [Y/n]: ')
+        continue_installation = confirm(
+            'Would you like to continue with installation?')
         if continue_installation:
             return
         else:
