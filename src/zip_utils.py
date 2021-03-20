@@ -257,18 +257,22 @@ def download(packet, url: str, download_extension: str, file_path: str, metadata
                             complete = int(30 * dl / full_length)
                             fill_c = '-'  # Fallback Character
                             unfill_c = ' '  # Fallback Character
+
                             if progress_type == 'custom' or metadata.settings.use_custom_progress_bar:
                                 fill_c = eval(get_character_color(
                                     True, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['fill_character'] * complete
                                 unfill_c = eval(get_character_color(
                                     False, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['unfill_character'] * (30 - complete)
+
                             elif progress_type == 'accented':
                                 fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
                                 unfill_c = Fore.BLACK + '█' * (30 - complete)
+
                             elif progress_type == 'zippy':
                                 fill_c = Fore.LIGHTGREEN_EX + '=' * complete
                                 unfill_c = Fore.LIGHTBLACK_EX + \
                                     '-' * (30 - complete)
+
                             elif progress_type not in ['custom', 'accented', 'zippy'] and metadata.settings.use_custom_progress_bar == False or progress_type == 'default':
                                 fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
                                 unfill_c = Fore.BLACK + '█' * (30 - complete)
@@ -276,11 +280,11 @@ def download(packet, url: str, download_extension: str, file_path: str, metadata
                             if metadata.settings.electrify_progress_bar == True and not metadata.settings.use_custom_progress_bar:
                                 sys.stdout.write(
                                     f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} Mb {Fore.RESET}⚡')
+
                             else:
                                 sys.stdout.write(
                                     f'\r{get_init_char(True, metadata)}{fill_c}{unfill_c}{get_init_char(False, metadata)} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
                             sys.stdout.flush()
-
 
         if is_zip:
             write(f'\n{Fore.LIGHTGREEN_EX}Initializing Unzipper{Fore.RESET}',
