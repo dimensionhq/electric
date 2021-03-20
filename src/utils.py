@@ -449,7 +449,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                 # if no_progress is True or show_progress_bar (user settings) is false
                 if metadata.no_progress == True or metadata.settings.show_progress_bar == False:
                     sys.stdout.write(
-                        f'\r{round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB')
+                        f'\r{round(dl / 1000000, 1)} Mb / {round(full_length / 1000000, 1)} Mb')
                     sys.stdout.flush()
 
                 # print the progress bar

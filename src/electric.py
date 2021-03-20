@@ -1091,7 +1091,7 @@ def uninstall(
 
         if 'valid-uninstall-exit-codes' in list(pkg.keys()):
             uninstall_exit_codes = pkg['valid-uninstall-exit-codes']
-
+        
         packet = Packet(
             pkg, 
             package, 
@@ -1106,7 +1106,7 @@ def uninstall(
             install_exit_codes, 
             uninstall_exit_codes, 
             version, 
-            pkg['run-check'] if 'run-check' in list(res.keys()) else False, 
+            pkg['run-check'] if 'run-check' in list(pkg.keys()) else False, 
             pkg['set-env'] if 'set-env' in list(pkg.keys()) else None,
             pkg['default-install-dir'].replace('<appdata>', os.environ['APPDATA'].replace('\\Roaming', '')) if 'default-install-dir' in list(pkg.keys()) else None, 
             pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
@@ -1345,8 +1345,8 @@ def uninstall(
                 if not find_existing_installation(packet.json_name, packet.display_name):
                     print(f'[ {Fore.LIGHTRED_EX}ERROR{Fore.RESET} ] Registry Check')
                     write(f'Failed: Registry Check', 'bright_red', metadata)
-                    write('Retrying Registry Check In 10 seconds', 'bright_yellow', metadata)
-                    tm.sleep(10)
+                    write('Retrying Registry Check In 7.5 seconds', 'bright_yellow', metadata)
+                    tm.sleep(7.5)
                     if not find_existing_installation(packet.json_name, packet.display_name):
                         write(
                             f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ]  Registry Check', 'bright_white', metadata)

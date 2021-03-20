@@ -49,7 +49,7 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata:
     if not metadata.silent and file_type == '.zip':
         from tqdm import tqdm
         with zipfile.ZipFile(download_dir, 'r') as zf:
-            for member in tqdm(zf.infolist(), desc='Extracting ', bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}', smoothing=0.0, unit='files'):
+            for member in tqdm(zf.infolist(), desc='Extracting ', bar_format='{l_bar}{bar:13}{r_bar}{bar:-13b}', smoothing=0.0, unit='files'):
                 try:
                     zf.extract(member, download_dir.replace('.zip', ''))
                 except zipfile.error:
