@@ -1355,7 +1355,9 @@ def run_cmd(command: str, metadata: Metadata, method: str, packet: Packet) -> bo
     write_debug(f'{command}', metadata)
     try:
         exit_code = check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        return False if exit_code == 0 else True
+        if exit_code == 0:
+            return False
+        return True
     except (CalledProcessError, OSError, FileNotFoundError) as err:
 
         disp_error_msg(get_error_cause(str(err), packet.install_exit_codes,
