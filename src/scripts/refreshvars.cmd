@@ -1,3 +1,4 @@
+:: Complete credit goes to chocolatey for this file. RefreshEnv is included with electric releases and is added to bin.
 @echo off
 ::
 :: RefreshEnv.cmd
@@ -9,6 +10,8 @@
 :: environment every time you want environment changes to propagate
 
 ::echo "RefreshEnv.cmd only works from cmd.exe, please install the Chocolatey Profile to take advantage of refreshenv from PowerShell"
+echo | set /p dummy="Refreshing environment variables from registry for cmd.exe. Please wait..."
+
 goto main
 
 :: Set one environment variable from registry key
@@ -60,3 +63,6 @@ goto main
     :: reset user / architecture
     SET "USERNAME=%OriginalUserName%"
     SET "PROCESSOR_ARCHITECTURE=%OriginalArchitecture%"
+
+    echo | set /p dummy="Finished."
+    echo .

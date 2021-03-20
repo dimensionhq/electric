@@ -63,7 +63,7 @@ class ThreadedInstaller:
                 {
                     'path': path,
                     'display_name': download.display_name
-                }       
+                }
         })
         sys.stdout.write('')
         # cursor.show()
@@ -74,7 +74,7 @@ class ThreadedInstaller:
         download_type = install.download_type
         custom_install_switch = install.custom_install_switch
         directory = install.directory
-        
+
         if download_type == '.exe':
             if '.exe' not in path:
                 if not os.path.isfile(path + '.exe'):
@@ -184,9 +184,11 @@ class ThreadedInstaller:
             f'Rapid Download Successfully Downloaded {len(download_items)} Packages Using RapidThreading', metadata)
         write_debug('Rapid Download Exiting With Code 0', metadata)
         if not self.metadata.debug:
-            write('\nSuccessfully Downloaded Installation Files', 'bright_green', metadata)
+            write('\nSuccessfully Downloaded Installation Files',
+                  'bright_green', metadata)
         else:
-            write('Successfully Downloaded Installation Files', 'bright_green', metadata)
+            write('Successfully Downloaded Installation Files',
+                  'bright_green', metadata)
         log_info('Finished Rapid Download', metadata.logfile)
         write(
             'Installing Packages', 'cyan', metadata)
@@ -267,7 +269,7 @@ class ThreadedInstaller:
                     x.join()
 
                 processes.clear()
-            
+
             idx += 1
 
         if self.metadata.reduce_package:
@@ -288,7 +290,7 @@ class ThreadedInstaller:
             'Refreshing Env Variables, Calling Batch Script', self.metadata)
         write_verbose('Refreshing Environment Variables', self.metadata)
         start = timer()
-        utils.refresh_environment_variables()
+        write('The PATH environment variable has changed. Run `refreshenv` to refresh your environment variables.', 'green', self.metadata)
         end = timer()
         write_debug(
             f'Successfully Refreshed Environment Variables in {round((end - start), 2)} seconds', self.metadata)
@@ -315,7 +317,7 @@ class ThreadedInstaller:
             'Would you like to install the above dependencies ?')
         if continue_install:
             write(
-            f'Installing Dependencies For => {packet.display_name}', 'cyan', metadata)
+                f'Installing Dependencies For => {packet.display_name}', 'cyan', metadata)
             if len(packet.dependencies) > 1 and len(packet.dependencies) <= 5:
                 write(
                     f'Using Parallel Installation For Installing Dependencies', 'bright_green', metadata)
@@ -343,24 +345,30 @@ class ThreadedInstaller:
                         install_exit_codes = pkg['valid-install-exit-codes']
 
                     packet = Packet(
-                        package, 
-                        res['package-name'], 
-                        pkg['url'], 
-                        pkg['file-type'], 
+                        package,
+                        res['package-name'],
+                        pkg['url'],
+                        pkg['file-type'],
                         pkg['custom-location'],
-                        pkg['install-switches'], 
-                        pkg['uninstall-switches'], 
-                        custom_dir, 
-                        pkg['dependencies'], 
-                        install_exit_codes, 
-                        None, 
-                        pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, 
-                        pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
-                        pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
-                        pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
-                        pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
+                        pkg['install-switches'],
+                        pkg['uninstall-switches'],
+                        custom_dir,
+                        pkg['dependencies'],
+                        install_exit_codes,
+                        None,
+                        pkg['set-env'] if 'set-env' in list(
+                            pkg.keys()) else None,
+                        pkg['default-install-dir'] if 'default-install-dir' in list(
+                            pkg.keys()) else None,
+                        pkg['uninstall'] if 'uninstall' in list(
+                            pkg.keys()) else [],
+                        pkg['add-path'] if 'add-path' in list(
+                            pkg.keys()) else None,
+                        pkg['checksum'] if 'checksum' in list(
+                            pkg.keys()) else None,
+                        pkg['bin'] if 'bin' in list(pkg.keys()) else None,
                     )
-                    
+
                     installation = utils.find_existing_installation(
                         package, packet.json_name)
 
@@ -407,7 +415,8 @@ class ThreadedInstaller:
                 write('Starting Sync Installation', 'bright_green', metadata)
                 for package in packet.dependencies:
                     res = utils.send_req_package(package)
-                    write(f'SuperCached [ {Fore.LIGHTCYAN_EX}{res["display-name"]}{Fore.RESET} ]', 'white', metadata)
+                    write(
+                        f'SuperCached [ {Fore.LIGHTCYAN_EX}{res["display-name"]}{Fore.RESET} ]', 'white', metadata)
                     pkg = res[res['latest-version']]
                     log_info(
                         'Generating Packet For Further Installation.', metadata.logfile)
@@ -417,27 +426,33 @@ class ThreadedInstaller:
                         install_exit_codes = pkg['valid-install-exit-codes']
 
                     packet = Packet(
-                        res, 
-                        res['package-name'], 
-                        res['display-name'], 
-                        pkg['url'], 
-                        pkg['file-type'], 
+                        res,
+                        res['package-name'],
+                        res['display-name'],
+                        pkg['url'],
+                        pkg['file-type'],
                         pkg['custom-location'],
-                        pkg['install-switches'], 
-                        pkg['uninstall-switches'], 
-                        install_directory, 
-                        pkg['dependencies'], 
-                        install_exit_codes, 
-                        [], 
-                        None, 
-                        False, 
-                        pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, 
-                        pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
-                        pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
-                        pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
-                        pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
+                        pkg['install-switches'],
+                        pkg['uninstall-switches'],
+                        install_directory,
+                        pkg['dependencies'],
+                        install_exit_codes,
+                        [],
+                        None,
+                        False,
+                        pkg['set-env'] if 'set-env' in list(
+                            pkg.keys()) else None,
+                        pkg['default-install-dir'] if 'default-install-dir' in list(
+                            pkg.keys()) else None,
+                        pkg['uninstall'] if 'uninstall' in list(
+                            pkg.keys()) else [],
+                        pkg['add-path'] if 'add-path' in list(
+                            pkg.keys()) else None,
+                        pkg['checksum'] if 'checksum' in list(
+                            pkg.keys()) else None,
+                        pkg['bin'] if 'bin' in list(pkg.keys()) else None,
                     )
-                    
+
                     log_info(
                         'Searching for existing installation of package.', metadata.logfile)
                     installation = utils.find_existing_installation(
@@ -468,7 +483,8 @@ class ThreadedInstaller:
 
                     download_url = packet.win64
 
-                    write('Initializing Rapid Download', 'bright_green', metadata)
+                    write('Initializing Rapid Download',
+                          'bright_green', metadata)
                     log_info('Initializing Rapid Download...',
                              metadata.logfile)
 
@@ -507,7 +523,8 @@ class ThreadedInstaller:
                     log_info('Finished Rapid Download', metadata.logfile)
 
                     if metadata.virus_check:
-                        write('Scanning File For Viruses...', 'bright_cyan', metadata)
+                        write('Scanning File For Viruses...',
+                              'bright_cyan', metadata)
                         utils.check_virus(path, metadata)
 
                     write(
@@ -525,7 +542,7 @@ class ThreadedInstaller:
                     utils.install_package(path, packet, metadata)
 
                     if packet.add_path:
-                        
+
                         replace_install_dir = ''
 
                         if packet.directory:
@@ -533,9 +550,11 @@ class ThreadedInstaller:
 
                         elif packet.default_install_dir:
                             replace_install_dir = packet.default_install_dir
-                        
-                        write(f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
-                        utils.append_to_path(packet.add_path.replace('<install-directory>', replace_install_dir))
+
+                        write(
+                            f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
+                        utils.append_to_path(packet.add_path.replace(
+                            '<install-directory>', replace_install_dir))
 
                     if packet.set_env:
                         name = packet.set_env['name']
@@ -547,26 +566,16 @@ class ThreadedInstaller:
                         elif packet.default_install_dir:
                             replace_install_dir = packet.default_install_dir
 
-                        write(f'Setting Environment Variable {name}', 'bright_green', metadata)
-                        
+                        write(
+                            f'Setting Environment Variable {name}', 'bright_green', metadata)
+
                         set_environment_variable(
                             name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
 
                     final_snap = get_environment_keys()
                     if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
-                        write('Refreshing Environment Variables...',
+                        write('The PATH environment variable has changed. Run `refreshenv` to refresh your environment variables.',
                               'bright_green', metadata)
-                        start = timer()
-                        log_info(
-                            'Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
-                        write_debug(
-                            'Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
-                        write_verbose(
-                            'Refreshing Environment Variables', metadata)
-                        utils.refresh_environment_variables()
-                        end = timer()
-                        write_debug(
-                            f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
 
                     write(
                         f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)

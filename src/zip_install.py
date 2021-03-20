@@ -52,7 +52,8 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                     f'{packet.extract_dir}@{packet.latest_version}' + '.zip', extract_dir, url['file-type'], metadata)
 
             else:
-                write(f'Downloading {url["file-name"]}{url["file-type"]}', 'cyan', metadata)
+                write(
+                    f'Downloading {url["file-name"]}{url["file-type"]}', 'cyan', metadata)
                 download(packet, url['url'], url['file-type'],
                          rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}\\{url["file-name"]}', metadata, show_progress_bar=False, is_zip=False)
 
@@ -62,7 +63,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
         if packet.pre_install['type'] == 'powershell':
             packet.pre_install['code'] = [l.replace('<dir>', unzip_dir.replace(
                 '\\\\', '\\')) for l in packet.pre_install['code']]
-            
+
             packet.pre_install['code'] = [l.replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}'.replace(
                 '\\\\', '\\')) for l in packet.pre_install['code']]
 
@@ -80,12 +81,13 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                     f.write(f'\n{line}')
             os.system(
                 rf'powershell -executionpolicy bypass -File {home}\electric\temp\Scripts\temp.ps1')
-            write('Successfully Executed Pre-Install Code', 'bright_green', metadata)
+            write('Successfully Executed Pre-Install Code',
+                  'bright_green', metadata)
 
         if packet.pre_install['type'] == 'bat' or packet.pre_install['type'] == 'cmd':
             packet.pre_install['code'] = [l.replace('<dir>', unzip_dir.replace(
                 '\\\\', '\\')) for l in packet.pre_install['code']]
-            
+
             packet.pre_install['code'] = [l.replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}'.replace(
                 '\\\\', '\\')) for l in packet.pre_install['code']]
 
@@ -103,14 +105,15 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                     f.write(f'\n{line}')
             os.system(
                 rf'{home}\electric\temp\Scripts\temp.bat')
-            write('Successfully Executed Pre-Install Code', 'bright_green', metadata)
+            write('Successfully Executed Pre-Install Code',
+                  'bright_green', metadata)
 
         if packet.pre_install['type'] == 'python':
             code = ''''''
 
             for l in packet.pre_install['code']:
                 code += l + '\n'
-            
+
             exec(code)
 
     if packet.chdir:
@@ -144,17 +147,19 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
 
     if packet.set_env:
         changes_environment = True
-        write(f'Setting Environment Variable {packet.set_env["name"]}', 'bright_green', metadata)
-        set_environment_variable(packet.set_env['name'], packet.set_env['value'].replace('<install-directory>', unzip_dir).replace('\\\\', '\\'))
+        write(
+            f'Setting Environment Variable {packet.set_env["name"]}', 'bright_green', metadata)
+        set_environment_variable(packet.set_env['name'], packet.set_env['value'].replace(
+            '<install-directory>', unzip_dir).replace('\\\\', '\\'))
 
     if changes_environment:
         write(
-            f'{Fore.LIGHTGREEN_EX}Refreshing Environment Variables{Fore.RESET}', 'white', metadata)
-        refresh_environment_variables()
-  
+            f'{Fore.LIGHTGREEN_EX}The PATH environment variable has changed. Run `refreshenv` to refresh your environment variables.{Fore.RESET}', 'white', metadata)
+
     if packet.post_install:
         for line in packet.post_install:
-            exec(line.replace('<install-directory>', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}'))
+            exec(line.replace('<install-directory>', unzip_dir).replace('<extras>',
+                 rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}'))
 
     if packet.install_notes:
         display_notes(packet, unzip_dir, metadata)

@@ -62,7 +62,7 @@ def send_package_request(package_name: str):
 
 def append_to_path(input_dir: str):
     proc = Popen(f'setx /M path "%PATH%;{input_dir}"', stdin=PIPE,
-          stdout=PIPE, stderr=PIPE, shell=True)
+                 stdout=PIPE, stderr=PIPE, shell=True)
     _, _ = proc.communicate()
 
 
@@ -149,7 +149,8 @@ def verify_checksum(path: str, checksum: str, metadata: Metadata):
         write('Verified Installer Hash', 'bright_green', metadata)
     else:
         write('Hashes Don\'t Match!', 'bright_green', metadata)
-        continue_installation = input('Would you like to continue with installation? [Y/n]: ') 
+        continue_installation = input(
+            'Would you like to continue with installation? [Y/n]: ')
         if continue_installation:
             return
         else:
@@ -159,6 +160,7 @@ def verify_checksum(path: str, checksum: str, metadata: Metadata):
 def swc(url: str):
     res = requests.get(url)
     return res.text
+
 
 def generate_dict(path: str, package_name: str) -> dict:
     """
@@ -301,6 +303,15 @@ def check_resume_download(package_name: str, download_url: str, metadata: Metada
         return (None, None)
 
 
+def refresh_environment_variables():
+    """
+    Refreshes the environment variables on the current Powershell session.
+    """
+    proc = Popen('powershell -c "$env:Path = [System.Environment]::GetEnvironmentVariable(\'Path\',\'Machine\') + \';\' + [System.Environment]::GetEnvironmentVariable(\'Path\',\'User\')"'.split(
+    ), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    proc.communicate()
+
+
 def send_req_bundle(bundle_name: str) -> dict:
     """
     Send a network request to the API for the bundles to be installed
@@ -312,12 +323,14 @@ def send_req_bundle(bundle_name: str) -> dict:
         dict: The json response from the network request
     """
     REQA = 'https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/bundles/'
-    time = 0.0
-    response = requests.get(REQA + '', timeout=15)
+
+    response = requests.get(REQA + bundle_name + '.json', timeout=15)
     if response.status_code != 200:
-        print(f'{Fore.LIGHTRED_EX} {bundle_name} not found! {Fore.RESET}')
+        print(f'{Fore.LIGHTRED_EX}{bundle_name} not found! {Fore.RESET}')
+        sys.exit()
+
     res = response.json()
-    
+
     return res
 
 
@@ -389,17 +402,20 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
     # if path is False (no existing download found)
     if not path:
         path = Rf'{tempfile.gettempdir()}\electric\Setup{download_type}'
-    
+
     # returns path to the existing installer
     else:
 
-        write_verbose(f'Using existing installer previously downloaded at {path}', metadata)
-        log_info(f'Using existing installer previously downloaded at {path}', metadata.logfile)
+        write_verbose(
+            f'Using existing installer previously downloaded at {path}', metadata)
+        log_info(
+            f'Using existing installer previously downloaded at {path}', metadata.logfile)
 
         write(
             f'Found Existing Download At: {tempfile.gettempdir()}', 'bright_cyan', metadata)
 
-        write_debug(f'Requested file has already been downloaded at {path}', metadata)
+        write_debug(
+            f'Requested file has already been downloaded at {path}', metadata)
 
         return path + download_type
 
@@ -491,7 +507,8 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
 
 def install_msix_package(path: str):
-    os.system(f'powershell.exe -noprofile Add-AppxPackage -Path {path} -ForceTargetApplicationShutdown -ForceUpdateFromAnyVersion')
+    os.system(
+        f'powershell.exe -noprofile Add-AppxPackage -Path {path} -ForceTargetApplicationShutdown -ForceUpdateFromAnyVersion')
 
 
 def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
@@ -546,13 +563,24 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
 
 def handle_uninstall_dependencies(packet: Packet, metadata):
     disp = str(packet.dependencies).replace(
-            "[", "").replace("]", "").replace("\'", "")
+        "[", "").replace("]", "").replace("\'", "")
     disp = packet.dependencies.replace('[', '').replace(']', '')
     write(f'{packet.display_name} has the following dependencies: {disp}',
-              'bright_yellow', metadata)
+          'bright_yellow', metadata)
 
     for package_name in packet.dependencies:
         os.system(f'electric uninstall {package_name}')
+
+
+def generate_shim(shim_command: str, shim_name: str, shim_extension: str, overridefilename: str = ''):
+    home = os.path.expanduser('~')
+    shim_command += f'\\{shim_name}'
+    shim_command = shim_command.replace('\\\\', '\\')
+    if not os.path.isdir(rf'{home}\electric\shims'):
+        os.mkdir(rf'{home}\electric\shims')
+
+    with open(rf'{home}\electric\shims\{shim_name if not overridefilename else overridefilename}.bat', 'w+') as f:
+        f.write(f'@echo off\n"{shim_command}.{shim_extension}"')
 
 
 def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadata: Metadata):
@@ -609,7 +637,7 @@ def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadat
 
 def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata, ignore: bool):
     import Classes.ThreadedInstaller as ti
-    
+
     # Group the packages list into a 2D array
     # grouper(['sublime-text-3', 'atom', 'vscode', 'notepad++', 'anydesk'], 3) => [['sublime-text-3', 'atom', 'vscode']['notepad++', 'anydesk']]
 
@@ -617,8 +645,6 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
         "Collect data into fixed-length chunks or blocks"
         args = [iter(iterable)] * n
         return zip_longest(*args, fillvalue=fillvalue)
-    
-    
 
     # if there is more than 1 package to be installed and and a multi-threaded installation is fine
     if not metadata.sync and len(corrected_package_names) > 1:
@@ -634,13 +660,12 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
             configs = {
                 'path': None,
             }
-                    
+
             packets = []
             for package in corrected_package_names:
                 res = send_req_package(package)
                 pkg = res
                 custom_dir = None
-                               
 
                 if install_directory:
                     custom_dir = install_directory + f'\\{pkg["package-name"]}'
@@ -652,35 +677,42 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 install_exit_codes = None
                 if 'valid-install-exit-codes' in list(pkg.keys()):
                     install_exit_codes = pkg['valid-install-exit-codes']
-                
+
                 if 'pre-install' in list(pkg.keys()) or 'post-install' in list(pkg.keys()):
-                    write('Pre Or Post Install Multi-Threaded Implementation Is Still In Development, Forcing Sync Installation', 'bright_yellow', metadata)
+                    write('Pre Or Post Install Multi-Threaded Implementation Is Still In Development, Forcing Sync Installation',
+                          'bright_yellow', metadata)
                     return
 
                 packet = Packet(
-                    pkg, 
-                    package, 
-                    res['display-name'], 
-                    pkg['url'], 
-                    pkg['file-type'], 
-                    pkg['custom-location'], 
-                    pkg['install-switches'], 
+                    pkg,
+                    package,
+                    res['display-name'],
+                    pkg['url'],
+                    pkg['file-type'],
+                    pkg['custom-location'],
+                    pkg['install-switches'],
                     pkg['uninstall-switches'],
-                    custom_dir, 
-                    pkg['dependencies'], 
-                    install_exit_codes, 
-                    None, 
-                    version, 
-                    res['run-check'] if 'run-check' in list(res.keys()) else True, 
-                    pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, 
-                    pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
-                    pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
-                    pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
-                    pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
+                    custom_dir,
+                    pkg['dependencies'],
+                    install_exit_codes,
+                    None,
+                    version,
+                    res['run-check'] if 'run-check' in list(
+                        res.keys()) else True,
+                    pkg['set-env'] if 'set-env' in list(pkg.keys()) else None,
+                    pkg['default-install-dir'] if 'default-install-dir' in list(
+                        pkg.keys()) else None,
+                    pkg['uninstall'] if 'uninstall' in list(
+                        pkg.keys()) else [],
+                    pkg['add-path'] if 'add-path' in list(
+                        pkg.keys()) else None,
+                    pkg['checksum'] if 'checksum' in list(
+                        pkg.keys()) else None,
+                    pkg['bin'] if 'bin' in list(pkg.keys()) else None,
                 )
 
-                
-                handle_existing_installation(packet.json_name, packet, False, metadata, False)
+                handle_existing_installation(
+                    packet.json_name, packet, False, metadata, False)
 
                 write_verbose(
                     f'Package to be installed: {packet.json_name}', metadata)
@@ -703,7 +735,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
             log_info('Finished Rapid Download...', metadata.logfile)
             log_info(
                 f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
-            
+
             manager.handle_multi_install(paths)
             sys.exit()
 
@@ -741,7 +773,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         version = res['latest-version']
 
                     pkg = pkg[version]
-                    
+
                     if os.path.isdir(f'{PathManager.get_appdata_directory()}\Current\{package}@{version}.json'):
                         write(f'{res["display-name"]} Is Already Installed!')
                         sys.exit()
@@ -749,31 +781,37 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     log_info(
                         'Generating Packet For Further Installation.', metadata.logfile)
 
-                    
                     install_exit_codes = None
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
 
                     packet = Packet(
-                        pkg, 
-                        package, 
-                        res['display-name'], 
-                        pkg['url'], 
-                        pkg['file-type'], 
-                        pkg['custom-location'], 
-                        pkg['install-switches'], 
+                        pkg,
+                        package,
+                        res['display-name'],
+                        pkg['url'],
+                        pkg['file-type'],
+                        pkg['custom-location'],
+                        pkg['install-switches'],
                         pkg['uninstall-switches'],
-                        install_directory, 
-                        pkg['dependencies'], 
-                        install_exit_codes, 
-                        None, 
-                        version, 
-                        pkg['run-check'] if 'run-check' in list(res.keys()) else True, 
-                        pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, 
-                        pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
-                        pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
-                        pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
-                        pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
+                        install_directory,
+                        pkg['dependencies'],
+                        install_exit_codes,
+                        None,
+                        version,
+                        pkg['run-check'] if 'run-check' in list(
+                            res.keys()) else True,
+                        pkg['set-env'] if 'set-env' in list(
+                            pkg.keys()) else None,
+                        pkg['default-install-dir'] if 'default-install-dir' in list(
+                            pkg.keys()) else None,
+                        pkg['uninstall'] if 'uninstall' in list(
+                            pkg.keys()) else [],
+                        pkg['add-path'] if 'add-path' in list(
+                            pkg.keys()) else None,
+                        pkg['checksum'] if 'checksum' in list(
+                            pkg.keys()) else None,
+                        pkg['bin'] if 'bin' in list(pkg.keys()) else None,
                     )
 
                     log_info(
@@ -871,35 +909,31 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                                 if proc['type'] == 'powershell':
                                     with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
                                         for line in proc['code']:
-                                            f.write(line.replace('<installer>', configs['path']) + '\n')
+                                            f.write(line.replace(
+                                                '<installer>', configs['path']) + '\n')
 
-                                    os.system(rf'powershell.exe -File {tempfile.gettempdir()}\electric\temp.ps1')
+                                    os.system(
+                                        rf'powershell.exe -File {tempfile.gettempdir()}\electric\temp.ps1')
 
                                 if proc['type'] == 'python':
                                     ldict = {}
                                     for line in proc['code']:
-                                        exec(line.replace('<installer>', configs['path']), globals(), ldict)
-                                        
+                                        exec(line.replace('<installer>',
+                                             configs['path']), globals(), ldict)
+
                                     for k in configs:
                                         if k in ldict:
                                             configs[k] = ldict[k]
-
 
                     # Running The Installer silently And Completing Setup
                     install_package(path, packet, metadata)
 
                     final_snap = registry.get_environment_keys()
                     if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
-                        write('Refreshing Environment Variables...',
+                        write('Your PATH ',
                               'bright_green', metadata)
                         start = timer()
-                        log_info(
-                            'Refreshing Environment Variables At scripts/refreshvars.cmd', metadata.logfile)
-                        write_debug(
-                            'Refreshing Env Variables, Calling Batch Script At scripts/refreshvars.cmd', metadata)
-                        write_verbose(
-                            'Refreshing Environment Variables', metadata)
-                        refresh_environment_variables()
+
                         end = timer()
                         write_debug(
                             f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
@@ -978,25 +1012,32 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     if 'valid-install-exit-codes' in list(pkg.keys()):
                         install_exit_codes = pkg['valid-install-exit-codes']
                     packet = Packet(
-                        pkg, 
-                        package, 
-                        res['display-name'], 
-                        pkg['url'], 
-                        pkg['file-type'], 
-                        pkg['custom-location'], 
-                        pkg['install-switches'], 
+                        pkg,
+                        package,
+                        res['display-name'],
+                        pkg['url'],
+                        pkg['file-type'],
+                        pkg['custom-location'],
+                        pkg['install-switches'],
                         pkg['uninstall-switches'],
-                        custom_dir, 
-                        pkg['dependencies'], 
-                        install_exit_codes, 
-                        None, 
-                        version, 
-                        pkg['run-check'] if 'run-check' in list(res.keys()) else True, 
-                        pkg['set-env'] if 'set-env' in list(pkg.keys()) else None, 
-                        pkg['default-install-dir'] if 'default-install-dir' in list(pkg.keys()) else None, 
-                        pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
-                        pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
-                        pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
+                        custom_dir,
+                        pkg['dependencies'],
+                        install_exit_codes,
+                        None,
+                        version,
+                        pkg['run-check'] if 'run-check' in list(
+                            res.keys()) else True,
+                        pkg['set-env'] if 'set-env' in list(
+                            pkg.keys()) else None,
+                        pkg['default-install-dir'] if 'default-install-dir' in list(
+                            pkg.keys()) else None,
+                        pkg['uninstall'] if 'uninstall' in list(
+                            pkg.keys()) else [],
+                        pkg['add-path'] if 'add-path' in list(
+                            pkg.keys()) else None,
+                        pkg['checksum'] if 'checksum' in list(
+                            pkg.keys()) else None,
+                        pkg['bin'] if 'bin' in list(pkg.keys()) else None,
                     )
 
                     installation = find_existing_installation(
@@ -1085,7 +1126,7 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
     log_info('Searching for existing installation of package.', metadata.logfile)
 
     log_info('Finding existing installation of package', metadata.logfile)
-    
+
     if packet.win64_type in ['.msix', '.msixbundle', '.appx', '.appxbundle']:
         if find_msix_installation(packet.raw['uninstall-bundle-identifier']):
             log_info('Found existing installation of package', metadata.logfile)
@@ -1104,7 +1145,6 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
             else:
                 sys.exit()
 
-    
     if 'test-existing-installation' in list(packet.raw.keys()):
         configs = {
             'existing_installation': False
@@ -1115,13 +1155,14 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
         for line in packet.raw['test-existing-installation']['code']:
             code += line + '\n'
         exec(code, globals(), ldict)
-        
+
         for k in configs:
             if k in ldict:
                 configs[k] = ldict[k]
-        
+
         if configs['existing_installation'] == True:
-            write(f'Detected an existing installation of {packet.display_name}', 'bright_yellow', metadata)
+            write(
+                f'Detected an existing installation of {packet.display_name}', 'bright_yellow', metadata)
         else:
             return False
             # os.system('electric deregister rust')
@@ -1129,12 +1170,11 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
             # os._exit(1)
 
     installation = find_existing_installation(
-    package, packet.json_name, test=False)
-        
+        package, packet.json_name, test=False)
+
     if ignore:
         write(
             f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
-
 
     if installation and not force and not ignore:
         log_info('Found existing installation of package', metadata.logfile)
@@ -1171,7 +1211,7 @@ def get_package_version(pkg, res, version, portable: bool, nightly: bool, metada
     # if the user has requested a nightly or pre-release version of the package
     if nightly:
         version = 'nightly'
-    
+
     try:
         pkg = pkg[version]
     except KeyError:
@@ -1185,7 +1225,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     """
     Troubleshoots errors when a CalledProcessError, OSError or FileNotFoundError is caught through subprocess.run in run_cmd. 
 
-    IMPORTANT: `method` here refers to installation or uninstallation
+    Important: `method` here refers to `installation` or `uninstallation`
     #### Arguments
         error (str): Error written to stderr to troubleshoot
         install_exit_codes (list): Valid install exit codes which are valid to be ignored
@@ -1201,6 +1241,8 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     write_verbose(f'{error} => {method}', metadata)
     write_debug(f'{error} => {method}', metadata)
     log_info(f'{error} ==> {method}', metadata.logfile)
+
+    from headers import valid_install_exit_codes, valid_uninstall_exit_codes
 
     valid_i_exit_codes = valid_install_exit_codes
     valid_u_exit_codes = valid_uninstall_exit_codes
@@ -1223,7 +1265,11 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             if f'exit status {code}' in error:
                 return ['no-error']
 
-    
+    if '[WinError 2]' in error:
+        click.echo(click.style(
+            'The Installer Electric Tried To Run Does Not Exist. Please Report This Issue at https:/www.electric.sh/support', 'red'))
+        sys.exit()
+
     if 'exit status 1603' in error:
         if method == 'installation' and not is_admin():
             flags = ''
@@ -1251,9 +1297,6 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             click.echo(click.style(
                 '\nFatal Installer Error. Exit Code [1603]', fg='red'))
             return get_error_message('1603', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
-
-    
-
 
     if 'exit status 1639' in error:
         click.echo(click.style(
@@ -1359,7 +1402,6 @@ def run_cmd(command: str, metadata: Metadata, method: str, packet: Packet) -> bo
             return False
         return True
     except (CalledProcessError, OSError, FileNotFoundError) as err:
-
         disp_error_msg(get_error_cause(str(err), packet.install_exit_codes,
                                        packet.uninstall_exit_codes, method, metadata, packet), metadata)
 
@@ -1380,12 +1422,13 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
     switches = packet.install_switches
 
     keyboard.add_hotkey(
-            'ctrl+c', lambda: handle_exit('Installing', path.split('\\')[-1], metadata))
+        'ctrl+c', lambda: handle_exit('Installing', path.split('\\')[-1], metadata))
 
     if download_type == '.msix' or download_type == '.msixbundle' or download_type == '.appxbundle':
         install_msix_package(path)
         register_package_success(packet, '', metadata)
-        write(f'Successfully Installed {packet.display_name}', 'bright_green', metadata)
+        write(
+            f'Successfully Installed {packet.display_name}', 'bright_green', metadata)
         sys.exit()
 
     if download_type == '.exe':
@@ -1407,13 +1450,13 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
                         idx += 1
 
                     command += ' ' + custom_install_switch + f'{directory}'
-                
+
                 else:
                     for switch in switches:
                         command += ' ' + switch
 
                     command += ' ' + custom_install_switch + f'"{directory}"'
-                
+
                 if custom_install_switch == 'None':
                     write(
                         f'Installing {packet.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', 'bright_yellow', metadata)
@@ -1462,7 +1505,6 @@ def get_configuration_data(username: str, description: str, uses_editor: bool, i
         if editor == 'Visual Studio Code Insiders':
             base_configuration.append(
                 f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<vscode-insiders:name>\n')
-            
 
         if editor == 'Atom':
             base_configuration.append(
@@ -1516,20 +1558,28 @@ def send_req_package(package_name: str) -> dict:
     try:
         response = requests.get(REQA + package_name + '.json', timeout=5)
     except requests.exceptions.ConnectionError:
-        click.echo(click.style(f'Failed to request {package_name}.json from raw.githubusercontent.com', 'red'))
-        run_internet_test = input('Would you like to run a network debugger? [y/n]: ')
+        click.echo(click.style(
+            f'Failed to request {package_name}.json from raw.githubusercontent.com', 'red'))
+        run_internet_test = input(
+            'Would you like to run a network debugger? [y/n]: ')
         if run_internet_test in ['y', 'yes', 'Y', 'YES']:
-            sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET}  |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+            sys.stdout.write(
+                f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET}  |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
             time.sleep(0.1)
-            sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}|{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+            sys.stdout.write(
+                f'\r| {Fore.LIGHTCYAN_EX}|{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
             time.sleep(0.1)
-            sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}/{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+            sys.stdout.write(
+                f'\r| {Fore.LIGHTCYAN_EX}/{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
             time.sleep(0.1)
-            sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}-{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+            sys.stdout.write(
+                f'\r| {Fore.LIGHTCYAN_EX}-{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
             time.sleep(0.1)
-            sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+            sys.stdout.write(
+                f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
-            sys.stdout.write(f'\r| {Fore.LIGHTGREEN_EX}OK{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+            sys.stdout.write(
+                f'\r| {Fore.LIGHTGREEN_EX}OK{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
             Debugger.test_internet()
             sys.exit()
@@ -1613,8 +1663,9 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
     if status == 'Installing':
         write('Trying To Quit Installer',
               'cyan', metadata)
-        exe_name = setup_name.split('\\')[-1].replace('.exe.exe', '').replace('.msi.msi', '')
-        
+        exe_name = setup_name.split(
+            '\\')[-1].replace('.exe.exe', '').replace('.msi.msi', '')
+
         pid = get_pid(exe_name)
         try:
             pid = int(pid)
@@ -1625,12 +1676,13 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
         sys.stdout.write(f'{Fore.RESET}{Fore.RESET}')
         write('RapidExit Successfully Exited With Code 0',
               'bright_green', metadata)
-              
+
         os._exit(1)
 
     else:
         print(Fore.RESET, '')
-        write('RapidExit Successfully Exited With Code 0', 'bright_green', metadata)
+        write('RapidExit Successfully Exited With Code 0',
+              'bright_green', metadata)
         # print(Fore.RESET, '')
         sys.exit()
 
@@ -1698,16 +1750,20 @@ def assert_cpu_compatible() -> int:
 
 
 def uninstall_msix(bundle_id: str):
-    proc = Popen(f'powershell.exe -noprofile Get-AppxPackage *{bundle_id}* | Remove-AppxPackage')
+    proc = Popen(
+        f'powershell.exe -noprofile Get-AppxPackage *{bundle_id}* | Remove-AppxPackage')
     output, err = proc.communicate()
     return proc.returncode
 
+
 def find_msix_installation(bundle_id: str):
-    proc = Popen(f'powershell.exe -noprofile Get-AppxPackage *{bundle_id}*', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+    proc = Popen(
+        f'powershell.exe -noprofile Get-AppxPackage *{bundle_id}*', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     output, err = proc.communicate()
     if output.decode() and not err.decode():
         return True
     return False
+
 
 def find_existing_installation(package_name: str, display_name: str, test=True):
     """
@@ -1773,15 +1829,6 @@ def get_install_flags(install_dir: str, metadata: Metadata):
     return flags
 
 
-def refresh_environment_variables():
-    """
-    Refreshes the environment variables on the current Powershell session.
-    """
-    proc = Popen('powershell -c "$env:Path = [System.Environment]::GetEnvironmentVariable(\'Path\',\'Machine\') + \';\' + [System.Environment]::GetEnvironmentVariable(\'Path\',\'User\')"'.split(
-    ), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-    proc.communicate()
-
-
 def check_virus(path: str, metadata: Metadata, h: Halo):
     """
     Checks for a virus given the path of the executable / file
@@ -1794,7 +1841,8 @@ def check_virus(path: str, metadata: Metadata, h: Halo):
 
     h.stop()
 
-    write(f'{len(detected)} Of 70 Antiviruses Detected The Software As A Virus', 'white', metadata)
+    write(f'{len(detected)} Of 70 Antiviruses Detected The Software As A Virus',
+          'white', metadata)
 
     if detected:
         for value in detected.items():
@@ -1827,7 +1875,7 @@ def check_newer_version(package_name: str, packet: Packet, installed_packages: l
     Returns:
         bool: If there is a newer version of the package
     """
-    
+
     install_dir = PathManager.get_appdata_directory() + r'\Current'
     version = ''
 
@@ -1877,7 +1925,8 @@ def check_for_updates():
         if check_newer_version_local(new_version):
             # Implement Version Check
             if confirm('A new update for electric is available, would you like to proceed with the update?'):
-                click.echo(click.style('Updating Electric..', fg='bright_green'))
+                click.echo(click.style(
+                    'Updating Electric..', fg='bright_green'))
                 UPDATEA = 'https://electric-package-manager.herokuapp.com/update/windows'
 
                 def is_admin():
@@ -1926,19 +1975,20 @@ def generate_metadata(no_progress, silent, verbose, debug, no_color, yes, logfil
 def send_install_metrics(package_name: str):
     URL = 'https://electric-package-manager-api.herokuapp.com/increment/'
 
-    try:    
+    try:
         requests.get(URL + package_name)
     except:
         pass
 
 
 def f_and_f(package_name: str):
-    threading.Thread(target=send_install_metrics, args=(package_name,), daemon=True).start()
+    threading.Thread(target=send_install_metrics, args=(
+        package_name,), daemon=True).start()
 
 
 def disp_error_msg(messages: list, metadata: Metadata):
     import re
-    
+
     if messages:
         if 'no-error' in messages:
             return
@@ -1994,7 +2044,8 @@ def disp_error_msg(messages: list, metadata: Metadata):
                 os.system('shutdown /R')
 
         if commands:
-            run = confirm('Would You Like To Install Required Software For Installing This Package?')
+            run = confirm(
+                'Would You Like To Install Required Software For Installing This Package?')
             if run:
                 print('\n')
                 os.system(commands[0][0])
@@ -2099,7 +2150,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 '\n[2] <=> https://www.howtogeek.com/194041/how-to-open-the-command-prompt-as-administrator-in-windows-8.1/',
                 '\n[3] <=> https://www.top-password.com/blog/5-ways-to-run-powershell-as-administrator-in-windows-10/\n\n'
             ]
-        
+
         elif code('1620'):
             return [
                 f'\n[1620] => The Installer downloaded is corrupted. This could be caused due to a download error or an incorrect URL.',
@@ -2110,7 +2161,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 '\n[2] <=> http://msierrors.com/msi/msi-error-1620/',
                 '\n[3] <=> https://docs.microsoft.com/en-us/windows/win32/msi/error-codes/\n\n'
             ]
-        
+
         elif code('1618'):
             return [
                 f'\n[1620] => Another instance of the installer / uninstaller is already running.',
@@ -2121,7 +2172,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 '\n[2] <=> http://msierrors.com/msi/msi-error-1618/',
                 '\n[3] <=> https://docs.microsoft.com/en-us/windows/win32/msi/error-codes/\n\n'
             ]
-        
+
         elif code('0111'):
             copy_to_clipboard('electric install visual-studio-code')
             return [
@@ -2227,20 +2278,28 @@ def update_package_list():
             res = requests.get(
                 'https://raw.githubusercontent.com/XtremeDevX/electric-packages/master/package-list.json', timeout=5)
         except requests.exceptions.ConnectionError:
-            click.echo(click.style(f'Failed to request package-list.json from raw.githubusercontent.com', 'red'))
-            run_internet_test = input('Would you like to run a network debugger? [y/n]: ')
+            click.echo(click.style(
+                f'Failed to request package-list.json from raw.githubusercontent.com', 'red'))
+            run_internet_test = input(
+                'Would you like to run a network debugger? [y/n]: ')
             if run_internet_test in ['y', 'yes', 'Y', 'YES']:
-                sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET}  |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+                sys.stdout.write(
+                    f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET}  |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
                 time.sleep(0.1)
-                sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}|{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+                sys.stdout.write(
+                    f'\r| {Fore.LIGHTCYAN_EX}|{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
                 time.sleep(0.1)
-                sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}/{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+                sys.stdout.write(
+                    f'\r| {Fore.LIGHTCYAN_EX}/{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
                 time.sleep(0.1)
-                sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}-{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+                sys.stdout.write(
+                    f'\r| {Fore.LIGHTCYAN_EX}-{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
                 time.sleep(0.1)
-                sys.stdout.write(f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+                sys.stdout.write(
+                    f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
-                sys.stdout.write(f'\r| {Fore.LIGHTGREEN_EX}OK{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+                sys.stdout.write(
+                    f'\r| {Fore.LIGHTGREEN_EX}OK{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
                 Debugger.test_internet()
                 sys.exit()

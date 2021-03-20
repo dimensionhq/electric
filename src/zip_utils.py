@@ -2,7 +2,6 @@ from subprocess import PIPE, Popen
 from colorama import Fore
 import os
 import winreg
-import click
 from Classes.Metadata import Metadata
 from Classes.PortablePacket import PortablePacket
 from extension import write
@@ -20,7 +19,7 @@ def delete_start_menu_shortcut(shortcut_name):
 
 def verify_checksum(path: str, checksum: str):
     from hashlib import sha256
-    
+
     if sha256(open(path, 'rb').read()).hexdigest() == checksum:
         print('Hashes Match!')
     else:
@@ -55,7 +54,6 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata:
                 except zipfile.error:
                     pass
 
-
     if file_type == '.tar':
         tar = tarfile.open(download_dir, 'r:')
         tar.extractall(unzip_dir_name)
@@ -63,7 +61,7 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata:
 
     if file_type == '.tar.gz':
         tar = tarfile.open(download_dir, 'r:gz')
-    
+
     import py7zr
     if file_type == '.7z':
         with py7zr.SevenZipFile(download_dir) as z:
@@ -294,7 +292,7 @@ def display_notes(packet: PortablePacket, unzip_dir: str, metadata: Metadata, un
 
 def make_archive(source, destination):
     from shutil import copytree, move
-    
+
     base = os.path.basename(destination)
     name = base.split('.')[0]
     format = base.split('.')[1]
@@ -320,7 +318,6 @@ def set_environment_variable(name: str, value: str):
           stdout=PIPE, stderr=PIPE, shell=True)
 
 
-
 def confirm(prompt: str):
     value = input(f'{prompt} (Y/n): ')
     if value in ['y', 'yes', 'Y', 'YES', 'Yes']:
@@ -330,32 +327,33 @@ def confirm(prompt: str):
 
 
 def install_dependencies(packet: PortablePacket, metadata: Metadata):
-    
+
     disp = str(packet.dependencies).replace(
-            "[", "").replace("]", "").replace("\'", "")
+        "[", "").replace("]", "").replace("\'", "")
     write(f'{packet.display_name} has the following dependencies: {disp}',
-            'bright_yellow', metadata)
+          'bright_yellow', metadata)
     continue_install = confirm(
         'Would you like to install the above dependencies ?')
     if continue_install:
         write(
-        f'Installing Dependencies For => {packet.display_name}', 'cyan', metadata)
+            f'Installing Dependencies For => {packet.display_name}', 'cyan', metadata)
         for package_name in packet.dependencies:
             os.system(f'electric install {package_name}')
 
 
 def uninstall_dependencies(packet: PortablePacket, metadata: Metadata):
     disp = str(packet.dependencies).replace(
-            "[", "").replace("]", "").replace("\'", "")
+        "[", "").replace("]", "").replace("\'", "")
     write(f'{packet.display_name} has the following dependencies: {disp}',
-            'bright_yellow', metadata)
+          'bright_yellow', metadata)
     continue_install = confirm(
         'Would you like to uninstall the above dependencies ?')
     if continue_install:
         write(
-        f'Uninstalling Dependencies For => {packet.display_name}', 'cyan', metadata)
+            f'Uninstalling Dependencies For => {packet.display_name}', 'cyan', metadata)
         for package_name in packet.dependencies:
             os.system(f'electric uninstall {package_name}')
+
 
 def delete_environment_variable(name: str):
     Popen(rf'reg delete "HKCU\Environment" /F /V "{name}"', stdin=PIPE,
@@ -364,14 +362,6 @@ def delete_environment_variable(name: str):
 
 def append_to_path(input_dir: str):
     proc = Popen(f'setx /M path "%PATH%;{input_dir}"', stdin=PIPE,
-          stdout=PIPE, stderr=PIPE, shell=True)
+                 stdout=PIPE, stderr=PIPE, shell=True)
     _, _ = proc.communicate()
 
-
-def refresh_environment_variables():
-    """
-    Refreshes the environment variables on the current Powershell session.
-    """
-    proc = Popen('powershell -c "$env:Path = [System.Environment]::GetEnvironmentVariable(\'Path\',\'Machine\') + \';\' + [System.Environment]::GetEnvironmentVariable(\'Path\',\'User\')"'.split(
-    ), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-    proc.communicate()
