@@ -439,7 +439,7 @@ def install(
                                 add = add.replace(f'{packet.win64_type}{packet.win64_type}', f'{packet.win64_type}')
 
                             code += add
-                        
+                       
                         exec(code, globals(), ldict)
                         for k in configs:
                             if k in ldict:
@@ -1106,13 +1106,14 @@ def uninstall(
             install_exit_codes, 
             uninstall_exit_codes, 
             version, 
-            res['run-check'] if 'run-check' in list(res.keys()) else True, 
+            pkg['run-check'] if 'run-check' in list(res.keys()) else True, 
             pkg['set-env'] if 'set-env' in list(pkg.keys()) else None,
             pkg['default-install-dir'].replace('<appdata>', os.environ['APPDATA'].replace('\\Roaming', '')) if 'default-install-dir' in list(pkg.keys()) else None, 
             pkg['uninstall'] if 'uninstall' in list(pkg.keys()) else [], 
             pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
             pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
         )
+        
 
         proc = None
         ftp = ['.msix', '.msixbundle', '.appxbundle', '.appx']
@@ -1143,7 +1144,7 @@ def uninstall(
         key = get_uninstall_key(packet.json_name, packet.display_name)
 
         end = timer()
-
+        
         if not key:
             log_info(
                 f'electric didn\'t detect any existing installations of => {packet.display_name}', metadata.logfile)
@@ -1211,10 +1212,10 @@ def uninstall(
         if isinstance(key, list):
             if key:
                 key = key[0]
-
+        
         write(
             f'{Fore.LIGHTCYAN_EX}Uninstalling {packet.display_name}{Fore.RESET}', 'bright_white', metadata)
-
+        
         if 'QuietUninstallString' in key:
             command = key['QuietUninstallString']
             command = command.replace('/I', '/X')
@@ -1247,7 +1248,7 @@ def uninstall(
             write_debug('Running silent uninstallation command', metadata)
             run_test = run_cmd(command, metadata, 'uninstallation', packet)
             if run_test:
-                packet.run_test = False
+                packet.run_test = True
 
             write_verbose('Uninstallation completed.', metadata)
             log_info('Uninstallation completed.', metadata.logfile)
@@ -1263,6 +1264,24 @@ def uninstall(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                 log_info(
                     f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
+            else:
+                if not find_existing_installation(packet.json_name, packet.display_name):
+                    print(f'[ {Fore.LIGHTRED_EX}ERROR{Fore.RESET} ] Registry Check')
+                    write(f'Failed: Registry Check', 'bright_red', metadata)
+                    write('Retrying Registry Check In 7.5 seconds', 'bright_yellow', metadata)
+                    tm.sleep(7.5)
+                    if not find_existing_installation(packet.json_name, packet.display_name):
+                        write(
+                            f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ]  Registry Check', 'bright_white', metadata)
+                        os.remove(
+                            rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                        write(
+                            f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                        log_info(
+                            f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
+                    else:
+                        write(
+                            f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
 
             write_debug(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
@@ -1291,14 +1310,16 @@ def uninstall(
             log_info('Executing the silent Uninstall Command', metadata.logfile)
 
             run_test = run_cmd(command, metadata, 'uninstallation', packet)
-            packet.run_test = False
+            if not packet.run_test:
+                packet.run_test = run_test
+
             write_verbose('Uninstallation completed.', metadata)
             log_info('Uninstallation completed.', metadata.logfile)
             index += 1
 
             if packet.set_env:
                 delete_environment_variable(packet.set_env['name'])
-
+            
             if not packet.run_test:
                 if nightly:
                     packet.version = 'nightly'
@@ -1310,6 +1331,25 @@ def uninstall(
                 
                 write(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check',
                       'bright_white', metadata)
+            else:
+                if not find_existing_installation(packet.json_name, packet.display_name):
+                    print(f'[ {Fore.LIGHTRED_EX}ERROR{Fore.RESET} ] Registry Check')
+                    write(f'Failed: Registry Check', 'bright_red', metadata)
+                    write('Retrying Registry Check In 10 seconds', 'bright_yellow', metadata)
+                    tm.sleep(10)
+                    if not find_existing_installation(packet.json_name, packet.display_name):
+                        write(
+                            f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ]  Registry Check', 'bright_white', metadata)
+                        os.remove(
+                            rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                        write(
+                            f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+                        log_info(
+                            f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
+                    else:
+                        write(
+                            f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
+
 
                 if packet.uninstall:
                     for pkg in packet.uninstall:
@@ -1359,8 +1399,8 @@ def uninstall(
             else:
                 print(f'[ {Fore.LIGHTRED_EX}ERROR{Fore.RESET} ] Registry Check')
                 write(f'Failed: Registry Check', 'bright_red', metadata)
-                write('Retrying Registry Check In 5 seconds', 'bright_yellow', metadata)
-                tm.sleep(5)
+                write('Retrying Registry Check In 10 seconds', 'bright_yellow', metadata)
+                tm.sleep(10)
                 if not find_existing_installation(packet.json_name, packet.display_name):
                     write(
                         f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ]  Registry Check', 'bright_white', metadata)
