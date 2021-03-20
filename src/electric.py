@@ -418,14 +418,18 @@ def install(
                     if proc['type'] == 'powershell':
                         with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
                             for line in proc['code']:
-                                f.write(line.replace('<installer>', configs['path']).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version).replace('<directory>', packet.directory).replace('<temp>', tempfile.gettempdir()) + '\n')
+                                line = line.replace('<installer>', configs['path']).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version).replace('<directory>', packet.directory if packet.directory != None else '').replace('<temp>', tempfile.gettempdir())
+                                line += '\n'
+                                f.write(line)
 
                         os.system(rf'powershell.exe -File {tempfile.gettempdir()}\electric\temp.ps1')
 
                     if proc['type'] == 'cmd':
                         with open(rf'{tempfile.gettempdir()}\electric\temp.bat', 'w+') as f:
                             for line in proc['code']:
-                                f.write(line.replace('<installer>', configs['path']).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version).replace('<directory>', packet.directory).replace('<temp>', tempfile.gettempdir()) + '\n')
+                                line = line.replace('<installer>', configs['path']).replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace('<version>', version).replace('<directory>', packet.directory).replace('<temp>', tempfile.gettempdir())
+                                line += '\n'
+                                f.write(line)
 
                         os.system(rf'{tempfile.gettempdir()}\electric\temp.bat')
 
@@ -444,8 +448,9 @@ def install(
                         for k in configs:
                             if k in ldict:
                                 configs[k] = ldict[k]
-                    if proc['override'] == True:
-                        sys.exit()
+                    if 'override' in list(proc.keys()):
+                        if proc['override'] == True:
+                            sys.exit()
 
         setup_name = configs['path']
 
