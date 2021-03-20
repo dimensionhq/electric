@@ -574,13 +574,15 @@ def handle_uninstall_dependencies(packet: Packet, metadata):
 
 def generate_shim(shim_command: str, shim_name: str, shim_extension: str, overridefilename: str = ''):
     home = os.path.expanduser('~')
-    shim_command += f'\\{shim_name}'
     shim_command = shim_command.replace('\\\\', '\\')
     if not os.path.isdir(rf'{home}\electric\shims'):
         os.mkdir(rf'{home}\electric\shims')
-
-    with open(rf'{home}\electric\shims\{shim_name if not overridefilename else overridefilename}.bat', 'w+') as f:
-        f.write(f'@echo off\n"{shim_command}.{shim_extension}"')
+    if shim_extension not in shim_command:
+        with open(rf'{home}\electric\shims\{shim_name if not overridefilename else overridefilename}.bat', 'w+') as f:
+            f.write(f'@echo off\n"{shim_command}.{shim_extension}"')
+    else:
+        with open(rf'{home}\electric\shims\{shim_name if not overridefilename else overridefilename}.bat', 'w+') as f:
+            f.write(f'@echo off\n"{shim_command}"')
 
 
 def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadata: Metadata):

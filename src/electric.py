@@ -473,6 +473,10 @@ def install(
         keyboard.add_hotkey(
             'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
 
+        if f'{packet.win64_type}{packet.win64_type}' in configs['path']:
+            configs['path'] = configs['path'].replace(
+                f'{packet.win64_type}{packet.win64_type}', f'{packet.win64_type}')
+
         if not get_pid(setup_name):
             # Running The Installer silently And Completing Setup
             write_verbose(
@@ -528,8 +532,10 @@ def install(
         status = 'Installed'
         write_verbose('Creating registry end snapshot', metadata)
         log_info('Creating final snapshot of registry', metadata.logfile)
+        changes_environment = False
 
         if packet.shim:
+            changes_environment = True
             for shim in packet.shim:
                 replace_install_dir = ''
 
@@ -538,11 +544,12 @@ def install(
 
             elif packet.default_install_dir:
                 replace_install_dir = packet.default_install_dir
-                shim = shim.replace('<install-directory>', replace_install_dir)
-                shim_name = shim.split("\\")[-1]
-                write(f'Generating Shim For {shim_name}', 'cyan', metadata)
-                generate_shim(shim, ''.join(
-                    shim.split("\\")[-1].split('.')[:-1]), shim.split('.')[-1])
+
+            shim = shim.replace('<install-directory>', replace_install_dir)
+            shim_name = shim.split("\\")[-1].split('.')[0]
+            write(f'Generating Shim For {shim_name}', 'cyan', metadata)
+
+            generate_shim(shim, shim_name, shim.split('.')[-1])
 
         final_snap = get_environment_keys()
 
@@ -584,15 +591,10 @@ def install(
             set_environment_variable(
                 name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
 
-        if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
+        if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length or changes_environment:
 
             write('The PATH environment variable has changed. Run `refreshenv` to refresh your environment variables.',
                   'bright_green', metadata)
-
-            start = timer()
-            end = timer()
-            write_debug(
-                f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
 
         if not packet.run_test:
             write_verbose(f'Running tests for {packet.display_name}', metadata)
@@ -1387,6 +1389,29 @@ def uninstall(
 
             if packet.set_env:
                 delete_environment_variable(packet.set_env['name'])
+
+            if packet.shim:
+                home = os.path.expanduser('~')
+
+                for shim in packet.shim:
+                    replace_install_dir = ''
+
+                if packet.directory:
+                    replace_install_dir = packet.directory
+
+                elif packet.default_install_dir:
+                    replace_install_dir = packet.default_install_dir
+
+                shim = shim.replace(
+                    '<install-directory>', replace_install_dir)
+                shim_name = shim.split("\\")[-1].split('.')[0]
+                write(
+                    f'Deleting Shims For {packet.display_name}', 'cyan', metadata)
+                try:
+                    os.remove(
+                        f'{home}\\electric\\shims\\{shim_name.split(".")[0]}.bat')
+                except:
+                    pass
 
             if not packet.run_test:
                 if nightly:

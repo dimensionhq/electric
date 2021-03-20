@@ -541,6 +541,26 @@ class ThreadedInstaller:
                     # Running The Installer silently And Completing Setup
                     utils.install_package(path, packet, metadata)
 
+                    changes_environment = False
+                    if packet.shim:
+                        changes_environment = True
+                        for shim in packet.shim:
+                            replace_install_dir = ''
+
+                        if packet.directory:
+                            replace_install_dir = packet.directory
+
+                        elif packet.default_install_dir:
+                            replace_install_dir = packet.default_install_dir
+
+                        shim = shim.replace(
+                            '<install-directory>', replace_install_dir)
+                        shim_name = shim.split("\\")[-1].split('.')[0]
+                        write(
+                            f'Generating Shim For {shim_name}', 'cyan', metadata)
+                        utils.generate_shim(
+                            shim, shim_name, shim.split('.')[-1])
+
                     if packet.add_path:
 
                         replace_install_dir = ''
@@ -573,7 +593,7 @@ class ThreadedInstaller:
                             name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
 
                     final_snap = get_environment_keys()
-                    if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
+                    if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length or changes_environment:
                         write('The PATH environment variable has changed. Run `refreshenv` to refresh your environment variables.',
                               'bright_green', metadata)
 
