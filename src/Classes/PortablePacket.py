@@ -41,7 +41,7 @@ class PortablePacket:
         try:
             self.persist = data['persist']
         except:
-            self.presist = None
+            self.persist = None
         try:
             self.set_env = data['set-env']
         except:
