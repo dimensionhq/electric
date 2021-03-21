@@ -902,12 +902,6 @@ def up(
                                     code += add
 
                                 exec(code)
-
-                            if 'override' in list(proc.keys()):
-                                if proc['override'] == True and len(corrected_package_names) == 1:
-                                    sys.exit()
-                                elif len(corrected_package_names) > 1 and proc['override'] == True:
-                                    continue
                 
                 if continue_update:
                     ctx.invoke(
