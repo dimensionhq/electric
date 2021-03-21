@@ -1095,7 +1095,8 @@ def handle_external_installation(python: bool, node: bool, vscode: bool, sublime
         package_names = package_name.split(',')
 
         for name in package_names:
-            handle_python_package(name, version, 'install', metadata)
+            if name:
+                handle_python_package(name, version, 'install', metadata)
 
         sys.exit()
 
