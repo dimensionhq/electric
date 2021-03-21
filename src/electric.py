@@ -854,6 +854,61 @@ def up(
                 else:
                     continue_update = True
 
+                if packet.pre_update:
+                    if isinstance(packet.pre_update, list):
+                        write_verbose('Executing Pre-Installation Code', metadata)
+                        log_info('Executing Pre-Installation Code', metadata.logfile)
+
+                        for proc in packet.pre_update:
+                            if 'admin' in list(proc.keys()):
+                                if proc['admin'] == True:
+                                    if not is_admin():
+                                        write(
+                                            'Installation Must Be Run As Administrator', 'bright_red', metadata)
+                                        os._exit(1)
+
+                            if proc['type'] == 'powershell':
+                                with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
+                                    for line in proc['code']:
+                                        line = line.replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace(
+                                            '<version>', version).replace('<directory>', packet.directory if packet.directory != None else '').replace('<temp>', tempfile.gettempdir())
+                                        line += '\n'
+                                        f.write(line)
+
+                                os.system(
+                                    rf'powershell.exe -File {tempfile.gettempdir()}\electric\temp.ps1')
+
+                            if proc['type'] == 'cmd':
+                                with open(rf'{tempfile.gettempdir()}\electric\temp.bat', 'w+') as f:
+                                    for line in proc['code']:
+                                        line = line.replace('<package-name>', packet.json_name).replace('<display-name>', packet.display_name).replace(
+                                            '<version>', version).replace('<directory>', packet.directory).replace('<temp>', tempfile.gettempdir())
+                                        line += '\n'
+                                        f.write(line)
+
+                                os.system(
+                                    rf'{tempfile.gettempdir()}\electric\temp.bat')
+
+                            if proc['type'] == 'python':
+                                code = ''''''
+                                for line in proc['code']:
+                                    add = line.replace('<temp>', tempfile.gettempdir()).replace('<package-name>', packet.json_name).replace(
+                                        '<display-name>', packet.display_name).replace('<directory>', packet.directory if packet.directory else '').replace('<version>', version) + '\n'
+
+                                    if f'{packet.win64_type}{packet.win64_type}' in add:
+                                        add = add.replace(
+                                            f'{packet.win64_type}{packet.win64_type}', f'{packet.win64_type}')
+
+                                    code += add
+
+                                exec(code)
+
+                            if 'override' in list(proc.keys()):
+                                if proc['override'] == True and len(corrected_package_names) == 1:
+                                    sys.exit()
+                                elif len(corrected_package_names) > 1 and proc['override'] == True:
+                                    continue
+                
                 if continue_update:
                     ctx.invoke(
                         uninstall,
