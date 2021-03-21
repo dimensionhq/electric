@@ -1562,12 +1562,12 @@ def send_req_package(package_name: str) -> dict:
 
     try:
         response = requests.get(REQA + package_name + '.json', timeout=5)
-    except requests.exceptions.ConnectionError:
+    except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
         click.echo(click.style(
             f'Failed to request {package_name}.json from raw.githubusercontent.com', 'red'))
-        run_internet_test = input(
-            'Would you like to run a network debugger? [y/n]: ')
-        if run_internet_test in ['y', 'yes', 'Y', 'YES']:
+        run_internet_test = confirm(
+            'Would you like to run a network debugger?')
+        if run_internet_test:
             sys.stdout.write(
                 f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET}  |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
             time.sleep(0.1)
@@ -2275,7 +2275,7 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
 
 
 def update_package_list():
-    with Halo('Updating Electric'):
+    with Halo('Updating Electric') as h:
         with open(rf'{PathManager.get_appdata_directory()}\superlog.txt', 'w+') as f:
             f.write(
                 f'{date.today().year} {date.today().month} {date.today().day}')
@@ -2283,6 +2283,7 @@ def update_package_list():
             res = requests.get(
                 'https://raw.githubusercontent.com/XtremeDevX/electric-packages/master/package-list.json', timeout=5)
         except requests.exceptions.ConnectionError:
+            h.fail()
             click.echo(click.style(
                 f'Failed to request package-list.json from raw.githubusercontent.com', 'red'))
             run_internet_test = input(
