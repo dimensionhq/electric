@@ -55,11 +55,6 @@ def confirm(prompt: str):
         return False
 
 
-def send_package_request(package_name: str):
-    URL = 'https://electric-package-manager-api.herokuapp.com/submit-package-request/'
-    res = requests.get(URL + package_name)
-
-
 def append_to_path(input_dir: str):
     proc = Popen(f'setx /M path "%PATH%;{input_dir}"', stdin=PIPE,
                  stdout=PIPE, stderr=PIPE, shell=True)
@@ -1761,7 +1756,7 @@ def assert_cpu_compatible() -> int:
 def uninstall_msix(bundle_id: str):
     proc = Popen(
         f'powershell.exe -noprofile Get-AppxPackage *{bundle_id}* | Remove-AppxPackage')
-    output, err = proc.communicate()
+    proc.communicate()
     return proc.returncode
 
 

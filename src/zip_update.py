@@ -26,7 +26,7 @@ def update_portable(ctx, packet: PortablePacket, metadata: Metadata):
     if len(matches) == 1:
         # similar package exists and we need to get the version of the currently installed package.
         current_version = matches[0].split('@')[-1].replace('.json', '')
-        packet.latest_version = '3222'
+        
         if current_version != packet.latest_version:
             write(f'{packet.display_name} Will Be Updated From ({current_version}) => ({packet.latest_version})', 'green', metadata)
             write('Requesting Currently Installed Version', 'yellow', metadata)
@@ -73,23 +73,53 @@ def update_portable(ctx, packet: PortablePacket, metadata: Metadata):
 
         # continue updating the package
         # if a directory has to be saved before uninstallation and installation of the portable
-        if old_packet.persist:
+        
+
+        if old_packet.persist:        
             install_directory = rf'{home}\electric\{old_packet.json_name}@{current_version}\\'
     
-        if old_packet.chdir:
-            install_directory += old_packet.chdir + '\\'
-        
-        install_directory = install_directory.replace('\\\\', '\\')
-
-        if isinstance(old_packet.persist, list):
-            for path in old_packet.persist:
-                print(path)
-                # multiple directories to backup
-                shutil.copytree(install_directory + path, rf'{home}\electric\Backups\{old_packet.json_name}@{current_version}')
-        else:
-            # only 1 directory to backup
-            shutil.copytree(install_directory + old_packet.persist, rf'{home}\electric\Backups\{old_packet.json_name}@{current_version}')
+            if old_packet.chdir:
+                install_directory += old_packet.chdir + '\\'
+                install_directory = install_directory.replace('\\\\', '\\')
             
+            if isinstance(old_packet.persist, list):
+                for path in old_packet.persist:
+                    # multiple directories to backup
+                    try:
+                        shutil.copytree(install_directory + path, rf'{home}\electric\Persist\{old_packet.json_name}@{current_version}\{path}')
+                    except FileExistsError:
+                        pass
+
+            else:
+                # only 1 directory to backup
+                try:
+                    shutil.copytree(install_directory + old_packet.persist, rf'{home}\electric\Persist\{old_packet.json_name}@{current_version}\{old_packet.persist}')
+                except FileExistsError:
+                    pass
+
+        os.system(f'electric uninstall {packet.json_name} --portable')
+        os.system(f'electric install {packet.json_name} --portable')
+
+        new_install_dir = rf'{home}\electric\{packet.json_name}@{packet.latest_version}\\'
+        if packet.chdir:
+            new_install_dir += packet.chdir + '\\'
+        
+        new_install_dir = new_install_dir.replace('\\\\', '\\')
+        
+        if old_packet.persist:
+            write('Restoring Old Files And Data', 'green', metadata)
+
+            if isinstance(old_packet.persist, list):
+                for path in old_packet.persist:
+                    shutil.rmtree(new_install_dir + path)
+                    shutil.copytree(rf'{home}\electric\Persist\{old_packet.json_name}@{current_version}\{path}', new_install_dir + path)
+            else:
+                shutil.rmtree(new_install_dir.replace('\\\\', '\\') + old_packet.persist.replace('\\\\', '\\'))
+                shutil.copytree(rf'{home}\electric\Persist\{old_packet.json_name}@{current_version}\{old_packet.persist}', new_install_dir + old_packet.persist)
+
+        # completed backup of files to backups directory
+        write(rf'Successfully Completed Backup Of Required Data To {home}\electric\Persist', 'cyan', metadata)
+
     else:
         write(f'Could not find any existing installations of {packet.display_name}', 'red', metadata)
 

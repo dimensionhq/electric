@@ -5,7 +5,6 @@ from timeit import default_timer as timer
 from extension import write, write_debug
 from colorama import Fore
 from zip_utils import *
-import click
 import os
 import sys
 
