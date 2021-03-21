@@ -854,10 +854,11 @@ def up(
                 else:
                     continue_update = True
 
+
                 if packet.pre_update:
                     if isinstance(packet.pre_update, list):
-                        write_verbose('Executing Pre-Installation Code', metadata)
-                        log_info('Executing Pre-Installation Code', metadata.logfile)
+                        write_verbose('Executing Pre-Update Code', metadata)
+                        log_info('Executing Pre-Update Code', metadata.logfile)
 
                         for proc in packet.pre_update:
                             if 'admin' in list(proc.keys()):
