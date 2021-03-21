@@ -28,6 +28,7 @@ from logger import *
 from registry import get_environment_keys, get_uninstall_key, send_query
 from settings import initialize_settings, open_settings
 from utils import *
+from zip_update import update_portable
 
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
@@ -788,6 +789,31 @@ def up(
         res = send_req_package(package)
         log_info('Successfully Updated SuperCache', metadata.logfile)
         spinner.stop()
+        pkg = res
+        if portable:
+            pkg = pkg['portable']
+            keys = list(pkg[pkg['latest-version']].keys())
+            data = {
+                'display-name': res['display-name'],
+                'package-name': res['package-name'],
+                'latest-version': res['latest-version'],
+                'url': pkg[pkg['latest-version']]['url'],
+                'file-type': pkg[pkg['latest-version']]['file-type'] if 'file-type' in keys else None,
+                'extract-dir': pkg[pkg['latest-version']]['extract-dir'],
+                'chdir': pkg[pkg['latest-version']]['chdir'] if 'chdir' in keys else [],
+                'bin': pkg[pkg['latest-version']]['bin'] if 'bin' in keys else [],
+                'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
+                'pre-install': pkg[pkg['latest-version']]['pre-install'] if 'pre-install' in keys else [],
+                'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else [],
+                'install-notes': pkg[pkg['latest-version']]['install-notes'] if 'install-notes' in keys else None,
+                'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
+                'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
+                'persist': pkg[pkg['latest-version']]['persist'] if 'persist' in keys else None,
+                'dependencies': pkg[pkg['latest-version']]['dependencies'] if 'dependencies' in keys else None,
+            }
+            packet = PortablePacket(data)
+            update_portable(ctx, packet, metadata)
+
 
         pkg = res
         pkg = pkg[pkg['latest-version']]
@@ -817,11 +843,12 @@ def up(
             pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
         )
 
+        
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         installed_packages_dict = [{f.split('@')[0]: f.split('@')[1]} for f in os.listdir(
             PathManager.get_appdata_directory() + r'\Current')]
         installed_packages = []
-
+        
         for f in os.listdir(PathManager.get_appdata_directory() + r'\Current'):
             installed_packages.append(f.split('@')[0])
 
