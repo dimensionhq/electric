@@ -367,6 +367,7 @@ class ThreadedInstaller:
                         pkg['checksum'] if 'checksum' in list(
                             pkg.keys()) else None,
                         pkg['bin'] if 'bin' in list(pkg.keys()) else None,
+                        pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
                     )
 
                     installation = utils.find_existing_installation(
@@ -451,6 +452,7 @@ class ThreadedInstaller:
                         pkg['checksum'] if 'checksum' in list(
                             pkg.keys()) else None,
                         pkg['bin'] if 'bin' in list(pkg.keys()) else None,
+                        pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
                     )
 
                     log_info(

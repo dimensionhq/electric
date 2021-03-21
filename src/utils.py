@@ -714,6 +714,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     pkg['checksum'] if 'checksum' in list(
                         pkg.keys()) else None,
                     pkg['bin'] if 'bin' in list(pkg.keys()) else None,
+                    pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
                 )
 
                 handle_existing_installation(
@@ -817,6 +818,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         pkg['checksum'] if 'checksum' in list(
                             pkg.keys()) else None,
                         pkg['bin'] if 'bin' in list(pkg.keys()) else None,
+                        pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
                     )
 
                     log_info(
@@ -1043,6 +1045,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         pkg['checksum'] if 'checksum' in list(
                             pkg.keys()) else None,
                         pkg['bin'] if 'bin' in list(pkg.keys()) else None,
+                        pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
                     )
 
                     installation = find_existing_installation(

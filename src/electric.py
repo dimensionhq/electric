@@ -328,6 +328,7 @@ def install(
             pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
             pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
             pkg['bin'] if 'bin' in list(pkg.keys()) else None,
+            pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
         )
 
         write_verbose(
@@ -813,6 +814,7 @@ def up(
             pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
             pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
             pkg['bin'] if 'bin' in list(pkg.keys()) else None,
+            pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
         )
 
         log_info('Generating Packet For Further Installation.', metadata.logfile)
@@ -1176,6 +1178,7 @@ def uninstall(
             pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
             pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
             pkg['bin'] if 'bin' in list(pkg.keys()) else None,
+            pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
         )
 
         proc = None
@@ -1243,6 +1246,7 @@ def uninstall(
                 pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
                 pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
                 pkg['bin'] if 'bin' in list(pkg.keys()) else None,
+                pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
             )
 
             write(
