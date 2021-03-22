@@ -649,10 +649,6 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
 
         # if there is only 1 set of packages in the 2d array like [['sublime-text-3', 'atom', 'vscode']]
         if len(split_package_names) == 1:
-            configs = {
-                'path': None,
-            }
-
             packets = []
             for package in corrected_package_names:
                 res = send_req_package(package)
@@ -737,392 +733,114 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
             for package_batch in split_package_names:
                 package_batch = list(package_batch)
                 package_batch = [x for x in package_batch if x is not None]
+                
                 if len(package_batch) == 1:
-                    configs = {
-                        'path': None,
-                    }
-
-                    package = package_batch[0]
-
-                    spinner = Halo(color='grey')
-                    spinner.start()
-                    log_info('Handling Network Request...', metadata.logfile)
-
-                    write_verbose(
-                        'Sending GET Request To /packages/', metadata)
-                    write_debug('Sending GET Request To /packages', metadata)
-                    log_info('Sending GET Request To /packages',
-                             metadata.logfile)
-                    res = send_req_package(package)
-                    log_info('Updating SuperCache', metadata.logfile)
-
-                    log_info('Successfully Updated SuperCache',
-                             metadata.logfile)
-                    spinner.stop()
-
-                    pkg = res
-                    version = res['latest-version']
-
-                    pkg = pkg[version]
-
-                    if os.path.isdir(f'{PathManager.get_appdata_directory()}\Current\{package}@{version}.json'):
-                        write(f'{res["display-name"]} Is Already Installed!')
-                        sys.exit()
-
-                    log_info(
-                        'Generating Packet For Further Installation.', metadata.logfile)
-
-                    install_exit_codes = None
-                    if 'valid-install-exit-codes' in list(pkg.keys()):
-                        install_exit_codes = pkg['valid-install-exit-codes']
-
-                    packet = Packet(
-                        pkg,
-                        package,
-                        res['display-name'],
-                        pkg['url'],
-                        pkg['file-type'],
-                        pkg['custom-location'],
-                        pkg['install-switches'],
-                        pkg['uninstall-switches'],
-                        install_directory,
-                        pkg['dependencies'],
-                        install_exit_codes,
-                        None,
-                        version,
-                        pkg['run-check'] if 'run-check' in list(
-                            res.keys()) else True,
-                        pkg['set-env'] if 'set-env' in list(
-                            pkg.keys()) else None,
-                        pkg['default-install-dir'] if 'default-install-dir' in list(
-                            pkg.keys()) else None,
-                        pkg['uninstall'] if 'uninstall' in list(
-                            pkg.keys()) else [],
-                        pkg['add-path'] if 'add-path' in list(
-                            pkg.keys()) else None,
-                        pkg['checksum'] if 'checksum' in list(
-                            pkg.keys()) else None,
-                        pkg['bin'] if 'bin' in list(pkg.keys()) else None,
-                        pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
-                    )
-
-                    log_info(
-                        'Searching for existing installation of package.', metadata.logfile)
-
-                    installation = find_existing_installation(
-                        package, packet.json_name, test=False)
-
-                    if installation:
-                        write_debug(
-                            f'Found existing installation of {packet.json_name}.', metadata)
-                        write_verbose(
-                            f'Found an existing installation of => {packet.json_name}', metadata)
-                        write(
-                            f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
-                        installation_continue = confirm(
-                            f'Would you like to reinstall {packet.display_name}')
-                        if installation_continue or metadata.yes:
-                            os.system(f'electric uninstall {packet.json_name}')
-                            os.system(f'electric install {packet.json_name}')
-                            sys.exit()
-                        else:
-                            sys.exit()
-
-                    if packet.dependencies:
-                        ti.ThreadedInstaller.install_dependent_packages(
-                            packet, -1, install_directory, metadata)
-
-                    write_verbose(
-                        f'Package to be installed: {packet.json_name}', metadata)
-                    log_info(
-                        f'Package to be installed: {packet.json_name}', metadata.logfile)
-
-                    write_verbose(
-                        f'Finding closest match to {packet.json_name}...', metadata)
-                    log_info(
-                        f'Finding closest match to {packet.json_name}...', metadata.logfile)
-
-                    write_verbose(
-                        'Generating system download path...', metadata)
-                    log_info('Generating system download path...',
-                             metadata.logfile)
-
-                    if not metadata.silent:
-                        if metadata.no_color:
-                            write(f'SuperCached [ {packet.display_name} ]', 'white', metadata)
-                        else:
-                            write(
-                                f'SuperCached [ {Fore.LIGHTCYAN_EX}{packet.display_name}{Fore.RESET} ]', 'white', metadata)
-                    start = timer()
-
-                    download_url = packet.win64
-
-                    log_info('Initializing Rapid Download...',
-                             metadata.logfile)
-
-                    # Downloading The File From Source
-                    write_debug(
-                        f'Downloading {packet.display_name} from => {packet.win64}', metadata)
-                    write_verbose(
-                        f"Downloading from '{download_url}'", metadata)
-                    log_info(
-                        f"Downloading from '{download_url}'", metadata.logfile)
-
-                    path = download(download_url, packet.json_name,
-                                    metadata, packet.win64_type)
-
-                    log_info('Finished Rapid Download', metadata.logfile)
-
-                    if metadata.virus_check:
-                        with Halo('\nScanning File For Viruses...', text_color='cyan') as h:
-                            check_virus(h, path, metadata)
-
-                    write(
-                        f'{Fore.LIGHTCYAN_EX}Installing {packet.display_name}{Fore.RESET}', 'white', metadata)
-                    log_info(
-                        f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
-
-                    write_debug(
-                        f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
-                    log_info(
-                        f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
-                    start_snap = registry.get_environment_keys()
-
-                    if 'pre-install' in list(pkg.keys()):
-                        if isinstance(pkg['pre-install'], list):
-                            for proc in pkg['pre-install']:
-                                if proc['type'] == 'powershell':
-                                    with open(rf'{tempfile.gettempdir()}\electric\temp.ps1', 'w+') as f:
-                                        for line in proc['code']:
-                                            f.write(line.replace(
-                                                '<installer>', configs['path']) + '\n')
-
-                                    os.system(
-                                        rf'powershell.exe -File {tempfile.gettempdir()}\electric\temp.ps1')
-
-                                if proc['type'] == 'python':
-                                    ldict = {}
-                                    for line in proc['code']:
-                                        exec(line.replace('<installer>',
-                                             configs['path']), globals(), ldict)
-
-                                    for k in configs:
-                                        if k in ldict:
-                                            configs[k] = ldict[k]
-
-                    # Running The Installer silently And Completing Setup
-                    install_package(path, packet, metadata)
-
-
-                    if packet.shim:
-                        for shim in packet.shim:
-                            replace_install_dir = ''
-
-                        if packet.directory:
-                            replace_install_dir = packet.directory
-
-                        elif packet.default_install_dir:
-                            replace_install_dir = packet.default_install_dir
-
-                        shim = shim.replace('<install-directory>', replace_install_dir)
-                        shim_name = shim.split("\\")[-1].split('.')[0]
-                        write(f'Generating Shim For {shim_name}', 'cyan', metadata)
-
-                        generate_shim(shim, shim_name, shim.split('.')[-1])
-
-                    final_snap = registry.get_environment_keys()
-                    if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
-                        write('Your PATH ',
-                              'bright_green', metadata)
-                        start = timer()
-
-                        end = timer()
-                        write_debug(
-                            f'Successfully Refreshed Environment Variables in {round(end - start)} seconds', metadata)
-
-                    with Halo(f'Verifying Successful Installation', text_color='green') as h:
-                        if find_existing_installation(packet.json_name, packet.display_name):
-                            h.stop()
-                            register_package_success(
-                                packet, install_directory, metadata)
-                            write(
-                                f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
-                            log_info(
-                                f'Successfully Installed {packet.display_name}', metadata.logfile)
-                        else:
-                            h.fail()
-                            print(
-                                f'[  {Fore.LIGHTGREEN_EX}ERROR{Fore.RESET}  ]  Registry Check')
-                            write(
-                                f'Failed To Install {packet.display_name}', 'red', metadata)
-                            sys.exit()
-
-                    if metadata.reduce_package:
-                        os.remove(path)
-                        try:
-                            os.remove(
-                                Rf'{tempfile.gettempdir()}\downloadcache.pickle')
-                        except:
-                            pass
-
-                        log_info(
-                            'Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
-                        write('Successfully Cleaned Up Installer From Temp Directory...',
-                              'bright_green', metadata)
-                    
-                    if packet.add_path:
-                        replace_install_dir = ''
-
-                        if packet.directory:
-                            replace_install_dir = packet.directory
-
-                        elif packet.default_install_dir:
-                            replace_install_dir = packet.default_install_dir
-
-                        write(
-                            f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
-                        write_verbose(
-                            f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
-                        log_info(
-                            f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', metadata.logfile)
-                        append_to_path(packet.add_path.replace(
-                            '<install-directory>', replace_install_dir))
-
-                    if packet.set_env:
-                        name = packet.set_env['name']
-                        replace_install_dir = ''
-
-                        if packet.directory:
-                            replace_install_dir = packet.directory
-
-                        elif packet.default_install_dir:
-                            replace_install_dir = packet.default_install_dir
-
-                        write(
-                            f'Setting Environment Variable {name}', 'bright_green', metadata)
-                        write_verbose(
-                            f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', 'bright_green', metadata)
-                        log_info(
-                            f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
-
-                        set_environment_variable(
-                            name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
-
-
-                    write_verbose(
-                        'Installation and setup completed.', metadata)
-                    log_info('Installation and setup completed.',
-                             metadata.logfile)
-                    write_debug(
-                        f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata)
-                    log_info(
-                        f'Terminated debugger at {strftime("%H:%M:%S")} on install::completion', metadata.logfile)
-                    close_log(metadata.logfile, 'Install')
+                    os.system(f'electric install {package_batch[0]}')
                     sys.exit()
+                else:
+                    packets = []
+                    for package in package_batch:
 
-                packets = []
-                for package in package_batch:
-
-                    spinner = Halo(color='grey')
-                    spinner.start()
-                    log_info('Handling Network Request...', metadata.logfile)
-                    write_verbose(
-                        'Sending GET Request To /packages/', metadata)
-                    write_debug('Sending GET Request To /packages', metadata)
-                    log_info('Sending GET Request To /packages',
-                             metadata.logfile)
-                    res = send_req_package(package)
-                    spinner.stop()
-
-                    pkg = res
-                    custom_dir = None
-                    if install_directory:
-                        custom_dir = install_directory + \
-                            f'\\{pkg["package-name"]}'
-                    else:
-                        custom_dir = install_directory
-
-                    version = res['latest-version']
-                    pkg = pkg[version]
-
-                    if os.path.isdir(f'{PathManager.get_appdata_directory()}\Current\{package}@{version}.json'):
-                        write(f'{res["display-name"]} Is Already Installed!')
-                        sys.exit()
-
-                    install_exit_codes = None
-                    if 'valid-install-exit-codes' in list(pkg.keys()):
-                        install_exit_codes = pkg['valid-install-exit-codes']
-                    packet = Packet(
-                        pkg,
-                        package,
-                        res['display-name'],
-                        pkg['url'],
-                        pkg['file-type'],
-                        pkg['custom-location'],
-                        pkg['install-switches'],
-                        pkg['uninstall-switches'],
-                        custom_dir,
-                        pkg['dependencies'],
-                        install_exit_codes,
-                        None,
-                        version,
-                        pkg['run-check'] if 'run-check' in list(
-                            res.keys()) else True,
-                        pkg['set-env'] if 'set-env' in list(
-                            pkg.keys()) else None,
-                        pkg['default-install-dir'] if 'default-install-dir' in list(
-                            pkg.keys()) else None,
-                        pkg['uninstall'] if 'uninstall' in list(
-                            pkg.keys()) else [],
-                        pkg['add-path'] if 'add-path' in list(
-                            pkg.keys()) else None,
-                        pkg['checksum'] if 'checksum' in list(
-                            pkg.keys()) else None,
-                        pkg['bin'] if 'bin' in list(pkg.keys()) else None,
-                        pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
-                    )
-
-                    installation = find_existing_installation(
-                        package, packet.display_name, test=False)
-                    if installation:
-                        write_debug(
-                            f'Aborting Installation As {packet.json_name} is already installed.', metadata)
+                        spinner = Halo(color='grey')
+                        spinner.start()
+                        log_info('Handling Network Request...', metadata.logfile)
                         write_verbose(
-                            f'Found an existing installation of => {packet.json_name}', metadata)
-                        write(
-                            f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
-                        installation_continue = confirm(
-                            f'Would you like to reinstall {packet.json_name}')
-                        if installation_continue or metadata.yes:
-                            os.system(f'electric uninstall {packet.json_name}')
-                            os.system(f'electric install {packet.json_name}')
-                            return
+                            'Sending GET Request To /packages/', metadata)
+                        write_debug('Sending GET Request To /packages', metadata)
+                        log_info('Sending GET Request To /packages',
+                                metadata.logfile)
+                        res = send_req_package(package)
+                        spinner.stop()
+
+                        pkg = res
+                        custom_dir = None
+                        if install_directory:
+                            custom_dir = install_directory + \
+                                f'\\{pkg["package-name"]}'
                         else:
+                            custom_dir = install_directory
+
+                        version = res['latest-version']
+                        pkg = pkg[version]
+
+                        if os.path.isdir(f'{PathManager.get_appdata_directory()}\Current\{package}@{version}.json'):
+                            write(f'{res["display-name"]} Is Already Installed!')
                             sys.exit()
 
-                    write_verbose(
-                        f'Package to be installed: {packet.json_name}', metadata)
+                        install_exit_codes = None
+                        if 'valid-install-exit-codes' in list(pkg.keys()):
+                            install_exit_codes = pkg['valid-install-exit-codes']
+                        packet = Packet(
+                            pkg,
+                            package,
+                            res['display-name'],
+                            pkg['url'],
+                            pkg['file-type'],
+                            pkg['custom-location'],
+                            pkg['install-switches'],
+                            pkg['uninstall-switches'],
+                            custom_dir,
+                            pkg['dependencies'],
+                            install_exit_codes,
+                            None,
+                            version,
+                            pkg['run-check'] if 'run-check' in list(
+                                res.keys()) else True,
+                            pkg['set-env'] if 'set-env' in list(
+                                pkg.keys()) else None,
+                            pkg['default-install-dir'] if 'default-install-dir' in list(
+                                pkg.keys()) else None,
+                            pkg['uninstall'] if 'uninstall' in list(
+                                pkg.keys()) else [],
+                            pkg['add-path'] if 'add-path' in list(
+                                pkg.keys()) else None,
+                            pkg['checksum'] if 'checksum' in list(
+                                pkg.keys()) else None,
+                            pkg['bin'] if 'bin' in list(pkg.keys()) else None,
+                            pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
+                        )
+
+                        installation = find_existing_installation(
+                            package, packet.display_name, test=False)
+                        if installation:
+                            write_debug(
+                                f'Aborting Installation As {packet.json_name} is already installed.', metadata)
+                            write_verbose(
+                                f'Found an existing installation of => {packet.json_name}', metadata)
+                            write(
+                                f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
+                            installation_continue = confirm(
+                                f'Would you like to reinstall {packet.json_name}')
+                            if installation_continue or metadata.yes:
+                                os.system(f'electric uninstall {packet.json_name}')
+                                os.system(f'electric install {packet.json_name}')
+                                return
+                            else:
+                                sys.exit()
+
+                        write_verbose(
+                            f'Package to be installed: {packet.json_name}', metadata)
+                        log_info(
+                            f'Package to be installed: {packet.json_name}', metadata.logfile)
+
+                        write_verbose(
+                            f'Finding closest match to {packet.json_name}...', metadata)
+                        log_info(
+                            f'Finding closest match to {packet.json_name}...', metadata.logfile)
+                        packets.append(packet)
+
+                        write_verbose(
+                            'Generating system download path...', metadata)
+                        log_info('Generating system download path...',
+                                metadata.logfile)
+
+                    manager = ti.ThreadedInstaller(packets, metadata)
+                    paths = manager.handle_multi_download()
+                    log_info('Finished Rapid Download...', metadata.logfile)
                     log_info(
-                        f'Package to be installed: {packet.json_name}', metadata.logfile)
-
-                    write_verbose(
-                        f'Finding closest match to {packet.json_name}...', metadata)
-                    log_info(
-                        f'Finding closest match to {packet.json_name}...', metadata.logfile)
-                    packets.append(packet)
-
-                    write_verbose(
-                        'Generating system download path...', metadata)
-                    log_info('Generating system download path...',
-                             metadata.logfile)
-
-                manager = ti.ThreadedInstaller(packets, metadata)
-                paths = manager.handle_multi_download()
-                log_info('Finished Rapid Download...', metadata.logfile)
-                log_info(
-                    'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
-                manager.handle_multi_install(paths)
-            sys.exit()
+                        'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+                    manager.handle_multi_install(paths)
+                sys.exit()
 
 
 def handle_external_installation(python: bool, node: bool, vscode: bool, sublime: bool, atom: bool, version, package_name, metadata: Metadata):
