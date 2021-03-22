@@ -187,14 +187,14 @@ def get_init_char(start, metadata) -> str:
                 metadata.settings.raw_dictionary['customProgressBar']['start_character']
         except:
             return ''
-        return start_char if start_char else ''
+        return start_char or ''
     else:
         try:
             end_char = Fore.RESET + \
                 metadata.settings.raw_dictionary['customProgressBar']['end_character']
         except:
             return ''
-        return end_char if end_char else ''
+        return end_char or ''
 
 
 def download(packet, url: str, download_extension: str, file_path: str, metadata: Metadata, show_progress_bar=True, is_zip=False):
@@ -316,40 +316,37 @@ def create_start_menu_shortcut(unzip_dir, file_name, shortcut_name):
 
 def generate_shim(shim_command: str, shim_name: str, shim_extension: str, overridefilename: str = ''):
     shim_command += f'\\{shim_name}'
-    shim_command = shim_command.replace('\\\\', '\\')
     if not os.path.isdir(rf'{home}\electric\shims'):
         os.mkdir(rf'{home}\electric\shims')
 
     with open(rf'{home}\electric\shims\{shim_name if not overridefilename else overridefilename}.bat', 'w+') as f:
+        shim_command = shim_command.replace('\\\\', '\\')
         f.write(f'@echo off\n"{shim_command}.{shim_extension}"')
 
 
 def find_existing_installation(dir_name: str) -> bool:
     loc = f'{home}\electric'
     files = os.listdir(loc)
-    if dir_name in files:
-        return True
-    return False
+    return dir_name in files
 
 
 def display_notes(packet: PortablePacket, unzip_dir: str, metadata: Metadata, uninstall=False):
     write('\n----Notes----', 'white', metadata)
-    if not uninstall:
-        if isinstance(packet.install_notes, list):
-            for line in packet.notes:
-                write(line.replace('$dir', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}').replace(
-                    '\\\\', '\\'), 'white', metadata)
-        else:
-            write(packet.install_notes.replace('$dir', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}').replace(
+    if (
+        not uninstall
+        and isinstance(packet.install_notes, list)
+        or uninstall
+        and isinstance(packet.uninstall_notes, list)
+    ):
+        for line in packet.notes:
+            write(line.replace('$dir', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}').replace(
                 '\\\\', '\\'), 'white', metadata)
+    elif not uninstall:
+        write(packet.install_notes.replace('$dir', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}').replace(
+            '\\\\', '\\'), 'white', metadata)
     else:
-        if isinstance(packet.uninstall_notes, list):
-            for line in packet.notes:
-                write(line.replace('$dir', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}').replace(
-                    '\\\\', '\\'), 'white', metadata)
-        else:
-            write(packet.uninstall_notes.replace(
-                '$dir', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}').replace('\\\\', '\\'), 'white', metadata)
+        write(packet.uninstall_notes.replace(
+            '$dir', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}').replace('\\\\', '\\'), 'white', metadata)
     write('\n', 'white', metadata)
 
 
@@ -383,10 +380,7 @@ def set_environment_variable(name: str, value: str):
 
 def confirm(prompt: str):
     value = input(f'{prompt} (Y/n): ')
-    if value in ['y', 'yes', 'Y', 'YES', 'Yes']:
-        return True
-    else:
-        return False
+    return value in ['y', 'yes', 'Y', 'YES', 'Yes']
 
 
 def install_dependencies(packet: PortablePacket, metadata: Metadata):

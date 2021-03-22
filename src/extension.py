@@ -76,12 +76,8 @@ def write_debug(log: str, metadata: Metadata, newline=False):
     if metadata.debug and not metadata.silent:
         if isinstance(log, list):
             log = "\nDEBUG: ".join(log)
-    
-        if not newline:
-            HEADER = "DEBUG: "
-        else:
-            HEADER = "\nDEBUG: "
-    
+
+        HEADER = "DEBUG: " if not newline else "\nDEBUG: "
         if not metadata.no_color:
             click.echo(click.style(HEADER + log, fg="bright_yellow"))
         else:

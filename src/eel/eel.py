@@ -23,15 +23,15 @@ def convert():
     destination = prompt(f'Destination {value} File >>> ')
     if key == 'mp4' and value == 'mp3':
         quality = prompt('Audio Quality >>> ',completer=WordCompleter(['ultra-low', 'low', 'medium', 'high', 'ultra-high']))
-        if quality == 'ultra-low':
-            bitrate = '30k'
-        if quality == 'low':
-            bitrate = '80k'
-        if quality == 'medium':
-            bitrate = '200k'
         if quality == 'high':
             bitrate = '300k'
-        if quality == 'ultra-high':
+        elif quality == 'low':
+            bitrate = '80k'
+        elif quality == 'medium':
+            bitrate = '200k'
+        elif quality == 'ultra-high':
             bitrate = '800k'
+        elif quality == 'ultra-low':
+            bitrate = '30k'
         video = VideoFileClip(file_path)
         video.audio.write_audiofile(destination, bitrate=bitrate)

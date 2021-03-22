@@ -131,12 +131,9 @@ class ThreadedInstaller:
 
         download_items = []
         if len(packets) > 1:
-            idx = 0
-            for packet in packets:
+            for idx, packet in enumerate(packets):
                 download_items.append(Download(packet.win64, packet.win64_type,
                                                f'Setup{idx}', packet.display_name, f"{tempfile.gettempdir()}\\Setup{idx}{packet.win64_type}"))
-                idx += 1
-
         elif len(packets) == 1:
             download_items.append(Download(packets[0].win64, packets[0].win64_type, 'Setup0',
                                            packets[0].display_name, f"{tempfile.gettempdir()}\\Setup0{packets[0].win64_type}"))
@@ -150,10 +147,11 @@ class ThreadedInstaller:
         method = self.calculate_spwn(len(packets))
 
         if method == 'threading':
-            threads = []
+            threads = [
+                Thread(target=self.download, args=(item,))
+                for item in download_items
+            ]
 
-            for item in download_items:
-                threads.append(Thread(target=self.download, args=(item,)))
 
             for thread in threads:
                 thread.start()
@@ -162,11 +160,8 @@ class ThreadedInstaller:
                 x.join()
 
         if method == 'processing':
-            processes = []
-
-            for item in download_items:
-                processes.append(multiprocessing.Process(
-                    target=self.download, args=(item,)))
+            processes = [multiprocessing.Process(
+                    target=self.download, args=(item,)) for item in download_items]
 
             for process in processes:
                 process.start()
@@ -250,10 +245,7 @@ class ThreadedInstaller:
 
             else:
                 string = ''
-                if 'other' in list(item.keys()):
-                    string = 'other'
-                else:
-                    string = 'exe'
+                string = 'other' if 'other' in list(item.keys()) else 'exe'
                 for val in item[string]:
                     write_debug(
                         f'Running Installer For <{val.display_name}> On Thread {item[string].index(val)}', self.metadata)

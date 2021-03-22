@@ -113,10 +113,7 @@ class DYMMixin(object):  # pylint: disable=too-few-public-methods
             if sub_command in self._commands:
                 aliases = ','.join(sorted(self._commands[sub_command]))
                 sub_command = '{0} ({1})'.format(sub_command, aliases)
-            if _click7:
-                cmd_help = cmd.get_short_help_str(limit)
-            else:
-                cmd_help = cmd.short_help or ''
+            cmd_help = cmd.get_short_help_str(limit) if _click7 else cmd.short_help or ''
             rows.append((sub_command, cmd_help))
 
         if rows:

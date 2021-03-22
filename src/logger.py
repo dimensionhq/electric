@@ -32,11 +32,7 @@ def create_config(logfile : str, level, process : str):
         os.mkdir(appdata_dir)
 
     mode = None
-    if isfile(logfile):
-        mode = 'a+'
-    else:
-        mode = 'w+'
-
+    mode = 'a+' if isfile(logfile) else 'w+'
     file = open(logfile, mode)
     try:
         file.write('\n')
