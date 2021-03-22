@@ -1410,6 +1410,32 @@ def run_cmd(command: str, metadata: Metadata, method: str, packet: Packet) -> bo
                                        packet.uninstall_exit_codes, method, metadata, packet), metadata)
 
 
+def display_support(metadata: Metadata):
+    message = '''
+---Developer's Note---
+Hey, I'm Tejas Ravishankar, 14 year old founder and developer of the electric package manager.
+
+I've dedicated the past 6 months to building the fastest package manager that you're currently using.
+
+If you like electric would like to support it, it would be absolutely incredible if you could star the official github repository at (https://www.github.com/electric-package-manager/electric).
+Additionally, would be out of this world if you could rate this a 5 star project on G2Crowd! Thanks!
+This message can be disabled by running `electric feature disable support-message`.
+    '''
+    
+    if metadata.settings.show_support_message:
+        if not os.path.isfile(f'{PathManager.get_appdata_directory()}\support.txt'):
+            with open(f'{PathManager.get_appdata_directory()}\support.txt', 'w+') as f:
+                f.write(
+                    f'{date.today().year} {date.today().month} {date.today().day}')
+            write(message, 'white', metadata)
+        else:
+            if get_day_diff(f'{PathManager.get_appdata_directory()}\support.txt') >= 7:
+                write(message, 'white', metadata)
+                with open(f'{PathManager.get_appdata_directory()}\support.txt', 'w+') as f:
+                    f.write(
+                        f'{date.today().year} {date.today().month} {date.today().day}')
+
+
 def install_package(path, packet: Packet, metadata: Metadata) -> str:
     """
     Installs an electric package

@@ -4,7 +4,7 @@ class Setting:
     """
     Stores settings for access
     """
-    def __init__(self, raw_dictionary, progress_bar_type, show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar, install_metrics):
+    def __init__(self, raw_dictionary, progress_bar_type, show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar, install_metrics, show_support_message):
         self.raw_dictionary = raw_dictionary
         self.progress_bar_type = progress_bar_type
         self.show_progress_bar = show_progress_bar
@@ -12,6 +12,7 @@ class Setting:
         self.use_custom_progress_bar = use_custom_progress_bar
         self.custom_progress_bar = custom_progress_bar
         self.install_metrics = install_metrics
+        self.show_support_message = show_support_message
 
     @staticmethod
     def new():
@@ -23,7 +24,7 @@ class Setting:
         """
 
         settings = read_settings()
-        progress_bar_type,  show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar, install_metrics = '', '', False, False, '', True
+        progress_bar_type,  show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar, install_metrics, show_support_message = '', '', False, False, '', True, True
 
         try:
             install_metrics = settings['installMetrics']
@@ -75,5 +76,10 @@ class Setting:
                 settings['customProgressBar']['unfill_character'] = ' '
             except KeyError:
                 use_custom_progress_bar = False
+        
+        try:
+            show_support_message = settings['showSupportMessage']
+        except KeyError:
+            show_support_message = False
 
-        return Setting(settings, progress_bar_type, show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar, install_metrics)
+        return Setting(settings, progress_bar_type, show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar, install_metrics, show_support_message)

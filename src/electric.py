@@ -688,7 +688,7 @@ def install(
                   'bright_green', metadata)
 
         version = ''
-
+        display_support(metadata)
         write_verbose(
             'Installation and setup completed with exit code 0', metadata)
         write_verbose('Terminating verbose logger', metadata)
