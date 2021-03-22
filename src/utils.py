@@ -913,6 +913,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     # Running The Installer silently And Completing Setup
                     install_package(path, packet, metadata)
 
+
                     if packet.shim:
                         for shim in packet.shim:
                             replace_install_dir = ''
