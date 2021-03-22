@@ -761,9 +761,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     spinner.stop()
 
                     pkg = res
-
-                    if not version:
-                        version = res['latest-version']
+                    version = res['latest-version']
 
                     pkg = pkg[version]
 
@@ -845,23 +843,16 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         f'Finding closest match to {packet.json_name}...', metadata.logfile)
 
                     write_verbose(
-                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                    write_debug(
-                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata)
-                    log_info(
-                        f'Rapidquery Successfully Received {packet.json_name}.json in {round(time, 6)}s', metadata.logfile)
-
-                    write_verbose(
                         'Generating system download path...', metadata)
                     log_info('Generating system download path...',
                              metadata.logfile)
 
                     if not metadata.silent:
-                        if not metadata.no_color:
-                            print(f'SuperCached [ {packet.display_name} ]')
+                        if metadata.no_color:
+                            write(f'SuperCached [ {packet.display_name} ]', 'white', metadata)
                         else:
-                            print(
-                                f'SuperCached [ {Fore.LIGHTCYAN_EX} {packet.display_name} {Fore.RESET} ]')
+                            write(
+                                f'SuperCached [ {Fore.LIGHTCYAN_EX}{packet.display_name}{Fore.RESET} ]', 'white', metadata)
                     start = timer()
 
                     download_url = packet.win64
@@ -882,9 +873,9 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
 
                     log_info('Finished Rapid Download', metadata.logfile)
 
-                    if virus_check:
-                        with Halo('\nScanning File For Viruses...', text_color='cyan'):
-                            check_virus(path, metadata)
+                    if metadata.virus_check:
+                        with Halo('\nScanning File For Viruses...', text_color='cyan') as h:
+                            check_virus(h, path, metadata)
 
                     write(
                         f'{Fore.LIGHTCYAN_EX}Installing {packet.display_name}{Fore.RESET}', 'white', metadata)
@@ -922,6 +913,22 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     # Running The Installer silently And Completing Setup
                     install_package(path, packet, metadata)
 
+                    if packet.shim:
+                        for shim in packet.shim:
+                            replace_install_dir = ''
+
+                        if packet.directory:
+                            replace_install_dir = packet.directory
+
+                        elif packet.default_install_dir:
+                            replace_install_dir = packet.default_install_dir
+
+                        shim = shim.replace('<install-directory>', replace_install_dir)
+                        shim_name = shim.split("\\")[-1].split('.')[0]
+                        write(f'Generating Shim For {shim_name}', 'cyan', metadata)
+
+                        generate_shim(shim, shim_name, shim.split('.')[-1])
+
                     final_snap = registry.get_environment_keys()
                     if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length:
                         write('Your PATH ',
@@ -936,7 +943,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         if find_existing_installation(packet.json_name, packet.display_name):
                             h.stop()
                             register_package_success(
-                                package, install_directory, metadata)
+                                packet, install_directory, metadata)
                             write(
                                 f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
                             log_info(
@@ -961,6 +968,45 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                             'Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
                         write('Successfully Cleaned Up Installer From Temp Directory...',
                               'bright_green', metadata)
+                    
+                    if packet.add_path:
+                        replace_install_dir = ''
+
+                        if packet.directory:
+                            replace_install_dir = packet.directory
+
+                        elif packet.default_install_dir:
+                            replace_install_dir = packet.default_install_dir
+
+                        write(
+                            f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
+                        write_verbose(
+                            f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
+                        log_info(
+                            f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', metadata.logfile)
+                        append_to_path(packet.add_path.replace(
+                            '<install-directory>', replace_install_dir))
+
+                    if packet.set_env:
+                        name = packet.set_env['name']
+                        replace_install_dir = ''
+
+                        if packet.directory:
+                            replace_install_dir = packet.directory
+
+                        elif packet.default_install_dir:
+                            replace_install_dir = packet.default_install_dir
+
+                        write(
+                            f'Setting Environment Variable {name}', 'bright_green', metadata)
+                        write_verbose(
+                            f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', 'bright_green', metadata)
+                        log_info(
+                            f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
+
+                        set_environment_variable(
+                            name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
+
 
                     write_verbose(
                         'Installation and setup completed.', metadata)

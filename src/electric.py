@@ -1502,8 +1502,11 @@ def uninstall(
                 write(
                     f'Running Tests For {packet.display_name}', 'bright_white', metadata)
                 if not skp:
-                    os.remove(
-                        rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                    try:
+                        os.remove(
+                            rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                    except FileNotFoundError:
+                        pass
 
                 write(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check',
                       'bright_white', metadata)

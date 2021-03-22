@@ -269,8 +269,67 @@ class ThreadedInstaller:
                 os.remove(path)
             write('Successfully Cleaned Up Installer From Temp Directory...',
                   'bright_green', self.metadata)
-
+        
         for packet in self.packets:
+            metadata = self.metadata
+
+            if packet.add_path:
+                replace_install_dir = ''
+
+                if packet.directory:
+                    replace_install_dir = packet.directory
+
+                elif packet.default_install_dir:
+                    replace_install_dir = packet.default_install_dir
+
+                write(
+                    f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
+                write_verbose(
+                    f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
+                log_info(
+                    f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', metadata.logfile)
+                utils.append_to_path(packet.add_path.replace(
+                    '<install-directory>', replace_install_dir))
+
+            if packet.set_env:
+                name = packet.set_env['name']
+                replace_install_dir = ''
+
+                if packet.directory:
+                    replace_install_dir = packet.directory
+
+                elif packet.default_install_dir:
+                    replace_install_dir = packet.default_install_dir
+
+                write(
+                    f'Setting Environment Variable {name}', 'bright_green', metadata)
+                write_verbose(
+                    f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', 'bright_green', metadata)
+                log_info(
+                    f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
+
+                set_environment_variable(
+                    name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
+
+            if packet.shim:
+                
+                for shim in packet.shim:
+                    replace_install_dir = ''
+
+                if packet.directory:
+                    replace_install_dir = packet.directory
+
+                elif packet.default_install_dir:
+                    replace_install_dir = packet.default_install_dir
+
+                shim = shim.replace(
+                    '<install-directory>', replace_install_dir)
+                shim_name = shim.split("\\")[-1].split('.')[0]
+                write(
+                    f'Generating Shim For {shim_name}', 'cyan', metadata)
+                utils.generate_shim(
+                    shim, shim_name, shim.split('.')[-1])
+            
             utils.register_package_success(
                 packet, packet.directory, self.metadata)
 
