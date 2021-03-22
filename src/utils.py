@@ -1568,6 +1568,13 @@ def update_electric():
         update_package_list()
 
 
+def send_package_request(package_name: str):
+    # Request A Package To Be Added To Electric From The Command Line
+    URL = 'https://electric-package-manager-api.herokuapp.com/submit-package-request/'
+    res = requests.get(URL + package_name)
+
+
+
 def send_req_package(package_name: str) -> dict:
     """
     Send a request for an electric package from the official package registry on github
