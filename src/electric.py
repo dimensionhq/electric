@@ -462,14 +462,16 @@ def install(
             configs['path'] = configs['path'].replace(
                 f'{packet.win64_type}{packet.win64_type}', f'{packet.win64_type}')
 
-        if virus_check:
+        
+
+        if packet.checksum and metadata.settings.checksum:
+            verify_checksum(configs['path'], packet.checksum, metadata)
+
+        if virus_check or metadata.settings.virus_check:
             log_info('Running requested virus scanning', metadata.logfile)
             if not metadata.silent:
                 with Halo(text='Scanning File For Viruses ', text_color='cyan' if not metadata.no_color else 'white', color='green' if not metadata.no_color else 'white') as h:
                     check_virus(configs['path'], metadata, h)
-
-        if packet.checksum:
-            verify_checksum(configs['path'], packet.checksum, metadata)
 
         write_debug(
             f'Installing {packet.display_name} through Setup{packet.win64_type}', metadata)
@@ -2217,6 +2219,111 @@ def autoupdate(
             data, indent=4), lexers.JsonLexer(), formatters.TerminalFormatter())
         print(colorful_json)
 
+@cli.command()
+def features():
+    setting = Setting.new()
+    message = f'''
+{{ {Fore.LIGHTGREEN_EX if setting.checksum else Fore.LIGHTRED_EX}{'Enabled' if setting.checksum == True else 'Disabled'}{Fore.RESET} }} Checksum Verification - Verify the checksum of installers downloaded online.
+{{ {Fore.LIGHTGREEN_EX if setting.checksum else Fore.LIGHTRED_EX}{'Enabled' if setting.virus_check == True else 'Disabled'}{Fore.RESET} }} Runtime Malware Protection - Scan downloaded files for viruses before running the installers.
+    '''
+    print(message)
+
+@cli.command()
+@click.argument('method', nargs=1, required=True)
+@click.argument('feature', nargs=1, required=True)
+def feature(method: str, feature: str):
+    if method in ['enable', 'disable']:
+        if feature in ['support-message', 'checksum', 'virus-check', 'install-metrics', 'progress-bar', 'electric-progress-bar']:
+            
+            if feature == 'support-message' and method == 'disable':
+                current_settings = Setting.new()
+                current_settings.raw_dictionary['supportMessage'] = False
+                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                    f.write(json.dumps(current_settings.raw_dictionary, indent=4))
+                print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Support Message{Fore.RESET}')
+
+            elif feature == 'support-message' and method == 'enable':
+                current_settings = Setting.new()
+                current_settings.raw_dictionary['supportMessage'] = True
+                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                    f.write(json.dumps(current_settings.raw_dictionary, indent=4))
+                print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Support Message{Fore.RESET}')
+
+            if feature == 'checksum' and method == 'enable':
+                current_settings = Setting.new()
+                current_settings.raw_dictionary['checksumInstallers'] = True
+                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                    f.write(json.dumps(current_settings.raw_dictionary, indent=4))
+                print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Installer Checksum Verification{Fore.RESET}')
+            
+            if feature == 'checksum' and method == 'disable':
+                current_settings = Setting.new()
+                current_settings.raw_dictionary['checksumInstallers'] = False
+                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                    f.write(json.dumps(current_settings.raw_dictionary, indent=4))
+                print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Installer Checksum Verification{Fore.RESET}')
+            
+            
+            if feature == 'virus-check' and method == 'enable':
+                current_settings = Setting.new()
+                current_settings.raw_dictionary['virusCheck'] = True
+                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                    f.write(json.dumps(current_settings.raw_dictionary, indent=4))
+                print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Runtime Malware Protection{Fore.RESET}')
+            
+            if feature == 'virus-check' and method == 'disable':
+                current_settings = Setting.new()
+                current_settings.raw_dictionary['virusCheck'] = False
+                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                    f.write(json.dumps(current_settings.raw_dictionary, indent=4))
+                print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Runtime Malware Protection{Fore.RESET}')
+            
+            if feature == 'install-metrics' and method == 'enable':
+                current_settings = Setting.new()
+                current_settings.raw_dictionary['installMetrics'] = True
+                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                    f.write(json.dumps(current_settings.raw_dictionary, indent=4))
+                print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Install Metrics{Fore.RESET}')
+            
+            if feature == 'install-metrics' and method == 'disable':
+                current_settings = Setting.new()
+                current_settings.raw_dictionary['installMetrics'] = False
+                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                    f.write(json.dumps(current_settings.raw_dictionary, indent=4))
+                print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Install Metrics{Fore.RESET}')
+            
+            if feature == 'progress-bar' and method == 'enable':
+                current_settings = Setting.new()
+                current_settings.raw_dictionary['showProgressBar'] = True
+                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                    f.write(json.dumps(current_settings.raw_dictionary, indent=4))
+                print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Progress Bar{Fore.RESET}')
+            
+            if feature == 'progress-bar' and method == 'disable':
+                current_settings = Setting.new()
+                current_settings.raw_dictionary['showProgressBar'] = False
+                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                    f.write(json.dumps(current_settings.raw_dictionary, indent=4))
+                print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Progress Bar{Fore.RESET}')
+           
+            if feature == 'electric-progress-bar' and method == 'enable':
+                current_settings = Setting.new()
+                current_settings.raw_dictionary['electrifyProgressBar'] = True
+                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                    f.write(json.dumps(current_settings.raw_dictionary, indent=4))
+                print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Electric Progress Bar{Fore.RESET}')
+            
+            if feature == 'electric-progress-bar' and method == 'disable':
+                current_settings = Setting.new()
+                current_settings.raw_dictionary['electrifyProgressBar'] = False
+                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                    f.write(json.dumps(current_settings.raw_dictionary, indent=4))
+                print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Electric Progress Bar{Fore.RESET}')
+           
+            
+    else:
+        print(f'{Fore.LIGHTRED_EX}Method Must Be Specified As `enable` or `disable`')
+    pass
 
 @cli.command()
 @click.option('--word', required=True)

@@ -4,7 +4,7 @@ class Setting:
     """
     Stores settings for access
     """
-    def __init__(self, raw_dictionary, progress_bar_type, show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar, install_metrics, show_support_message):
+    def __init__(self, raw_dictionary, progress_bar_type, show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar, install_metrics, show_support_message, checksum, virus_check):
         self.raw_dictionary = raw_dictionary
         self.progress_bar_type = progress_bar_type
         self.show_progress_bar = show_progress_bar
@@ -13,6 +13,8 @@ class Setting:
         self.custom_progress_bar = custom_progress_bar
         self.install_metrics = install_metrics
         self.show_support_message = show_support_message
+        self.checksum = checksum
+        self.virus_check = virus_check
 
     @staticmethod
     def new():
@@ -87,4 +89,15 @@ class Setting:
         except KeyError:
             show_support_message = False
 
-        return Setting(settings, progress_bar_type, show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar, install_metrics, show_support_message)
+        try:
+            checksum = settings['checksumInstallers']
+        except KeyError:
+            checksum = True
+
+        try:
+            virus_check = settings['virusCheck']
+        except KeyError:
+            virus_check = False
+
+        return Setting(settings, progress_bar_type, show_progress_bar, electrify_progress_bar, use_custom_progress_bar, custom_progress_bar, install_metrics, show_support_message, checksum, virus_check)
+
