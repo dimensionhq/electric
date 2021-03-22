@@ -2223,12 +2223,24 @@ def autoupdate(
 @cli.command()
 def features():
     setting = Setting.new()
-    message = f'''[ {Fore.LIGHTGREEN_EX if setting.show_support_message else Fore.LIGHTYELLOW_EX}{'X' if setting.show_support_message == True else ' '}{Fore.RESET} ] (support-message) | Support Message {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Send a weekly developers note to request support for electric.
-[ {Fore.LIGHTGREEN_EX if setting.checksum else Fore.LIGHTYELLOW_EX}{'X' if setting.checksum == True else ' '}{Fore.RESET} ] (checksum) | Checksum Verification {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Verify the checksum of installers downloaded from the internet.
-[ {Fore.LIGHTGREEN_EX if setting.virus_check else Fore.LIGHTYELLOW_EX}{'X' if setting.virus_check == True else ' '}{Fore.RESET} ] (virus-check) | Runtime Malware Protection {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Scan downloaded files for viruses before running the installers.
-[ {Fore.LIGHTGREEN_EX if setting.install_metrics else Fore.LIGHTYELLOW_EX}{'X' if setting.install_metrics == True else ' '}{Fore.RESET} ] (install-metrics) | Install Metrics {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Increment a global counter for the number of installations for a certain package.
-[ {Fore.LIGHTGREEN_EX if setting.show_progress_bar else Fore.LIGHTYELLOW_EX}{'X' if setting.show_progress_bar == True else ' '}{Fore.RESET} ] (progress-bar) | Progress Bar {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Show a progress while downloading files (shows basic percentage counter if disabled).
-[ {Fore.LIGHTGREEN_EX if setting.electrify_progress_bar else Fore.LIGHTYELLOW_EX}{'X' if setting.electrify_progress_bar == True else ' '}{Fore.RESET} ] (electric-progress-bar) | Electrify Progress Bar {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Add the thunder emoji to the progress bar. Only supported on terminals with emoji support.
+    message = f'''
+[{Fore.LIGHTGREEN_EX if setting.show_support_message else Fore.LIGHTYELLOW_EX}{'X' if setting.show_support_message == True else ' '}{Fore.RESET}] Support Message {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Send a weekly developers note to request support for electric.
+Command: electric feature [enable|disable] support-message
+
+[{Fore.LIGHTGREEN_EX if setting.checksum else Fore.LIGHTYELLOW_EX}{'X' if setting.checksum == True else ' '}{Fore.RESET}] Checksum Verification {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Verify the checksum of installers downloaded from the internet.
+Command: electric feature [enable|disable] checksum
+
+[{Fore.LIGHTGREEN_EX if setting.virus_check else Fore.LIGHTYELLOW_EX}{'X' if setting.virus_check == True else ' '}{Fore.RESET}] Runtime Malware Protection {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Scan downloaded files for viruses before running the installers.
+Command: electric feature [enable|disable] virus-check
+
+[{Fore.LIGHTGREEN_EX if setting.install_metrics else Fore.LIGHTYELLOW_EX}{'X' if setting.install_metrics == True else ' '}{Fore.RESET}] Install Metrics {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Increment a global counter for the number of installations for a certain package.
+Command: electric feature [enable|disable] install-metrics
+
+[{Fore.LIGHTGREEN_EX if setting.show_progress_bar else Fore.LIGHTYELLOW_EX}{'X' if setting.show_progress_bar == True else ' '}{Fore.RESET}] Progress Bar {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Show a progress while downloading files (shows basic percentage counter if disabled).
+Command: electric feature [enable|disable] show-progress-bar
+
+[{Fore.LIGHTGREEN_EX if setting.electrify_progress_bar else Fore.LIGHTYELLOW_EX}{'X' if setting.electrify_progress_bar == True else ' '}{Fore.RESET}] Electrify Progress Bar {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Add the thunder emoji to the progress bar. Only supported on terminals with emoji support.
+Command: electric feature [enable|disable] electric-progress-bar
 '''
     print(message)
 
