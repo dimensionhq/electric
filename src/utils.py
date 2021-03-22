@@ -726,14 +726,13 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
 
             manager.handle_multi_install(paths)
-            sys.exit()
+
 
         # if there are multiple sets of packages in the 2d array
         elif len(split_package_names) > 1:
             for package_batch in split_package_names:
                 package_batch = list(package_batch)
                 package_batch = [x for x in package_batch if x is not None]
-                
                 if len(package_batch) == 1:
                     os.system(f'electric install {package_batch[0]}')
                     sys.exit()
@@ -840,7 +839,6 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     log_info(
                         'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
                     manager.handle_multi_install(paths)
-                sys.exit()
 
 
 def handle_external_installation(python: bool, node: bool, vscode: bool, sublime: bool, atom: bool, version, package_name, metadata: Metadata):
