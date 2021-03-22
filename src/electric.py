@@ -2219,14 +2219,19 @@ def autoupdate(
             data, indent=4), lexers.JsonLexer(), formatters.TerminalFormatter())
         print(colorful_json)
 
+
 @cli.command()
 def features():
     setting = Setting.new()
-    message = f'''
-{{ {Fore.LIGHTGREEN_EX if setting.checksum else Fore.LIGHTRED_EX}{'Enabled' if setting.checksum == True else 'Disabled'}{Fore.RESET} }} Checksum Verification - Verify the checksum of installers downloaded online.
-{{ {Fore.LIGHTGREEN_EX if setting.checksum else Fore.LIGHTRED_EX}{'Enabled' if setting.virus_check == True else 'Disabled'}{Fore.RESET} }} Runtime Malware Protection - Scan downloaded files for viruses before running the installers.
-    '''
+    message = f'''[ {Fore.LIGHTGREEN_EX if setting.show_support_message else Fore.LIGHTYELLOW_EX}{'X' if setting.show_support_message == True else ' '}{Fore.RESET} ]  Support Message {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Send a weekly developers note to request support for electric.
+[ {Fore.LIGHTGREEN_EX if setting.checksum else Fore.LIGHTYELLOW_EX}{'X' if setting.checksum == True else ' '}{Fore.RESET} ]  Checksum Verification {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Verify the checksum of installers downloaded from the internet.
+[ {Fore.LIGHTGREEN_EX if setting.virus_check else Fore.LIGHTYELLOW_EX}{'X' if setting.virus_check == True else ' '}{Fore.RESET} ]  Runtime Malware Protection {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Scan downloaded files for viruses before running the installers.
+[ {Fore.LIGHTGREEN_EX if setting.install_metrics else Fore.LIGHTYELLOW_EX}{'X' if setting.install_metrics == True else ' '}{Fore.RESET} ]  Install Metrics {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Increment a global counter for the number of installations for a certain package.
+[ {Fore.LIGHTGREEN_EX if setting.show_progress_bar else Fore.LIGHTYELLOW_EX}{'X' if setting.show_progress_bar == True else ' '}{Fore.RESET} ]  Progress Bar {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Show a progress while downloading files (shows basic percentage counter if disabled).
+[ {Fore.LIGHTGREEN_EX if setting.electrify_progress_bar else Fore.LIGHTYELLOW_EX}{'X' if setting.electrify_progress_bar == True else ' '}{Fore.RESET} ]  Electrify Progress Bar {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Add the thunder emoji to the progress bar. Only supported on terminals with emoji support.
+'''
     print(message)
+
 
 @cli.command()
 @click.argument('method', nargs=1, required=True)

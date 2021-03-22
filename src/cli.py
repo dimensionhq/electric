@@ -142,6 +142,8 @@ Usage: electric <command> [<options>]
     {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} generate
     {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} sign
   {Fore.LIGHTCYAN_EX}Customization And Cleanup{Fore.RESET}
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} feature
+    {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} features
     {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} settings
     {Fore.LIGHTMAGENTA_EX}*{Fore.RESET} cleanup'''
         click.echo(message)
