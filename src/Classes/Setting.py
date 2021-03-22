@@ -35,22 +35,22 @@ class Setting:
             progress_bar_type = settings['progressBarType']
         except KeyError:
             progress_bar_type = 'default'
-        
+
         try:
             show_progress_bar = settings['showProgressBar']
         except KeyError:
             show_progress_bar = True
-       
+
         try:
             electrify_progress_bar = settings['electrifyProgressBar']
         except KeyError:
             electrify_progress_bar = False
-       
+
         try:
            use_custom_progress_bar = settings['useCustomProgressBar']
         except KeyError:
             use_custom_progress_bar = False
-        
+
         try:
            custom_progress_bar = settings['customProgressBar']
         except KeyError:
@@ -58,12 +58,17 @@ class Setting:
 
         if use_custom_progress_bar and not custom_progress_bar:
             use_custom_progress_bar = False
-        
+
         try:
-            settings['customProgressBar']['unfill_character'] = settings['customProgressBar']['unfill_character'] if not settings['customProgressBar']['unfill_character'] == '' else ' '
+            settings['customProgressBar']['unfill_character'] = (
+                settings['customProgressBar']['unfill_character']
+                if settings['customProgressBar']['unfill_character'] != ''
+                else ' '
+            )
+
         except KeyError:
             pass
-        
+
         try:
             settings['customProgressBar']['fill_character']
         except KeyError:
@@ -76,7 +81,7 @@ class Setting:
                 settings['customProgressBar']['unfill_character'] = ' '
             except KeyError:
                 use_custom_progress_bar = False
-        
+
         try:
             show_support_message = settings['showSupportMessage']
         except KeyError:

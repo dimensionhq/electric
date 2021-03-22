@@ -66,10 +66,15 @@ class Config:
             click.echo(click.style(
                 f'Description => {self.description}', fg='bright_yellow'))
 
-            if platform == 'win32' and not self.os == 'Windows':
-                if self.os:
-                    if not confirm(f'WARNING: This Config Has A Target OS Of {self.os}. Would you like to continue?'):
-                        sys.exit()
+            if (
+                platform == 'win32'
+                and self.os != 'Windows'
+                and self.os
+                and not confirm(
+                    f'WARNING: This Config Has A Target OS Of {self.os}. Would you like to continue?'
+                )
+            ):
+                sys.exit()
 
         packages = self.dictionary['Packages'] if 'Packages' in self.headers else None
 
@@ -77,7 +82,7 @@ class Config:
             try:
                 Popen('pip', stdin=PIPE, stdout=PIPE, stderr=PIPE)
             except FileNotFoundError:
-                if not any(['python' in package for package in packages]):
+                if all('python' not in package for package in packages):
                     click.echo(click.style(
                         'Pip Not Found, Aborting Config Installation!', fg='red'))
                     sys.exit()
@@ -86,14 +91,16 @@ class Config:
             try:
                 Popen('npm', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
             except FileNotFoundError:
-                if not any(['nodejs' in package for package in packages]):
+                if all('nodejs' not in package for package in packages):
                     click.echo(click.style(
                         'Node Not Found, Aborting Config Installation!', fg='red'))
                     sys.exit()
 
         editor_type = self.dictionary['Editor-Configuration'][0]['Editor'] if 'Editor-Configuration' in self.headers else None
         if editor_type:
-            if not find_existing_installation(editor_type, 'Visual Studio Code') and not any(['vscode' in package for package in packages]):
+            if not find_existing_installation(
+                editor_type, 'Visual Studio Code'
+            ) and all('vscode' not in package for package in packages):
                 click.echo(click.style(
                     'Visual Studio Code Not Found, Aborting Config Installation!', fg='red'))
             else:
@@ -120,13 +127,21 @@ class Config:
                 packages.remove('(empty)')
 
         if version:
-            packages = str(packages).replace('\'', '').replace('[', '').replace(']', '').replace(
-                ',', '').replace('{', '').replace('}', '\n').replace(':', ' =>').strip()
-            return packages
+            return (
+                str(packages)
+                .replace('\'', '')
+                .replace('[', '')
+                .replace(']', '')
+                .replace(',', '')
+                .replace('{', '')
+                .replace('}', '\n')
+                .replace(':', ' =>')
+                .strip()
+            )
+
         else:
-            packages = str(packages).replace('\'', '').replace(
+            return str(packages).replace('\'', '').replace(
                 '[', '').replace(']', '').replace(',', '').strip().replace(' ', '\n')
-            return packages
 
     @staticmethod
     def check_pypi_name(pypi_package_name):
@@ -146,7 +161,7 @@ class Config:
         """
         extension_url = 'https://pypi.org/project'
         res = requests.get(f'{extension_url}/{pypi_package_name}/')
-        return True if res.status_code == 200 else False
+        return res.status_code == 200
 
     @staticmethod
     def check_vscode_name(extension_name):
@@ -155,32 +170,32 @@ class Config:
         """
         extension_url = 'https://marketplace.visualstudio.com/items?itemName='
         res = requests.get(f'{extension_url}{extension_name}')
-        return True if res.status_code == 200 else False
+        return res.status_code == 200
 
     @staticmethod
     def check_atom_name(extension_name):
         extension_url = 'https://atom.io/packages/'
         res = requests.get(f'{extension_url}{extension_name}')
-        return True if res.status_code == 200 else False
+        return res.status_code == 200
 
     @staticmethod
     def check_sublime_name(extension_name):
         extension_url = 'https://packagecontrol.io/packages/'
         res = requests.get(f'{extension_url}{extension_name}')
-        return True if res.status_code == 200 else False
+        return res.status_code == 200
 
     @staticmethod
     def check_node_name(extension_name):
         extension_url = 'https://www.npmjs.com/package/'
         res = requests.get(f'{extension_url}{extension_name}')
-        return True if res.status_code == 200 else False
+        return res.status_code == 200
 
     # FUTURE Yarn Support
     @staticmethod
     def check_yarn_name(extension_name):
         extension_url = 'https://yarnpkg.com/package/'
         res = requests.get(f'{extension_url}{extension_name}')
-        return True if res.status_code == 200 else False
+        return res.status_code == 200
 
     @staticmethod
     def generate_configuration(filepath: str, signed=True):

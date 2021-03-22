@@ -204,12 +204,12 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
         version, _ = output.communicate()
         version = version.decode()
         base_c = 'code-insiders'
-        if output.returncode != 0:
-            click.echo(click.style(
-                'Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
-            utils.disp_error_msg(utils.get_error_message(
-                '0111', 'install', package_name, None, metadata, package_name), metadata)
-            utils.handle_exit('error', metadata)
+    if output.returncode != 0:
+        click.echo(click.style(
+            'Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
+        utils.disp_error_msg(utils.get_error_message(
+            '0111', 'install', package_name, None, metadata, package_name), metadata)
+        utils.handle_exit('error', metadata)
 
     version = version.strip().split('\n')[0]
 
@@ -221,13 +221,13 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
             line = line.decode()
 
             if 'Installing extensions' in line:
-                if not metadata.no_color:
-                    write(
-                        f'Code v{version} :: Installing {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
-                else:
+                if metadata.no_color:
                     write(
                         f'Code v{version} :: Installing {package_name}', 'white', metadata)
 
+                else:
+                    write(
+                        f'Code v{version} :: Installing {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
             if 'is already installed' in line:
                 if not metadata.no_color:
                     write(
@@ -237,13 +237,13 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
                         f'Code v{version} :: {package_name} Is Already Installed!', 'white', metadata)
 
             if 'was successfully installed' in line:
-                if not metadata.no_color:
-                    write(
-                        f'{Fore.LIGHTGREEN_EX}Code v{version} :: Successfully Installed {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
-                else:
+                if metadata.no_color:
                     write(
                         f'Code v{version} :: Successfully Installed {package_name}', 'white', metadata)
 
+                else:
+                    write(
+                        f'{Fore.LIGHTGREEN_EX}Code v{version} :: Successfully Installed {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
     if mode == 'uninstall':
         command = f'{base_c} --uninstall-extension {package_name} --force'
         proc = Popen(mslex.split(command), stdin=PIPE,
@@ -272,74 +272,75 @@ def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
         mode (str): The method (installation/uninstallation)
         metadata (`Metadata`): Metadata for the method
     """
-    if mode == 'install':
-        if utils.find_existing_installation('sublime-text-3', 'Sublime Text 3'):
-            location = PathManager.get_appdata_directory().replace('\electric', '') + \
-                '\Sublime Text 3'
-            if os.path.isdir(location) and os.path.isfile(fr'{location}\Packages\User\Package Control.sublime-settings'):
-                with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'r') as f:
-                    lines = f.readlines()
-                    idx = 0
-                    for line in lines:
-                        if '"Package Control",' in line.strip():
-                            idx = lines.index(line)
+    if mode != 'install':
+        return
+    if utils.find_existing_installation('sublime-text-3', 'Sublime Text 3'):
+        location = PathManager.get_appdata_directory().replace('\electric', '') + \
+            '\Sublime Text 3'
+        if os.path.isdir(location) and os.path.isfile(fr'{location}\Packages\User\Package Control.sublime-settings'):
+            with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'r') as f:
+                lines = f.readlines()
+                idx = 0
+                for line in lines:
+                    if '"Package Control",' in line.strip():
+                        idx = lines.index(line)
 
-                    if ']' in lines[idx + 1].strip():
-                        lines[idx] = "        \"Package Control\""
+                if ']' in lines[idx + 1].strip():
+                    lines[idx] = "        \"Package Control\""
 
-                with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w') as f:
-                    f.writelines(lines)
+            with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w') as f:
+                f.writelines(lines)
 
-                with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'r') as f:
-                    json = js.load(f)
-                    current_packages = json['installed_packages']
-                    if package_name in current_packages:
-                        write(f'{package_name} Is Already Installed!',
-                              'white', metadata)
-                        sys.exit()
+            with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'r') as f:
+                json = js.load(f)
+                current_packages = json['installed_packages']
+                if package_name in current_packages:
+                    write(f'{package_name} Is Already Installed!',
+                          'white', metadata)
+                    sys.exit()
 
-                    current_packages.append(package_name)
-                updated_packages = current_packages
-                del json['installed_packages']
-                json['installed_packages'] = updated_packages
-                with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w+') as f:
-                    f.write(js.dumps(json, indent=4))
-                write(
-                    f'Successfully Added {package_name} to Sublime Text 3', 'white', metadata)
-            else:
-                if not os.path.isdir(location):
-                    os.mkdir(location)
-                if not os.path.isdir(fr'{location}\Installed Packages'):
-                    os.mkdir(fr'{location}\Installed Packages')
-
-                # Package Control Not Installed
-                with Halo('Installing Package Control', text_color='cyan'):
-                    urlretrieve('https://packagecontrol.io/Package%20Control.sublime-package',
-                                fr'{location}\Installed Packages\Package Control.sublime-package')
-
-                if not os.path.isdir(fr'{location}\Packages'):
-                    os.mkdir(fr'{location}\Packages')
-                if not os.path.isdir(fr'{location}\Packages\User'):
-                    os.mkdir(fr'{location}\Packages\User')
-
-                with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w+') as f:
-                    f.write(
-                        js.dumps({
-                            "bootstrapped": True,
-                            "installed_packages": [
-                                "Package Control"
-                            ]},
-                            indent=4
-                        )
-                    )
-
-                handle_sublime_extension(package_name, mode, metadata)
+                current_packages.append(package_name)
+            updated_packages = current_packages
+            del json['installed_packages']
+            json['installed_packages'] = updated_packages
+            with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w+') as f:
+                f.write(js.dumps(json, indent=4))
+            write(
+                f'Successfully Added {package_name} to Sublime Text 3', 'white', metadata)
         else:
-            click.echo(click.style(
-                'Sublime Text 3 Is Not Installed. Exit Code [0112]', fg='bright_yellow'))
-            utils.disp_error_msg(utils.get_error_message(
-                '0112', 'install', package_name, None, metadata, package_name), metadata)
-            utils.handle_exit('error', metadata)
+            if not os.path.isdir(location):
+                os.mkdir(location)
+            if not os.path.isdir(fr'{location}\Installed Packages'):
+                os.mkdir(fr'{location}\Installed Packages')
+
+            # Package Control Not Installed
+            with Halo('Installing Package Control', text_color='cyan'):
+                urlretrieve('https://packagecontrol.io/Package%20Control.sublime-package',
+                            fr'{location}\Installed Packages\Package Control.sublime-package')
+
+            if not os.path.isdir(fr'{location}\Packages'):
+                os.mkdir(fr'{location}\Packages')
+            if not os.path.isdir(fr'{location}\Packages\User'):
+                os.mkdir(fr'{location}\Packages\User')
+
+            with open(fr'{location}\Packages\User\Package Control.sublime-settings', 'w+') as f:
+                f.write(
+                    js.dumps({
+                        "bootstrapped": True,
+                        "installed_packages": [
+                            "Package Control"
+                        ]},
+                        indent=4
+                    )
+                )
+
+            handle_sublime_extension(package_name, mode, metadata)
+    else:
+        click.echo(click.style(
+            'Sublime Text 3 Is Not Installed. Exit Code [0112]', fg='bright_yellow'))
+        utils.disp_error_msg(utils.get_error_message(
+            '0112', 'install', package_name, None, metadata, package_name), metadata)
+        utils.handle_exit('error', metadata)
 
 
 def handle_atom_package(package_name: str, mode: str, metadata: Metadata):

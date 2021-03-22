@@ -9,16 +9,16 @@ def initialize_settings():
     """
     Initializes the settings file and directory if it doesn't exist. Writes default settings to the file.
     """    
-    default_electric_settings = {
-        "$schema": "https://github.com/electric-package-manager/electric/blob/master/settings-schema.json",
-        "progressBarType": "accented",
-        "showProgressBar": True,
-        "electrifyProgressBar": False
-    }
-
     if not os.path.isdir(PathManager.get_appdata_directory()):
-        os.mkdir(PathManager.get_appdata_directory()) 
+        os.mkdir(PathManager.get_appdata_directory())
     with open(settings_dir, 'w+') as f:
+        default_electric_settings = {
+            "$schema": "https://github.com/electric-package-manager/electric/blob/master/settings-schema.json",
+            "progressBarType": "accented",
+            "showProgressBar": True,
+            "electrifyProgressBar": False
+        }
+
         f.write(json.dumps(default_electric_settings, indent=4))
 
 def read_settings() -> dict:

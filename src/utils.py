@@ -49,10 +49,7 @@ appdata_dir = PathManager.get_appdata_directory()
 
 def confirm(prompt: str):
     value = input(f'{prompt} (Y/n): ')
-    if value in ['y', 'yes', 'Y', 'YES', 'Yes']:
-        return True
-    else:
-        return False
+    return value in ['y', 'yes', 'Y', 'YES', 'Yes']
 
 
 def append_to_path(input_dir: str):
@@ -177,28 +174,25 @@ def generate_dict(path: str, package_name: str) -> dict:
 
 def download_installer(packet: Packet, download_url: str, metadata: Metadata):
     if metadata.rate_limit == -1:
-        path = download(download_url, packet.json_name,
+        return download(download_url, packet.json_name,
                         metadata, packet.win64_type)
-    else:
-        log_info(
-            f'Starting rate-limited installation => {metadata.rate_limit}', metadata.logfile)
-        bucket = TokenBucket(tokens=10 * metadata.rate_limit,
-                             fill_rate=metadata.rate_limit)
+    log_info(
+        f'Starting rate-limited installation => {metadata.rate_limit}', metadata.logfile)
+    bucket = TokenBucket(tokens=10 * metadata.rate_limit,
+                         fill_rate=metadata.rate_limit)
 
-        limiter = Limiter(
-            bucket=bucket,
-            filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
-        )
+    limiter = Limiter(
+        bucket=bucket,
+        filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
+    )
 
-        urlretrieve(
-            url=download_url,
-            filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
-            reporthook=limiter
-        )
+    urlretrieve(
+        url=download_url,
+        filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
+        reporthook=limiter
+    )
 
-        path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
-
-    return path
+    return f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
 
 
 def dump_pickle(data: dict, filename: str):
@@ -225,34 +219,32 @@ def retrieve_data(filename: str) -> dict:
     """
     if os.path.isfile(Rf'{tempfile.gettempdir()}\electric\{filename}.pickle'):
         with open(Rf'{tempfile.gettempdir()}\electric\{filename}.pickle', 'rb') as f:
-            final = pickle.loads(f.read())
-            return final
+            return pickle.loads(f.read())
 
 
 def check_existing_download(package_name: str, download_type) -> bool:
     data = retrieve_data('downloadcache')
-    if data:
-        if data['package_name'] == package_name:
+    if data and data['package_name'] == package_name:
+        try:
+            filesize = os.stat(data['directory'] + download_type).st_size
+        except FileNotFoundError:
+
+            if download_type not in data['directory']:
+                os.rename(data['directory'],
+                          data['directory'] + download_type)
             try:
-                filesize = os.stat(data['directory'] + download_type).st_size
+                filesize = os.stat(data['directory']).st_size
             except FileNotFoundError:
-
-                if download_type not in data['directory']:
-                    os.rename(data['directory'],
-                              data['directory'] + download_type)
                 try:
-                    filesize = os.stat(data['directory']).st_size
-                except FileNotFoundError:
-                    try:
-                        filesize = os.stat(
-                            data['directory'] + download_type).st_size
-                    except:
-                        return False
+                    filesize = os.stat(
+                        data['directory'] + download_type).st_size
+                except:
+                    return False
 
-            if filesize < data['size']:
-                # Corrupt Installation
-                return False
-            return data['directory']
+        if filesize < data['size']:
+            # Corrupt Installation
+            return False
+        return data['directory']
     return False
 
 
@@ -267,7 +259,7 @@ def get_chunk_size(total_size: str) -> int:
         int: Chunk iter size for downloading the file
     """
     size = int(total_size)
-    size = size / 1000000
+    size /= 1000000
     if size < 7:
         return 4096
     else:
@@ -324,9 +316,7 @@ def send_req_bundle(bundle_name: str) -> dict:
         print(f'{Fore.LIGHTRED_EX}{bundle_name} not found! {Fore.RESET}')
         sys.exit()
 
-    res = response.json()
-
-    return res
+    return response.json()
 
 
 def get_init_char(start, metadata) -> str:
@@ -336,14 +326,14 @@ def get_init_char(start, metadata) -> str:
                 metadata.settings.raw_dictionary['customProgressBar']['start_character']
         except:
             return ''
-        return start_char if start_char else ''
+        return start_char or ''
     else:
         try:
             end_char = Fore.RESET + \
                 metadata.settings.raw_dictionary['customProgressBar']['end_character']
         except:
             return ''
-        return end_char if end_char else ''
+        return end_char or ''
 
 
 def get_character_color(fill, metadata):
@@ -507,7 +497,9 @@ def install_msix_package(path: str):
 
 
 def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
-    if portable and 'is-portable' not in list(res.keys()):
+    if not portable:
+        return
+    if 'is-portable' not in list(res.keys()):
         keys = list(pkg[pkg['latest-version']].keys())
         data = {
             'display-name': res['display-name'],
@@ -531,7 +523,7 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
         install_portable(portable_packet, metadata)
         sys.exit()
 
-    elif portable and 'is-portable' in list(res.keys()):
+    elif 'is-portable' in list(res.keys()):
         keys = list(pkg[pkg['latest-version']].keys())
         data = {
             'display-name': pkg['display-name'],
@@ -584,7 +576,7 @@ def generate_shim(shim_command: str, shim_name: str, shim_extension: str, overri
 
 
 def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadata: Metadata):
-    if portable and not 'is-portable' in list(res.keys()):
+    if portable and 'is-portable' not in list(res.keys()):
         keys = list(pkg[pkg['latest-version']].keys())
 
         data = {
@@ -609,7 +601,7 @@ def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadat
         uninstall_portable(portable_packet, metadata)
         sys.exit()
 
-    elif portable and 'is-portable' in list(res.keys()):
+    elif portable:
         keys = list(pkg[pkg['latest-version']].keys())
         data = {
             'display-name': pkg['display-name'],
@@ -1131,23 +1123,27 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
 
     log_info('Finding existing installation of package', metadata.logfile)
 
-    if packet.win64_type in ['.msix', '.msixbundle', '.appx', '.appxbundle']:
-        if find_msix_installation(packet.raw['uninstall-bundle-identifier']):
-            log_info('Found existing installation of package', metadata.logfile)
-            write_debug(
-                f'Found existing installation of {packet.json_name}.', metadata)
-            write_verbose(
-                f'Found an existing installation of => {packet.json_name}', metadata)
-            write(
-                f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
-            installation_continue = confirm(
-                f'Would you like to reinstall {packet.display_name}?')
-            if installation_continue or metadata.yes:
-                os.system(f'electric uninstall {packet.json_name}')
-                os.system(f'electric install {packet.json_name}')
+    if packet.win64_type in [
+        '.msix',
+        '.msixbundle',
+        '.appx',
+        '.appxbundle',
+    ] and find_msix_installation(packet.raw['uninstall-bundle-identifier']):
+        log_info('Found existing installation of package', metadata.logfile)
+        write_debug(
+            f'Found existing installation of {packet.json_name}.', metadata)
+        write_verbose(
+            f'Found an existing installation of => {packet.json_name}', metadata)
+        write(
+            f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
+        installation_continue = confirm(
+            f'Would you like to reinstall {packet.display_name}?')
+        if installation_continue or metadata.yes:
+            os.system(f'electric uninstall {packet.json_name}')
+            os.system(f'electric install {packet.json_name}')
 
-            else:
-                sys.exit()
+        else:
+            sys.exit()
 
     if 'test-existing-installation' in list(packet.raw.keys()):
         configs = {
@@ -1155,9 +1151,11 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
         }
 
         ldict = {}
-        code = ''''''
-        for line in packet.raw['test-existing-installation']['code']:
-            code += line + '\n'
+        code = ''''''.join(
+            line + '\n'
+            for line in packet.raw['test-existing-installation']['code']
+        )
+
         exec(code, globals(), ldict)
 
         for k in configs:
@@ -1200,9 +1198,8 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
 
 def get_package_version(pkg, res, version, portable: bool, nightly: bool, metadata: Metadata):
     # if the package is portable by default (it doesn't have an installer)
-    if 'is-portable' in list(pkg.keys()):
-        if pkg['is-portable'] == True:
-            portable = True
+    if 'is-portable' in list(pkg.keys()) and pkg['is-portable'] == True:
+        portable = True
 
     # if the user has not specified a specific version to install and the user the software is not portable
     if not version and not portable:
@@ -1264,7 +1261,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             if f'exit status {code}' in error:
                 return ['no-error']
 
-    if method == 'uninstallation':
+    elif method == 'uninstallation':
         for code in valid_u_exit_codes:
             if f'exit status {code}' in error:
                 return ['no-error']
@@ -1276,9 +1273,11 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
 
     if 'exit status 1603' in error:
         if method == 'installation' and not is_admin():
-            flags = ''
-            for flag in get_install_flags(packet.directory, metadata):
-                flags += f' {flag}'
+            flags = ''.join(
+                f' {flag}'
+                for flag in get_install_flags(packet.directory, metadata)
+            )
+
             sys.stdout.write('\n')
             click.echo(click.style(
                 f'The {packet.display_name} Installer Has Requested Administrator Permissions, Using Auto-Elevate', 'bright_yellow'))
@@ -1286,9 +1285,11 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
                 rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
         if method == 'uninstallation' and not is_admin():
-            flags = ''
-            for flag in get_install_flags(packet.directory, metadata):
-                flags += f' {flag}'
+            flags = ''.join(
+                f' {flag}'
+                for flag in get_install_flags(packet.directory, metadata)
+            )
+
             flags = flags.replace(' --sync', '')
             flags = flags.replace(' --install-dir', '')
             flags = flags.replace(' --reduce', '')
@@ -1316,9 +1317,10 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     if '[WinError 740]' in error and 'elevation' in error:
         # Process Needs Elevation To Execute
         if method == 'installation':
-            flags = ''
-            for flag in get_install_flags(packet.directory, metadata):
-                flags += f' {flag}'
+            flags = ''.join(
+                f' {flag}'
+                for flag in get_install_flags(packet.directory, metadata)
+            )
 
             click.echo(click.style(
                 f'The {packet.display_name} Installer Requested Administrator Permissions, Using Auto-Elevate', 'bright_yellow'))
@@ -1326,9 +1328,11 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
                 rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
         if method == 'uninstallation':
-            flags = ''
-            for flag in get_install_flags(packet.directory, metadata):
-                flags += f' {flag}'
+            flags = ''.join(
+                f' {flag}'
+                for flag in get_install_flags(packet.directory, metadata)
+            )
+
             flags = flags.replace(' --sync', '')
             flags = flags.replace(' --install-dir', '')
             flags = flags.replace(' --reduce', '')
@@ -1353,15 +1357,8 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
             f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
         return get_error_message('0002', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
-    if 'exit status 3010' or 'exit status 2359301' in error:
-        # Installer Requesting Reboot
-        return get_error_message('1010', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
-
-    else:
-        click.echo(click.style(
-            f'\nUnknown Error. Exited With Code [0000]', fg='red'))
-        handle_unknown_error(error)
-        return get_error_message('0000', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
+    # Installer Requesting Reboot
+    return get_error_message('1010', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
 
 def get_file_type(command: str) -> str:
@@ -1402,16 +1399,15 @@ def run_cmd(command: str, metadata: Metadata, method: str, packet: Packet) -> bo
     write_debug(f'{command}', metadata)
     try:
         exit_code = check_call(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        if exit_code == 0:
-            return False
-        return True
+        return exit_code != 0
     except (CalledProcessError, OSError, FileNotFoundError) as err:
         disp_error_msg(get_error_cause(str(err), packet.install_exit_codes,
                                        packet.uninstall_exit_codes, method, metadata, packet), metadata)
 
 
 def display_support(metadata: Metadata):
-    message = '''
+    if metadata.settings.show_support_message:
+        message = '''
 ---Developer's Note---
 Hey, I'm Tejas Ravishankar, 14 year old founder and developer of the electric package manager.
 
@@ -1421,8 +1417,7 @@ If you like electric would like to support it, it would be absolutely incredible
 Additionally, would be out of this world if you could rate this a 5 star project on G2Crowd! Thanks!
 This message can be disabled by running `electric feature disable support-message`.
     '''
-    
-    if metadata.settings.show_support_message:
+
         if not os.path.isfile(f'{PathManager.get_appdata_directory()}\support.txt'):
             with open(f'{PathManager.get_appdata_directory()}\support.txt', 'w+') as f:
                 f.write(
@@ -1454,7 +1449,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
     keyboard.add_hotkey(
         'ctrl+c', lambda: handle_exit('Installing', path.split('\\')[-1], metadata))
 
-    if download_type == '.msix' or download_type == '.msixbundle' or download_type == '.appxbundle':
+    if download_type in ['.msix', '.msixbundle', '.appxbundle']:
         install_msix_package(path)
         register_package_success(packet, '', metadata)
         write(
@@ -1468,28 +1463,27 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             path = path + '.exe'
         command = path + ' '
 
-        if custom_install_switch:
-            if directory and directory != '':
-                if '/D=' in custom_install_switch:
-                    idx = 0
-                    for switch in switches:
-                        if idx == 0:
-                            command = command + switch
-                            continue
-                        command = command + ' ' + switch
-                        idx += 1
+        if custom_install_switch and directory and directory != '':
+            if '/D=' in custom_install_switch:
+                idx = 0
+                for switch in switches:
+                    if idx == 0:
+                        command = command + switch
+                        continue
+                    command = command + ' ' + switch
+                    idx += 1
 
-                    command += ' ' + custom_install_switch + f'{directory}'
+                command += ' ' + custom_install_switch + f'{directory}'
 
-                else:
-                    for switch in switches:
-                        command += ' ' + switch
+            else:
+                for switch in switches:
+                    command += ' ' + switch
 
-                    command += ' ' + custom_install_switch + f'"{directory}"'
+                command += ' ' + custom_install_switch + f'"{directory}"'
 
-                if custom_install_switch == 'None':
-                    write(
-                        f'Installing {packet.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', 'bright_yellow', metadata)
+            if custom_install_switch == 'None':
+                write(
+                    f'Installing {packet.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', 'bright_yellow', metadata)
 
         if not directory:
             for switch in switches:
@@ -1505,9 +1499,11 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             command = command + ' ' + switch
 
         if not is_admin():
-            flags = ''
-            for flag in get_install_flags(packet.directory, metadata):
-                flags += f' {flag}'
+            flags = ''.join(
+                f' {flag}'
+                for flag in get_install_flags(packet.directory, metadata)
+            )
+
             click.echo(click.style(
                 f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'bright_yellow'))
             os.system(
@@ -1528,17 +1524,17 @@ def get_configuration_data(username: str, description: str, uses_editor: bool, i
 
     if uses_editor and include_editor and editor:
         base_configuration.append('\n[ Editor-Configuration ]\n')
-        if editor == 'Visual Studio Code':
-            base_configuration.append(
-                f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<vscode:name>\n')
-
-        if editor == 'Visual Studio Code Insiders':
-            base_configuration.append(
-                f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<vscode-insiders:name>\n')
-
         if editor == 'Atom':
             base_configuration.append(
                 f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<atom:name>\n')
+
+        elif editor == 'Visual Studio Code Insiders':
+            base_configuration.append(
+                f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<vscode-insiders:name>\n')
+
+        elif editor == 'Visual Studio Code':
+            base_configuration.append(
+                f'Editor => \"{editor}\"\n\n[ Editor-Extensions ]\n<vscode:name>\n')
 
     if include_python:
         base_configuration.append('\n[ Pip-Packages ]\n<pip:name>\n')
@@ -1727,11 +1723,11 @@ def kill_running_proc(package_name: str, display_name: str, metadata: Metadata):
         metadata (`Metadata`): Metadata for the uninstallation
     """
     parts = package_name.split('-')
-    name = ' '.join([p.capitalize() for p in parts])
+    name = ' '.join(p.capitalize() for p in parts)
     pid = int(find_approx_pid(display_name))
     if pid == 1:
         return
-    if pid and pid != 1:
+    if pid:
         if metadata.yes:
             write(f'Terminating {name}.', 'bright_green', metadata)
             os.kill(pid, SIGTERM)
@@ -1767,11 +1763,11 @@ def kill_proc(proc, metadata: Metadata):
               'bright_green', metadata)
         write('\nRapidExit Using Gateway From SafetyHarness Successfully Exited With Code 0',
               'bright_cyan', metadata)
-        os._exit(0)
     else:
         write('\nRapidExit Successfully Exited With Code 0',
               'bright_green', metadata)
-        os._exit(0)
+
+    os._exit(0)
 
 
 def assert_cpu_compatible() -> int:
@@ -1790,9 +1786,7 @@ def find_msix_installation(bundle_id: str):
     proc = Popen(
         f'powershell.exe -noprofile Get-AppxPackage *{bundle_id}*', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
     output, err = proc.communicate()
-    if output.decode() and not err.decode():
-        return True
-    return False
+    return bool(output.decode() and not err.decode())
 
 
 def find_existing_installation(package_name: str, display_name: str, test=True):
@@ -1812,9 +1806,7 @@ def find_existing_installation(package_name: str, display_name: str, test=True):
         '@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current')]
     if key:
         if not test:
-            if package_name in installed_packages:
-                return True
-            return False
+            return package_name in installed_packages
         return True
     return False
 
@@ -1879,16 +1871,14 @@ def check_virus(path: str, metadata: Metadata, h: Halo):
             if not metadata.silent and not metadata.no_color:
                 click.echo(click.style(
                     f'\n{value[0]} : {value[1]}', fg='bright_yellow'))
-            elif metadata.no_color and not metadata.silent:
+            elif not metadata.silent:
                 click.echo(click.style(
                     f'\n{value[0]} : {value[1]}', fg='white'))
             else:
                 continue_install = 'y'
         if not metadata.silent:
             continue_install = confirm('Would You Like To Continue?')
-            if continue_install:
-                pass
-            else:
+            if not continue_install:
                 handle_exit('Virus Check', '', metadata)
     else:
         click.echo(click.style('No Viruses Detected!', fg='bright_green'))
@@ -1917,9 +1907,7 @@ def check_newer_version(package_name: str, packet: Packet, installed_packages: l
         data = json.load(f)
 
     installed_version = data['version']
-    if installed_version != packet.version:
-        return True
-    return False
+    return installed_version != packet.version
 
 
 def check_newer_version_local(new_version) -> bool:
@@ -1935,9 +1923,7 @@ def check_newer_version_local(new_version) -> bool:
     current_version = int(info.__version__.replace(
         '.', '').replace('a', '').replace('b', ''))
     new_version = int(new_version.replace('.', ''))
-    if current_version < new_version:
-        return True
-    return False
+    return current_version < new_version
 
 
 def check_for_updates():
@@ -2043,7 +2029,7 @@ def disp_error_msg(messages: list, metadata: Metadata):
                 continue
             if 'electric install' in msg:
                 commands.append(re.findall(r'\`(.*?)`', msg))
-            if 'NAME' and 'VERSION' in msg:
+            if 'VERSION' in msg:
                 click.echo(click.style(msg, fg='bright_green'))
                 support_ticket = True
                 break
@@ -2070,8 +2056,8 @@ def disp_error_msg(messages: list, metadata: Metadata):
 
         if reboot:
             reboot = confirm('Would you like to reboot?')
-            if reboot:
-                os.system('shutdown /R')
+        if reboot:
+            os.system('shutdown /R')
 
         if commands:
             run = confirm(
@@ -2253,11 +2239,7 @@ def handle_unknown_error(err: str, pacakge_name: str, method: str, exit_code: st
         except IndexError:
             continue
 
-    count = 0
-    for name in cleaned_up_names:
-        if name == 'powershell' or name == 'cmd':
-            count += 1
-
+    count = sum(name in ['powershell', 'cmd'] for name in cleaned_up_names)
     return count >= 2
 
 
@@ -2360,9 +2342,10 @@ def register_package_success(packet: Packet, install_dir: str, metadata: Metadat
         'json-name': packet.json_name,
         'version': packet.version,
         'custom-location-switch': packet.custom_location,
-        'custom-install-directory': packet.directory if packet.directory else '',
-        'flags': get_install_flags(install_dir, metadata)
+        'custom-install-directory': packet.directory or '',
+        'flags': get_install_flags(install_dir, metadata),
     }
+
     pkg_dir = PathManager.get_appdata_directory() + r'\Current'
     with open(rf'{pkg_dir}\{packet.json_name}@{packet.version}.json', 'w+') as f:
         f.write(json.dumps(data, indent=4))

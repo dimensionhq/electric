@@ -73,7 +73,7 @@ class Debugger:
             print(
                 f' {Fore.LIGHTGREEN_EX}0{Fore.RESET}{Fore.LIGHTRED_EX} of {Fore.RESET}{Fore.LIGHTYELLOW_EX}5{Fore.RESET}{Fore.LIGHTRED_EX} pings successfully went through.{Fore.RESET} Failed to debug error. Your internet connection is unstable.')
 
-        elif True not in status_arr and False in status_arr:
+        elif False in status_arr:
             print(
                 f' {Fore.LIGHTGREEN_EX}0{Fore.RESET}{Fore.LIGHTRED_EX} of {Fore.RESET}{Fore.LIGHTYELLOW_EX}5{Fore.RESET}{Fore.LIGHTRED_EX} pings successfully went through.{Fore.RESET} Debugging error. Your internet connection is unstable.')
             with Halo('Renewing IP Configuration') as h:
@@ -82,14 +82,17 @@ class Debugger:
                 output, _ = proc.communicate()
                 output = output.decode('utf-8')
 
-                if 'No operation can be performed on Wi-Fi' and 'while it has its media disconnected' in output:
+                if 'while it has its media disconnected' in output:
                     h.stop()
                     print(
                         f'{Fore.LIGHTGREEN_EX}\nSuccessfully Debugged Network Connection{Fore.RESET}')
                     print('Report:')
                     print(
                         f'You might not have {Fore.LIGHTCYAN_EX}selected{Fore.RESET} any internet to connect to. No external network connections have been {Fore.LIGHTYELLOW_EX}detected{Fore.RESET} as they are {Fore.LIGHTRED_EX}disconnected{Fore.RESET}.\nPlease make sure you {Fore.LIGHTGREEN_EX}connect{Fore.RESET} them and then {Fore.LIGHTMAGENTA_EX}try the command again.{Fore.RESET}')
-                elif 'No operation can be performed on Ethernet' and 'while it has its media connected' in output and not 'No operation can be performed on Wi-Fi' in output:
+                elif (
+                    'while it has its media connected' in output
+                    and 'No operation can be performed on Wi-Fi' not in output
+                ):
                     h.stop()
                     print(
                         f'{Fore.LIGHTGREEN_EX}\nSuccessfully Debugged Network Connection{Fore.RESET}')
@@ -97,6 +100,6 @@ class Debugger:
                     print(
                         f'You might not have {Fore.LIGHTCYAN_EX}plugged in{Fore.RESET} any ethernet cable to connect to. No external network connections have been {Fore.LIGHTYELLOW_EX}detected{Fore.RESET} as they are {Fore.LIGHTRED_EX}disconnected{Fore.RESET}.\nPlease make sure you {Fore.LIGHTGREEN_EX}connect{Fore.RESET} the ethernet cable {Fore.LIGHTMAGENTA_EX}try the command again.{Fore.RESET}')
 
-        elif True in status_arr and not False in status_arr:
+        elif True in status_arr:
             print(
                 f'{Fore.LIGHTGREEN_EX}No Internet Issues Found. Retry The Command!{Fore.RESET}')
