@@ -461,7 +461,6 @@ def install(
         if f'{packet.win64_type}{packet.win64_type}' in configs['path']:
             configs['path'] = configs['path'].replace(
                 f'{packet.win64_type}{packet.win64_type}', f'{packet.win64_type}')
-
         
 
         if packet.checksum and metadata.settings.checksum:
