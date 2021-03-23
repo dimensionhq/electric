@@ -135,12 +135,9 @@ class ThreadedInstaller:
 
         download_items = []
         if len(packets) > 1:
-            idx = 0
-            for packet in packets:
+            for idx, packet in enumerate(packets):
                 download_items.append(Download(packet.win64, packet.win64_type,
                                                f'Setup{idx}', packet.display_name, f"{tempfile.gettempdir()}\\Setup{idx}{packet.win64_type}"))
-                idx += 1
-
         elif len(packets) == 1:
             download_items.append(Download(packets[0].win64, packets[0].win64_type, 'Setup0',
                                            packets[0].display_name, f"{tempfile.gettempdir()}\\Setup0{packets[0].win64_type}"))
@@ -154,10 +151,11 @@ class ThreadedInstaller:
         method = self.calculate_spwn(len(packets))
 
         if method == 'threading':
-            threads = []
+            threads = [
+                Thread(target=self.download, args=(item,))
+                for item in download_items
+            ]
 
-            for item in download_items:
-                threads.append(Thread(target=self.download, args=(item,)))
 
             for thread in threads:
                 thread.start()
@@ -166,11 +164,8 @@ class ThreadedInstaller:
                 x.join()
 
         if method == 'processing':
-            processes = []
-
-            for item in download_items:
-                processes.append(multiprocessing.Process(
-                    target=self.download, args=(item,)))
+            processes = [multiprocessing.Process(
+                    target=self.download, args=(item,)) for item in download_items]
 
             for process in processes:
                 process.start()
@@ -255,10 +250,7 @@ class ThreadedInstaller:
 
             else:
                 string = ''
-                if 'other' in list(item.keys()):
-                    string = 'other'
-                else:
-                    string = 'exe'
+                string = 'other' if 'other' in list(item.keys()) else 'exe'
                 for val in item[string]:
                     write_debug(
                         f'Running Installer For <{val.display_name}> On Thread {item[string].index(val)}', self.metadata)
@@ -282,8 +274,67 @@ class ThreadedInstaller:
                 os.remove(path)
             write('Successfully Cleaned Up Installer From Temp Directory...',
                   'bright_green', self.metadata)
-
+        
         for packet in self.packets:
+            metadata = self.metadata
+
+            if packet.add_path:
+                replace_install_dir = ''
+
+                if packet.directory:
+                    replace_install_dir = packet.directory
+
+                elif packet.default_install_dir:
+                    replace_install_dir = packet.default_install_dir
+
+                write(
+                    f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
+                write_verbose(
+                    f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
+                log_info(
+                    f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', metadata.logfile)
+                utils.append_to_path(packet.add_path.replace(
+                    '<install-directory>', replace_install_dir))
+
+            if packet.set_env:
+                name = packet.set_env['name']
+                replace_install_dir = ''
+
+                if packet.directory:
+                    replace_install_dir = packet.directory
+
+                elif packet.default_install_dir:
+                    replace_install_dir = packet.default_install_dir
+
+                write(
+                    f'Setting Environment Variable {name}', 'bright_green', metadata)
+                write_verbose(
+                    f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', 'bright_green', metadata)
+                log_info(
+                    f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
+
+                set_environment_variable(
+                    name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
+
+            if packet.shim:
+                
+                for shim in packet.shim:
+                    replace_install_dir = ''
+
+                if packet.directory:
+                    replace_install_dir = packet.directory
+
+                elif packet.default_install_dir:
+                    replace_install_dir = packet.default_install_dir
+
+                shim = shim.replace(
+                    '<install-directory>', replace_install_dir)
+                shim_name = shim.split("\\")[-1].split('.')[0]
+                write(
+                    f'Generating Shim For {shim_name}', 'cyan', metadata)
+                utils.generate_shim(
+                    shim, shim_name, shim.split('.')[-1])
+            
             utils.register_package_success(
                 packet, packet.directory, self.metadata)
 

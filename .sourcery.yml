@@ -1,0 +1,11 @@
+# Code Metrics configuration - VS Code extension (beta)
+metrics:
+  # These are shown at the method level when hovering the mouse
+  # over the method name.
+  #
+  # The quality score is a percentage.
+  #
+  # Methods with a quality lower than this threshold will be flagged
+  # as warnings. The default threshold is 25.0
+  #
+  quality_threshold: 25.0

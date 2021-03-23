@@ -20,7 +20,7 @@ Electric believes in incredible **efficiency**, and is the only Windows package 
 
 Built for today's systems and with good support for lower specced systems, Electric runs smoothly even on systems with as little as 2 GB of ram!
 
-**Note**: Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at [issues](https://github.com/electric-package-manager/electric/issues).
+**Note**: Since electric is in an alpha phase, it might not be completely stable yet. Feel free to open any issues or bug reports at [issues](https://github.com/electric-package-manager/electric/issues/).
 <br>
 
 # :zap: Installation

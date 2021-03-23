@@ -17,9 +17,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
             f'Found Existing Installation Of {packet.display_name}', 'bright_yellow', metadata)
         continue_installation = confirm(
             f'Would you like to reinstall {packet.display_name}?')
-        if continue_installation:
-            pass
-        else:
+        if not continue_installation:
             sys.exit()
 
     if packet.dependencies:
@@ -32,7 +30,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
         f'Downloading {packet.json_name}{packet.file_type} from {packet.url}', metadata)
     log_info(
         f'Downloading {packet.json_name}{packet.file_type} from {packet.url}', metadata)
-    show_progress_bar = True if not metadata.silent and not metadata.no_progress else False
+    show_progress_bar = not metadata.silent and not metadata.no_progress
 
     if isinstance(packet.url, str):
         download(packet, packet.url, '.zip', rf'{home}\electric\\' + f'{packet.extract_dir}@{packet.latest_version}',
@@ -42,8 +40,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                                '.zip', extract_dir, packet.file_type, metadata)
 
     elif isinstance(packet.url, list):
-        idx = 0
-        for url in packet.url:
+        for idx, url in enumerate(packet.url):
             if idx == 0:
                 download(packet, url['url'], '.zip', rf'{home}\electric\\' + f'{packet.extract_dir}@{packet.latest_version}',
                          metadata, show_progress_bar=show_progress_bar, is_zip=True)
@@ -55,8 +52,6 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                     f'Downloading {url["file-name"]}{url["file-type"]}', 'cyan', metadata)
                 download(packet, url['url'], url['file-type'],
                          rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}\\{url["file-name"]}', metadata, show_progress_bar=False, is_zip=False)
-
-            idx += 1
 
     if packet.pre_install:
         if packet.pre_install['type'] == 'powershell':
@@ -83,7 +78,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
             write('Successfully Executed Pre-Install Code',
                   'bright_green', metadata)
 
-        if packet.pre_install['type'] == 'bat' or packet.pre_install['type'] == 'cmd':
+        if packet.pre_install['type'] in ['bat', 'cmd']:
             packet.pre_install['code'] = [l.replace('<dir>', unzip_dir.replace(
                 '\\\\', '\\')) for l in packet.pre_install['code']]
 
@@ -108,10 +103,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                   'bright_green', metadata)
 
         if packet.pre_install['type'] == 'python':
-            code = ''''''
-
-            for l in packet.pre_install['code']:
-                code += l + '\n'
+            code = ''''''.join(l + '\n' for l in packet.pre_install['code'])
 
             exec(code)
 
@@ -119,24 +111,23 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
         dir = packet.chdir
         unzip_dir += f'\\{dir}\\'
 
-    if packet.bin:
-        if isinstance(packet.bin, list):
-            for bin in packet.bin:
-                shim_dir = unzip_dir
-                shim = ''.join(bin.split('.')[:-1])
+    if packet.bin and isinstance(packet.bin, list):
+        for bin in packet.bin:
+            shim_dir = unzip_dir
+            shim = ''.join(bin.split('.')[:-1])
+            shim_ext = bin.split('.')[-1]
+            if '\\' in bin:
+                shim = ''.join(bin.split('\\')[-1])
+                shim = ''.join(shim.split('.')[:-1])
                 shim_ext = bin.split('.')[-1]
-                if '\\' in bin:
-                    shim = ''.join(bin.split('\\')[-1])
-                    shim = ''.join(shim.split('.')[:-1])
-                    shim_ext = bin.split('.')[-1]
-                    shim_dir += ' '.join(bin.split('\\')
-                                         [:-1]).replace(' ', '\\')
+                shim_dir += ' '.join(bin.split('\\')
+                                     [:-1]).replace(' ', '\\')
 
-                start = timer()
-                generate_shim(f'{shim_dir}', shim, shim_ext)
-                end = timer()
-                write(
-                    f'{Fore.LIGHTCYAN_EX}Successfully Generated {shim} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)
+            start = timer()
+            generate_shim(f'{shim_dir}', shim, shim_ext)
+            end = timer()
+            write(
+                f'{Fore.LIGHTCYAN_EX}Successfully Generated {shim} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)
 
     if shortcuts:
         for shortcut in shortcuts:
