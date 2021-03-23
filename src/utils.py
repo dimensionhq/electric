@@ -1268,7 +1268,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
         for switch in switches:
             command = command + ' ' + switch
 
-        if custom_install_switch and directory != '':
+        if custom_install_switch and directory != '' and directory != None:
             command = command + ' ' + custom_install_switch + f'\"{directory}\"'
 
 
@@ -1641,8 +1641,9 @@ def check_virus(path: str, metadata: Metadata, h: Halo):
         metadata (`Metadata`): Metadata for the installation
     """
     detected = virus_check(path)
-
-    h.stop()
+    
+    if h:
+        h.stop()
 
     write(f'{len(detected)} Of 70 Antiviruses Detected The Software As A Virus',
           'white', metadata)

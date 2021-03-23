@@ -139,10 +139,10 @@ class ThreadedInstaller:
         if len(packets) > 1:
             for idx, packet in enumerate(packets):
                 download_items.append(Download(packet.win64, packet.win64_type,
-                                               f'Setup{idx}', packet.display_name, f"{tempfile.gettempdir()}\\Setup{idx}{packet.win64_type}"))
+                                               f'Setup{idx}', packet.display_name, f"{tempfile.gettempdir()}\\electric\\Setup{idx}{packet.win64_type}"))
         elif len(packets) == 1:
             download_items.append(Download(packets[0].win64, packets[0].win64_type, 'Setup0',
-                                           packets[0].display_name, f"{tempfile.gettempdir()}\\Setup0{packets[0].win64_type}"))
+                                           packets[0].display_name, f"{tempfile.gettempdir()}\\electric\\Setup0{packets[0].win64_type}"))
 
         for item in download_items:
             write_verbose(
@@ -179,7 +179,7 @@ class ThreadedInstaller:
             if self.metadata.virus_check:
                 write(
                     f'\nScanning {item.display_name} For Viruses...', 'bright_cyan', metadata)
-                utils.check_virus(item.path, metadata)
+                utils.check_virus(item.path, metadata, None)
 
         write_debug(
             f'Rapid Download Successfully Downloaded {len(download_items)} Packages Using RapidThreading', metadata, newline=True)

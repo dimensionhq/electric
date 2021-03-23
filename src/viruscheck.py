@@ -19,8 +19,9 @@ def virus_check(path : str):
         result (dict): The virustotal api response
     """
     
+    path = path.replace("\\\\", "\\")
     # Read A .exe File
-    with open(rf'{path}', 'rb') as f:
+    with open(path, 'rb') as f:
         content = f.read()
         EICAR = content
 
