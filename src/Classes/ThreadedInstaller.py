@@ -96,13 +96,16 @@ class ThreadedInstaller:
             if custom_install_switch == 'None' and install.directory:
                 click.echo(click.style(
                     f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='bright_yellow'))
-
+            
             utils.run_cmd(command, self.metadata, 'installation', install)
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i' + path + ' '
             for switch in switches:
                 command = command + ' ' + switch
+            
+            if custom_install_switch and directory != '' and directory != None:
+                command = command + ' ' + custom_install_switch + rf'"{directory}"'
 
             utils.run_cmd(command, self.metadata, 'installation', install)
 

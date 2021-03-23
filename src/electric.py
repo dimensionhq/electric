@@ -2223,9 +2223,13 @@ def autoupdate(
 
 
 @cli.command()
-def features():
-    setting = Setting.new()
-    message = f'''
+@click.argument('method', nargs=1, required=True)
+@click.argument('feature', nargs=1, required=False)
+def feature(method: str, feature: str):
+    if method in ['enable', 'disable', 'list']:
+        if method == 'list':
+            setting = Setting.new()
+            message = f'''
 [{Fore.LIGHTGREEN_EX if setting.show_support_message else Fore.LIGHTYELLOW_EX}{'X' if setting.show_support_message == True else ' '}{Fore.RESET}] Support Message {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Send a weekly developers note to request support for electric.
 Command: electric feature [enable|disable] support-message
 
@@ -2243,15 +2247,10 @@ Command: electric feature [enable|disable] show-progress-bar
 
 [{Fore.LIGHTGREEN_EX if setting.electrify_progress_bar else Fore.LIGHTYELLOW_EX}{'X' if setting.electrify_progress_bar == True else ' '}{Fore.RESET}] Electrify Progress Bar {Fore.LIGHTMAGENTA_EX}-{Fore.RESET} Add the thunder emoji to the progress bar. Only supported on terminals with emoji support.
 Command: electric feature [enable|disable] electric-progress-bar
-'''
-    print(message)
+            '''
 
+            print(message)
 
-@cli.command()
-@click.argument('method', nargs=1, required=True)
-@click.argument('feature', nargs=1, required=True)
-def feature(method: str, feature: str):
-    if method in ['enable', 'disable']:
         if feature in ['support-message', 'checksum', 'virus-check', 'install-metrics', 'progress-bar', 'electric-progress-bar']:
             
             if feature == 'support-message' and method == 'disable':

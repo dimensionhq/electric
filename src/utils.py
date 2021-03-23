@@ -1164,7 +1164,7 @@ def run_cmd(command: str, metadata: Metadata, method: str, packet: Packet) -> bo
     Returns:
         bool: Success (Exit Code == 0)
     """
-    command = command.replace('\"\"', '\"').replace('  ', ' ')
+    command = command.replace('\"\"', '\"').replace('  ', ' ').replace('\\\\', '\\')
     log_info(f'Running command: {command}', metadata.logfile)
     write_debug(f'{command}', metadata)
     try:
@@ -1269,7 +1269,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             command = command + ' ' + switch
 
         if custom_install_switch and directory != '' and directory != None:
-            command = command + ' ' + custom_install_switch + f'\"{directory}\"'
+            command = command + ' ' + custom_install_switch + rf'"{directory}"'
 
 
         if not is_admin():
