@@ -726,7 +726,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
 
             manager.handle_multi_install(paths)
-
+            sys.exit()
 
         # if there are multiple sets of packages in the 2d array
         elif len(split_package_names) > 1:

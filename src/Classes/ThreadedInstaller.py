@@ -50,14 +50,16 @@ class ThreadedInstaller:
                     dl += len(data)
                     f.write(data)
 
-                    complete = int(20 * dl / full_length)
-                    fill_c, unfill_c = '█' * complete, ' ' * (20 - complete)
-                    try:
-                        sys.stdout.write(
-                            f"\r({fill_c}{unfill_c}) {round(dl / full_length * 100)} % ")
-                    except UnicodeEncodeError:
-                        pass
-                    sys.stdout.flush()
+                    if not self.metadata.no_progress:
+                        complete = int(20 * dl / full_length)
+                        fill_c, unfill_c = '█' * complete, ' ' * (20 - complete)
+                        try:
+                            sys.stdout.write(
+                                f"\r({fill_c}{unfill_c}) {round(dl / full_length * 100)} % ")
+                        except UnicodeEncodeError:
+                            pass
+                        sys.stdout.flush()
+
         paths.update({
             download.display_name:
                 {
