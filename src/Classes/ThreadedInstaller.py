@@ -123,8 +123,12 @@ class ThreadedInstaller:
         package_list = [packet.display_name for packet in self.packets]
         package_list = str(package_list).replace(
             '[', '').replace(']', '').replace('\'', '')
-        write(
-            f'SuperCached [ {Fore.LIGHTCYAN_EX}{package_list}{Fore.RESET} ]', 'white', metadata)
+        if not metadata.no_color:
+            write(
+                f'SuperCached [ {Fore.LIGHTCYAN_EX}{package_list}{Fore.RESET} ]', 'white', metadata)
+        else:
+            write(
+                f'SuperCached [ {package_list} ]', 'white', metadata)
         log_info('Initializing Rapid Download', metadata.logfile)
 
         packets = self.packets
@@ -181,7 +185,7 @@ class ThreadedInstaller:
                 utils.check_virus(item.path, metadata)
 
         write_debug(
-            f'Rapid Download Successfully Downloaded {len(download_items)} Packages Using RapidThreading', metadata)
+            f'Rapid Download Successfully Downloaded {len(download_items)} Packages Using RapidThreading', metadata, newline=True)
         write_debug('Rapid Download Exiting With Code 0', metadata)
         if not self.metadata.debug:
             write('\nSuccessfully Downloaded Installation Files',
@@ -190,10 +194,11 @@ class ThreadedInstaller:
             write('Successfully Downloaded Installation Files',
                   'bright_green', metadata)
         log_info('Finished Rapid Download', metadata.logfile)
+        write_verbose('Running Installers Using Multi-Threading', metadata)
         write(
             'Installing Packages', 'cyan', metadata)
         log_info(
-            'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
+            'Using Rapid Install To Complete Setup, Accept  ompts Asking For Admin Permission...', metadata.logfile)
         return paths
 
     def generate_installers(self, paths) -> list:
@@ -534,11 +539,14 @@ class ThreadedInstaller:
                     log_info(
                         'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
+                    write_verbose('Creating registry start snapshot', metadata)
+                    log_info('Creating start snapshot of registry...', metadata.logfile)
+                    start_snap = get_environment_keys()
+            
                     write_debug(
                         f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
                     log_info(
                         f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata.logfile)
-                    start_snap = get_environment_keys()
 
                     # Running The Installer silently And Completing Setup
                     utils.install_package(path, packet, metadata)
@@ -594,10 +602,13 @@ class ThreadedInstaller:
                         set_environment_variable(
                             name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
 
+                    write_verbose('Creating Final Snapshot Of Environment Keys', metadata)
                     final_snap = get_environment_keys()
                     if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length or changes_environment:
                         write('The PATH environment variable has changed. Run `refreshenv` to refresh your environment variables.',
                               'bright_green', metadata)
+
+                    write_verbose('Successfully Verified Installation Of Packages')
 
                     write(
                         f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
