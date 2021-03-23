@@ -734,7 +734,9 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 package_batch = list(package_batch)
                 package_batch = [x for x in package_batch if x is not None]
                 if len(package_batch) == 1:
-                    os.system(f'electric install {package_batch[0]}')
+                    flags = get_install_flags(install_directory, metadata)
+                    flags = ' '.join(flags)
+                    os.system(f'electric install {package_batch[0]} {flags}')
                     sys.exit()
                 else:
                     packets = []
@@ -1105,6 +1107,11 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
                 rf'"{PathManager.get_current_directory()}\scripts\elevate-uninstallation.cmd" {packet.json_name} {flags}')
             sys.exit()
 
+    if 'returned non-zero exit status 1618' in error:
+        return get_error_message(
+                '1618', method, packet.display_name, packet.version, metadata, packet.json_name)
+
+
     if 'exit status 2' in error or 'exit status 1' in error:
         click.echo(click.style(
             f'\nAdministrative Privileges Declined. Exit Code [0101]', fg='red'))
@@ -1260,6 +1267,10 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
         command = 'msiexec.exe /i ' + path + ' '
         for switch in switches:
             command = command + ' ' + switch
+
+        if custom_install_switch and directory != '':
+            command = command + ' ' + custom_install_switch + f'\"{directory}\"'
+
 
         if not is_admin():
             flags = ''.join(

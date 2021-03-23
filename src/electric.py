@@ -1202,7 +1202,7 @@ def uninstall(
                         rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                 except:
                     pass
-                handle_exit('ERROR', '', metadata)
+                continue
 
         # Continue with normal installation because the package has not been installed yet
         pkg = res
