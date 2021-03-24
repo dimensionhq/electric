@@ -343,6 +343,7 @@ class ThreadedInstaller:
             utils.register_package_success(
                 packet, packet.directory, self.metadata)
 
+        write('The PATH environment variable has changed. Run `refreshenv` to refresh your environment variables.', 'green', self.metadata)
         write(
             'Successfully Installed Packages!', 'bright_magenta', self.metadata)
         log_info('Successfully Installed Packages!', self.metadata.logfile)
@@ -350,11 +351,9 @@ class ThreadedInstaller:
         write_debug(
             'Refreshing Env Variables, Calling Batch Script', self.metadata)
         write_verbose('Refreshing Environment Variables', self.metadata)
-        start = timer()
-        write('The PATH environment variable has changed. Run `refreshenv` to refresh your environment variables.', 'green', self.metadata)
-        end = timer()
+        
         write_debug(
-            f'Successfully Refreshed Environment Variables in {round((end - start), 2)} seconds', self.metadata)
+            f'Successfully Refreshed Environment Variables', self.metadata)
         write_verbose('Installation and setup completed.', self.metadata)
         log_info('Installation and setup completed.', self.metadata.logfile)
         write_debug(

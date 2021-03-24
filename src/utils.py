@@ -89,7 +89,6 @@ def get_recent_logs() -> list:
     """
     Reads all recent logs from %appdata%\electric-log.log
     Used to create the log attachment for the support ticket.
-
     Returns:
         list: Recent logs in the form of a list
     """
@@ -101,11 +100,9 @@ def get_recent_logs() -> list:
 def generate_report(name: str, version: str) -> str:
     """
     Generate support ticket info including version and name of software.
-
     #### Arguments
         name (str): Name of the package that failed to install / uninstall.
         version (str): Version of the package that failed to install / uninstall.
-
     Returns:
         str: Support ticket to echo to output
     """
@@ -121,7 +118,6 @@ Name {Fore.LIGHTMAGENTA_EX}=>{Fore.RESET} {Fore.LIGHTYELLOW_EX}{name}{Fore.RESET
 def is_admin() -> bool:
     """
     Checks if electric is running as administrator.
-
     Returns:
         bool: If electric is run as administrator
     """
@@ -157,11 +153,9 @@ def swc(url: str):
 def generate_dict(path: str, package_name: str) -> dict:
     """
     Generates dictionary to dump to the downloadcache.pickle
-
     #### Arguments
         path (str): Path to the installer
         package_name (str): Name of the package being installed
-
     Returns:
         dict: The data to dump to the downloadcache as a dictionary
     """
@@ -198,7 +192,6 @@ def download_installer(packet: Packet, download_url: str, metadata: Metadata):
 def dump_pickle(data: dict, filename: str):
     """
     Dump a dictionary to a pickle file in the temp download directory for resuming or using existing downloads
-
     #### Arguments
         data (dict): Data to dump to the pickle file
         filename (str): Name of the file to dump the data to in the temp directory
@@ -210,10 +203,8 @@ def dump_pickle(data: dict, filename: str):
 def retrieve_data(filename: str) -> dict:
     """
     Retrieve or read data from a pickle file in the temp download directory
-
     #### Arguments
         filename (str): Name of the pickle file to read from in the temp directory
-
     Returns:
         dict: Data inside the pickle file in the form of a dictionary
     """
@@ -251,10 +242,8 @@ def check_existing_download(package_name: str, download_type) -> bool:
 def get_chunk_size(total_size: str) -> int:
     """
     Get the download iter chunk size, could increase speeds based on file size
-
     #### Arguments
         total_size (str): Size of the download
-
     Returns:
         int: Chunk iter size for downloading the file
     """
@@ -269,12 +258,10 @@ def get_chunk_size(total_size: str) -> int:
 def check_resume_download(package_name: str, download_url: str, metadata: Metadata) -> tuple:
     """
     Check if an existing download can be resumed instead of redownloading from the start
-
     #### Arguments
         package_name (str): Name of the package being installed
         download_url (str): Url for the file being downloaded
         metadata (`Metadata`): Metadata for the installation
-
     Returns:
         tuple: Size and directory of the file to resume downloading
     """
@@ -302,10 +289,8 @@ def refresh_environment_variables():
 def send_req_bundle(bundle_name: str) -> dict:
     """
     Send a network request to the API for the bundles to be installed
-
     #### Arguments
         url (str): The name of the bundle to request
-
     Returns:
         dict: The json response from the network request
     """
@@ -357,13 +342,11 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
     """
     Official electric downloader, uses requests to download files from a url.
     Can resume from existing downloads or detect already existing installers in the case of a reinstall.
-
     #### Arguments
         url (str): The url to download the file / installer from
         package_name (str): The name of the package being installed
         metadata (`Metadata`): Metadata for the installation
         download_type (str): The extension to the file being downloaded
-
     Returns:
         str: Path to the downloaded installer
     """
@@ -986,7 +969,6 @@ def get_package_version(pkg, res, version, portable: bool, nightly: bool, metada
         handle_exit('ERROR', None, metadata)
     return version
 
-
 def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: list, method: str, metadata: Metadata, packet: Packet) -> str:
     """
     Troubleshoots errors when a CalledProcessError, OSError or FileNotFoundError is caught through subprocess.run in run_cmd. 
@@ -1112,6 +1094,11 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
                 '1618', method, packet.display_name, packet.version, metadata, packet.json_name)
 
 
+    if 'returned non-zero exit status 1638' in error:
+        return get_error_message(
+                '1638', method, packet.display_name, packet.version, metadata, packet.json_name)
+
+
     if 'exit status 2' in error or 'exit status 1' in error:
         click.echo(click.style(
             f'\nAdministrative Privileges Declined. Exit Code [0101]', fg='red'))
@@ -1130,14 +1117,11 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     # Installer Requesting Reboot
     return get_error_message('1010', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
-
 def get_file_type(command: str) -> str:
     """
     Used to understand if a command run uses a .msi or a .exe installer / uninstaller
-
     #### Arguments
         command (str): The command to infer the installer type from
-
     Returns:
         str: The filetype of the installer infered from the command
     """
@@ -1153,14 +1137,12 @@ def get_file_type(command: str) -> str:
 def run_cmd(command: str, metadata: Metadata, method: str, packet: Packet) -> bool:
     """
     Runs a command on the shell with electric error handling and exit code monitoring
-
     #### Arguments
         command (str): Command to run on the shell
         metadata (`Metadata`): Metadata for the method
         method (str): Method (installation / uninstallation)
         halo (Halo): Halo for the installation / uninstallation
         packet (Packet): Packet for the method
-
     Returns:
         bool: Success (Exit Code == 0)
     """
@@ -1180,9 +1162,7 @@ def display_support(metadata: Metadata):
         message = '''
 ---Developer's Note---
 Hey, I'm Tejas Ravishankar, 14 year old founder and developer of the electric package manager.
-
 I've dedicated the past 6 months to building the fastest package manager that you're currently using.
-
 If you like electric would like to support it, it would be absolutely incredible if you could star the official github repository at (https://www.github.com/electric-package-manager/electric).
 Additionally, would be out of this world if you could rate this a 5 star project on G2Crowd! Thanks!
 This message can be disabled by running `electric feature disable support-message`.
@@ -1204,12 +1184,10 @@ This message can be disabled by running `electric feature disable support-messag
 def install_package(path, packet: Packet, metadata: Metadata) -> str:
     """
     Installs an electric package
-
     #### Arguments
         path (str): Path to the installer executable
         packet (Packet): Packet for installation
         metadata (`Metadata`): Metadata for installation
-
     """
     download_type = packet.win64_type
     custom_install_switch = packet.custom_location
@@ -1352,10 +1330,8 @@ def send_package_request(package_name: str):
 def send_req_package(package_name: str) -> dict:
     """
     Send a request for an electric package from the official package registry on github
-
     #### Arguments
         package_name (str): The name of the package to request from the registry
-
     Returns:
         dict: Decoded JSON from the github registry response
     """
@@ -1402,10 +1378,8 @@ def send_req_package(package_name: str) -> dict:
 def get_pid(exe_name):
     """
     Gets the running process PID from the tasklist command to quit installers
-
     #### Arguments
         exe_name (str): Name of the installer being run
-
     Returns:
         str: PID
     """
@@ -1424,10 +1398,8 @@ def get_pid(exe_name):
 def find_approx_pid(display_name) -> str:
     """
     Gets the approximate PID of an application that has to be terminated before uninstallation
-
     #### Arguments
         display_name (str): The display name of the package
-
     Returns:
         str: PID
     """
@@ -1461,7 +1433,6 @@ def find_approx_pid(display_name) -> str:
 def handle_exit(status: str, setup_name: str, metadata: Metadata):
     """
     Overrides default (ctrl + c) exit command of click
-
     #### Arguments
         status (str): Status of the method
         setup_name (str): Name of the setup file being run if any
@@ -1497,7 +1468,6 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
 def kill_running_proc(package_name: str, display_name: str, metadata: Metadata):
     """
     Kills a running process for an application before running the uninstaller to prevent errors
-
     #### Arguments
         package_name (str): Name of the package
         display_name (str): Display name of the package
@@ -1533,7 +1503,6 @@ def kill_running_proc(package_name: str, display_name: str, metadata: Metadata):
 def kill_proc(proc, metadata: Metadata):
     """
     Kill a process from subprocess when ctrl+c is hit
-
     #### Arguments
         proc (Popen): Popen object 
         metadata (`Metadata`): Metadata for the method
@@ -1573,12 +1542,10 @@ def find_msix_installation(bundle_id: str):
 def find_existing_installation(package_name: str, display_name: str, test=True):
     """
     Finds an existing installation of a package in the windows registry given the package name and display name
-
     #### Arguments
         package_name (str): Name of the package
         display_name (str): Display name of the package
         test (bool, optional): If the command is being run to test successful installation / uninstallation. Defaults to True.
-
     Returns:
         [type]: [description]
     """
@@ -1595,11 +1562,9 @@ def find_existing_installation(package_name: str, display_name: str, test=True):
 def get_install_flags(install_dir: str, metadata: Metadata):
     """
     Generates a list of flags given the metadata and installation directory
-
     #### Arguments
         install_dir (str): Directory that the software is being installed to 
         metadata (`Metadata`): Metadata for the method (installation / uninstallation)
-
     Returns:
         [type]: [description]
     """
@@ -1635,7 +1600,6 @@ def get_install_flags(install_dir: str, metadata: Metadata):
 def check_virus(path: str, metadata: Metadata, h: Halo):
     """
     Checks for a virus given the path of the executable / file
-
     #### Arguments
         path (str): Path to the executable / file
         metadata (`Metadata`): Metadata for the installation
@@ -1669,11 +1633,9 @@ def check_virus(path: str, metadata: Metadata, h: Halo):
 def check_newer_version(package_name: str, packet: Packet, installed_packages: list) -> bool:
     """
     Checks if a newer version of a package exists, used for updating packages
-
     #### Arguments
         package_name (str): Name of the package
         packet (Packet): Packet for the package
-
     Returns:
         bool: If there is a newer version of the package
     """
@@ -1695,10 +1657,8 @@ def check_newer_version(package_name: str, packet: Packet, installed_packages: l
 def check_newer_version_local(new_version) -> bool:
     """
     Checks if there is a newer version of electric availiable (used in the autoupdater)
-
     #### Arguments
         new_version (str): Version of electric that could be newer
-
     Returns:
         bool: If there is a newer version of electric availiable
     """
@@ -1989,6 +1949,15 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 'Run `electric install sublime-text-3` [ Copied To Clipboard ] To install Sublime Text 3.\n\nHelp:',
                 '\n[1] <=> https://electric.sh/errors/0112\n\n',
             ]
+        
+        elif code('1638'):
+            return [
+                '\n[1638] => Another version of the software is already installed (not through electric) on your PC.',
+                '\n\nHow To Fix:\n',
+                '\nHelp:',
+                '\n[1] <=> https://www.electric.sh/errors/1638\n\n',
+            ]
+
 
 
 def handle_unknown_error(err: str, pacakge_name: str, method: str, exit_code: str):
@@ -2136,12 +2105,10 @@ def register_package_success(packet: Packet, install_dir: str, metadata: Metadat
 def get_autocorrections(package_names: list, corrected_package_names: list, metadata: Metadata) -> list:
     """
     Display autocorrects for the package names
-
     #### Arguments
         package_names (list): All the package names that are added during the method
         corrected_package_names (list): Corrected packages that would be compared to the supplied during the method
         metadata (`Metadata`): Metadata for the method
-
     Returns:
         list: Autocorrected packages names
     """
