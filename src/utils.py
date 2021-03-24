@@ -1350,6 +1350,8 @@ def send_req_package(package_name: str) -> dict:
 
             Debugger.test_internet()
             sys.exit()
+        else:
+            sys.exit()
 
     try:
         res = json.loads(response.text)
@@ -2028,9 +2030,9 @@ def update_package_list():
             h.fail()
             click.echo(click.style(
                 f'Failed to request package-list.json from raw.githubusercontent.com', 'red'))
-            run_internet_test = input(
-                'Would you like to run a network debugger? [y/n]: ')
-            if run_internet_test in ['y', 'yes', 'Y', 'YES']:
+            run_internet_test = confirm(
+                'Would you like to run a network debugger? ')
+            if run_internet_test:
                 sys.stdout.write(
                     f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET}  |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
                 time.sleep(0.1)
@@ -2050,6 +2052,8 @@ def update_package_list():
                     f'\r| {Fore.LIGHTGREEN_EX}OK{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
                 Debugger.test_internet()
+                sys.exit()
+            else:
                 sys.exit()
 
         data = res.json()
