@@ -613,6 +613,8 @@ def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadat
 def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata, ignore: bool):
     import Classes.ThreadedInstaller as ti
 
+    print('Hi I have been called')
+    complete = []
     # Group the packages list into a 2D array
     # grouper(['sublime-text-3', 'atom', 'vscode', 'notepad++', 'anydesk'], 3) => [['sublime-text-3', 'atom', 'vscode']['notepad++', 'anydesk']]
 
@@ -633,7 +635,12 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
         # if there is only 1 set of packages in the 2d array like [['sublime-text-3', 'atom', 'vscode']]
         if len(split_package_names) == 1:
             packets = []
+            for name in corrected_package_names:
+                if name in complete:
+                    corrected_package_names.remove(name)
+
             for package in corrected_package_names:
+                print('Going Here For => ', package)
                 res = send_req_package(package)
                 pkg = res
                 custom_dir = None
@@ -709,6 +716,8 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
 
             manager.handle_multi_install(paths)
+            for packet in packets:
+                complete.append(packet.json_name)
             sys.exit()
 
         # if there are multiple sets of packages in the 2d array
@@ -716,6 +725,12 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
             for package_batch in split_package_names:
                 package_batch = list(package_batch)
                 package_batch = [x for x in package_batch if x is not None]
+
+                for package in package_batch:
+                    if package in complete:
+                        print('Removing', package)
+                        package_batch.remove(package)
+                
                 if len(package_batch) == 1:
                     flags = get_install_flags(install_directory, metadata)
                     flags = ' '.join(flags)
@@ -724,7 +739,6 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 else:
                     packets = []
                     for package in package_batch:
-
                         spinner = Halo(color='grey')
                         spinner.start()
                         log_info('Handling Network Request...', metadata.logfile)
@@ -817,13 +831,15 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                             'Generating system download path...', metadata)
                         log_info('Generating system download path...',
                                 metadata.logfile)
-
+                    print('HERE AGIAN')
                     manager = ti.ThreadedInstaller(packets, metadata)
                     paths = manager.handle_multi_download()
                     log_info('Finished Rapid Download...', metadata.logfile)
                     log_info(
                         'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
                     manager.handle_multi_install(paths)
+                    for packet in packets:
+                        complete.append(packet.json_name)
 
 
 def handle_external_installation(python: bool, node: bool, vscode: bool, sublime: bool, atom: bool, version, package_name, metadata: Metadata):
