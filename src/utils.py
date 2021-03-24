@@ -1241,7 +1241,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             )
 
             click.echo(click.style(
-                f'The {packet.display_name} Uninstaller Has Requested Administrator Permissions, Using Auto-Elevate', 'bright_yellow'))
+                f'The {packet.display_name} Installer Has Requested Administrator Permissions, Using Auto-Elevate', 'bright_yellow'))
             os.system(
                 rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
