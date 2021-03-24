@@ -30,7 +30,6 @@ from settings import initialize_settings, open_settings
 from utils import *
 from zip_update import update_portable
 
-
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 
 
@@ -38,7 +37,6 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 @click.version_option(__version__)
 @click.pass_context
 def cli(_):
-
     # Make electric portable / tools directory if it doesn't exist
     if not os.path.isdir(os.path.expanduser('~') + r'\electric'):
         os.mkdir(os.path.expanduser('~') + r'\electric')
@@ -137,7 +135,6 @@ def install(
     Install a package or a list of packages.
     """
     start_log()
-
     if not manifest and package_name == 'test':
         print(f'{Fore.LIGHTRED_EX}A Package Name Must Be Supplied\nUsage: electric install <package-name>\n\nExamples:\nelectric install {Fore.LIGHTGREEN_EX}sublime-text-3{Fore.RESET}\n{Fore.LIGHTRED_EX}electric install {Fore.LIGHTGREEN_EX}sublime-text-3,notepad++{Fore.RESET}')
         sys.exit()
@@ -2404,5 +2401,8 @@ def complete(
 
 
 if __name__ == '__main__':
-    freeze_support()
-    cli()  # pylint: disable=no-value-for-parameter
+    try:
+        freeze_support()
+        cli()  # pylint: disable=no-value-for-parameter
+    except KeyboardInterrupt:
+        pass

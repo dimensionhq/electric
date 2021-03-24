@@ -239,6 +239,7 @@ class ThreadedInstaller:
         return install_items
 
     def handle_multi_install(self, paths):
+
         write_debug('Initialising Rapid Install Procedure...', self.metadata)
 
         processes = []
@@ -440,14 +441,6 @@ class ThreadedInstaller:
                             f'Found an existing installation of => {packet.json_name}', metadata)
                         write(
                             f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
-                        installation_continue = confirm(
-                            f'Would you like to reinstall {packet.json_name}')
-                        if installation_continue or metadata.yes:
-                            os.system(f'electric uninstall {packet.json_name}')
-                            os.system(f'electric install {packet.json_name}')
-                            return
-                        else:
-                            utils.handle_exit('ERROR', None, metadata)
 
                     write_verbose(
                         f'Package to be installed: {packet.json_name}', metadata)

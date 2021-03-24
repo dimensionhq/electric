@@ -13,7 +13,6 @@ import webbrowser
 from datetime import date
 from signal import SIGTERM
 from subprocess import PIPE, CalledProcessError, Popen, check_call
-from timeit import default_timer as timer
 
 
 import click
@@ -613,8 +612,7 @@ def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadat
 def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata, ignore: bool):
     import Classes.ThreadedInstaller as ti
 
-    print('Hi I have been called')
-    complete = []
+    completed = False
     # Group the packages list into a 2D array
     # grouper(['sublime-text-3', 'atom', 'vscode', 'notepad++', 'anydesk'], 3) => [['sublime-text-3', 'atom', 'vscode']['notepad++', 'anydesk']]
 
@@ -635,12 +633,8 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
         # if there is only 1 set of packages in the 2d array like [['sublime-text-3', 'atom', 'vscode']]
         if len(split_package_names) == 1:
             packets = []
-            for name in corrected_package_names:
-                if name in complete:
-                    corrected_package_names.remove(name)
-
+            completed = True
             for package in corrected_package_names:
-                print('Going Here For => ', package)
                 res = send_req_package(package)
                 pkg = res
                 custom_dir = None
@@ -716,26 +710,19 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 f'Running {packet.display_name} Installer, Accept Prompts Requesting Administrator Permission', metadata.logfile)
 
             manager.handle_multi_install(paths)
-            for packet in packets:
-                complete.append(packet.json_name)
-            sys.exit()
 
         # if there are multiple sets of packages in the 2d array
         elif len(split_package_names) > 1:
+            completed = True
             for package_batch in split_package_names:
                 package_batch = list(package_batch)
                 package_batch = [x for x in package_batch if x is not None]
 
-                for package in package_batch:
-                    if package in complete:
-                        print('Removing', package)
-                        package_batch.remove(package)
-                
                 if len(package_batch) == 1:
                     flags = get_install_flags(install_directory, metadata)
                     flags = ' '.join(flags)
                     os.system(f'electric install {package_batch[0]} {flags}')
-                    sys.exit()
+
                 else:
                     packets = []
                     for package in package_batch:
@@ -768,6 +755,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         install_exit_codes = None
                         if 'valid-install-exit-codes' in list(pkg.keys()):
                             install_exit_codes = pkg['valid-install-exit-codes']
+
                         packet = Packet(
                             pkg,
                             package,
@@ -807,14 +795,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                                 f'Found an existing installation of => {packet.json_name}', metadata)
                             write(
                                 f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
-                            installation_continue = confirm(
-                                f'Would you like to reinstall {packet.json_name}')
-                            if installation_continue or metadata.yes:
-                                os.system(f'electric uninstall {packet.json_name}')
-                                os.system(f'electric install {packet.json_name}')
-                                return
-                            else:
-                                sys.exit()
+                            sys.exit()
 
                         write_verbose(
                             f'Package to be installed: {packet.json_name}', metadata)
@@ -831,15 +812,16 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                             'Generating system download path...', metadata)
                         log_info('Generating system download path...',
                                 metadata.logfile)
-                    print('HERE AGIAN')
+
                     manager = ti.ThreadedInstaller(packets, metadata)
                     paths = manager.handle_multi_download()
                     log_info('Finished Rapid Download...', metadata.logfile)
                     log_info(
                         'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
                     manager.handle_multi_install(paths)
-                    for packet in packets:
-                        complete.append(packet.json_name)
+ 
+    if completed:
+        sys.exit()
 
 
 def handle_external_installation(python: bool, node: bool, vscode: bool, sublime: bool, atom: bool, version, package_name, metadata: Metadata):
@@ -899,15 +881,8 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
         write_verbose(
             f'Found an existing installation of => {packet.json_name}', metadata)
         write(
-            f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
-        installation_continue = confirm(
-            f'Would you like to reinstall {packet.display_name}?')
-        if installation_continue or metadata.yes:
-            os.system(f'electric uninstall {packet.json_name}')
-            os.system(f'electric install {packet.json_name}')
-
-        else:
-            sys.exit()
+            f'Detected an existing installation of {packet.display_name}.', 'bright_yellow', metadata)
+        sys.exit()
 
     if 'test-existing-installation' in list(packet.raw.keys()):
         configs = {
@@ -940,7 +915,7 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
 
     if ignore:
         write(
-            f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
+            f'Detected an existing installation of {packet.display_name}.', 'bright_yellow', metadata)
 
     if installation and not force and not ignore:
         log_info('Found existing installation of package', metadata.logfile)
@@ -949,15 +924,8 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
         write_verbose(
             f'Found an existing installation of => {packet.json_name}', metadata)
         write(
-            f'Detected an existing installation {packet.display_name}.', 'bright_yellow', metadata)
-        installation_continue = confirm(
-            f'Would you like to reinstall {packet.display_name}?')
-        if installation_continue or metadata.yes:
-            os.system(f'electric uninstall {packet.json_name}')
-            os.system(f'electric install {packet.json_name}')
-
-        else:
-            sys.exit()
+            f'Detected an existing installation of {packet.display_name}.', 'bright_yellow', metadata)
+        sys.exit()
 
 
 def get_package_version(pkg, res, version, portable: bool, nightly: bool, metadata: Metadata):
@@ -1983,7 +1951,7 @@ def handle_unknown_error(err: str, pacakge_name: str, method: str, exit_code: st
         print(err + '\n')
         query = f'{pacakge_name} {method} failed {err}'
         with Halo('Troubleshooting ', text_color='yellow'):
-            results = search(query, num_results=3)
+            results = search(query, num=3)
             results = [f'\n\t[{index + 1}] <=> {r}' for index,
                        r in enumerate(results)]
 
