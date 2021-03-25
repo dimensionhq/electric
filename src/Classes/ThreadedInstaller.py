@@ -296,7 +296,7 @@ class ThreadedInstaller:
                 write(
                     f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
                 write_verbose(
-                    f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
+                    f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', metadata)
                 log_info(
                     f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', metadata.logfile)
                 utils.append_to_path(packet.add_path.replace(
@@ -327,20 +327,20 @@ class ThreadedInstaller:
                 for shim in packet.shim:
                     replace_install_dir = ''
 
-                if packet.directory:
-                    replace_install_dir = packet.directory
+                    if packet.directory:
+                        replace_install_dir = packet.directory
 
-                elif packet.default_install_dir:
-                    replace_install_dir = packet.default_install_dir
+                    elif packet.default_install_dir:
+                        replace_install_dir = packet.default_install_dir
 
-                shim = shim.replace(
-                    '<install-directory>', replace_install_dir)
-                shim_name = shim.split("\\")[-1].split('.')[0]
-                write(
-                    f'Generating Shim For {shim_name}', 'cyan', metadata)
-                utils.generate_shim(
-                    shim, shim_name, shim.split('.')[-1])
-            
+                    shim = shim.replace(
+                        '<install-directory>', replace_install_dir)
+                    shim_name = shim.split("\\")[-1].split('.')[0]
+                    write(
+                        f'Generating Shim For {shim_name}', 'cyan', metadata)
+                    utils.generate_shim(
+                        shim, shim_name, shim.split('.')[-1])
+                
             utils.register_package_success(
                 packet, packet.directory, self.metadata)
 
@@ -605,19 +605,19 @@ class ThreadedInstaller:
                         for shim in packet.shim:
                             replace_install_dir = ''
 
-                        if packet.directory:
-                            replace_install_dir = packet.directory
+                            if packet.directory:
+                                replace_install_dir = packet.directory
 
-                        elif packet.default_install_dir:
-                            replace_install_dir = packet.default_install_dir
+                            elif packet.default_install_dir:
+                                replace_install_dir = packet.default_install_dir
 
-                        shim = shim.replace(
-                            '<install-directory>', replace_install_dir)
-                        shim_name = shim.split("\\")[-1].split('.')[0]
-                        write(
-                            f'Generating Shim For {shim_name}', 'cyan', metadata)
-                        utils.generate_shim(
-                            shim, shim_name, shim.split('.')[-1])
+                            shim = shim.replace(
+                                '<install-directory>', replace_install_dir)
+                            shim_name = shim.split("\\")[-1].split('.')[0]
+                            write(
+                                f'Generating Shim For {shim_name}', 'cyan', metadata)
+                            utils.generate_shim(
+                                shim, shim_name, shim.split('.')[-1])
 
                     if packet.add_path:
 

@@ -536,18 +536,19 @@ def install(
 
         if packet.shim:
             changes_environment = True
+            
             for shim in packet.shim:
                 replace_install_dir = ''
 
-            if packet.directory:
-                replace_install_dir = packet.directory
+                if packet.directory:
+                    replace_install_dir = packet.directory
 
-            elif packet.default_install_dir:
-                replace_install_dir = packet.default_install_dir
+                elif packet.default_install_dir:
+                    replace_install_dir = packet.default_install_dir
 
-            shim = shim.replace('<install-directory>', replace_install_dir)
-            shim_name = shim.split("\\")[-1].split('.')[0]
-            write(f'Generating Shim For {shim_name}', 'cyan', metadata)
+                shim = shim.replace('<install-directory>', replace_install_dir)
+                shim_name = shim.split("\\")[-1].split('.')[0]
+                write(f'Generating Shim For {shim_name}', 'cyan', metadata)
 
             generate_shim(shim, shim_name, shim.split('.')[-1])
 
@@ -1475,22 +1476,22 @@ def uninstall(
                 for shim in packet.shim:
                     replace_install_dir = ''
 
-                if packet.directory:
-                    replace_install_dir = packet.directory
+                    if packet.directory:
+                        replace_install_dir = packet.directory
 
-                elif packet.default_install_dir:
-                    replace_install_dir = packet.default_install_dir
+                    elif packet.default_install_dir:
+                        replace_install_dir = packet.default_install_dir
 
-                shim = shim.replace(
-                    '<install-directory>', replace_install_dir)
-                shim_name = shim.split("\\")[-1].split('.')[0]
-                write(
-                    f'Deleting Shims For {packet.display_name}', 'cyan', metadata)
-                try:
-                    os.remove(
-                        f'{home}\\electric\\shims\\{shim_name.split(".")[0]}.bat')
-                except:
-                    pass
+                    shim = shim.replace(
+                        '<install-directory>', replace_install_dir)
+                    shim_name = shim.split("\\")[-1].split('.')[0]
+                    write(
+                        f'Deleting Shims For {packet.display_name}', 'cyan', metadata)
+                    try:
+                        os.remove(
+                            f'{home}\\electric\\shims\\{shim_name.split(".")[0]}.bat')
+                    except:
+                        pass
 
             if not packet.run_test:
                 if nightly:

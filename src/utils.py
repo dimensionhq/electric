@@ -1355,8 +1355,9 @@ def send_req_package(package_name: str) -> dict:
 
     try:
         res = json.loads(response.text)
-    except JSONDecodeError:
-        click.echo(click.style(f'{package_name} not found!', 'red'))
+    except JSONDecodeError as e:
+        print(e)
+        click.echo(click.style(f'{package_name} Not Found.', 'red'))
         sys.exit()
     return res
 
