@@ -136,12 +136,13 @@ def verify_checksum(path: str, checksum: str, metadata: Metadata):
         write('Verified Installer Hash', 'bright_green', metadata)
     else:
         write('Hashes Don\'t Match!', 'bright_green', metadata)
-        continue_installation = confirm(
-            'Would you like to continue with installation?')
-        if continue_installation:
-            return
-        else:
-            os._exit(1)
+        if not metadata.yes or not metadata.force:
+            continue_installation = confirm(
+                'Would you like to continue with installation?')
+            if continue_installation:
+                return
+            else:
+                os._exit(1)
 
 
 def swc(url: str):
@@ -609,7 +610,7 @@ def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadat
         sys.exit()
 
 
-def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata, ignore: bool):
+def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata):
     import Classes.ThreadedInstaller as ti
 
     completed = False
@@ -864,7 +865,7 @@ def handle_external_installation(python: bool, node: bool, vscode: bool, sublime
         sys.exit()
 
 
-def handle_existing_installation(package, packet: Packet, force: bool, metadata: Metadata, ignore: bool):
+def handle_existing_installation(package, packet: Packet, force: bool, metadata: Metadata):
     log_info('Searching for existing installation of package.', metadata.logfile)
 
     log_info('Finding existing installation of package', metadata.logfile)
@@ -913,11 +914,7 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
     installation = find_existing_installation(
         package, packet.json_name, test=False)
 
-    if ignore:
-        write(
-            f'Detected an existing installation of {packet.display_name}.', 'bright_yellow', metadata)
-
-    if installation and not force and not ignore:
+    if installation and not force:
         log_info('Found existing installation of package', metadata.logfile)
         write_debug(
             f'Found existing installation of {packet.json_name}.', metadata)

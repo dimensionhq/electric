@@ -98,7 +98,6 @@ def cli(_):
 @click.option('--force', '-f', is_flag=True, help='Force install a package, ignoring any existing installations of a package.')
 @click.option('--configuration', '-cf', is_flag=True, help='Specify a config file to install')
 @click.option('--plugin', '-pl', is_flag=True, help='Specify a plugin to install')
-@click.option('--ignore', '-ig', is_flag=True, help='Ignore existing installation')
 @click.option('--manifest', '-m', 'manifest', help='Read from a manifest file instead of querying from the community repository')
 @click.pass_context
 def install(
@@ -128,7 +127,6 @@ def install(
     nightly: bool,
     portable: bool,
     plugin: bool,
-    ignore: bool,
     manifest: str,
 ):
     """
@@ -208,7 +206,7 @@ def install(
     # Handle multi-threaded installation (see function for further clarification)
 
     handle_multithreaded_installation(
-        corrected_package_names, install_directory, metadata, ignore)
+        corrected_package_names, install_directory, metadata)
 
     # normal non-multi-threaded installation
     for package in corrected_package_names:
@@ -336,7 +334,7 @@ def install(
         log_info(
             f'Rapidquery Successfully Received {packet.json_name}.json', metadata.logfile)
 
-        handle_existing_installation(package, packet, force, metadata, ignore)
+        handle_existing_installation(package, packet, force, metadata)
 
         if 'add-path' in list(pkg.keys()):
             if not is_admin():
@@ -597,6 +595,29 @@ def install(
             write('The PATH environment variable has changed. Run `refreshenv` to refresh your environment variables.',
                   'bright_green', metadata)
 
+
+        if metadata.reduce_package:
+            write_verbose(
+                f'Deleting installer files at {tempfile.gettempdir()}', metadata)
+            log_info(
+                f'Deleting installer files at {tempfile.gettempdir()}', metadata.logfile)
+            write_debug(
+                f'Deleting installer files at {tempfile.gettempdir()}. Path : ({configs["path"]}{packet.win64_type})', metadata)
+            try:
+                os.remove(f'{configs["path"]}')
+                os.remove(
+                    Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle')
+                os.remove(
+                    Rf'{tempfile.gettempdir()}\electric\unfinishedcache.pickle')
+            except FileNotFoundError:
+                pass
+
+            log_info(
+                'Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
+            write('Successfully Cleaned Up Installer From Temp Directory',
+                  'bright_green', metadata)
+
+
         if not packet.run_test:
             write_verbose(f'Running tests for {packet.display_name}', metadata)
 
@@ -670,22 +691,7 @@ def install(
                         f'Failed To Install {packet.display_name}', 'bright_red', metadata)
                 sys.exit()
 
-        if metadata.reduce_package:
-            write_verbose(
-                f'Deleting installer files at {tempfile.gettempdir()}', metadata)
-            log_info(
-                f'Deleting installer files at {tempfile.gettempdir()}', metadata.logfile)
-            write_debug(
-                f'Deleting installer files at {tempfile.gettempdir()}. Path : ({configs["path"]}{packet.win64_type})', metadata)
-            os.remove(f'{configs["path"]}')
-            os.remove(
-                Rf'{tempfile.gettempdir()}\electric\downloadcache.pickle')
-
-            log_info(
-                'Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
-            write('Successfully Cleaned Up Installer From Temp Directory',
-                  'bright_green', metadata)
-
+        
         version = ''
         display_support(metadata)
         write_verbose(
