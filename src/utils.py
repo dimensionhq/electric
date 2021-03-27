@@ -610,7 +610,7 @@ def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadat
         sys.exit()
 
 
-def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata):
+def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata, force: bool):
     import Classes.ThreadedInstaller as ti
 
     completed = False
@@ -686,7 +686,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 )
 
                 handle_existing_installation(
-                    packet.json_name, packet, False, metadata, False)
+                    packet.json_name, packet, force, metadata)
 
                 write_verbose(
                     f'Package to be installed: {packet.json_name}', metadata)
@@ -787,16 +787,8 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                             pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
                         )
 
-                        installation = find_existing_installation(
-                            package, packet.display_name, test=False)
-                        if installation:
-                            write_debug(
-                                f'Aborting Installation As {packet.json_name} is already installed.', metadata)
-                            write_verbose(
-                                f'Found an existing installation of => {packet.json_name}', metadata)
-                            write(
-                                f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
-                            sys.exit()
+                        handle_existing_installation(
+                            packet.json_name, packet, force, metadata)
 
                         write_verbose(
                             f'Package to be installed: {packet.json_name}', metadata)

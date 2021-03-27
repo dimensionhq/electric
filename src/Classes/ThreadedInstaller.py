@@ -50,7 +50,7 @@ class ThreadedInstaller:
                     dl += len(data)
                     f.write(data)
 
-                    if not self.metadata.no_progress:
+                    if not self.metadata.no_progress and not self.metadata.silent:
                         complete = int(20 * dl / full_length)
                         fill_c, unfill_c = '█' * complete, ' ' * (20 - complete)
                         try:

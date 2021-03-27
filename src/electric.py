@@ -206,7 +206,7 @@ def install(
     # Handle multi-threaded installation (see function for further clarification)
 
     handle_multithreaded_installation(
-        corrected_package_names, install_directory, metadata)
+        corrected_package_names, install_directory, metadata, force)
 
     # normal non-multi-threaded installation
     for package in corrected_package_names:
@@ -1137,8 +1137,11 @@ def uninstall(
                     f'{manifest} FileNotFoundError, Specified Manifest Cannot Be Found!', metadata.logfile)
                 sys.exit(1)
 
-        write(
-            f'SuperCached [ {Fore.LIGHTCYAN_EX}{res["display-name"]}{Fore.RESET} ]', 'bright_white', metadata)
+        if not metadata.silent:
+            write(
+                f'SuperCached [ {Fore.LIGHTCYAN_EX}{res["display-name"]}{Fore.RESET} ]', 'bright_white', metadata)
+        else:
+            write(f'SuperCached [ {res["display-name"]} ]', 'bright_white', metadata)
 
         if 'is-portable' in list(res.keys()):
             if res['is-portable'] == True:
@@ -1411,12 +1414,14 @@ def uninstall(
             if not packet.run_test:
                 if nightly:
                     packet.version == 'nightly'
+
                 os.remove(
                     rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                 write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                 log_info(
                     f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
+
             else:
                 if not find_existing_installation(packet.json_name, packet.display_name):
                     print(
@@ -1510,9 +1515,12 @@ def uninstall(
                             rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                     except FileNotFoundError:
                         pass
-
-                write(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check',
-                      'bright_white', metadata)
+                
+                if not metadata.no_color:
+                    write(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check',
+                        'bright_white', metadata)
+                else:
+                    write(f'[ OK ] Registry Check', 'bright_white', metadata)   
 
                 write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
@@ -1582,7 +1590,11 @@ def uninstall(
                 else:
                     os.remove(
                         rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                print(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check')
+                if not metadata.no_color:
+                    write(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check', 'bright_white', metadata)
+                else:
+                    write(f'[ OK ] Registry Check', 'bright_white', metadata)
+
                 write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
             else:
