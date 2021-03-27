@@ -1338,10 +1338,7 @@ def send_req_package(package_name: str) -> dict:
                 f'\r| {Fore.LIGHTGREEN_EX}OK{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
             Debugger.test_internet()
-            sys.exit()
-        else:
-            sys.exit()
-
+        sys.exit()
     try:
         res = json.loads(response.text)
     except JSONDecodeError as e:
@@ -2042,10 +2039,7 @@ def update_package_list():
                     f'\r| {Fore.LIGHTGREEN_EX}OK{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
                 Debugger.test_internet()
-                sys.exit()
-            else:
-                sys.exit()
-
+            sys.exit()
         data = res.json()
         with open(rf'{PathManager.get_appdata_directory()}\packages.json', 'w+') as f:
             f.write(json.dumps(data, indent=4))
