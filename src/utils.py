@@ -305,21 +305,22 @@ def send_req_bundle(bundle_name: str) -> dict:
 
 
 def get_init_char(start, metadata) -> str:
-    if start:
-        try:
-            start_char = Fore.RESET + \
-                metadata.settings.raw_dictionary['customProgressBar']['start_character']
-        except:
-            return ''
-        return start_char or ''
-    else:
-        try:
-            end_char = Fore.RESET + \
-                metadata.settings.raw_dictionary['customProgressBar']['end_character']
-        except:
-            return ''
-        return end_char or ''
-
+    if not metadata.settings.use_custom_progress_bar:
+        if start:
+            try:
+                start_char = Fore.RESET + \
+                    metadata.settings.raw_dictionary['customProgressBar']['start_character']
+            except:
+                return ''
+            return start_char or ''
+        else:
+            try:
+                end_char = Fore.RESET + \
+                    metadata.settings.raw_dictionary['customProgressBar']['end_character']
+            except:
+                return ''
+            return end_char or ''
+    return ''
 
 def get_character_color(fill, metadata):
     if fill:

@@ -1058,6 +1058,7 @@ def uninstall(
         logfile = logfile.replace('.txt', '.log')
         create_config(logfile, INFO, 'Install')
 
+
     if python:
         package_names = package_name.split(',')
 
