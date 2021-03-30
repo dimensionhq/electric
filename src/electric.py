@@ -1650,8 +1650,10 @@ def cleanup():
         with Bar(f'{Fore.LIGHTCYAN_EX}Deleting Temporary Files{Fore.RESET}', max=len(files) - sub, bar_prefix=' [ ', bar_suffix=' ] ', fill=f'{Fore.LIGHTGREEN_EX}={Fore.RESET}', empty_fill=f'{Fore.LIGHTBLACK_EX}-{Fore.RESET}') as b:
             for f in files:
                 if f != 'configurations':
-                    os.remove(rf'{tempfile.gettempdir()}\electric\{f}')
-                    time.sleep(0.0002)
+                    try:
+                        os.remove(rf'{tempfile.gettempdir()}\electric\{f}')
+                    except:
+                        pass
                     b.next()
 
 

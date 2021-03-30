@@ -305,7 +305,7 @@ def send_req_bundle(bundle_name: str) -> dict:
 
 
 def get_init_char(start, metadata) -> str:
-    if not metadata.settings.use_custom_progress_bar:
+    if metadata.settings.use_custom_progress_bar:
         if start:
             try:
                 start_char = Fore.RESET + \
