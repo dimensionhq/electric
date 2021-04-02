@@ -1536,6 +1536,7 @@ def find_existing_installation(package_name: str, display_name: str, test=True):
     key = registry.get_uninstall_key(package_name, display_name)
     installed_packages = [''.join(f.replace('.json', '').split(
         '@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current')]
+
     if key:
         if not test:
             return package_name in installed_packages
