@@ -352,6 +352,7 @@ def display_notes(packet: PortablePacket, unzip_dir: str, metadata: Metadata, un
     
     print('\n')
 
+
 def make_archive(source, destination):
     from shutil import move
 

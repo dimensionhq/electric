@@ -129,11 +129,14 @@ def is_admin() -> bool:
     return is_admin
 
 
-def verify_checksum(path: str, checksum: str, metadata: Metadata):
+def verify_checksum(path: str, checksum: str, metadata: Metadata, newline=False):
     import hashlib
 
     if hashlib.sha256(open(path, 'rb').read()).hexdigest().upper() == checksum:
-        write('Verified Installer Hash', 'bright_green', metadata)
+        if not newline:
+            write('Verified Installer Hash', 'bright_green', metadata)
+        else:
+            write('\nVerified Installer Hash', 'bright_green', metadata)
     else:
         write('Hashes Don\'t Match!', 'bright_green', metadata)
         if not metadata.yes or not metadata.force:

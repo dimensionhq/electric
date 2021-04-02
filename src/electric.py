@@ -459,7 +459,7 @@ def install(
         
 
         if packet.checksum and metadata.settings.checksum:
-            verify_checksum(configs['path'], packet.checksum, metadata)
+            verify_checksum(configs['path'], packet.checksum, metadata, newline= rate_limit != -1)
 
         if virus_check or metadata.settings.virus_check:
             log_info('Running requested virus scanning', metadata.logfile)
