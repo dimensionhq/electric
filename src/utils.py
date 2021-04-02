@@ -1032,7 +1032,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     if 'exit status 1' in error:
         click.echo(click.style(
             f'\nUnknown Error. Exited With Code [0000]', fg='red'))
-        handle_unknown_error(error, packet.display_name, method, 1)
+        handle_unknown_error(error, packet.display_name, method)
         return get_error_message('0000', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
     if '[WinError 740]' in error and 'elevation' in error:
@@ -1089,7 +1089,12 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
         return get_error_message('0002', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
     # Installer Requesting Reboot
-    return get_error_message('1010', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
+    if 'returned non-zero exit status 3010' in error:
+        return get_error_message('1010', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
+
+    else:
+        handle_unknown_error(error, packet.display_name, method)
+        return get_error_message('0000', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
 def get_file_type(command: str) -> str:
     """
@@ -1934,12 +1939,12 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
 
 
 
-def handle_unknown_error(err: str, pacakge_name: str, method: str, exit_code: str):
+def handle_unknown_error(err: str, package_name: str, method: str):
     error_msg = confirm('Would You Like To See The Error Message?')
 
     if error_msg:
         print(err + '\n')
-        query = f'{pacakge_name} {method} failed {err}'
+        query = f'{package_name} {method} failed {err}'
         with Halo('Troubleshooting ', text_color='yellow'):
             results = search(query, num=3)
             results = [f'\n\t[{index + 1}] <=> {r}' for index,
