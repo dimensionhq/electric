@@ -181,20 +181,22 @@ def get_character_color(fill, metadata):
 
 
 def get_init_char(start, metadata) -> str:
-    if start:
-        try:
-            start_char = Fore.RESET + \
-                metadata.settings.raw_dictionary['customProgressBar']['start_character']
-        except:
-            return ''
-        return start_char or ''
-    else:
-        try:
-            end_char = Fore.RESET + \
-                metadata.settings.raw_dictionary['customProgressBar']['end_character']
-        except:
-            return ''
-        return end_char or ''
+    if metadata.settings.use_custom_progress_bar:
+        if start:
+            try:
+                start_char = Fore.RESET + \
+                    metadata.settings.raw_dictionary['customProgressBar']['start_character']
+            except:
+                return ''
+            return start_char or ''
+        else:
+            try:
+                end_char = Fore.RESET + \
+                    metadata.settings.raw_dictionary['customProgressBar']['end_character']
+            except:
+                return ''
+            return end_char or ''
+    return ''
 
 
 def download(packet, url: str, download_extension: str, file_path: str, metadata: Metadata, show_progress_bar=True, is_zip=False):
@@ -347,11 +349,11 @@ def display_notes(packet: PortablePacket, unzip_dir: str, metadata: Metadata, un
     else:
         write(packet.uninstall_notes.replace(
             '$dir', unzip_dir).replace('<extras>', rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}').replace('\\\\', '\\'), 'white', metadata)
-    write('\n', 'white', metadata)
-
+    
+    print('\n')
 
 def make_archive(source, destination):
-    from shutil import copytree, move
+    from shutil import move
 
     base = os.path.basename(destination)
     name = base.split('.')[0]
@@ -363,6 +365,7 @@ def make_archive(source, destination):
 
 
 def create_folder_backup(packet: PortablePacket, folder: str):
+    from shutil import copytree
     if not os.path.isdir(rf'{home}\electric\Backup'):
         os.mkdir(rf'{home}\electric\Backup')
         os.mkdir(

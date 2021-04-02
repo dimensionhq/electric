@@ -943,6 +943,7 @@ def get_package_version(pkg, res, version, portable: bool, nightly: bool, metada
         handle_exit('ERROR', None, metadata)
     return version
 
+
 def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: list, method: str, metadata: Metadata, packet: Packet) -> str:
     """
     Troubleshoots errors when a CalledProcessError, OSError or FileNotFoundError is caught through subprocess.run in run_cmd. 
@@ -1095,6 +1096,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     else:
         handle_unknown_error(error, packet.display_name, method)
         return get_error_message('0000', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
+
 
 def get_file_type(command: str) -> str:
     """

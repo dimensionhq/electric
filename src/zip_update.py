@@ -124,5 +124,5 @@ def update_portable(ctx, packet: PortablePacket, metadata: Metadata):
         write(f'Could not find any existing installations of {packet.display_name}', 'red', metadata)
 
 
-    write(f'Successfully Updated {packet.display_name}', 'magenta', metadata)
+    write(f'Successfully Updated {packet.display_name}', 'bright_magenta', metadata)
     sys.exit()

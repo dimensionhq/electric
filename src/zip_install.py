@@ -154,4 +154,4 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
     if packet.install_notes:
         display_notes(packet, unzip_dir, metadata)
 
-    write(f'Successfully Installed {packet.display_name}', 'magenta', metadata)
+    write(f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
