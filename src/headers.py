@@ -5,7 +5,6 @@
 
 # from Classes.SystemManager import SystemManager
 from time import strftime
-from utils import *
 import platform
 import sys
 import os

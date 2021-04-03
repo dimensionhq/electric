@@ -5,7 +5,6 @@
 
 # TODO: Add Conflict-With Field For Json To Differentiate Between Microsoft Visual Studio Code and Microsoft Visual Studio Code Insiders
 
-from timeit import default_timer as timer
 import difflib
 from logging import INFO
 import os
@@ -16,19 +15,17 @@ import halo
 import keyboard
 from colorama import Fore
 from multiprocessing import freeze_support
-
+from external import *
 from Classes.Packet import Packet
 from Classes.Setting import Setting
 from Classes.ThreadedInstaller import ThreadedInstaller
 from cli import SuperChargeCLI
-from external import *
 from headers import *
 from info import __version__
 from logger import *
 from registry import get_environment_keys, get_uninstall_key, send_query
 from settings import initialize_settings, open_settings
 from utils import *
-from zip_update import update_portable
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 
@@ -459,7 +456,7 @@ def install(
         
 
         if packet.checksum and metadata.settings.checksum:
-            verify_checksum(configs['path'], packet.checksum, metadata, newline= rate_limit != -1)
+            verify_checksum(configs['path'], packet.checksum, metadata, newline = rate_limit != -1)
 
         if virus_check or metadata.settings.virus_check:
             log_info('Running requested virus scanning', metadata.logfile)
@@ -739,6 +736,8 @@ def up(
     """
     Updates an existing package
     """
+    from zip_update import update_portable
+    
     update_package_list()
     if package_name == 'electric' or package_name == 'self':
         sys.exit()
@@ -1020,6 +1019,7 @@ def uninstall(
     """
     Uninstalls a package or a list of packages.
     """
+    from timeit import default_timer as timer
 
     if not manifest and package_name == 'test':
         print(f'{Fore.LIGHTRED_EX}A Package Name Must Be Supplied\nUsage: electric uninstall <package-name>\n\nExamples:\nelectric uninstall {Fore.LIGHTGREEN_EX}sublime-text-3{Fore.RESET}\n{Fore.LIGHTRED_EX}electric uninstall {Fore.LIGHTGREEN_EX}sublime-text-3,notepad++{Fore.RESET}')
