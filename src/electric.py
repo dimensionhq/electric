@@ -1138,7 +1138,7 @@ def uninstall(
                     f'{manifest} FileNotFoundError, Specified Manifest Cannot Be Found!', metadata.logfile)
                 sys.exit(1)
 
-        if not metadata.silent:
+        if not metadata.no_color:
             write(
                 f'SuperCached [ {Fore.LIGHTCYAN_EX}{res["display-name"]}{Fore.RESET} ]', 'bright_white', metadata)
         else:
@@ -1368,8 +1368,12 @@ def uninstall(
             if key:
                 key = key[0]
 
-        write(
-            f'{Fore.LIGHTCYAN_EX}Uninstalling {packet.display_name}{Fore.RESET}', 'bright_white', metadata)
+        if not metadata.no_color:
+            write(
+                f'{Fore.LIGHTCYAN_EX}Uninstalling {packet.display_name}{Fore.RESET}', 'bright_white', metadata)
+        else:
+            write(
+                f'Uninstalling {packet.display_name}', 'bright_white', metadata)
 
         if 'QuietUninstallString' in key:
 
