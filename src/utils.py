@@ -129,11 +129,14 @@ def is_admin() -> bool:
     return is_admin
 
 
-def verify_checksum(path: str, checksum: str, metadata: Metadata):
+def verify_checksum(path: str, checksum: str, metadata: Metadata, newline=False):
     import hashlib
 
     if hashlib.sha256(open(path, 'rb').read()).hexdigest().upper() == checksum:
-        write('Verified Installer Hash', 'bright_green', metadata)
+        if not newline:
+            write('Verified Installer Hash', 'bright_green', metadata)
+        else:
+            write('\nVerified Installer Hash', 'bright_green', metadata)
     else:
         write('Hashes Don\'t Match!', 'bright_green', metadata)
         if not metadata.yes or not metadata.force:
@@ -305,21 +308,22 @@ def send_req_bundle(bundle_name: str) -> dict:
 
 
 def get_init_char(start, metadata) -> str:
-    if start:
-        try:
-            start_char = Fore.RESET + \
-                metadata.settings.raw_dictionary['customProgressBar']['start_character']
-        except:
-            return ''
-        return start_char or ''
-    else:
-        try:
-            end_char = Fore.RESET + \
-                metadata.settings.raw_dictionary['customProgressBar']['end_character']
-        except:
-            return ''
-        return end_char or ''
-
+    if metadata.settings.use_custom_progress_bar:
+        if start:
+            try:
+                start_char = Fore.RESET + \
+                    metadata.settings.raw_dictionary['customProgressBar']['start_character']
+            except:
+                return ''
+            return start_char or ''
+        else:
+            try:
+                end_char = Fore.RESET + \
+                    metadata.settings.raw_dictionary['customProgressBar']['end_character']
+            except:
+                return ''
+            return end_char or ''
+    return ''
 
 def get_character_color(fill, metadata):
     if fill:
@@ -610,7 +614,7 @@ def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadat
         sys.exit()
 
 
-def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata):
+def handle_multithreaded_installation(corrected_package_names: list, install_directory, metadata: Metadata, force: bool):
     import Classes.ThreadedInstaller as ti
 
     completed = False
@@ -686,7 +690,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                 )
 
                 handle_existing_installation(
-                    packet.json_name, packet, False, metadata, False)
+                    packet.json_name, packet, force, metadata)
 
                 write_verbose(
                     f'Package to be installed: {packet.json_name}', metadata)
@@ -787,16 +791,8 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                             pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
                         )
 
-                        installation = find_existing_installation(
-                            package, packet.display_name, test=False)
-                        if installation:
-                            write_debug(
-                                f'Aborting Installation As {packet.json_name} is already installed.', metadata)
-                            write_verbose(
-                                f'Found an existing installation of => {packet.json_name}', metadata)
-                            write(
-                                f'Found an existing installation {packet.json_name}.', 'bright_yellow', metadata)
-                            sys.exit()
+                        handle_existing_installation(
+                            packet.json_name, packet, force, metadata)
 
                         write_verbose(
                             f'Package to be installed: {packet.json_name}', metadata)
@@ -950,6 +946,7 @@ def get_package_version(pkg, res, version, portable: bool, nightly: bool, metada
         handle_exit('ERROR', None, metadata)
     return version
 
+
 def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: list, method: str, metadata: Metadata, packet: Packet) -> str:
     """
     Troubleshoots errors when a CalledProcessError, OSError or FileNotFoundError is caught through subprocess.run in run_cmd. 
@@ -1039,7 +1036,7 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     if 'exit status 1' in error:
         click.echo(click.style(
             f'\nUnknown Error. Exited With Code [0000]', fg='red'))
-        handle_unknown_error(error, packet.display_name, method, 1)
+        handle_unknown_error(error, packet.display_name, method)
         return get_error_message('0000', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
     if '[WinError 740]' in error and 'elevation' in error:
@@ -1096,7 +1093,13 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
         return get_error_message('0002', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
 
     # Installer Requesting Reboot
-    return get_error_message('1010', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
+    if 'returned non-zero exit status 3010' in error:
+        return get_error_message('1010', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
+
+    else:
+        handle_unknown_error(error, packet.display_name, method)
+        return get_error_message('0000', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
+
 
 def get_file_type(command: str) -> str:
     """
@@ -1346,10 +1349,7 @@ def send_req_package(package_name: str) -> dict:
                 f'\r| {Fore.LIGHTGREEN_EX}OK{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
             Debugger.test_internet()
-            sys.exit()
-        else:
-            sys.exit()
-
+        sys.exit()
     try:
         res = json.loads(response.text)
     except JSONDecodeError as e:
@@ -1536,6 +1536,7 @@ def find_existing_installation(package_name: str, display_name: str, test=True):
     key = registry.get_uninstall_key(package_name, display_name)
     installed_packages = [''.join(f.replace('.json', '').split(
         '@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current')]
+
     if key:
         if not test:
             return package_name in installed_packages
@@ -1944,12 +1945,12 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
 
 
 
-def handle_unknown_error(err: str, pacakge_name: str, method: str, exit_code: str):
+def handle_unknown_error(err: str, package_name: str, method: str):
     error_msg = confirm('Would You Like To See The Error Message?')
 
     if error_msg:
         print(err + '\n')
-        query = f'{pacakge_name} {method} failed {err}'
+        query = f'{package_name} {method} failed {err}'
         with Halo('Troubleshooting ', text_color='yellow'):
             results = search(query, num=3)
             results = [f'\n\t[{index + 1}] <=> {r}' for index,
@@ -2050,10 +2051,7 @@ def update_package_list():
                     f'\r| {Fore.LIGHTGREEN_EX}OK{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
                 Debugger.test_internet()
-                sys.exit()
-            else:
-                sys.exit()
-
+            sys.exit()
         data = res.json()
         with open(rf'{PathManager.get_appdata_directory()}\packages.json', 'w+') as f:
             f.write(json.dumps(data, indent=4))

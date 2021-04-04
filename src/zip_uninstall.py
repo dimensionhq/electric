@@ -46,9 +46,9 @@ def uninstall_portable(packet: PortablePacket, metadata: Metadata):
         proc.communicate()
         loc = rf'{home}\electric\shims'
                 
-        write(f'Successfully Uninstalled {packet.display_name}', 'bright_green', metadata)
         if packet.uninstall_notes:
             display_notes(packet, '', metadata, uninstall=True)
 
+        write(f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
     else:
         write(f'Could Not Find Any Existing Installations Of {packet.display_name}', 'bright_yellow', metadata)

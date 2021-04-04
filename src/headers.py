@@ -5,7 +5,6 @@
 
 # from Classes.SystemManager import SystemManager
 from time import strftime
-from utils import *
 import platform
 import sys
 import os
@@ -59,7 +58,6 @@ uninstall_debug_headers = [
 valid_install_exit_codes = [
     0,
     1641,
-    3010,
     2359302,
     2149842956
 ]

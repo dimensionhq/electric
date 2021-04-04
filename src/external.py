@@ -204,6 +204,7 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
         version, _ = output.communicate()
         version = version.decode()
         base_c = 'code-insiders'
+
     if output.returncode != 0:
         click.echo(click.style(
             'Visual Studio Code Or vscode Is Not Installed. Exit Code [0111]', fg='bright_yellow'))
@@ -226,8 +227,12 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
                         f'Code v{version} :: Installing {package_name}', 'white', metadata)
 
                 else:
-                    write(
-                        f'Code v{version} :: Installing {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
+                    if not metadata.no_color:
+                        write(
+                            f'Code v{version} :: Installing {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
+                    else:
+                        write(f'Code v{version} :: Installing {package_name}', 'white', metadata)
+
             if 'is already installed' in line:
                 if not metadata.no_color:
                     write(
@@ -240,10 +245,10 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
                 if metadata.no_color:
                     write(
                         f'Code v{version} :: Successfully Installed {package_name}', 'white', metadata)
-
                 else:
                     write(
                         f'{Fore.LIGHTGREEN_EX}Code v{version} :: Successfully Installed {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
+
     if mode == 'uninstall':
         command = f'{base_c} --uninstall-extension {package_name} --force'
         proc = Popen(mslex.split(command), stdin=PIPE,
@@ -252,14 +257,23 @@ def handle_vscode_extension(package_name: str, mode: str, metadata: Metadata):
             line = line.decode()
 
             if 'Uninstalling' in line:
-                write(
-                    f'Code v{version} :: Uninstalling {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
+                if not metadata.no_color:
+                    write(
+                        f'Code v{version} :: Uninstalling {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
+                else:
+                    write(f'Code v{version} :: Uninstalling {package_name}', 'white', metdata)
 
             if 'is not installed' in line:
-                write(f'{Fore.LIGHTGREEN_EX}Code v{version} :: {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.LIGHTYELLOW_EX} is not installed!', 'white', metadata)
+                if not metadata.no_color:
+                    write(f'{Fore.LIGHTGREEN_EX}Code v{version} :: {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.LIGHTYELLOW_EX} is not installed!', 'white', metadata)
+                else:
+                    write(f'Code v{version} :: {package_name} is not installed!', 'white', metadata)
 
             if 'was successfully uninstalled' in line:
-                write(f'{Fore.LIGHTGREEN_EX}Code v{version} :: Successfully Uninstalled {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
+                if not metadata.no_color:
+                    write(f'{Fore.LIGHTGREEN_EX}Code v{version} :: Successfully Uninstalled {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
+                else:
+                    write(f'Code v{version} :: Successfully Uninstalled {package_name}', 'white', metadata)
 
 
 def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):

@@ -5,7 +5,6 @@
 
 # TODO: Add Conflict-With Field For Json To Differentiate Between Microsoft Visual Studio Code and Microsoft Visual Studio Code Insiders
 
-from timeit import default_timer as timer
 import difflib
 from logging import INFO
 import os
@@ -16,19 +15,17 @@ import halo
 import keyboard
 from colorama import Fore
 from multiprocessing import freeze_support
-
+from external import *
 from Classes.Packet import Packet
 from Classes.Setting import Setting
 from Classes.ThreadedInstaller import ThreadedInstaller
 from cli import SuperChargeCLI
-from external import *
 from headers import *
 from info import __version__
 from logger import *
 from registry import get_environment_keys, get_uninstall_key, send_query
 from settings import initialize_settings, open_settings
 from utils import *
-from zip_update import update_portable
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 
@@ -206,7 +203,7 @@ def install(
     # Handle multi-threaded installation (see function for further clarification)
 
     handle_multithreaded_installation(
-        corrected_package_names, install_directory, metadata)
+        corrected_package_names, install_directory, metadata, force)
 
     # normal non-multi-threaded installation
     for package in corrected_package_names:
@@ -459,7 +456,7 @@ def install(
         
 
         if packet.checksum and metadata.settings.checksum:
-            verify_checksum(configs['path'], packet.checksum, metadata)
+            verify_checksum(configs['path'], packet.checksum, metadata, newline = rate_limit != -1)
 
         if virus_check or metadata.settings.virus_check:
             log_info('Running requested virus scanning', metadata.logfile)
@@ -739,6 +736,8 @@ def up(
     """
     Updates an existing package
     """
+    from zip_update import update_portable
+    
     update_package_list()
     if package_name == 'electric' or package_name == 'self':
         sys.exit()
@@ -988,12 +987,12 @@ def up(
 @click.option('-y', '--yes', is_flag=True, help='Accept all prompts during uninstallation')
 @click.option('--silent', '-s', is_flag=True, help='Completely silent uninstallation without any output to console')
 @click.option('--python', '-py', is_flag=True, help='Specify a Python package to uninstall')
-@click.option('--atom', '-ato', is_flag=True, help='Specify an Atom extension to install')
-@click.option('--vscode', '-vs', is_flag=True, help='Specify a Visual Studio Code extension to install')
-@click.option('--nightly', '--pre-release', is_flag=True, help='Specify a Visual Studio Code extension to install')
-@click.option('--node', '-npm', is_flag=True, help='Specify a Python package to install')
-@click.option('--portable', '--non-admin', '-p', is_flag=True, help='Install a portable version of a package')
-@click.option('--configuration', '-cf', is_flag=True, help='Specify a config file to install')
+@click.option('--atom', '-ato', is_flag=True, help='Specify an Atom extension to uninstall')
+@click.option('--vscode', '-vs', is_flag=True, help='Specify a Visual Studio Code extension to uninstall')
+@click.option('--nightly', '--pre-release', is_flag=True, help='Specify a Visual Studio Code extension to uninstall')
+@click.option('--node', '-npm', is_flag=True, help='Specify a Python package to uninstall')
+@click.option('--portable', '--non-admin', '-p', is_flag=True, help='Uninstall a portable version of a package')
+@click.option('--configuration', '-cf', is_flag=True, help='Specify a config file to uninstall')
 @click.option('--ae', is_flag=True)
 @click.option('--skp', is_flag=True)
 @click.pass_context
@@ -1020,6 +1019,7 @@ def uninstall(
     """
     Uninstalls a package or a list of packages.
     """
+    from timeit import default_timer as timer
 
     if not manifest and package_name == 'test':
         print(f'{Fore.LIGHTRED_EX}A Package Name Must Be Supplied\nUsage: electric uninstall <package-name>\n\nExamples:\nelectric uninstall {Fore.LIGHTGREEN_EX}sublime-text-3{Fore.RESET}\n{Fore.LIGHTRED_EX}electric uninstall {Fore.LIGHTGREEN_EX}sublime-text-3,notepad++{Fore.RESET}')
@@ -1057,6 +1057,7 @@ def uninstall(
     if logfile:
         logfile = logfile.replace('.txt', '.log')
         create_config(logfile, INFO, 'Install')
+
 
     if python:
         package_names = package_name.split(',')
@@ -1137,8 +1138,11 @@ def uninstall(
                     f'{manifest} FileNotFoundError, Specified Manifest Cannot Be Found!', metadata.logfile)
                 sys.exit(1)
 
-        write(
-            f'SuperCached [ {Fore.LIGHTCYAN_EX}{res["display-name"]}{Fore.RESET} ]', 'bright_white', metadata)
+        if not metadata.no_color:
+            write(
+                f'SuperCached [ {Fore.LIGHTCYAN_EX}{res["display-name"]}{Fore.RESET} ]', 'bright_white', metadata)
+        else:
+            write(f'SuperCached [ {res["display-name"]} ]', 'bright_white', metadata)
 
         if 'is-portable' in list(res.keys()):
             if res['is-portable'] == True:
@@ -1364,8 +1368,12 @@ def uninstall(
             if key:
                 key = key[0]
 
-        write(
-            f'{Fore.LIGHTCYAN_EX}Uninstalling {packet.display_name}{Fore.RESET}', 'bright_white', metadata)
+        if not metadata.no_color:
+            write(
+                f'{Fore.LIGHTCYAN_EX}Uninstalling {packet.display_name}{Fore.RESET}', 'bright_white', metadata)
+        else:
+            write(
+                f'Uninstalling {packet.display_name}', 'bright_white', metadata)
 
         if 'QuietUninstallString' in key:
 
@@ -1411,12 +1419,14 @@ def uninstall(
             if not packet.run_test:
                 if nightly:
                     packet.version == 'nightly'
+
                 os.remove(
                     rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                 write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                 log_info(
                     f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
+
             else:
                 if not find_existing_installation(packet.json_name, packet.display_name):
                     print(
@@ -1510,9 +1520,12 @@ def uninstall(
                             rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                     except FileNotFoundError:
                         pass
-
-                write(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check',
-                      'bright_white', metadata)
+                
+                if not metadata.no_color:
+                    write(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check',
+                        'bright_white', metadata)
+                else:
+                    write(f'[ OK ] Registry Check', 'bright_white', metadata)   
 
                 write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
@@ -1582,7 +1595,11 @@ def uninstall(
                 else:
                     os.remove(
                         rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                print(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check')
+                if not metadata.no_color:
+                    write(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check', 'bright_white', metadata)
+                else:
+                    write(f'[ OK ] Registry Check', 'bright_white', metadata)
+
                 write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
             else:
@@ -1637,8 +1654,10 @@ def cleanup():
         with Bar(f'{Fore.LIGHTCYAN_EX}Deleting Temporary Files{Fore.RESET}', max=len(files) - sub, bar_prefix=' [ ', bar_suffix=' ] ', fill=f'{Fore.LIGHTGREEN_EX}={Fore.RESET}', empty_fill=f'{Fore.LIGHTBLACK_EX}-{Fore.RESET}') as b:
             for f in files:
                 if f != 'configurations':
-                    os.remove(rf'{tempfile.gettempdir()}\electric\{f}')
-                    time.sleep(0.0002)
+                    try:
+                        os.remove(rf'{tempfile.gettempdir()}\electric\{f}')
+                    except:
+                        pass
                     b.next()
 
 

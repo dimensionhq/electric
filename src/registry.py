@@ -9,6 +9,7 @@ import winreg
 
 keys = []
 
+
 def send_query(hive, flag):
         aReg = winreg.ConnectRegistry(None, hive)
         aKey = winreg.OpenKey(aReg, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall',
@@ -177,8 +178,10 @@ def get_uninstall_key(package_name : str, display_name: str):
             return get_more_accurate_matches(final_array)
         return final_array
     return_array = []
-    for something in total:
-        return_array.append(something[0])
+    
+    for var in total:
+        return_array.append(var[0])
+    
     if len(return_array) > 1:
         return get_more_accurate_matches(return_array)
     else:

@@ -106,7 +106,7 @@ end;
 [Registry]
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; \
     ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};C:\Program Files (x86)\{#MyAppName}\bin"; \
-    Check: NeedsAddPath('C:\Program Files (x86)\{#MyAppName}')
+    Check: NeedsAddPath('C:\Program Files (x86)\{#MyAppName}\bin')
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
