@@ -41,7 +41,7 @@ Name: "{userappdata}\electric";
 
 
 [Run]
-Filename: "bin\scripts\tabcompletion.bat"; WorkingDir: "{app}"
+Filename: "bin\scripts\tabcompletion.bat"; WorkingDir: "{app}"; Flags: runhidden
 
 [Code]
 const

@@ -1,0 +1,9 @@
+eel.py
+setup.py
+C:/users/xtrem/desktop/electric/electric/src/eel/eel.py
+eel.egg-info/PKG-INFO
+eel.egg-info/SOURCES.txt
+eel.egg-info/dependency_links.txt
+eel.egg-info/entry_points.txt
+eel.egg-info/requires.txt
+eel.egg-info/top_level.txt
