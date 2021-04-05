@@ -1,0 +1,4 @@
+
+        [console_scripts]
+        eel=eel:cli
+    

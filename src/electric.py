@@ -25,7 +25,12 @@ from info import __version__
 from logger import *
 from registry import get_environment_keys, get_uninstall_key, send_query
 from settings import initialize_settings, open_settings
-from utils import *
+from utils import date, update_package_list, update_electric, generate_metadata, handle_external_installation, get_autocorrections, get_correct_package_names, handle_existing_installation
+from utils import write_install_headers, handle_multithreaded_installation, send_req_package, json, JSONDecodeError, get_package_version, handle_portable_installation, is_admin, tempfile, register_package_success
+from utils import download_installer, handle_exit, verify_checksum, check_virus, get_pid, install_package, disp_error_msg, get_error_message, generate_shim, append_to_path, set_environment_variable, cursor
+from utils import find_existing_installation, display_support, PortablePacket, check_newer_version, confirm, index, write_uninstall_headers, handle_portable_uninstallation, handle_uninstall_dependencies
+from utils import find_msix_installation, uninstall_msix, kill_proc, kill_running_proc, run_cmd, delete_environment_variable, send_req_bundle, send_package_request, get_configuration_data, display_info, swc
+
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 
@@ -561,7 +566,7 @@ def install(
             write(
                 f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
             write_verbose(
-                f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', 'bright_green', metadata)
+                f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', metadata)
             log_info(
                 f'Appending "{packet.add_path.replace("<install-directory>", replace_install_dir)}" To PATH', metadata.logfile)
             append_to_path(packet.add_path.replace(
@@ -580,7 +585,7 @@ def install(
             write(
                 f'Setting Environment Variable {name}', 'bright_green', metadata)
             write_verbose(
-                f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', 'bright_green', metadata)
+                f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata)
             log_info(
                 f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
 
@@ -1271,7 +1276,7 @@ def uninstall(
         ftp = ['.msix', '.msixbundle', '.appxbundle', '.appx']
 
         if packet.dependencies:
-            handle_uninstall_dependencies(packet.dependencies)
+            handle_uninstall_dependencies(packet.dependencies, metadata)
 
         if packet.win64_type in ftp:
             if find_msix_installation(pkg['uninstall-bundle-identifier']):
@@ -2136,7 +2141,6 @@ def ls(_, installed: bool, versions: bool):
 
         idx = 0
         for name in names:
-            id_length = 90
             length = len(name)
             print(name.strip(), ' ' * (max_length - length), versions[idx])
             idx += 1
@@ -2240,8 +2244,8 @@ def autoupdate(
         data[web_version] = data[old_latest]
         data[web_version]['url'] = data['auto-update']['url'].replace(
             '<version>', web_version)
-        colorful_json = highlight(json.dumps(
-            data, indent=4), lexers.JsonLexer(), formatters.TerminalFormatter())
+        colorful_json = json.dumps(
+            data, indent=4)
         print(colorful_json)
 
 
@@ -2279,28 +2283,28 @@ Command: electric feature [enable|disable] electric-progress-bar
             if feature == 'support-message' and method == 'disable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['supportMessage'] = False
-                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
                 print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Support Message{Fore.RESET}')
 
             elif feature == 'support-message' and method == 'enable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['supportMessage'] = True
-                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
                 print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Support Message{Fore.RESET}')
 
             if feature == 'checksum' and method == 'enable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['checksumInstallers'] = True
-                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
                 print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Installer Checksum Verification{Fore.RESET}')
             
             if feature == 'checksum' and method == 'disable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['checksumInstallers'] = False
-                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
                 print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Installer Checksum Verification{Fore.RESET}')
             
@@ -2308,56 +2312,56 @@ Command: electric feature [enable|disable] electric-progress-bar
             if feature == 'virus-check' and method == 'enable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['virusCheck'] = True
-                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
                 print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Runtime Malware Protection{Fore.RESET}')
             
             if feature == 'virus-check' and method == 'disable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['virusCheck'] = False
-                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
                 print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Runtime Malware Protection{Fore.RESET}')
             
             if feature == 'install-metrics' and method == 'enable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['installMetrics'] = True
-                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
                 print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Install Metrics{Fore.RESET}')
             
             if feature == 'install-metrics' and method == 'disable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['installMetrics'] = False
-                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
                 print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Install Metrics{Fore.RESET}')
             
             if feature == 'progress-bar' and method == 'enable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['showProgressBar'] = True
-                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
                 print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Progress Bar{Fore.RESET}')
             
             if feature == 'progress-bar' and method == 'disable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['showProgressBar'] = False
-                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
                 print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Progress Bar{Fore.RESET}')
            
             if feature == 'electric-progress-bar' and method == 'enable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['electrifyProgressBar'] = True
-                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
                 print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Electric Progress Bar{Fore.RESET}')
             
             if feature == 'electric-progress-bar' and method == 'disable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['electrifyProgressBar'] = False
-                with open(f'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
+                with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
                 print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Electric Progress Bar{Fore.RESET}')
            

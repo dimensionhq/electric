@@ -1,0 +1,12 @@
+Metadata-Version: 1.1
+Name: eel
+Version: 1.0.0
+Summary: The Official electric package manager plugin!
+Home-page: https://github.com/XtremeDevX/Electric-Windows
+Author: XtremeDevX
+Author-email: xtremedevx@gmail.com
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: Apache License 2.0
+Classifier: Operating System :: OS Independent

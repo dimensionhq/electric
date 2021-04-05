@@ -754,7 +754,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         pkg = pkg[version]
 
                         if os.path.isdir(f'{PathManager.get_appdata_directory()}\Current\{package}@{version}.json'):
-                            write(f'{res["display-name"]} Is Already Installed!')
+                            write(f'{res["display-name"]} Is Already Installed!', 'yellow', metadata)
                             sys.exit()
 
                         install_exit_codes = None
@@ -1307,7 +1307,10 @@ def update_electric():
 def send_package_request(package_name: str):
     # Request A Package To Be Added To Electric From The Command Line
     URL = 'https://electric-package-manager-api.herokuapp.com/submit-package-request/'
-    res = requests.get(URL + package_name)
+    try:
+        requests.get(URL + package_name)
+    except:
+        pass
 
 
 

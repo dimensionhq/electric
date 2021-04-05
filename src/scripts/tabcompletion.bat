@@ -22,3 +22,17 @@ IF not EXIST %powershellpath% type nul>%powershellpath%
         echo }
     ) >> %powershellpath%
 )
+
+>nul find "function Update-Environment() {" %powershellpath% && (
+    echo Found
+) || (
+    (
+        echo[
+        echo # Refresh Environment Variables
+        echo function Update-Environment() {
+        echo    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+        echo    Write-Host -ForegroundColor Green "Sucessfully Refreshed Environment Variables For powershell.exe"
+        echo }
+        echo Set-Alias refreshenv Update-Environment
+    ) >> %powershellpath%
+)
