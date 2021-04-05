@@ -23,3 +23,5 @@ src/Pipfile
 tests/__pycache__
 test.py
 src/eel/__pycache__
+src/rust/launcher/target
+src/rust/completer/target
