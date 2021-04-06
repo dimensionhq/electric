@@ -1024,6 +1024,7 @@ def uninstall(
     """
     Uninstalls a package or a list of packages.
     """
+    
     from timeit import default_timer as timer
 
     if not manifest and package_name == 'test':
@@ -1299,7 +1300,6 @@ def uninstall(
 
         start = timer()
         key = get_uninstall_key(packet.json_name, packet.display_name)
-
         end = timer()
 
         if not key:
