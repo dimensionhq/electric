@@ -1405,7 +1405,7 @@ def find_approx_pid(display_name) -> str:
             continue
 
     matches = difflib.get_close_matches(
-        display_name.lower(), cleaned_up_names, n=1, cutoff=0.65)
+        display_name.lower(), cleaned_up_names, n=1, cutoff=0.75)
 
     try:
         if matches != []:
@@ -1949,6 +1949,8 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
 
 
 def handle_unknown_error(err: str, package_name: str, method: str):
+    method = method.replace("ation", "")
+    print(f"{Fore.RED}An Error Occured While {method.capitalize()}ing {package_name}\n")
     error_msg = confirm('Would You Like To See The Error Message?')
 
     if error_msg:
