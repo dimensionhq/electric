@@ -67,50 +67,50 @@ def get_uninstall_key(package_name : str, display_name: str):
     total = []
 
     def get_uninstall_string(package_name : str):
-            nonlocal final_array
-            string_gen(package_name)
+        nonlocal final_array
+        string_gen(package_name)
 
-            for key in keys:
-                    display_name = key['DisplayName']
-                    url = None if 'URLInfoAbout' not in key else key['URLInfoAbout']
-                    uninstall_string = '' if 'UninstallString' not in key else key['UninstallString']
-                    quiet_uninstall_string = '' if 'QuietUninstallString' not in key else key['QuietUninstallString']
-                    install_location = None if 'InstallLocation' not in key else key['InstallLocation']
-                    final_list = [display_name, url, uninstall_string, quiet_uninstall_string, install_location]
-                    matches = None
-                    refined_list = []
+        for key in keys:
+            display_name = key['DisplayName']
+            url = None if 'URLInfoAbout' not in key else key['URLInfoAbout']
+            uninstall_string = '' if 'UninstallString' not in key else key['UninstallString']
+            quiet_uninstall_string = '' if 'QuietUninstallString' not in key else key['QuietUninstallString']
+            install_location = None if 'InstallLocation' not in key else key['InstallLocation']
+            final_list = [display_name, url, uninstall_string, quiet_uninstall_string, install_location]
+            matches = None
+            refined_list = []
 
-                    for index, item in enumerate(final_list):
-                            if item:
-                                    name = item.lower()
+            for index, item in enumerate(final_list):
+                    if item:
+                            name = item.lower()
 
-                            else:
-                                    final_list.pop(index)
-                            refined_list.append(name)
-                    temp_list = []
-                    old = ''
-                    for val in refined_list:
-                        if val != old:
-                            temp_list.append(val)
-                            old = val
+                    else:
+                            final_list.pop(index)
+                    refined_list.append(name)
+            temp_list = []
+            old = ''
+            for val in refined_list:
+                if val != old:
+                    temp_list.append(val.lower())
+                    old = val
 
-                    for string in strings:
-                            matches = difflib.get_close_matches(
-                                package_name, temp_list, cutoff=0.65)
+            for string in strings:
+                matches = difflib.get_close_matches(
+                    package_name.lower(), temp_list, cutoff=0.65)
 
-                            if matches:
-                                    final_array.append(key)
+                if matches:
+                        final_array.append(key)
 
-                            else:
-                                    possibilities = []
+                else:
+                        possibilities = []
 
-                                    for element in refined_list:
-                                        for string in strings:
-                                            if string in element:
-                                                possibilities.append(key)
+                        for element in refined_list:
+                            for string in strings:
+                                if string in element:
+                                    possibilities.append(key)
 
-                                    if possibilities:
-                                        total.append(possibilities)
+                        if possibilities:
+                            total.append(possibilities)
 
     strings = []
 
@@ -120,56 +120,55 @@ def get_uninstall_key(package_name : str, display_name: str):
         strings.append(display_name.lower())
 
     def get_more_accurate_matches(return_array):
-            index, confidence = 0, 50
-            final_index, final_confidence = (None, None)
+        index, confidence = 0, 50
+        final_index, final_confidence = (None, None)
 
-            for key in return_array:
-                    name = key['DisplayName']
-                    loc = None
-                    try:
-                        loc = key['InstallLocation']
-                    except KeyError:
-                        pass
+        for key in return_array:
+            name = key['DisplayName']
+            loc = None
+            try:
+                loc = key['InstallLocation']
+            except KeyError:
+                pass
 
-                    uninstall_string = None if 'UninstallString' not in key else key['UninstallString']
-                    quiet_uninstall_string = None if 'QuietUninstallString' not in key else key['QuietUninstallString']
-                    url = None if 'URLInfoAbout' not in key else key['URLInfoAbout']
+            uninstall_string = None if 'UninstallString' not in key else key['UninstallString']
+            quiet_uninstall_string = None if 'QuietUninstallString' not in key else key['QuietUninstallString']
+            url = None if 'URLInfoAbout' not in key else key['URLInfoAbout']
 
-                    for string in strings:
-                            if name and string.lower() in name.lower():
-                                    confidence += 10
-                            if loc and string.lower() in loc.lower():
-                                    confidence += 5
-                            if (uninstall_string
-                                and string.lower() in uninstall_string.lower()):
-                                    confidence += 5
-                            if (quiet_uninstall_string and
-                                string.lower() in quiet_uninstall_string.lower()):
-                                    confidence += 5
-                            if url and string.lower() in url.lower():
-                                    confidence += 10
+            for string in strings:
+                    if name and string.lower() in name.lower():
+                            confidence += 10
+                    if loc and string.lower() in loc.lower():
+                            confidence += 5
+                    if (uninstall_string
+                        and string.lower() in uninstall_string.lower()):
+                            confidence += 5
+                    if (quiet_uninstall_string and
+                        string.lower() in quiet_uninstall_string.lower()):
+                            confidence += 5
+                    if url and string.lower() in url.lower():
+                            confidence += 10
 
-                            if final_confidence == confidence:
-                                    word_list = package_name.split('-')
+                    if final_confidence == confidence:
+                            word_list = package_name.split('-')
 
-                                    for word in word_list:
-                                            for key in [name, quiet_uninstall_string, loc, url]:
-                                                    if key and word in key:
-                                                            confidence += 5
-
-                                            if (word and uninstall_string
-                                                and word in uninstall_string):
+                            for word in word_list:
+                                    for key in [name, quiet_uninstall_string, loc, url]:
+                                            if key and word in key:
                                                     confidence += 5
 
-                            if not final_index and not final_confidence:
-                                final_index = index
-                                final_confidence = confidence
-                            if final_confidence < confidence:
-                                final_index = index
-                                final_confidence = confidence
-                    index += 1
-            return return_array[final_index]
+                                    if (word and uninstall_string
+                                        and word in uninstall_string):
+                                            confidence += 5
 
+                    if not final_index and not final_confidence:
+                        final_index = index
+                        final_confidence = confidence
+                    if final_confidence < confidence:
+                        final_index = index
+                        final_confidence = confidence
+            index += 1
+        return return_array[final_index]
 
     get_uninstall_string(display_name)
 
