@@ -36,7 +36,6 @@ fn main() {
         println!("Downloading Electric Configuration...");
         let file_path = download_configuration(configuration_name, url);
         println!("Successfully Downloaded Configuration");
-        println!("{}", file_path);
         Command::new("powershell.exe")
             .arg("-c")
             .arg("electric")
