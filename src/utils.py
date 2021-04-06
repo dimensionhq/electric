@@ -377,7 +377,6 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
     # returns path to the existing installer
     else:
-
         write_verbose(
             f'Using existing installer previously downloaded at {path}', metadata)
         log_info(
@@ -424,6 +423,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
 
         if not total_length:
             f.write(response.content)
+
         else:
 
             dl = 0
@@ -445,17 +445,21 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                     complete = int(30 * dl / full_length)
                     fill_c = '-'  # Fallback Character
                     unfill_c = ' '  # Fallback Character
+
                     if progress_type == 'custom' or metadata.settings.use_custom_progress_bar:
                         fill_c = eval(get_character_color(
                             True, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['fill_character'] * complete
                         unfill_c = eval(get_character_color(
                             False, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['unfill_character'] * (30 - complete)
+                    
                     elif progress_type == 'accented':
                         fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
                         unfill_c = Fore.BLACK + '█' * (30 - complete)
+                    
                     elif progress_type == 'zippy':
                         fill_c = Fore.LIGHTGREEN_EX + '=' * complete
                         unfill_c = Fore.LIGHTBLACK_EX + '-' * (30 - complete)
+                    
                     elif progress_type not in ['custom', 'accented', 'zippy'] and metadata.settings.use_custom_progress_bar == False or progress_type == 'default':
                         fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
                         unfill_c = Fore.BLACK + '█' * (30 - complete)
@@ -466,12 +470,19 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                     else:
                         sys.stdout.write(
                             f'\r{get_init_char(True, metadata)}{fill_c}{unfill_c}{get_init_char(False, metadata)} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
+                    
                     sys.stdout.flush()
 
-    os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
+    try:
+        os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
+    except FileNotFoundError:
+        pass
+ 
     dump_pickle(generate_dict(newpath if newpath else path,
                               package_name), 'downloadcache')
+
     sys.stdout.write('\n')  # Prevent /r from getting overwritten by Halo
+
     if not newpath:
         return path
     else:
