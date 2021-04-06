@@ -1,6 +1,8 @@
 set powershellpath=%USERPROFILE%\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1
 echo %powershellpath%
 
+powershell Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force 
+
 if not EXIST %USERPROFILE%\Documents\WindowsPowerShell\ mkdir %USERPROFILE%\Documents\WindowsPowerShell\
 
 IF not EXIST %powershellpath% type nul>%powershellpath%
