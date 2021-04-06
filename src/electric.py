@@ -1273,8 +1273,11 @@ def uninstall(
             pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
         )
 
+
         proc = None
         ftp = ['.msix', '.msixbundle', '.appxbundle', '.appx']
+
+
 
         if packet.dependencies:
             handle_uninstall_dependencies(packet.dependencies, metadata)
@@ -1339,6 +1342,7 @@ def uninstall(
                 pkg['bin'] if 'bin' in list(pkg.keys()) else None,
                 pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
             )
+
 
             write(
                 f'Could not find any existing installations of {packet.display_name}', 'bright_red', metadata)
@@ -1515,6 +1519,29 @@ def uninstall(
                         pass
 
             if not packet.run_test:
+                
+                if packet.uninstall:
+                    for pkg in packet.uninstall:
+                        ctx.invoke(
+                            uninstall,
+                            package_name=pkg,
+                            verbose=metadata.verbose,
+                            debug=metadata.debug,
+                            no_color=metadata.no_color,
+                            logfile=metadata.logfile,
+                            yes=metadata.yes,
+                            silent=metadata.silent,
+                            python=False,
+                            vscode=False,
+                            node=False,
+                            atom=False,
+                            configuration=False,
+                            portable=False,
+                            ae=False,
+                            nightly=nightly,
+                            skp=True
+                        )
+
                 if nightly:
                     packet.version = 'nightly'
                 write(
@@ -1579,6 +1606,7 @@ def uninstall(
                             nightly=nightly,
                             skp=True
                         )
+
                 write(
                     f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                 log_info(
