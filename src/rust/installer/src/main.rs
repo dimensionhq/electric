@@ -3,6 +3,9 @@ use std::fs::{read_to_string, File, OpenOptions};
 use std::io::Write;
 use std::path::Path;
 use std::process::Command;
+use winreg::enums::*;
+use winreg::RegKey;
+use std::process;
 
 const SETUP: &str = r#"
 # Electric Tab Completion
@@ -25,7 +28,23 @@ function Update-Environment() {
 Set-Alias refreshenv Update-Environment
 "#;
 
+fn setup_web_integration() {
+    let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
+    let (key, _) = hkcr.create_subkey("Electric").unwrap();
+    key.set_value("", &String::from("URL: Electric Protocol")).unwrap();
+    key.set_value("URL Protocol", &String::new()).unwrap();
+    let (default_icon, _) = key.create_subkey("DefaultIcon").unwrap();
+    default_icon.set_value("", &String::from(r"C:\Program Files (x86)\Electric\bin\electric.exe")).unwrap();
+    
+    let (shell, _) = key.create_subkey("Shell").unwrap();
+    let (open, _) = shell.create_subkey("Open").unwrap();
+    let (command, _) = open.create_subkey("command").unwrap();
+    command.set_value("", &String::from(r"C:\Program Files (x86)\Electric\bin\electric-web.exe %1")).unwrap();
+}
+
 fn main() {
+    setup_web_integration();
+    
     Command::new("powershell.exe")
         .arg("-c")
         .arg("Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force");
