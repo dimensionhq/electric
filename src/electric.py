@@ -1022,7 +1022,7 @@ def uninstall(
     manifest: str
 ):
     """
-    Uninstalls a package or a list of packages.
+    Uninstall a package or a list of packages.
     """
     
     from timeit import default_timer as timer
@@ -1425,38 +1425,6 @@ def uninstall(
 
             index += 1
 
-            if not packet.run_test:
-                if nightly:
-                    packet.version == 'nightly'
-
-                os.remove(
-                    rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                write(
-                    f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-                log_info(
-                    f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
-
-            else:
-                if not find_existing_installation(packet.json_name, packet.display_name):
-                    print(
-                        f'[ {Fore.LIGHTRED_EX}ERROR{Fore.RESET} ] Registry Check')
-                    write(f'Failed: Registry Check', 'bright_red', metadata)
-                    write('Retrying Registry Check In 7.5 seconds',
-                          'bright_yellow', metadata)
-                    tm.sleep(7.5)
-                    if not find_existing_installation(packet.json_name, packet.display_name):
-                        write(
-                            f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ]  Registry Check', 'bright_white', metadata)
-                        os.remove(
-                            rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                        write(
-                            f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-                        log_info(
-                            f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
-                    else:
-                        write(
-                            f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
-
             write_debug(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
             log_info(
@@ -1518,105 +1486,33 @@ def uninstall(
                     except:
                         pass
 
-            if not packet.run_test:
-                
-                if packet.uninstall:
-                    for pkg in packet.uninstall:
-                        ctx.invoke(
-                            uninstall,
-                            package_name=pkg,
-                            verbose=metadata.verbose,
-                            debug=metadata.debug,
-                            no_color=metadata.no_color,
-                            logfile=metadata.logfile,
-                            yes=metadata.yes,
-                            silent=metadata.silent,
-                            python=False,
-                            vscode=False,
-                            node=False,
-                            atom=False,
-                            configuration=False,
-                            portable=False,
-                            ae=False,
-                            nightly=nightly,
-                            skp=True
-                        )
-
-                if nightly:
-                    packet.version = 'nightly'
-                write(
-                    f'Running Tests For {packet.display_name}', 'bright_white', metadata)
-                if not skp:
-                    try:
-                        os.remove(
-                            rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                    except FileNotFoundError:
-                        pass
-                
-                if not metadata.no_color:
-                    write(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check',
-                        'bright_white', metadata)
-                else:
-                    write(f'[ OK ] Registry Check', 'bright_white', metadata)   
-
-                write(
-                    f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-                log_info(
-                    f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
-
-            elif packet.run_test:
-                if not find_existing_installation(packet.json_name, packet.display_name):
-                    print(
-                        f'[ {Fore.LIGHTRED_EX}ERROR{Fore.RESET} ] Registry Check')
-                    write(f'Failed: Registry Check', 'bright_red', metadata)
-                    write('Retrying Registry Check In 7.5 seconds',
-                          'bright_yellow', metadata)
-                    tm.sleep(7.5)
-                    if not find_existing_installation(packet.json_name, packet.display_name):
-                        write(
-                            f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ]  Registry Check', 'bright_white', metadata)
-                        os.remove(
-                            rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
-                        write(
-                            f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-                        log_info(
-                            f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
-                    else:
-                        write(
-                            f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
-
-                if packet.uninstall:
-                    for pkg in packet.uninstall:
-                        ctx.invoke(
-                            uninstall,
-                            package_name=pkg,
-                            verbose=metadata.verbose,
-                            debug=metadata.debug,
-                            no_color=metadata.no_color,
-                            logfile=metadata.logfile,
-                            yes=metadata.yes,
-                            silent=metadata.silent,
-                            python=False,
-                            vscode=False,
-                            node=False,
-                            atom=False,
-                            configuration=False,
-                            portable=False,
-                            ae=False,
-                            nightly=nightly,
-                            skp=True
-                        )
-
-                write(
-                    f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
-                log_info(
-                    f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
-
             write_debug(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
             log_info(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
             close_log(metadata.logfile, 'Uninstall')
+
+        if packet.uninstall:
+            for pkg in packet.uninstall:
+                ctx.invoke(
+                    uninstall,
+                    package_name=pkg,
+                    verbose=metadata.verbose,
+                    debug=metadata.debug,
+                    no_color=metadata.no_color,
+                    logfile=metadata.logfile,
+                    yes=metadata.yes,
+                    silent=metadata.silent,
+                    python=False,
+                    vscode=False,
+                    node=False,
+                    atom=False,
+                    configuration=False,
+                    portable=False,
+                    ae=False,
+                    nightly=nightly,
+                    skp=True
+                )
 
         if packet.run_test:
             write(
@@ -1653,6 +1549,28 @@ def uninstall(
                 else:
                     write(
                         f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
+        else:
+            if nightly:
+                packet.version = 'nightly'
+            write(
+                f'Running Tests For {packet.display_name}', 'bright_white', metadata)
+            if not skp:
+                try:
+                    os.remove(
+                        rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                except FileNotFoundError:
+                    pass
+            
+            if not metadata.no_color:
+                write(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check',
+                    'bright_white', metadata)
+            else:
+                write(f'[ OK ] Registry Check', 'bright_white', metadata)   
+
+            write(
+                f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
+            log_info(
+                f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
 
 
 @cli.command(aliases=['clean', 'clear'], context_settings=CONTEXT_SETTINGS)
