@@ -25,3 +25,4 @@ test.py
 src/eel/__pycache__
 src/rust/launcher/target
 src/rust/completer/target
+src/rust/installer/target

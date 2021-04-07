@@ -14,10 +14,18 @@ fn main() {
     // Install Electric Packages
     if parse.starts_with("electric:packages=") {
         println!("Installing Packages");
-    }
+        parse = parse.replace("electric:packages=", "");
 
+        Command::new("powershell.exe")
+            .arg("-c")
+            .arg("electric")
+            .arg("install")
+            .arg(parse)
+            .spawn()
+            .unwrap();
+    }
     // Install Electric Configuration
-    if parse.starts_with("electric:configuration=") {
+    else if parse.starts_with("electric:configuration=") {
         println!("Installing Configuration");
         // Parse Url
         parse = parse.replace("electric:configuration=", "");
@@ -28,7 +36,6 @@ fn main() {
         println!("Downloading Electric Configuration...");
         let file_path = download_configuration(configuration_name, url);
         println!("Successfully Downloaded Configuration");
-        println!("{}", file_path);
         Command::new("powershell.exe")
             .arg("-c")
             .arg("electric")
@@ -40,6 +47,7 @@ fn main() {
 }
 
 pub fn download_configuration(name: &str, url: &str) -> String {
+    #[allow(unused_assignments)]
     let mut res: String = String::new();
 
     match blocking::get(format!("{}", url)) {
