@@ -121,7 +121,7 @@ class DYMMixin(object):  # pylint: disable=too-few-public-methods
         """
         Overrides default click cli help command
         """        
-        message = f'''Electric Package Manager v1.0.0 Pre-Alpha Build
+        message = f'''Electric Package Manager v1.0.0 Beta Build
 Copyright (c) Electric Inc.
 
 Usage: electric <command> [<options>]
