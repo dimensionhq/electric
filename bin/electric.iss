@@ -22,10 +22,10 @@ DefaultDirName={autopf}\{#MyAppName}
 DisableDirPage=yes
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-LicenseFile=C:\Users\xtrem\Desktop\electric-dev\electric\LICENSE
+LicenseFile=C:\Users\xtrem\Desktop\Electric\electric\LICENSE
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
-OutputDir=C:\Users\xtrem\Desktop\electric-dev\electric\bin
+OutputDir=C:\Users\xtrem\Desktop\Electric\electric\bin
 OutputBaseFilename=Electric v1.0.0 Alpha Setup
 Compression=lzma
 SolidCompression=yes
@@ -39,9 +39,8 @@ LZMANumBlockThreads=6
 [Dirs]
 Name: "{userappdata}\electric";
 
-
 [Run]
-Filename: "bin\scripts\tabcompletion.bat"; WorkingDir: "{app}"; Flags: runhidden
+Filename: "{app}\bin\installer.exe"; StatusMsg: "Setting Up Tab Completion";
 
 [Code]
 const
@@ -110,29 +109,6 @@ Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environmen
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
-Name: "armenian"; MessagesFile: "compiler:Languages\Armenian.isl"
-Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
-Name: "catalan"; MessagesFile: "compiler:Languages\Catalan.isl"
-Name: "corsican"; MessagesFile: "compiler:Languages\Corsican.isl"
-Name: "czech"; MessagesFile: "compiler:Languages\Czech.isl"
-Name: "danish"; MessagesFile: "compiler:Languages\Danish.isl"
-Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl"
-Name: "finnish"; MessagesFile: "compiler:Languages\Finnish.isl"
-Name: "french"; MessagesFile: "compiler:Languages\French.isl"
-Name: "german"; MessagesFile: "compiler:Languages\German.isl"
-Name: "hebrew"; MessagesFile: "compiler:Languages\Hebrew.isl"
-Name: "icelandic"; MessagesFile: "compiler:Languages\Icelandic.isl"
-Name: "italian"; MessagesFile: "compiler:Languages\Italian.isl"
-Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
-Name: "norwegian"; MessagesFile: "compiler:Languages\Norwegian.isl"
-Name: "polish"; MessagesFile: "compiler:Languages\Polish.isl"
-Name: "portuguese"; MessagesFile: "compiler:Languages\Portuguese.isl"
-Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
-Name: "slovak"; MessagesFile: "compiler:Languages\Slovak.isl"
-Name: "slovenian"; MessagesFile: "compiler:Languages\Slovenian.isl"
-Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
-Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl"
-Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 
 [Messages]
 SetupWindowTitle = Electric Alpha Setup
@@ -141,5 +117,5 @@ SetupWindowTitle = Electric Alpha Setup
 Type: filesandordirs; Name: "C:\Program Files (x86)\Electric\bin"
 
 [Files]
-Source: "C:\Users\xtrem\Desktop\electric-dev\electric-dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\Users\xtrem\Desktop\electric-dev\electric-dist\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\xtrem\Desktop\Electric\electric-dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\xtrem\Desktop\Electric\electric-dist\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion
