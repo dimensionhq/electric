@@ -1,0 +1,15 @@
+cargo:rerun-if-changed=build.rs
+cargo:rerun-if-env-changed=WINAPI_NO_BUNDLED_LIBRARIES
+cargo:rerun-if-env-changed=WINAPI_STATIC_NOBUNDLE
+cargo:rustc-cfg=feature="basetsd"
+cargo:rustc-cfg=feature="excpt"
+cargo:rustc-cfg=feature="ktmtypes"
+cargo:rustc-cfg=feature="vcruntime"
+cargo:rustc-cfg=feature="rpcndr"
+cargo:rustc-cfg=feature="reason"
+cargo:rustc-cfg=feature="ntstatus"
+cargo:rustc-cfg=feature="ntdef"
+cargo:rustc-cfg=feature="guiddef"
+cargo:rustc-cfg=feature="wtypesbase"
+cargo:rustc-link-lib=dylib=advapi32
+cargo:rustc-link-lib=dylib=kernel32

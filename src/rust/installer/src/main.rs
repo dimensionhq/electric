@@ -5,7 +5,6 @@ use std::path::Path;
 use std::process::Command;
 use winreg::enums::*;
 use winreg::RegKey;
-use std::process;
 
 const SETUP: &str = r#"
 # Electric Tab Completion

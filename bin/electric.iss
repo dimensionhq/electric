@@ -40,7 +40,10 @@ LZMANumBlockThreads=6
 Name: "{userappdata}\electric";
 
 [Run]
-Filename: "{app}\bin\installer.exe"; StatusMsg: "Setting Up Tab Completion";
+Filename: "{app}\bin\installer.exe"; StatusMsg: "Setting Up Tab Completion"; Flags: runascurrentuser;
+
+[UninstallRun]
+Filename: "{app}\bin\uninstaller.exe"; StatusMsg: "Removing Tab Completion"; Flags: runascurrentuser;
 
 [Code]
 const
