@@ -11,7 +11,7 @@ Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
         [Console]::InputEncoding = [Console]::OutputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
         $Local:word = $wordToComplete.Replace('"', '""')
         $Local:ast = $commandAst.ToString().Replace('"', '""')
-        completer complete --word="$Local:word" --commandline "$Local:ast" --position $cursorPosition | ForEach-Object {
+        completer --word="$Local:word" --commandline "$Local:ast" --position $cursorPosition | ForEach-Object {
             [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
         }
 }
@@ -31,6 +31,13 @@ fn main() {
         .arg("Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force");
 
     let userprofile = var("USERPROFILE").unwrap();
+    let temp = format!(r"{}\Documents\WindowsPowerShell", userprofile);
+
+    let temploc: &Path = Path::new(temp.as_str());
+    if !temploc.exists() {
+        std::fs::create_dir(temploc).unwrap();
+    }
+
     let powershell_loc: String = format!(
         r"{}\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1",
         userprofile
