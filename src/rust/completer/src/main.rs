@@ -82,6 +82,13 @@ fn main() {
                         for flag in install_flags.iter() {
                             println!("{}", flag);
                         }
+                    } else {
+                        // Provide Flag-Specific Completion
+                        for flag in install_flags.iter() {
+                            if flag.contains(word) {
+                                println!("{}", flag);
+                            }
+                        }
                     }
                 } else {
                     // Read Json And Complete Packages
