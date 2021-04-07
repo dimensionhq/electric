@@ -45,7 +45,7 @@ Open your Command Prompt (cmd.exe) or alternatively Powershell (powershell.exe) 
 Run the following command on your powershell window:
 
 ```powershell
-iwr -useb https://raw.githubusercontent.com/XtremeDevX/electric/dev/bin/electricInstall.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/electric-package-manager/electric/master/bin/electricInstall.ps1 | iex
 ```
 <br>
 
