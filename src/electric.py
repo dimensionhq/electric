@@ -1420,6 +1420,33 @@ def uninstall(
             if not packet.run_test:
                 packet.run_test = run_test
 
+            if packet.set_env:
+                delete_environment_variable(packet.set_env['name'])
+
+            if packet.shim:
+                home = os.path.expanduser('~')
+
+                for shim in packet.shim:
+                    replace_install_dir = ''
+
+                    if packet.directory:
+                        replace_install_dir = packet.directory
+
+                    elif packet.default_install_dir:
+                        replace_install_dir = packet.default_install_dir
+
+                    shim = shim.replace(
+                        '<install-directory>', replace_install_dir)
+                    shim_name = shim.split("\\")[-1].split('.')[0]
+                    write(
+                        f'Deleting Shims For {packet.display_name}', 'cyan', metadata)
+                    try:
+                        os.remove(
+                            f'{home}\\electric\\shims\\{shim_name.split(".")[0]}.bat')
+                    except:
+                        pass
+
+
             write_verbose('Uninstallation completed.', metadata)
             log_info('Uninstallation completed.', metadata.logfile)
 
