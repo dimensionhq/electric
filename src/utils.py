@@ -1996,8 +1996,10 @@ def handle_unknown_error(err: str, package_name: str, method: str):
 
 
 def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
+    from pygments import highlight, lexers, formatters
     pkg = res
 
+    print(f'SuperCached [{Fore.LIGHTCYAN_EX} {res["display-name"]} {Fore.RESET}]')
     version = pkg['latest-version']
     if nightly:
         version = 'nightly'
@@ -2009,28 +2011,12 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
         click.echo(click.style(f'\nCannot Find {name}::v{version}', 'red'))
         sys.exit()
 
-    url = pkg['url']
-    display_name = res['display-name']
-    package_name = res['package-name']
-    calc_length = len(
-        f'{Fore.LIGHTMAGENTA_EX}│ {Fore.LIGHTGREEN_EX}Url(Windows) {Fore.LIGHTMAGENTA_EX}=> {Fore.LIGHTCYAN_EX}{url}{Fore.LIGHTCYAN_EX}{Fore.LIGHTMAGENTA_EX}│') - 30
-    name_line = len(
-        f'{Fore.LIGHTMAGENTA_EX}│ {Fore.LIGHTGREEN_EX}Name {Fore.LIGHTMAGENTA_EX}=>{display_name}{Fore.LIGHTGREEN_EX}{Fore.LIGHTYELLOW_EX}{Fore.LIGHTMAGENTA_EX}') - 30
-    version_line = len(
-        f'{Fore.LIGHTMAGENTA_EX}│{Fore.LIGHTGREEN_EX}Latest Version {Fore.LIGHTMAGENTA_EX}=>{Fore.LIGHTCYAN_EX}{version}{Fore.LIGHTGREEN_EX}{Fore.LIGHTMAGENTA_EX}│') - 30
-    url_line = len(
-        f'{Fore.LIGHTMAGENTA_EX}│ {Fore.LIGHTGREEN_EX}Url(Windows){Fore.LIGHTMAGENTA_EX}=>{Fore.LIGHTCYAN_EX}{url}{Fore.LIGHTCYAN_EX}{Fore.LIGHTMAGENTA_EX}│') - 30
-    command_line = len(
-        f'{Fore.LIGHTMAGENTA_EX}│ {Fore.LIGHTGREEN_EX}Install Command{Fore.LIGHTMAGENTA_EX}=>{Fore.LIGHTCYAN_EX}{package_name}{Fore.LIGHTCYAN_EX}{Fore.LIGHTMAGENTA_EX}│') - 13
-    base = '─'
-    return f'''
-{Fore.LIGHTMAGENTA_EX}┌{base * calc_length}{Fore.LIGHTMAGENTA_EX}┐
-{Fore.LIGHTMAGENTA_EX}| {Fore.LIGHTGREEN_EX}Name {Fore.LIGHTMAGENTA_EX}=>{Fore.LIGHTGREEN_EX}{Fore.LIGHTYELLOW_EX} {display_name}{Fore.LIGHTMAGENTA_EX}{' ' * (calc_length - name_line)}|
-{Fore.LIGHTMAGENTA_EX}| {Fore.LIGHTGREEN_EX}Latest Version {Fore.LIGHTMAGENTA_EX}=> {Fore.LIGHTCYAN_EX}{version}{Fore.LIGHTGREEN_EX}{Fore.LIGHTMAGENTA_EX}{' ' * (calc_length - version_line)}|
-{Fore.LIGHTMAGENTA_EX}| {Fore.LIGHTGREEN_EX}Url(Windows) {Fore.LIGHTMAGENTA_EX}=> {Fore.LIGHTCYAN_EX}{url}{Fore.LIGHTCYAN_EX}{Fore.LIGHTMAGENTA_EX}{' ' * (calc_length - url_line)}|
-{Fore.LIGHTMAGENTA_EX}| {Fore.LIGHTGREEN_EX}Install Command {Fore.LIGHTMAGENTA_EX}=> {Fore.LIGHTCYAN_EX}electric install {package_name}{Fore.LIGHTCYAN_EX}{Fore.LIGHTMAGENTA_EX}{' ' * (calc_length - command_line)}|
-{Fore.LIGHTMAGENTA_EX}└{base * calc_length}{Fore.LIGHTMAGENTA_EX}┘
-'''
+    formatted_json = json.dumps(pkg, sort_keys=True, indent=4)
+
+    colorful_json = highlight(formatted_json, lexers.JsonLexer(), formatters.TerminalFormatter())
+    print(colorful_json)
+
+    sys.exit()
 
 
 def update_package_list():
