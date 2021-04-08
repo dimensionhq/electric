@@ -5,8 +5,10 @@
 
 # TODO: Add Conflict-With Field For Json To Differentiate Between Microsoft Visual Studio Code and Microsoft Visual Studio Code Insiders
 
+from subprocess import Popen, PIPE
 import difflib
 from logging import INFO
+from halo import Halo
 import os
 import sys
 import time as tm
@@ -15,7 +17,7 @@ import halo
 import keyboard
 from colorama import Fore
 from multiprocessing import freeze_support
-from external import *
+from extension import write, write_debug, write_verbose
 from Classes.Packet import Packet
 from Classes.Setting import Setting
 from Classes.ThreadedInstaller import ThreadedInstaller
@@ -25,7 +27,7 @@ from info import __version__
 from logger import *
 from registry import get_environment_keys, get_uninstall_key, send_query
 from settings import initialize_settings, open_settings
-from utils import date, update_package_list, update_electric, generate_metadata, handle_external_installation, get_autocorrections, get_correct_package_names, handle_existing_installation
+from utils import date, handle_external_uninstallation, update_package_list, update_electric, generate_metadata, handle_external_installation, get_autocorrections, get_correct_package_names, handle_existing_installation
 from utils import write_install_headers, handle_multithreaded_installation, send_req_package, json, JSONDecodeError, get_package_version, handle_portable_installation, is_admin, tempfile, register_package_success
 from utils import download_installer, handle_exit, verify_checksum, check_virus, get_pid, install_package, disp_error_msg, get_error_message, generate_shim, append_to_path, set_environment_variable, cursor
 from utils import find_existing_installation, display_support, PortablePacket, check_newer_version, confirm, index, write_uninstall_headers, handle_portable_uninstallation, handle_uninstall_dependencies
@@ -1064,33 +1066,7 @@ def uninstall(
         logfile = logfile.replace('.txt', '.log')
         create_config(logfile, INFO, 'Install')
 
-
-    if python:
-        package_names = package_name.split(',')
-
-        for name in package_names:
-            handle_python_package(name, 'latest', 'uninstall', metadata)
-
-        sys.exit()
-
-    if node:
-        package_names = package_name.split(',')
-        for name in package_names:
-            handle_node_package(name, 'uninstall', metadata)
-
-        sys.exit()
-
-    if vscode:
-        package_names = package_name.split(',')
-        for name in package_names:
-            handle_vscode_extension(name, 'uninstall', metadata)
-
-        sys.exit()
-
-    if atom:
-        package_names = package_name.split(',')
-        for name in package_names:
-            handle_atom_package(name, 'uninstall', metadata)
+    handle_external_uninstallation(python, node, vscode, False, atom, package_name, metadata)
 
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
     status = 'Initializing'
@@ -1899,7 +1875,7 @@ def deregister(package_name: str, version: str):
 
 @cli.command(context_settings=CONTEXT_SETTINGS)
 @click.argument('config_path', required=True)
-@click.option('--exclude-versions', '-ev', is_flag=True, help='Exclude versions from the config installation')
+@click.option('--include-versions', '-iv', is_flag=True, help='Include versions for the config installation')
 @click.option('--remove', '-uninst', is_flag=True, help='Uninstall packages in a config installed')
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for config installation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for config installation')
@@ -1928,7 +1904,7 @@ def config(
     sync: bool,
     reduce: bool,
     rate_limit: bool,
-    exclude_versions: bool
+    include_versions: bool
 ):
     '''
     Installs and configures packages from a .electric configuration file.
@@ -1955,7 +1931,7 @@ def config(
     if remove:
         config.uninstall()
     else:
-        config.install(exclude_versions, install_directory, sync, metadata)
+        config.install(include_versions, install_directory, sync, metadata)
 
 
 @cli.command(aliases=['validate'], context_settings=CONTEXT_SETTINGS)
@@ -2105,7 +2081,7 @@ def ls(_, installed: bool, versions: bool):
 
         versions = []
         for software in installed_software:
-            id = re.findall(r'{[A-Z\d-]{36}\}', software['UninstallString'])
+            # id = re.findall(r'{[A-Z\d-]{36}\}', software['UninstallString'])
 
             version = software['Version']
             versions.append(version)
@@ -2166,7 +2142,7 @@ def autoupdate(
 
     latest_version = data['latest-version']
 
-    url = data[data['latest-version']]['url']
+    # url = data[data['latest-version']]['url']
 
     webpage = data['auto-update']['vercheck']['webpage']
 
@@ -2212,7 +2188,7 @@ def autoupdate(
     if int_current_version < int_web_version:
         print(
             f'A Newer Version Of {package_name} Is Availiable! Updating Manifest')
-        current = data
+
         old_latest = latest_version
         data['latest-version'] = web_version
         data[web_version] = data[old_latest]

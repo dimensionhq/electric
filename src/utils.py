@@ -2,7 +2,7 @@ import difflib
 import json
 from debugger import Debugger
 
-from external import *
+import external
 from json.decoder import JSONDecodeError
 import os
 import pickle
@@ -840,34 +840,72 @@ def handle_external_installation(python: bool, node: bool, vscode: bool, sublime
 
         for name in package_names:
             if name:
-                handle_python_package(name, version, 'install', metadata)
+                external.handle_python_package(name, version, 'install', metadata)
 
         sys.exit()
 
     if node:
         package_names = package_name.split(',')
         for name in package_names:
-            handle_node_package(name, 'install', metadata)
+            external.handle_node_package(name, 'install', metadata)
 
         sys.exit()
 
     if vscode:
         package_names = package_name.split(',')
         for name in package_names:
-            handle_vscode_extension(name, 'install', metadata)
+            external.handle_vscode_extension(name, version, 'install', metadata)
 
         sys.exit()
 
     if sublime:
         package_names = package_name.split(',')
         for name in package_names:
-            handle_sublime_extension(name, 'install', metadata)
+            external.handle_sublime_extension(name, 'install', metadata)
         sys.exit()
 
     if atom:
         package_names = package_name.split(',')
         for name in package_names:
-            handle_atom_package(name, 'install', metadata)
+            external.handle_atom_package(name, 'install', metadata)
+
+        sys.exit()
+
+
+def handle_external_uninstallation(python: bool, node: bool, vscode: bool, sublime: bool, atom: bool, package_name: str, metadata: Metadata):
+    if python:
+        package_names = package_name.split(',')
+
+        for name in package_names:
+            if name:
+                external.handle_python_package(name, None, 'uninstall', metadata)
+
+        sys.exit()
+
+    if node:
+        package_names = package_name.split(',')
+        for name in package_names:
+            external.handle_node_package(name, 'uninstall', metadata)
+
+        sys.exit()
+
+    if vscode:
+        package_names = package_name.split(',')
+        for name in package_names:
+            external.handle_vscode_extension(name, None, 'uninstall', metadata)
+
+        sys.exit()
+
+    if sublime:
+        package_names = package_name.split(',')
+        for name in package_names:
+            external.handle_sublime_extension(name, 'uninstall', metadata)
+        sys.exit()
+
+    if atom:
+        package_names = package_name.split(',')
+        for name in package_names:
+            external.handle_atom_package(name, 'uninstall', metadata)
 
         sys.exit()
 
@@ -912,6 +950,7 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
         if configs['existing_installation'] == True:
             write(
                 f'Detected an existing installation of {packet.display_name}', 'bright_yellow', metadata)
+            sys.exit()
         else:
             return False
             # os.system('electric deregister rust')
@@ -1586,8 +1625,6 @@ def get_install_flags(install_dir: str, metadata: Metadata):
         flags.append('--virus-check')
     if metadata.reduce_package:
         flags.append('--reduce')
-    if metadata.rate_limit != -1 and metadata.rate_limit:
-        flags.append(f'--rate-limit={metadata.rate_limit}')
     if install_dir:
         flags.append(f'--install-dir={install_dir}')
     if metadata.sync:

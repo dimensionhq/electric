@@ -1,14 +1,16 @@
-from utils import *
+from utils import confirm, find_existing_installation, copy_to_clipboard, time, is_admin, get_install_flags
 from tempfile import gettempdir
 from sys import platform
 from subprocess import Popen, PIPE
 from Classes.PathManager import PathManager
-from external import *
+from Classes.Metadata import Metadata
+from colorama import Fore
 import colorama
 import requests
 import click
 import os
-
+import sys
+import json as js
 
 tags = [
     '<pip>',
@@ -37,7 +39,6 @@ tags = [
     '<apm:name,version>',
     '<sublime>',
     '<sublime:name>',
-    '<sublime:name,version>',
     '<electric>',
     '<electric:name>',
     '<electric:name,version>'
@@ -300,7 +301,7 @@ class Config:
 
                     for line in lines:
 
-                        if '<sublime:name>' in line or '<sublime>' in line or '<sublime:name,version>' in line:
+                        if '<sublime:name>' in line or '<sublime>' in line:
                             insert_index = lines.index(line)
                             if find_existing_installation('sublime-text-3', 'Sublime Text 3'):
                                 location = PathManager.get_appdata_directory().replace('\electric', '') + \
@@ -599,7 +600,7 @@ class Config:
 
         return Config(d)
 
-    def verify(self):
+    def verify(self):  # sourcery no-metrics
         config = self.dictionary
 
         python_packages = config['Pip-Packages'] if 'Pip-Packages' in self.headers else None
@@ -611,18 +612,21 @@ class Config:
         if packages:
             click.echo(click.style(
                 '↓ Validating Electric Packages        ↓', 'cyan'))
+
+
             for package in packages:
                 if isinstance(package, dict):
                     if package:
+                        
                         proc = Popen(
                             rf'electric show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
                         output, err = proc.communicate()
-                        err = 'UnicodeEncodeError' not in err.decode()
-
-                        if 'Could Not Find Any Packages' in output.decode() or err:
+                        err = 'UnicodeEncodeError' in err.decode()
+                        
+                        if 'Could Not Find Any Packages' in output.decode() or 'Not Found.' in output.decode() or err:
                             click.echo(click.style(
                                 f'`{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
-                            return
+                            sys.exit()
 
                 else:
                     if package:
@@ -633,7 +637,7 @@ class Config:
                         if 'Could Not Find Any Packages' in output.decode() or err:
                             click.echo(click.style(
                                 f'`{package}` does not exist or has been removed.', 'red'))
-                            return
+                            sys.exit()
 
         if node_packages:
             click.echo(click.style(
@@ -644,13 +648,13 @@ class Config:
                         if not Config.check_node_name(list(package_name.keys())[0]):
                             click.echo(click.style(
                                 f'The ( npm | node ) module => `{list(package_name.keys())[0]}` does not exist or has been removed.', 'red'))
-                            return
+                            sys.exit()
                 else:
                     if package_name:
                         if not Config.check_node_name(package_name):
                             click.echo(click.style(
                                 f'The ( npm | node ) module => `{package_name}` does not exist or has been removed.', 'red'))
-                            return
+                            sys.exit()
 
         click.echo(click.style(
             '↓ Validating Python or Pip Modules    ↓', 'cyan'))
@@ -662,13 +666,13 @@ class Config:
                         if not Config.check_pypi_name(list(package.keys())[0]):
                             click.echo(click.style(
                                 f'The ( npm | node ) module => `{list(package.keys()[0])}` does not exist or has been removed.', 'red'))
-                            return
+                            sys.exit()
                 else:
                     if package:
                         if not Config.check_pypi_name(package):
                             click.echo(click.style(
                                 f'The ( python | pip ) module => `{package}` does not exist or has been removed.', 'red'))
-                            return
+                            sys.exit()
 
         if editor_type:
             if not editor_type in ['Visual Studio Code', 'Visual Studio Code Insiders', 'Atom', 'Sublime Text 3']:
@@ -685,13 +689,13 @@ class Config:
                                     if not Config.check_vscode_name(list(package_name.keys())[0]):
                                         click.echo(click.style(
                                             f'Invalid Extension Name => {list(package_name.keys())[0]}', 'red'))
-                                        return
+                                        sys.exit()
                             else:
                                 if package_name:
                                     if not Config.check_vscode_name(package_name):
                                         click.echo(click.style(
                                             f'Invalid Extension Name => {package_name}', 'red'))
-                                        return
+                                        sys.exit()
 
                     if editor_type == 'Sublime Text 3':
                         for package_name in editor_extensions:
@@ -700,7 +704,7 @@ class Config:
                                     if not Config.check_sublime_name(list(package_name.keys())[0]):
                                         click.echo(click.style(
                                             f'Invalid Extension Name => {list(package_name.keys())[0]}', 'red'))
-                                        return
+                                        sys.exit()
                             else:
                                 if package_name:
                                     if not Config.check_sublime_name(package_name):
@@ -714,14 +718,14 @@ class Config:
                                     if not Config.check_atom_name(list(package_name.keys())[0]):
                                         click.echo(click.style(
                                             f'Invalid Extension Name => {list(package_name.keys())[0]}', 'red'))
-                                        return
+                                        sys.exit()
                             else:
                                 if package_name:
                                     if not Config.check_atom_name(package_name):
                                         click.echo(click.style(
                                             f'Invalid Extension Name => {package_name}', 'red'))
 
-    def install(self, exclude_versions: bool, install_directory: str, sync: bool, metadata: Metadata):
+    def install(self, include_versions: bool, install_directory: str, sync: bool, metadata: Metadata):
         if is_admin():
             flags = get_install_flags(install_directory, metadata)
             config = self.dictionary
@@ -734,21 +738,27 @@ class Config:
             command = ''
             pip_command = ''
             idx = 1
-
-            for package in packages:
-                if idx == len(packages):
-                    command += list(package.keys())[0]
+            if not include_versions:
+                for package in packages:
+                    if idx == len(packages):
+                        command += list(package.keys())[0]
+                        idx += 1
+                        continue
+                    command += list(package.keys())[0] + ','
                     idx += 1
-                    continue
-                command += list(package.keys())[0] + ','
-                idx += 1
 
-            for flag in flags:
-                command += ' ' + flag
+                for flag in flags:
+                    command += ' ' + flag
 
-            for pkg in command.split(','):
-                os.system(f'electric install {pkg} --ignore')
+                for pkg in command.split(','):
+                    os.system(f'electric install {pkg}')
+            else:
+                for package in packages:
+                    if list(package.values())[0] is None:
+                        os.system(f'electric install {list(package.keys())[0]}')
 
+                    else:
+                        os.system(f'electric install {list(package.keys())[0]} --version {list(package.values())[0]}')
             versions = []
             package_names = []
             for package in python_packages:
@@ -766,10 +776,20 @@ class Config:
             os.system('refreshenv')
 
             idx = 0
-            for package_name in package_names:
-                os.system(
-                    f'electric install --python {package_name} --version {versions[idx]}')
-                idx += 1
+
+            if include_versions and versions:
+                for package_name in package_names:
+                    os.system(
+                        f'electric install --python {package_name} --version {versions[idx]}')
+                    idx += 1                                                                                                                                                                                                                     
+            else:
+                if include_versions:
+                    print("No Versions Specified With This Configuration!")
+                    sys.exit()
+
+                for package_name in package_names:
+                    os.system(f'electric install --python {package_name}')
+                    idx += 1
 
             if editor_type == 'Visual Studio Code' or editor_type == 'Visual Studio Code Insiders' and editor_extensions != []:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
@@ -786,7 +806,9 @@ class Config:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
                 for extension in editor_extensions:
                     extension = list(extension.keys())[0]
-                    command = f'electric install --sublime \"{extension}\"'
+                    if extension != 'Package Control':
+                        command = f'electric install --sublime \"{extension}\"'
+
                     try:
                         os.system(command)
                     except:
@@ -809,7 +831,7 @@ class Config:
                     node_package = list(node_package)[0]
                     try:
                         os.system(
-                            f'{refreshenv} & electric install --node {node_package}')
+                            f'refreshenv & electric install --node {node_package}')
                     except:
                         if not confirm('Would you like to continue configuration installation?'):
                             sys.exit()
