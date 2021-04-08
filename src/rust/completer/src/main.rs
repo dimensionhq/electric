@@ -1,6 +1,7 @@
 use serde_json::Value;
 use std::fs::read_to_string;
 use std::path::Path;
+use std::io::{Write};
 
 fn main() {
     let commands: Vec<&str> = vec![
@@ -127,6 +128,7 @@ fn main() {
                         }
                     } else {
                         // Setup / Download packages.json
+                        download_file("https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/package-list.json");
                     }
                 }
             }
@@ -168,6 +170,7 @@ fn main() {
                         }
                     } else {
                         // Setup / Download packages.json
+                        download_file("https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/package-list.json");
                     }
                 }
             }
@@ -209,6 +212,7 @@ fn main() {
                         }
                     } else {
                         // Setup / Download packages.json
+                        download_file("https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/package-list.json");
                     }
                 }
             }
@@ -250,6 +254,7 @@ fn main() {
                         }
                     } else {
                         // Setup / Download packages.json
+                        download_file("https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/package-list.json");
                     }
                 }
             }
@@ -275,4 +280,22 @@ fn main() {
             _ => {}
         }
     }
+}
+
+fn download_file(url: &str) {
+    let mut response: String = String::new();
+    
+    match minreq::get(url).send() {
+        Ok(text) => {
+            let res = text.as_str().unwrap();
+            if res != "404: Not Found" {
+                response = res.to_string();            
+            }
+        },
+        Err(error) => {}
+    }
+
+    let loc = format!(r"{}\electric\packages.json", std::env::var("APPDATA").unwrap());
+    let mut file = std::fs::File::create(loc).unwrap();
+    file.write_all(response.as_bytes()).unwrap();
 }
