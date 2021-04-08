@@ -48,13 +48,10 @@ fn main() {
         "--python",
         "--node",
         "--no-cache",
-        "--portable"
+        "--portable",
     ];
 
-    let list_flags = vec![
-        "--installed",
-        "--versions"
-    ];
+    let list_flags = vec!["--installed", "--versions"];
 
     // ["C:\\Users\\xtrem\\Desktop\\Electric\\electric\\src\\rust\\completer\\target\\release\\completer.exe", "--word=in", "--commandline", "electric in", "--position", "11"]
     let args: Vec<String> = std::env::args().collect();
@@ -132,7 +129,7 @@ fn main() {
                         // Setup / Download packages.json
                     }
                 }
-            },  
+            }
             "uninstall" => {
                 let word = &args[1].replace("--word=", "");
 
@@ -173,7 +170,7 @@ fn main() {
                         // Setup / Download packages.json
                     }
                 }
-            },
+            }
             "update" => {
                 let word = &args[1].replace("--word=", "");
 
@@ -214,7 +211,7 @@ fn main() {
                         // Setup / Download packages.json
                     }
                 }
-            },
+            }
             "bundle" => {
                 let word = &args[1].replace("--word=", "");
 
@@ -255,19 +252,19 @@ fn main() {
                         // Setup / Download packages.json
                     }
                 }
-            },
+            }
             "list" => {
                 let word = &args[1].replace("--word=", "");
 
                 if word.starts_with("--") || word == "" {
                     if word.replace("--", "") == "" {
                         // Complete All Flags
-                        for flag in install_flags.iter() {
+                        for flag in list_flags.iter() {
                             println!("{}", flag);
                         }
                     } else {
                         // Provide Flag-Specific Completion
-                        for flag in install_flags.iter() {
+                        for flag in list_flags.iter() {
                             if flag.contains(word) {
                                 println!("{}", flag);
                             }
