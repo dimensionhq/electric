@@ -2076,6 +2076,7 @@ def ls(_, installed: bool, versions: bool):
     else:
         installed_software = send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY) + send_query(
             winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY) + send_query(winreg.HKEY_CURRENT_USER, 0)
+        
         max_length = 80
         names = [software['DisplayName'] for software in installed_software]
 

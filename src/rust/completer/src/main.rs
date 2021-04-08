@@ -1,6 +1,7 @@
 use serde_json::Value;
 use std::fs::read_to_string;
 use std::path::Path;
+use std::io::{Write};
 
 fn main() {
     let commands: Vec<&str> = vec![
@@ -48,13 +49,10 @@ fn main() {
         "--python",
         "--node",
         "--no-cache",
-        "--portable"
+        "--portable",
     ];
 
-    let list_flags = vec![
-        "--installed",
-        "--versions"
-    ];
+    let list_flags = vec!["--installed", "--versions"];
 
     // ["C:\\Users\\xtrem\\Desktop\\Electric\\electric\\src\\rust\\completer\\target\\release\\completer.exe", "--word=in", "--commandline", "electric in", "--position", "11"]
     let args: Vec<String> = std::env::args().collect();
@@ -130,9 +128,10 @@ fn main() {
                         }
                     } else {
                         // Setup / Download packages.json
+                        download_file("https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/package-list.json");
                     }
                 }
-            },  
+            }
             "uninstall" => {
                 let word = &args[1].replace("--word=", "");
 
@@ -171,9 +170,10 @@ fn main() {
                         }
                     } else {
                         // Setup / Download packages.json
+                        download_file("https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/package-list.json");
                     }
                 }
-            },
+            }
             "update" => {
                 let word = &args[1].replace("--word=", "");
 
@@ -212,9 +212,10 @@ fn main() {
                         }
                     } else {
                         // Setup / Download packages.json
+                        download_file("https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/package-list.json");
                     }
                 }
-            },
+            }
             "bundle" => {
                 let word = &args[1].replace("--word=", "");
 
@@ -253,21 +254,22 @@ fn main() {
                         }
                     } else {
                         // Setup / Download packages.json
+                        download_file("https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/package-list.json");
                     }
                 }
-            },
+            }
             "list" => {
                 let word = &args[1].replace("--word=", "");
 
                 if word.starts_with("--") || word == "" {
                     if word.replace("--", "") == "" {
                         // Complete All Flags
-                        for flag in install_flags.iter() {
+                        for flag in list_flags.iter() {
                             println!("{}", flag);
                         }
                     } else {
                         // Provide Flag-Specific Completion
-                        for flag in install_flags.iter() {
+                        for flag in list_flags.iter() {
                             if flag.contains(word) {
                                 println!("{}", flag);
                             }
@@ -278,4 +280,22 @@ fn main() {
             _ => {}
         }
     }
+}
+
+fn download_file(url: &str) {
+    let mut response: String = String::new();
+    
+    match minreq::get(url).send() {
+        Ok(text) => {
+            let res = text.as_str().unwrap();
+            if res != "404: Not Found" {
+                response = res.to_string();            
+            }
+        },
+        Err(error) => {}
+    }
+
+    let loc = format!(r"{}\electric\packages.json", std::env::var("APPDATA").unwrap());
+    let mut file = std::fs::File::create(loc).unwrap();
+    file.write_all(response.as_bytes()).unwrap();
 }

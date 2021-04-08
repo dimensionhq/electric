@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 serde_json = "1.0.64"
+minreq = { version = "2.3.1", features = ["https"] }
