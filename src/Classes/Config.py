@@ -756,19 +756,20 @@ class Config:
                 for package in packages:
                     if list(package.values())[0] is None:
                         os.system(f'electric install {list(package.keys())[0]}')
-
                     else:
                         os.system(f'electric install {list(package.keys())[0]} --version {list(package.values())[0]}')
-            versions = []
+            
+            package_versions = []
             package_names = []
             for package in python_packages:
                 if idx == len(packages):
-                    versions.append(package[list(package.keys())[0]])
+                    package_versions.append(package[list(package.keys())[0]])
                     package_names.append(list(package.keys())[0])
                     pip_command += list(package.keys())[0]
                     idx += 1
                     continue
-                versions.append(package[list(package.keys())[0]])
+
+                package_versions.append(package[list(package.keys())[0]])
                 package_names.append(list(package.keys())[0])
                 pip_command += list(package.keys())[0] + ','
                 idx += 1
@@ -777,7 +778,7 @@ class Config:
 
             idx = 0
 
-            if include_versions and versions:
+            if include_versions and package_versions:
                 for package_name in package_names:
                     os.system(
                         f'electric install --python {package_name} --version {versions[idx]}')
@@ -793,9 +794,17 @@ class Config:
 
             if editor_type == 'Visual Studio Code' or editor_type == 'Visual Studio Code Insiders' and editor_extensions != []:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
+                package_versions = []
+                print(editor_extensions)
+
                 for extension in editor_extensions:
                     extension = list(extension.keys())[0]
+                    version = list(extension.values())[0]
                     command = f'electric install --vscode {extension}'
+
+                    if version and include_versions:
+                        command = f'electric install --vscode {extension} --version {version}'
+
                     try:
                         os.system(command)
                     except:
@@ -806,6 +815,7 @@ class Config:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
                 for extension in editor_extensions:
                     extension = list(extension.keys())[0]
+
                     if extension != 'Package Control':
                         command = f'electric install --sublime \"{extension}\"'
 
@@ -831,7 +841,7 @@ class Config:
                     node_package = list(node_package)[0]
                     try:
                         os.system(
-                            f'refreshenv & electric install --node {node_package}')
+                            f'electric install --node {node_package}')
                     except:
                         if not confirm('Would you like to continue configuration installation?'):
                             sys.exit()
