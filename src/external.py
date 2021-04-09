@@ -119,9 +119,9 @@ def handle_node_package(package_name: str, mode: str, requested_version: str, me
     Installs a node/npm package handling metadata for the method
 
     #### Arguments
-        package_name (str): The name of the node/npm package to be installed
-        version (str): The version of the node/npm package to be installed
-        mode (str): The method (installation/uninstallation)
+        package_name (`str`): The name of the node/npm package to be installed
+        version (`str`): The version of the node/npm package to be installed
+        mode (`str`): The method (installation/uninstallation)
         metadata (`Metadata`): Metadata for the method
     """
     version_proc = Popen(mslex.split('npm --version'),
@@ -173,17 +173,23 @@ def handle_node_package(package_name: str, mode: str, requested_version: str, me
                         f'npm v{version} :: Sucessfully Updated {package_name}', 'bright_green', metadata)
     else:
         add_str = f"@{requested_version}" if version else ""
-        command = f'npm u {package_name} -g' + add_str
+        command = f'npm uninstall {package_name} -g' + add_str
 
         proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         for line in proc.stdout:
             line = line.decode()
+            if 'audited' in line and 'packages' in line:
+                number = line.split()[1].strip()
+                time = line.split()[4].strip()
+                write(f'npm v{version} :: Successfully Uninstalled {package_name} and {number} Other Dependencies in {time}', 'bright_green', metadata)
             if 'up to date' in line:
                 write(
                     f'npm v{version} :: Could Not Find Any Existing Installations Of {package_name}', 'bright_yellow', metadata)
             if 'removed' in line:
+                print(line)
                 number = line.split(' ')[1].strip()
                 time = line.split(' ')[4].strip()
+
                 write(
                     f'npm v{version} :: Sucessfully Uninstalled {package_name} And {number} Other Dependencies in {time}', 'bright_green', metadata)
 
