@@ -112,7 +112,7 @@ def handle_python_package(package_name: str, version: str, mode: str, metadata: 
                     f'Python v{py_version[0]} :: Could Not Find Any Installations Of {package_name}', 'bright_yellow', metadata)
 
 
-def handle_node_package(package_name: str, mode: str, metadata: Metadata):
+def handle_node_package(package_name: str, mode: str, requested_version: str, metadata: Metadata):
     """
     Installs a node/npm package handling metadata for the method
 
@@ -135,8 +135,10 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
         utils.handle_exit('ERROR', None, metadata)
 
     if mode == 'install':
-        proc = Popen(mslex.split(
-            f'npm i {package_name} -g'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        add_str = f"@{requested_version}" if version else ""
+        command = f'npm i {package_name} -g' + add_str
+
+        proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         write(f'npm v{version} :: Collecting {package_name}',
               'bright_green', metadata)
         package_version = None
@@ -169,8 +171,10 @@ def handle_node_package(package_name: str, mode: str, metadata: Metadata):
                         f'npm v{version} :: Sucessfully Updated {package_name}', 'bright_green', metadata)
 
     else:
-        proc = Popen(mslex.split(
-            f'npm uninstall -g {package_name}'), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        add_str = f"@{requested_version}" if version else ""
+        command = f'npm i {package_name} -g' + add_str
+
+        proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         for line in proc.stdout:
             line = line.decode()
             if 'up to date' in line:
@@ -367,7 +371,7 @@ def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
         utils.handle_exit('error', '', metadata)
 
 
-def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
+def handle_atom_package(package_name: str, mode: str, requested_version: str, metadata: Metadata):
     """
     Installs an atom package handling metadata
 
@@ -386,9 +390,14 @@ def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
         except FileNotFoundError:
             print('Atom is not installed')
             sys.exit()
+
         with Halo(f'apm v{version} :: Installing {package_name}', text_color='cyan') as h:
+            add_str = f"@{requested_version}" if version else ""
+            command = f'apm install {package_name}' + add_str
+
             proc = Popen(
-                f'apm install {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            
             for line in proc.stdout:
                 line = line.decode()
                 if 'failed' in line:
@@ -400,28 +409,6 @@ def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
                     click.echo(click.style(
                         f' Successfully Installed {package_name} to <=> {line.split()[3]}', 'bright_green'))
 
-        if mode == 'uninstall':
-            try:
-                proc = Popen('apm --version --no-color'.split(),
-                             stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-                output, err = proc.communicate()
-                version = output.decode().splitlines()[0].split()[1]
-            except FileNotFoundError:
-                print('Atom is not installed')
-                sys.exit()
-            with Halo(f'apm v{version} :: Installing {package_name}', text_color='cyan') as h:
-                proc = Popen(
-                    f'apm install {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-                for line in proc.stdout:
-                    line = line.decode()
-                    if 'failed' in line:
-                        h.fail(
-                            f' Failed to Install {package_name} to <=> {line.split()[3]}')
-
-                    if 'done' in line:
-                        h.stop()
-                        click.echo(click.style(
-                            f' Successfully Installed {package_name} to <=> {line.split()[3]}', 'bright_green'))
     if mode == 'uninstall':
         try:
             proc = Popen('apm --version --no-color'.split(),
@@ -431,9 +418,13 @@ def handle_atom_package(package_name: str, mode: str, metadata: Metadata):
         except FileNotFoundError:
             print('Atom is not installed')
             sys.exit()
+
         with Halo(f'apm v{version} :: Uninstalling {package_name}', text_color='cyan') as h:
+            add_str = f"@{requested_version}" if version else ""
+            command = f'apm deinstall {package_name}' + add_str
             proc = Popen(
-                f'apm deinstall {package_name}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+
             for line in proc.stdout:
                 line = line.decode()
                 if 'failed' in line:

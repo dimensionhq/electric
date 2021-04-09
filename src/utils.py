@@ -832,7 +832,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
         sys.exit()
 
 
-def handle_external_installation(python: bool, node: bool, vscode: bool, sublime: bool, atom: bool, version, package_name, metadata: Metadata):
+def handle_external_installation(python: bool, node: bool, vscode: bool, sublime: bool, atom: bool, version: str, package_name: str, metadata: Metadata):
     if python:
         if not version:
             version = 'latest'
@@ -847,7 +847,7 @@ def handle_external_installation(python: bool, node: bool, vscode: bool, sublime
     if node:
         package_names = package_name.split(',')
         for name in package_names:
-            external.handle_node_package(name, 'install', metadata)
+            external.handle_node_package(name, 'install', version, metadata)
 
         sys.exit()
 
@@ -867,7 +867,7 @@ def handle_external_installation(python: bool, node: bool, vscode: bool, sublime
     if atom:
         package_names = package_name.split(',')
         for name in package_names:
-            external.handle_atom_package(name, 'install', metadata)
+            external.handle_atom_package(name, 'install', version, metadata)
 
         sys.exit()
 
@@ -885,7 +885,7 @@ def handle_external_uninstallation(python: bool, node: bool, vscode: bool, subli
     if node:
         package_names = package_name.split(',')
         for name in package_names:
-            external.handle_node_package(name, 'uninstall', metadata)
+            external.handle_node_package(name, 'uninstall', None, metadata)
 
         sys.exit()
 
@@ -905,7 +905,7 @@ def handle_external_uninstallation(python: bool, node: bool, vscode: bool, subli
     if atom:
         package_names = package_name.split(',')
         for name in package_names:
-            external.handle_atom_package(name, 'uninstall', metadata)
+            external.handle_atom_package(name, 'uninstall', None, metadata)
 
         sys.exit()
 
