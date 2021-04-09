@@ -1877,8 +1877,8 @@ def deregister(package_name: str, version: str):
 
 @cli.command(context_settings=CONTEXT_SETTINGS)
 @click.argument('config_path', required=True)
+@click.option('--uninstall', '-u', is_flag=True, help='Uninstall packages in a config')
 @click.option('--include-versions', '-iv', is_flag=True, help='Include versions for the config installation')
-@click.option('--remove', '-uninst', is_flag=True, help='Uninstall packages in a config installed')
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose mode for config installation')
 @click.option('--debug', '-d', is_flag=True, help='Enable debug mode for config installation')
 @click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for config installation')
@@ -1893,7 +1893,7 @@ def deregister(package_name: str, version: str):
 @click.option('--rate-limit', '-rl', type=int, default=-1)
 def config(
     config_path: str,
-    remove: bool,
+    uninstall: bool,
     verbose: bool,
     debug: bool,
     no_progress: bool,
@@ -1909,8 +1909,9 @@ def config(
     include_versions: bool
 ):
     '''
-    Installs and configures packages from a .electric configuration file.
+    Install or Uninstalls and configures packages from a .electric configuration file.
     '''
+    print(uninstall)
     from Classes.Config import Config
 
     if not is_admin():
@@ -1930,7 +1931,7 @@ def config(
 
     config = Config.generate_configuration(config_path)
     config.check_prerequisites()
-    if remove:
+    if uninstall:
         config.uninstall(include_versions)
     else:
         config.install(include_versions, install_directory, metadata)
