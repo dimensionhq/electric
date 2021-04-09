@@ -48,12 +48,14 @@ fn setup_configuration_file() {
             match key.create_subkey("shell") {
                 Ok((k, _)) => {
                     let (electric, _) = k.create_subkey("install_with_electric").unwrap();
+                    electric.set_value("", &String::from("Install With Electric")).unwrap();
                     let (command, _) = electric.create_subkey("command").unwrap();
                     command.set_value("", &String::from("\"C:\\Program Files (x86)\\Electric\\bin\\electric.exe\" \"%1\"")).unwrap();
                 },
                 Err(_) => {
                     let k = key.open_subkey("shell").unwrap();                
                     let (electric, _) = k.create_subkey("install_with_electric").unwrap();
+                    electric.set_value("", &String::from("Install With Electric")).unwrap();
                     let (command, _) = electric.create_subkey("command").unwrap();
                     command.set_value("", &String::from("\"C:\\Program Files (x86)\\Electric\\bin\\electric.exe\" \"%1\"")).unwrap();
                 }
@@ -66,12 +68,14 @@ fn setup_configuration_file() {
                     match key.create_subkey("shell") {
                         Ok((k, _)) => {
                             let (electric, _) = k.create_subkey("install_with_electric").unwrap();
+                            electric.set_value("", &String::from("Install With Electric")).unwrap();
                             let (command, _) = electric.create_subkey("command").unwrap();
                             command.set_value("", &String::from("\"C:\\Program Files (x86)\\Electric\\bin\\electric.exe\" \"%1\"")).unwrap();
                         },
                         Err(_) => {
                             let k = key.open_subkey("shell").unwrap();
                             let (electric, _) = k.create_subkey("install_with_electric").unwrap();
+                            electric.set_value("", &String::from("Install With Electric")).unwrap();
                             let (command, _) = electric.create_subkey("command").unwrap();
                             command.set_value("", &String::from("\"C:\\Program Files (x86)\\Electric\\bin\\electric.exe\" \"%1\"")).unwrap();
                         }
@@ -82,12 +86,14 @@ fn setup_configuration_file() {
                     match key.create_subkey("shell") {
                         Ok((k, _)) => {
                             let (electric, _) = k.create_subkey("install_with_electric").unwrap();
+                            electric.set_value("", &String::from("Install With Electric")).unwrap();
                             let (command, _) = electric.create_subkey("command").unwrap();
                             command.set_value("", &String::from("\"C:\\Program Files (x86)\\Electric\\bin\\electric.exe\" \"%1\"")).unwrap();
                         },
                         Err(_) => {
                             let k = key.open_subkey("shell").unwrap();
                             let (electric, _) = k.create_subkey("install_with_electric").unwrap();
+                            electric.set_value("", &String::from("Install With Electric")).unwrap();
                             let (command, _) = electric.create_subkey("command").unwrap();
                             command.set_value("", &String::from("\"C:\\Program Files (x86)\\Electric\\bin\\electric.exe\" \"%1\"")).unwrap();
                         }
@@ -99,9 +105,6 @@ fn setup_configuration_file() {
 }
 
 fn main() {
-    setup_web_integration();
-    setup_configuration_file();
-    
     Command::new("powershell.exe")
         .arg("-c")
         .arg("Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force");
@@ -139,4 +142,7 @@ fn main() {
         let mut file = File::create(powershell_loc.as_str()).unwrap();
         file.write_all(SETUP.as_bytes()).unwrap();
     }
+
+    setup_configuration_file();
+    setup_web_integration();
 }
