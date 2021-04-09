@@ -41,6 +41,30 @@ fn setup_web_integration() {
     command.set_value("", &String::from(r"C:\Program Files (x86)\Electric\bin\electric-web.exe %1")).unwrap();
 }
 
+fn setup_configuration_file() {
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    match hkcu.open_subkey(r"SOFTWARE\Classes\.electric_auto_file") {
+        Ok(key) => {
+            match key.create_subkey("shell") {
+                Ok((k, _)) => {
+                    let (electric, _) = k.create_subkey("install_with_electric").unwrap();
+                    let (command, _) = electric.create_subkey(command).unwrap();
+                    command.set_value("", &String::from("\"C:\\Program Files (x86)\\Electric\\bin\\electric.exe\" \"%1\""))
+                },
+                Err(err) => {
+                    let k = key.open_subkey("shell");
+                    let (electric, _) = k.create_subkey("install_with_electric").unwrap();
+                    let (command, _) = electric.create_subkey(command).unwrap();
+                    command.set_value("", &String::from("\"C:\\Program Files (x86)\\Electric\\bin\\electric.exe\" \"%1\""))
+                }
+            }
+        },
+        Err(err) => {
+            // Create At SOFTWARE\Classes\.electric
+        }
+    }
+}
+
 fn main() {
     setup_web_integration();
     
