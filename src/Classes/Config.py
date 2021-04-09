@@ -756,13 +756,11 @@ class Config:
                     os.system(f'electric install {pkg}')
             else:
                 for package in packages:
-                    if list(package.values())[0] is None:
+                    if list(package.values())[0] is None or list(package.values())[0] == 'latest':
                         os.system(f'electric install {list(package.keys())[0]}')
-                    else:
-                        print(f'electric install {list(package.keys())[0]} --version {list(package.values())[0]}')
+                    else:  
                         os.system(f'electric install {list(package.keys())[0]} --version {list(package.values())[0]}')
-            
-
+                       
             package_versions = []
             package_names = []
             for package in python_packages:
@@ -801,13 +799,13 @@ class Config:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
                 package_versions = []
 
-                for extension in editor_extensions:
-                    if not isinstance(extension, list):
-                        extension = list(extension.keys())[0]
-                        version = list(extension.values())[0]
+                for ext in editor_extensions:
+                    if not isinstance(ext, list):
+                        extension = list(ext.keys())[0]
+                        version = list(ext.values())[0]
                         command = f'electric install --vscode {extension}'
 
-                        if version and include_versions:
+                        if version != 'latest' and version != None and include_versions:
                             command = f'electric install --vscode {extension} --version {version}'
 
                         try:
@@ -848,7 +846,7 @@ class Config:
 
                         command = f'electric install --atom {extension}'
                         
-                        if version and include_versions:
+                        if version != 'latest' and version != None and include_versions:
                             command = f'electric install --atom {extension} --version {version}'
                         
                         try:
@@ -867,14 +865,14 @@ class Config:
 
 
             if node_packages:
-                for node_package in node_packages:
-                    if not isinstance(node_package, list):
-                        node_package = list(node_package)[0]
-                        version = list(extension.values())[0]
+                for pkg in node_packages:
+                    if not isinstance(pkg, list):
+                        node_package = list(pkg.keys())[0]
+                        version = list(pkg.values())[0]
 
                         command = f'electric install --node {node_package}'
 
-                        if version and include_versions:
+                        if version != 'latest' and version != None and include_versions:
                             command = f'electric install --node {node_package} --version {version}'
 
                         try:

@@ -2008,7 +2008,11 @@ def generate(
         if include_editor:
             editor = prompt('Enter The Development Text Editor You Use => ',
                             completer=editor_completion, complete_while_typing=True)
-
+    
+    if editor not in ['Visual Studio Code', 'Visual Studio Code Insiders', 'Sublime Text 3', 'Atom']:
+        print(f'{editor} is not a valid editor')
+        sys.exit()
+    
     include_python = None
     try:
         proc = Popen('pip --version', stdin=PIPE,
