@@ -1931,9 +1931,9 @@ def config(
     config = Config.generate_configuration(config_path)
     config.check_prerequisites()
     if remove:
-        config.uninstall()
+        config.uninstall(include_versions)
     else:
-        config.install(include_versions, install_directory, sync, metadata)
+        config.install(include_versions, install_directory, metadata)
 
 
 @cli.command(aliases=['validate'], context_settings=CONTEXT_SETTINGS)

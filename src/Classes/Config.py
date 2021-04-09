@@ -726,7 +726,7 @@ class Config:
                                         click.echo(click.style(
                                             f'Invalid Extension Name => {package_name}', 'red'))
 
-    def install(self, include_versions: bool, install_directory: str, sync: bool, metadata: Metadata):
+    def install(self, include_versions: bool, install_directory: str, metadata: Metadata):
         if is_admin():
             flags = get_install_flags(install_directory, metadata)
             config = self.dictionary
@@ -897,8 +897,7 @@ class Config:
                 'Config installation must be ran as administrator!', fg='red'), err=True)
 
 
-
-    def uninstall(self):
+    def uninstall(self, include_versions: bool):
         if is_admin():
             config = self.dictionary
             python_packages = config['Pip-Packages'] if 'Pip-Packages' in self.headers else None
@@ -906,54 +905,144 @@ class Config:
             editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
             packages = config['Packages'] if 'Packages' in self.headers else None
             editor_type = config['Editor-Configuration'][0]['Editor'] if 'Editor-Configuration' in self.headers else None
-            if packages:
+
+            command = ''
+            pip_command = ''
+            idx = 1
+
+            if not include_versions:
                 for package in packages:
-                    try:
-                        os.system(
-                            f'electric uninstall {list(package.keys())[0]}')
-                    except:
-                        if not confirm('Would you like to continue configuration installation?'):
-                            sys.exit()
+                    if idx == len(packages):
+                        command += list(package.keys())[0]
+                        idx += 1
+                        continue
+                    command += list(package.keys())[0] + ','
+                    idx += 1
 
+                for pkg in command.split(','):
+                    os.system(f'electric uninstall {pkg}')
+            else:
+                
+                for package in packages:
+                    if list(package.values())[0] is None or list(package.values())[0] == 'latest':
+                        os.system(f'electric uninstall {list(package.keys())[0]}')
+                    else:  
+                        os.system(f'electric uninstall {list(package.keys())[0]}')
+            
             if python_packages:
-                for python_package in python_packages:
-                    command = f'electric uninstall --python {list(python_package.keys())[0]}'
-                    try:
-                        os.system(command)
-                    except:
-                        if not confirm('Would you like to continue configuration installation?'):
-                            sys.exit()
+                package_versions = []
+                package_names = []
+                for package in python_packages:
+                    if idx == len(packages):
+                        package_versions.append(package[list(package.keys())[0]])
+                        package_names.append(list(package.keys())[0])
+                        pip_command += list(package.keys())[0]
+                        idx += 1
+                        continue
 
-            if editor_type == 'Visual Studio Code' and editor_extensions:
+                    package_versions.append(package[list(package.keys())[0]])
+                    package_names.append(list(package.keys())[0])
+                    pip_command += list(package.keys())[0] + ','
+                    idx += 1
+
+                os.system('refreshenv')
+
+                idx = 0
+
+                if include_versions and package_versions:
+                    for package_name in package_names:
+                        os.system(
+                            f'electric uninstall --python {package_name} --version {package_versions[idx]}')
+                        idx += 1                                                                                                                                                                                                              
+                else:
+                    if include_versions:
+                        print('No Versions Specified With This Configuration!')
+                        sys.exit()
+
+                    for package_name in package_names:
+                        os.system(f'electric uninstall --python {package_name}')
+                        idx += 1
+
+
+            if editor_type == 'Visual Studio Code' or editor_type == 'Visual Studio Code Insiders' and editor_extensions != []:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
-                for extension in editor_extensions:
-                    extension = list(extension.keys())[0]
-                    command = f'electric uninstall --vscode {extension}'
-                    try:
-                        os.system(command)
-                    except:
-                        if not confirm('Would you like to continue configuration installation?'):
-                            sys.exit()
+                package_versions = []
+                
+                if editor_extensions:
+                    for ext in editor_extensions:
+                        if not isinstance(ext, list):
+                            extension = list(ext.keys())[0]
+                            version = list(ext.values())[0]
+                            command = f'electric uninstall --vscode {extension}'
+
+                            if version != 'latest' and version != None and include_versions:
+                                command = f'electric uninstall --vscode {extension} --version {version}'
+
+                            try:
+                                os.system(command)
+                            except:
+                                if not confirm('Would you like to continue configuration installation?'):
+                                    sys.exit()
+                        else:
+                            command = f'electric uninstall --vscode {extension}'
+                            try:
+                                os.system(command)
+                            except:
+                                if not confirm('Would you like to continue configuration installation?'):
+                                    sys.exit()
 
             if editor_type == 'Atom' and editor_extensions:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
-                for extension in editor_extensions:
-                    extension = list(extension.keys())[0]
-                    command = f'atom uninstall --atom {extension}'
-                    try:
-                        os.system(command)
-                    except:
-                        if not confirm('Would you like to continue configuration'):
-                            sys.exit()
+                if editor_extensions:
+                    for extension in editor_extensions:
+                        if not isinstance(extension, list):
+                            extension = list(extension.keys())[0]
+                            version = list(extension.values())[0]
+
+                            command = f'electric uninstall --atom {extension}'
+                            
+                            if version != 'latest' and version != None and include_versions:
+                                command = f'electric uninstall --atom {extension} --version {version}'
+                            
+                            try:
+                                os.system(command)
+                            except:
+                                if not confirm('Would you like to continue configuration installation?'):
+                                    sys.exit()
+                        else:
+                            command = f'electric uninstall --atom {extension}'
+
+                            try:
+                                os.system(command)
+                            except:
+                                if not confirm('Would you like to continue configuration installation?'):
+                                    sys.exit()
+
 
             if node_packages:
-                for node_package in node_packages:
-                    node_package = list(node_package)[0]
-                    try:
-                        os.system(f'electric uninstall --node {node_package}')
-                    except:
-                        if not confirm('Would you like to continue configuration installation?'):
-                            sys.exit()
+                for pkg in node_packages:
+                    if not isinstance(pkg, list):
+                        node_package = list(pkg.keys())[0]
+                        version = list(pkg.values())[0]
+
+                        command = f'electric uninstall --node {node_package}'
+
+                        if version != 'latest' and version != None and include_versions:
+                            command = f'electric uninstall --node {node_package} --version {version}'
+
+                        try:
+                            os.system(command)
+                        except:
+                            if not confirm('Would you like to continue configuration installation?'):
+                                sys.exit()
+                    else:
+                        command = f'electric uninstall --node {node_package}'
+
+                        try:
+                            os.system(command)
+                        except:
+                            if not confirm('Would you like to continue configuration installation?'):
+                                sys.exit()
         else:
             click.echo(click.style(
                 'Config installation must be ran as administrator!', fg='red'), err=True)
