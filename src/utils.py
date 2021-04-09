@@ -1,6 +1,7 @@
 import difflib
 import json
 from debugger import Debugger
+from urllib.request import urlretrieve
 
 import external
 from json.decoder import JSONDecodeError
