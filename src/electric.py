@@ -1372,7 +1372,7 @@ def uninstall(
                     command = command.split('--')[0:1][0].strip()
                 if '/' in command:
                     command = command.split('/')[0:1][0].strip()
-
+            
             additional_switches = None
             if packet.uninstall_switches:
                 if packet.uninstall_switches != []:

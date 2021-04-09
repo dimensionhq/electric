@@ -451,15 +451,15 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                             True, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['fill_character'] * complete
                         unfill_c = eval(get_character_color(
                             False, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['unfill_character'] * (30 - complete)
-                    
+
                     elif progress_type == 'accented':
                         fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
                         unfill_c = Fore.BLACK + '█' * (30 - complete)
-                    
+
                     elif progress_type == 'zippy':
                         fill_c = Fore.LIGHTGREEN_EX + '=' * complete
                         unfill_c = Fore.LIGHTBLACK_EX + '-' * (30 - complete)
-                    
+
                     elif progress_type not in ['custom', 'accented', 'zippy'] and metadata.settings.use_custom_progress_bar == False or progress_type == 'default':
                         fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
                         unfill_c = Fore.BLACK + '█' * (30 - complete)
@@ -470,14 +470,14 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
                     else:
                         sys.stdout.write(
                             f'\r{get_init_char(True, metadata)}{fill_c}{unfill_c}{get_init_char(False, metadata)} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
-                    
+
                     sys.stdout.flush()
 
     try:
         os.remove(Rf"{tempfile.gettempdir()}\electric\unfinishedcache.pickle")
     except FileNotFoundError:
         pass
- 
+
     dump_pickle(generate_dict(newpath if newpath else path,
                               package_name), 'downloadcache')
 
@@ -827,7 +827,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     log_info(
                         'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
                     manager.handle_multi_install(paths)
- 
+
     if completed:
         sys.exit()
 
@@ -953,12 +953,9 @@ def handle_existing_installation(package, packet: Packet, force: bool, metadata:
             sys.exit()
         else:
             return False
-            # os.system('electric deregister rust')
-            # write(f'Could not find any existing installation of {packet.display_name}', 'bright_yellow', metadata)
-            # os._exit(1)
 
     installation = find_existing_installation(
-        package, packet.json_name, test=False)
+        package, packet.display_name, test=False)
 
     if installation and not force:
         log_info('Found existing installation of package', metadata.logfile)
@@ -999,7 +996,7 @@ def get_package_version(pkg, res, version, portable: bool, nightly: bool, metada
 
 def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: list, method: str, metadata: Metadata, packet: Packet) -> str:
     """
-    Troubleshoots errors when a CalledProcessError, OSError or FileNotFoundError is caught through subprocess.run in run_cmd. 
+    Troubleshoots errors when a CalledProcessError, OSError or FileNotFoundError is caught through subprocess.run in run_cmd.
 
     Important: `method` here refers to `installation` or `uninstallation`
     #### Arguments
@@ -1541,7 +1538,7 @@ def kill_proc(proc, metadata: Metadata):
     """
     Kill a process from subprocess when ctrl+c is hit
     #### Arguments
-        proc (Popen): Popen object 
+        proc (Popen): Popen object
         metadata (`Metadata`): Metadata for the method
     """
     if proc is not None:
@@ -1587,6 +1584,7 @@ def find_existing_installation(package_name: str, display_name: str, test=True):
         [type]: [description]
     """
     key = registry.get_uninstall_key(package_name, display_name)
+
     installed_packages = [''.join(f.replace('.json', '').split(
         '@')[:1]) for f in os.listdir(PathManager.get_appdata_directory() + r'\Current')]
 
@@ -1601,7 +1599,7 @@ def get_install_flags(install_dir: str, metadata: Metadata):
     """
     Generates a list of flags given the metadata and installation directory
     #### Arguments
-        install_dir (str): Directory that the software is being installed to 
+        install_dir (str): Directory that the software is being installed to
         metadata (`Metadata`): Metadata for the method (installation / uninstallation)
     Returns:
         [type]: [description]
@@ -1641,7 +1639,7 @@ def check_virus(path: str, metadata: Metadata, h: Halo):
         metadata (`Metadata`): Metadata for the installation
     """
     detected = virus_check(path)
-    
+
     if h:
         h.stop()
 
@@ -1985,7 +1983,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 'Run `electric install sublime-text-3` [ Copied To Clipboard ] To install Sublime Text 3.\n\nHelp:',
                 '\n[1] <=> https://electric.sh/errors/0112\n\n',
             ]
-        
+
         elif code('1638'):
             return [
                 '\n[1638] => Another version of the software is already installed (not through electric) on your PC.',

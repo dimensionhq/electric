@@ -802,18 +802,26 @@ class Config:
                 package_versions = []
 
                 for extension in editor_extensions:
-                    extension = list(extension.keys())[0]
-                    version = list(extension.values())[0]
-                    command = f'electric install --vscode {extension}'
+                    if not isinstance(extension, list):
+                        extension = list(extension.keys())[0]
+                        version = list(extension.values())[0]
+                        command = f'electric install --vscode {extension}'
 
-                    if version and include_versions:
-                        command = f'electric install --vscode {extension} --version {version}'
+                        if version and include_versions:
+                            command = f'electric install --vscode {extension} --version {version}'
 
-                    try:
-                        os.system(command)
-                    except:
-                        if not confirm('Would you like to continue configuration installation?'):
-                            sys.exit()
+                        try:
+                            os.system(command)
+                        except:
+                            if not confirm('Would you like to continue configuration installation?'):
+                                sys.exit()
+                    else:
+                        command = f'electric install --vscode {extension}'
+                        try:
+                            os.system(command)
+                        except:
+                            if not confirm('Would you like to continue configuration installation?'):
+                                sys.exit()
 
 
             if editor_type == 'Sublime Text 3' and editor_extensions:
@@ -834,36 +842,54 @@ class Config:
             if editor_type == 'Atom' and editor_extensions:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
                 for extension in editor_extensions:
-                    extension = list(extension.keys())[0]
-                    version = list(extension.values())[0]
+                    if not isinstance(extension, list):
+                        extension = list(extension.keys())[0]
+                        version = list(extension.values())[0]
 
-                    command = f'electric install --atom {extension}'
-                    
-                    if version and include_versions:
-                        command = f'electric install --atom {extension} --version {version}'
-                    
-                    try:
-                        os.system(command)
-                    except:
-                        if not confirm('Would you like to continue configuration installation?'):
-                            sys.exit()
+                        command = f'electric install --atom {extension}'
+                        
+                        if version and include_versions:
+                            command = f'electric install --atom {extension} --version {version}'
+                        
+                        try:
+                            os.system(command)
+                        except:
+                            if not confirm('Would you like to continue configuration installation?'):
+                                sys.exit()
+                    else:
+                        command = f'electric install --atom {extension}'
+
+                        try:
+                            os.system(command)
+                        except:
+                            if not confirm('Would you like to continue configuration installation?'):
+                                sys.exit()
 
 
             if node_packages:
                 for node_package in node_packages:
-                    node_package = list(node_package)[0]
-                    version = list(extension.values())[0]
+                    if not isinstance(node_package, list):
+                        node_package = list(node_package)[0]
+                        version = list(extension.values())[0]
 
-                    command = f'electric install --node {node_package}'
+                        command = f'electric install --node {node_package}'
 
-                    if version and include_versions:
-                        command = f'electric install --node {node_package} --version {version}'
+                        if version and include_versions:
+                            command = f'electric install --node {node_package} --version {version}'
 
-                    try:
-                        os.system(command)
-                    except:
-                        if not confirm('Would you like to continue configuration installation?'):
-                            sys.exit()
+                        try:
+                            os.system(command)
+                        except:
+                            if not confirm('Would you like to continue configuration installation?'):
+                                sys.exit()
+                    else:
+                        command = f'electric install --node {node_package}'
+
+                        try:
+                            os.system(command)
+                        except:
+                            if not confirm('Would you like to continue configuration installation?'):
+                                sys.exit()
         else:
             click.echo(click.style(
                 'Config installation must be ran as administrator!', fg='red'), err=True)
