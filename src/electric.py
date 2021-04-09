@@ -1281,6 +1281,7 @@ def uninstall(
         key = get_uninstall_key(packet.json_name, packet.display_name)
         end = timer()
 
+
         if not key:
             log_info(
                 f'electric didn\'t detect any existing installations of => {packet.display_name}', metadata.logfile)
@@ -1447,8 +1448,9 @@ def uninstall(
                 if '/' in command:
                     command = command.split('/')[0:1][0].strip()
 
-            for switch in packet.uninstall_switches:
-                command += f' {switch}'
+            if not 'msiexec.exe' in command.lower():
+                for switch in packet.uninstall_switches:
+                    command += f' {switch}'
 
             # Run The UninstallString
             write_verbose('Executing the Uninstall Command', metadata)
