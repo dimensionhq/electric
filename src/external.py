@@ -86,6 +86,8 @@ def handle_python_package(package_name: str, version: str, mode: str, metadata: 
         command = 'python -m pip uninstall --no-input --yes'
 
         command += f' {package_name}'
+        if version:
+            command += f'=={version}'
 
         proc = Popen(mslex.split(command), stdin=PIPE,
                      stdout=PIPE, stderr=PIPE)
@@ -169,10 +171,9 @@ def handle_node_package(package_name: str, mode: str, requested_version: str, me
                 else:
                     write(
                         f'npm v{version} :: Sucessfully Updated {package_name}', 'bright_green', metadata)
-
     else:
         add_str = f"@{requested_version}" if version else ""
-        command = f'npm i {package_name} -g' + add_str
+        command = f'npm u {package_name} -g' + add_str
 
         proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
         for line in proc.stdout:
