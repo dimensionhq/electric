@@ -1,4 +1,4 @@
-######################################################################
+p######################################################################
 #                      Copyright 2021 XtremeDevX                     #
 #                 SPDX-License-Identifier: Apache-2.0                #
 ######################################################################
@@ -1911,7 +1911,6 @@ def config(
     '''
     Install or Uninstalls and configures packages from a .electric configuration file.
     '''
-    print(uninstall)
     from Classes.Config import Config
 
     if not is_admin():
