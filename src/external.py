@@ -277,7 +277,7 @@ def handle_vscode_extension(package_name: str, requested_version: str, mode: str
 
         for line in proc.stdout:
             line = line.decode()
-            print('hi: ', line)
+            
             if 'Uninstalling' in line:
                 if metadata.no_color:
                     write(f'Code v{version} :: Uninstalling {package_name}', 'white', metadata)
