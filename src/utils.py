@@ -1,7 +1,6 @@
 import difflib
 import json
 from debugger import Debugger
-from urllib.request import urlretrieve
 
 import external
 from json.decoder import JSONDecodeError
@@ -171,6 +170,8 @@ def generate_dict(path: str, package_name: str) -> dict:
 
 
 def download_installer(packet: Packet, download_url: str, metadata: Metadata):
+    from urllib.request import urlretrieve
+    
     if metadata.rate_limit == -1:
         return download(download_url, packet.json_name,
                         metadata, packet.win64_type)
