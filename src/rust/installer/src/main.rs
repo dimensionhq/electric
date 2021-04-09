@@ -100,6 +100,7 @@ fn setup_configuration_file() {
 
 fn main() {
     setup_web_integration();
+    setup_configuration_file();
     
     Command::new("powershell.exe")
         .arg("-c")
