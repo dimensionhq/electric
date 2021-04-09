@@ -867,7 +867,7 @@ def handle_external_installation(python: bool, node: bool, vscode: bool, sublime
     if atom:
         package_names = package_name.split(',')
         for name in package_names:
-            external.handle_atom_package(name, 'install', version, metadata)
+            external.handle_atom_package(name, 'install', version)
 
         sys.exit()
 
@@ -905,7 +905,7 @@ def handle_external_uninstallation(python: bool, node: bool, vscode: bool, subli
     if atom:
         package_names = package_name.split(',')
         for name in package_names:
-            external.handle_atom_package(name, 'uninstall', None, metadata)
+            external.handle_atom_package(name, 'uninstall', None)
 
         sys.exit()
 

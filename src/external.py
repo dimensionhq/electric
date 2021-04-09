@@ -137,7 +137,7 @@ def handle_node_package(package_name: str, mode: str, requested_version: str, me
         utils.handle_exit('ERROR', None, metadata)
 
     if mode == 'install':
-        add_str = f"@{requested_version}" if version else ""
+        add_str = f"@{requested_version}" if requested_version else ""
         command = f'npm i {package_name} -g' + add_str
 
         proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
@@ -172,7 +172,7 @@ def handle_node_package(package_name: str, mode: str, requested_version: str, me
                     write(
                         f'npm v{version} :: Sucessfully Updated {package_name}', 'bright_green', metadata)
     else:
-        add_str = f"@{requested_version}" if version else ""
+        add_str = f"@{requested_version}" if requested_version else ""
         command = f'npm uninstall {package_name} -g' + add_str
 
         proc = Popen(mslex.split(command), stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
@@ -228,7 +228,7 @@ def handle_vscode_extension(package_name: str, requested_version: str, mode: str
     version = version.strip().split('\n')[0]
 
     if mode == 'install':
-        add_str = f"@{requested_version}" if version else ""
+        add_str = f"@{requested_version}" if requested_version else ""
         command = f'{base_c} --install-extension {package_name}{add_str} --force'
 
         proc = Popen(mslex.split(command), stdin=PIPE,
@@ -269,13 +269,15 @@ def handle_vscode_extension(package_name: str, requested_version: str, mode: str
             f'{Fore.LIGHTGREEN_EX}Code v{version} :: Successfully Installed {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
 
     if mode == 'uninstall':
-        add_str = f"@{requested_version}" if version else ""
+        add_str = f"@{requested_version}" if requested_version else ""
         command = f'{base_c} --uninstall-extension {package_name}{add_str} --force'
+        print(command)
         proc = Popen(mslex.split(command), stdin=PIPE,
                      stdout=PIPE, stderr=PIPE, shell=True)
+
         for line in proc.stdout:
             line = line.decode()
-
+            print('hi: ', line)
             if 'Uninstalling' in line:
                 if metadata.no_color:
                     write(f'Code v{version} :: Uninstalling {package_name}', 'white', metadata)
@@ -378,7 +380,7 @@ def handle_sublime_extension(package_name: str, mode: str, metadata: Metadata):
         utils.handle_exit('error', '', metadata)
 
 
-def handle_atom_package(package_name: str, mode: str, requested_version: str, metadata: Metadata):
+def handle_atom_package(package_name: str, mode: str, requested_version: str):
     """
     Installs an atom package handling metadata
 
@@ -399,7 +401,7 @@ def handle_atom_package(package_name: str, mode: str, requested_version: str, me
             sys.exit()
 
         with Halo(f'apm v{version} :: Installing {package_name}', text_color='cyan') as h:
-            add_str = f"@{requested_version}" if version else ""
+            add_str = f"@{requested_version}" if requested_version else ""
             command = f'apm install {package_name}' + add_str
 
             proc = Popen(
@@ -427,7 +429,7 @@ def handle_atom_package(package_name: str, mode: str, requested_version: str, me
             sys.exit()
 
         with Halo(f'apm v{version} :: Uninstalling {package_name}', text_color='cyan') as h:
-            add_str = f"@{requested_version}" if version else ""
+            add_str = f"@{requested_version}" if requested_version else ""
             command = f'apm deinstall {package_name}' + add_str
             proc = Popen(
                 command, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
