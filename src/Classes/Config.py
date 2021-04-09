@@ -288,8 +288,9 @@ class Config:
                                 {line.split('@')[0]: line.split('@')[1]} for line in output]
                             lines[idx] = Config.get_repr_packages(
                                 electric_packages, True).replace('\n ', '\n') + '\n'
-                            d['Packages'] = [line.split(
-                                '@')[0] for line in output]
+                            
+                            d['Packages'] = [{line.split(
+                                '@')[0]: line.split('@')[1]} for line in output]
 
                             with open(f'{filepath}', 'w') as f:
                                 f.writelines(lines)
@@ -617,12 +618,11 @@ class Config:
             for package in packages:
                 if isinstance(package, dict):
                     if package:
-                        
                         proc = Popen(
                             rf'electric show {list(package.keys())[0]}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
                         output, err = proc.communicate()
                         err = 'UnicodeEncodeError' in err.decode()
-                        
+
                         if 'Could Not Find Any Packages' in output.decode() or 'Not Found.' in output.decode() or err:
                             click.echo(click.style(
                                 f'`{list(package.keys())[0]}` does not exist or has been removed.', 'red'))
@@ -633,8 +633,9 @@ class Config:
                         proc = Popen(
                             rf'electric show {package}', stdin=PIPE, stdout=PIPE, stderr=PIPE)
                         output, err = proc.communicate()
-                        err = 'UnicodeEncodeError' not in err.decode()
-                        if 'Could Not Find Any Packages' in output.decode() or err:
+                        err = 'UnicodeEncodeError' in err.decode()
+
+                        if 'Could Not Find Any Packages' in output.decode() or 'Not Found.' in output.decode() or err:
                             click.echo(click.style(
                                 f'`{package}` does not exist or has been removed.', 'red'))
                             sys.exit()
@@ -738,6 +739,7 @@ class Config:
             command = ''
             pip_command = ''
             idx = 1
+
             if not include_versions:
                 for package in packages:
                     if idx == len(packages):
@@ -757,8 +759,10 @@ class Config:
                     if list(package.values())[0] is None:
                         os.system(f'electric install {list(package.keys())[0]}')
                     else:
+                        print(f'electric install {list(package.keys())[0]} --version {list(package.values())[0]}')
                         os.system(f'electric install {list(package.keys())[0]} --version {list(package.values())[0]}')
             
+
             package_versions = []
             package_names = []
             for package in python_packages:
@@ -781,21 +785,21 @@ class Config:
             if include_versions and package_versions:
                 for package_name in package_names:
                     os.system(
-                        f'electric install --python {package_name} --version {versions[idx]}')
-                    idx += 1                                                                                                                                                                                                                     
+                        f'electric install --python {package_name} --version {package_versions[idx]}')
+                    idx += 1                                                                                                                                                                                                              
             else:
                 if include_versions:
-                    print("No Versions Specified With This Configuration!")
+                    print('No Versions Specified With This Configuration!')
                     sys.exit()
 
                 for package_name in package_names:
                     os.system(f'electric install --python {package_name}')
                     idx += 1
 
+
             if editor_type == 'Visual Studio Code' or editor_type == 'Visual Studio Code Insiders' and editor_extensions != []:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
                 package_versions = []
-                print(editor_extensions)
 
                 for extension in editor_extensions:
                     extension = list(extension.keys())[0]
@@ -811,6 +815,7 @@ class Config:
                         if not confirm('Would you like to continue configuration installation?'):
                             sys.exit()
 
+
             if editor_type == 'Sublime Text 3' and editor_extensions:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
                 for extension in editor_extensions:
@@ -825,30 +830,45 @@ class Config:
                         if not confirm('Would you like to continue configuration installation?'):
                             sys.exit()
 
+
             if editor_type == 'Atom' and editor_extensions:
                 editor_extensions = config['Editor-Extensions'] if 'Editor-Extensions' in self.headers else None
                 for extension in editor_extensions:
                     extension = list(extension.keys())[0]
+                    version = list(extension.values())[0]
+
                     command = f'electric install --atom {extension}'
+                    
+                    if version and include_versions:
+                        command = f'electric install --atom {extension} --version {version}'
+                    
                     try:
                         os.system(command)
                     except:
                         if not confirm('Would you like to continue configuration installation?'):
                             sys.exit()
 
+
             if node_packages:
                 for node_package in node_packages:
                     node_package = list(node_package)[0]
+                    version = list(extension.values())[0]
+
+                    command = f'electric install --node {node_package}'
+
+                    if version and include_versions:
+                        command = f'electric install --node {node_package} --version {version}'
+
                     try:
-                        os.system(
-                            f'electric install --node {node_package}')
+                        os.system(command)
                     except:
                         if not confirm('Would you like to continue configuration installation?'):
                             sys.exit()
-
         else:
             click.echo(click.style(
                 'Config installation must be ran as administrator!', fg='red'), err=True)
+
+
 
     def uninstall(self):
         if is_admin():

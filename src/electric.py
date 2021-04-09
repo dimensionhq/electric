@@ -1807,7 +1807,7 @@ def new(
         f.writelines(
             [
                 "[ Info ]\n",
-                "# Go To https://www.electric.sh/electric-configuration-documentation/ For More Information\n",
+                "# Go To https://www.electric.sh/docs/configurations For More Information\n",
                 "Publisher =>\n",
                 "Description =>\n\n",
                 "\n[ Editor-Configuration ]\n",
@@ -1946,6 +1946,7 @@ def sign(
     import hashlib
 
     config = Config.generate_configuration(filepath, False)
+
     click.echo(click.style('No syntax errors found!', 'bright_green'))
 
     config.verify()

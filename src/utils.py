@@ -1303,7 +1303,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
 def get_configuration_data(username: str, description: str, uses_editor: bool, include_editor: bool, editor: str, include_python: bool, include_node: bool):
     base_configuration = [
         '[ Info ]\n',
-        '# Go To https://www.electric.sh/electric-configuration-documentation/ For More Information\n',
+        '# Go To https://www.electric.sh/docs/configurations For More Information\n',
         f'Publisher => \"{username}\"\n',
         f'Description => \"{description}\"\n'
     ]
