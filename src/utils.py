@@ -869,7 +869,7 @@ def handle_external_installation(python: bool, node: bool, vscode: bool, sublime
     if atom:
         package_names = package_name.split(',')
         for name in package_names:
-            external.handle_atom_package(name, 'install', version)
+            external.handle_atom_package(name, 'install', version, metadata)
 
         sys.exit()
 
@@ -907,7 +907,7 @@ def handle_external_uninstallation(python: bool, node: bool, vscode: bool, subli
     if atom:
         package_names = package_name.split(',')
         for name in package_names:
-            external.handle_atom_package(name, 'uninstall', None)
+            external.handle_atom_package(name, 'uninstall', None, metadata)
 
         sys.exit()
 
@@ -1984,6 +1984,15 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 '\n\nHow To Fix:\n',
                 'Run `electric install sublime-text-3` [ Copied To Clipboard ] To install Sublime Text 3.\n\nHelp:',
                 '\n[1] <=> https://electric.sh/errors/0112\n\n',
+            ]
+
+         elif code('0113'):
+            copy_to_clipboard('electric install atom')
+            return [
+                '\n[0013] => Atom is not installed on your system.',
+                '\n\nHow To Fix:\n',
+                'Run `electric install atom` [ Copied To Clipboard ] To install Atom.\n\nHelp:',
+                '\n[1] <=> https://electric.sh/errors/0113\n\n',
             ]
 
         elif code('1638'):
