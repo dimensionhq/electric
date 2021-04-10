@@ -3,39 +3,6 @@ import sys
 import winreg
 
 
-installed_software = send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY) + send_query(
-            winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY) + send_query(winreg.HKEY_CURRENT_USER, 0)
-        
-names = [software['DisplayName'] for software in installed_software]
-
-num = int(input('Enter 1 => Find Display Name For Software\nEnter 2 => Test If Display Name Has A Match\n>'))
-
-if num == 1:
-    test = input('Enter the approx display name of the package > ')
-    matches = get_close_matches(test, names, cutoff=0.4)
-
-    if len(matches) == 0:
-        print('No Matches Found!')
-    else:
-        for match in matches:
-            print('Match Found:', match)
-
-if num == 2:
-    try:
-        test = input('Enter the display name of the package you want to test for > ')
-    except KeyboardInterrupt:
-        sys.exit()
-
-    matches = get_close_matches(test, names, cutoff=0.65)
-
-    if len(matches) == 0:
-        print('No Matches Found!')
-    if len(matches) == 1:
-        print(f'Great! 1 Match Found => {matches[0]}')
-    elif len(matches) > 1:
-        print('Multiple Matches Found. Please Try To Refine Your Display Name')
-        for match in matches:
-            print(match)
 
 def send_query(hive, flag):
     aReg = winreg.ConnectRegistry(None, hive)
@@ -82,3 +49,37 @@ def send_query(hive, flag):
     return software_list
 
 
+
+installed_software = send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY) + send_query(
+            winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY) + send_query(winreg.HKEY_CURRENT_USER, 0)
+        
+names = [software['DisplayName'] for software in installed_software]
+
+num = int(input('Enter 1 => Find Display Name For Software\nEnter 2 => Test If Display Name Has A Match\n>'))
+
+if num == 1:
+    test = input('Enter the approx display name of the package > ')
+    matches = get_close_matches(test, names, cutoff=0.4)
+
+    if len(matches) == 0:
+        print('No Matches Found!')
+    else:
+        for match in matches:
+            print('Match Found:', match)
+
+if num == 2:
+    try:
+        test = input('Enter the display name of the package you want to test for > ')
+    except KeyboardInterrupt:
+        sys.exit()
+
+    matches = get_close_matches(test, names, cutoff=0.65)
+
+    if len(matches) == 0:
+        print('No Matches Found!')
+    if len(matches) == 1:
+        print(f'Great! 1 Match Found => {matches[0]}')
+    elif len(matches) > 1:
+        print('Multiple Matches Found. Please Try To Refine Your Display Name')
+        for match in matches:
+            print(match)
