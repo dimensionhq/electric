@@ -439,6 +439,7 @@ def handle_atom_package(package_name: str, mode: str, requested_version: str, me
 
             for line in proc.stdout:
                 line = line.decode()
+                
                 if 'failed' in line:
                     h.fail(f' Failed to Uninstall {package_name}')
 
