@@ -11,48 +11,48 @@ keys = []
 
 
 def send_query(hive, flag):
-        aReg = winreg.ConnectRegistry(None, hive)
-        aKey = winreg.OpenKey(aReg, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall',
-                            0, winreg.KEY_READ | flag)
+    aReg = winreg.ConnectRegistry(None, hive)
+    aKey = winreg.OpenKey(aReg, r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall',
+                        0, winreg.KEY_READ | flag)
 
-        count_subkey = winreg.QueryInfoKey(aKey)[0]
+    count_subkey = winreg.QueryInfoKey(aKey)[0]
 
-        software_list = []
+    software_list = []
 
-        for i in range(count_subkey):
-            software = {}
+    for i in range(count_subkey):
+        software = {}
+        try:
+            asubkey_name = winreg.EnumKey(aKey, i)
+            asubkey = winreg.OpenKey(aKey, asubkey_name)
+
+            software['DisplayName'] = winreg.QueryValueEx(asubkey, "DisplayName")[0]
+            software['KeyName'] = asubkey_name
             try:
-                asubkey_name = winreg.EnumKey(aKey, i)
-                asubkey = winreg.OpenKey(aKey, asubkey_name)
-
-                software['DisplayName'] = winreg.QueryValueEx(asubkey, "DisplayName")[0]
-                software['KeyName'] = asubkey_name
-                try:
-                    temp = winreg.QueryValueEx(asubkey, "QuietUninstallString")[0]
-                    software['QuietUninstallString'] = temp
-                except:
-                    pass
-                try:
-                    software['UninstallString'] = winreg.QueryValueEx(asubkey, "UninstallString")[0]
-                except:
-                    software['UninstallString'] = 'Unknown'
-                try:
-                    software['Version'] = winreg.QueryValueEx(asubkey, "DisplayVersion")[0]
-                except EnvironmentError:
-                    software['Version'] = 'Unknown'
-                try:
-                    software['InstallLocation'] = winreg.QueryValueEx(asubkey, "InstallLocation")[0]
-                except EnvironmentError:
-                    software['InstallLocation'] = 'Unknown'
-                try:
-                    software['Publisher'] = winreg.QueryValueEx(asubkey, "Publisher")[0]
-                except EnvironmentError:
-                    software['Publisher'] = 'Unknown'
-                software_list.append(software)
+                temp = winreg.QueryValueEx(asubkey, "QuietUninstallString")[0]
+                software['QuietUninstallString'] = temp
+            except:
+                pass
+            try:
+                software['UninstallString'] = winreg.QueryValueEx(asubkey, "UninstallString")[0]
+            except:
+                software['UninstallString'] = 'Unknown'
+            try:
+                software['Version'] = winreg.QueryValueEx(asubkey, "DisplayVersion")[0]
             except EnvironmentError:
-                continue
-            
-        return software_list
+                software['Version'] = 'Unknown'
+            try:
+                software['InstallLocation'] = winreg.QueryValueEx(asubkey, "InstallLocation")[0]
+            except EnvironmentError:
+                software['InstallLocation'] = 'Unknown'
+            try:
+                software['Publisher'] = winreg.QueryValueEx(asubkey, "Publisher")[0]
+            except EnvironmentError:
+                software['Publisher'] = 'Unknown'
+            software_list.append(software)
+        except EnvironmentError:
+            continue
+        
+    return software_list
 
 
 def get_uninstall_key(package_name : str, display_name: str):

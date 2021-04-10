@@ -2059,7 +2059,6 @@ def ls(_, installed: bool, versions: bool):
     If --installed is passed in, lists all installed packages
     '''
     import winreg
-    import re
 
     if installed:
         if not versions:
