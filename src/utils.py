@@ -1180,7 +1180,6 @@ def run_cmd(command: str, metadata: Metadata, method: str, packet: Packet) -> bo
         bool: Success (Exit Code == 0)
     """
     command = command.replace('\"\"', '\"').replace('  ', ' ').replace('\\\\', '\\')
-    print(command)
     log_info(f'Running command: {command}', metadata.logfile)
     write_debug(f'{command}', metadata)
     try:
