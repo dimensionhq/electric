@@ -391,16 +391,16 @@ def handle_atom_package(package_name: str, mode: str, requested_version: str, me
         metadata (`Metadata`): Metadata for the method
     """
     if mode == 'install':
-        try:
-            proc = Popen('apm --version --no-color'.split(),
-                         stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
-            output, err = proc.communicate()
-            if err:
-                click.echo(click.style('Atom Is Not Installed. Exit Code [0113]', fg='bright_yellow'))
-                utils.disp_error_msg(utils.get_error_message('0113', 'install', package_name, None, metadata, package_name), metadata)
-                utils.handle_exit('error', '', metadata)
 
-            version = output.decode().splitlines()[0].split()[1]
+        proc = Popen('apm --version --no-color'.split(),
+                        stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+        output, err = proc.communicate()
+        if err:
+            click.echo(click.style('Atom Is Not Installed. Exit Code [0113]', fg='bright_yellow'))
+            utils.disp_error_msg(utils.get_error_message('0113', 'install', package_name, None, metadata, package_name), metadata)
+            utils.handle_exit('error', '', metadata)
+
+        version = output.decode().splitlines()[0].split()[1]
         
         with Halo(f'apm v{version} :: Installing {package_name}', text_color='cyan') as h:
             add_str = f"@{requested_version}" if requested_version else ""

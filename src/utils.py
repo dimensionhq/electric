@@ -1986,7 +1986,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 '\n[1] <=> https://electric.sh/errors/0112\n\n',
             ]
 
-         elif code('0113'):
+        elif code('0113'):
             copy_to_clipboard('electric install atom')
             return [
                 '\n[0013] => Atom is not installed on your system.',
