@@ -25,6 +25,10 @@ function Update-Environment() {
 Set-Alias refreshenv Update-Environment
 "#;
 
+fn delete_electric_configuration() {
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    match 
+}
 
 fn delete_web_integration() {
     let hkcr = RegKey::predef(HKEY_CLASSES_ROOT);
