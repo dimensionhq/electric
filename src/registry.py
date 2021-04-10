@@ -28,6 +28,11 @@ def send_query(hive, flag):
                 software['DisplayName'] = winreg.QueryValueEx(asubkey, "DisplayName")[0]
                 software['KeyName'] = asubkey_name
                 try:
+                    temp = winreg.QueryValueEx(asubkey, "QuietUninstallString")[0]
+                    software['QuietUninstallString'] = temp
+                except:
+                    pass
+                try:
                     software['UninstallString'] = winreg.QueryValueEx(asubkey, "UninstallString")[0]
                 except:
                     software['UninstallString'] = 'Unknown'
@@ -87,6 +92,7 @@ def get_uninstall_key(package_name : str, display_name: str):
                     else:
                             final_list.pop(index)
                     refined_list.append(name)
+
             temp_list = []
             old = ''
             for val in refined_list:

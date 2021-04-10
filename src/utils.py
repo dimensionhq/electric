@@ -1475,7 +1475,7 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
         metadata (`Metadata`): Metadata for the method
     """
     if status == 'Installing':
-        write('Trying To Quit Installer',
+        write('\nTrying To Quit Installer',
               'cyan', metadata)
         exe_name = setup_name.split(
             '\\')[-1].replace('.exe.exe', '').replace('.msi.msi', '')

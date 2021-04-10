@@ -1364,8 +1364,9 @@ def uninstall(
         if 'QuietUninstallString' in key:
 
             command = key['QuietUninstallString']
-            command = command.replace('/I', '/X')
-            command = command.replace('/quiet', '/qn')
+            if command.startswith("msiexec.exe") or command.startswith("MSIEXEC.EXE"):
+                command = command.replace('/I', '/X')
+                command = command.replace('/quiet', '/qn')
 
             if override_uninstall_switches:
                 if '--' in command:
