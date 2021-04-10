@@ -58,6 +58,8 @@ def append_to_path(input_dir: str):
 
 
 def set_environment_variable(name: str, value: str):
+    if value.endswith('\\'):
+        value += '\\'
     Popen(rf'setx {name} "{value}"', stdin=PIPE,
           stdout=PIPE, stderr=PIPE, shell=True)
 
