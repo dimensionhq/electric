@@ -82,7 +82,7 @@ fn setup_configuration_file() {
                     }
 
                 }, 
-                Err(err) => {
+                Err(_) => {
                     // Key Already Exists
                     match hkcu.open_subkey(r"SOFTWARE\Classes\.electric") {
                         Ok(key) => {

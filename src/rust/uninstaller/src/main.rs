@@ -27,7 +27,12 @@ Set-Alias refreshenv Update-Environment
 
 fn delete_electric_configuration() {
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    match 
+    match hkcu.delete_subkey_all(r"SOFTWARE\CLASSES\.electric\shell\install_with_electric") {
+        Ok(_) => {},
+        Err(_) => {
+            hkcu.delete_subkey_all(r"SOFTWARE\CLASSES\.electric_auto_file\shell\install_with_electric").unwrap();
+        }, 
+    }
 }
 
 fn delete_web_integration() {
@@ -36,7 +41,9 @@ fn delete_web_integration() {
 }
 
 fn main() {
+    delete_electric_configuration();
     delete_web_integration();
+
     let userprofile = var("USERPROFILE").unwrap();
 
     let powershell_loc: String = format!(
