@@ -1437,7 +1437,7 @@ def uninstall(
             close_log(metadata.logfile, 'Uninstall')
 
         # If Only UninstallString Exists (Not Preferable)
-        if 'UninstallString' in key:
+        elif 'UninstallString' in key:
             command = key['UninstallString']
             command = command.replace('/I', '/X')
             if 'msiexec.exe' in command.lower():
