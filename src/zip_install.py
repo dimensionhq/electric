@@ -139,8 +139,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
         changes_environment = True
         write(
             f'Setting Environment Variable {packet.set_env["name"]}', 'bright_green', metadata)
-        print(packet.set_env['value'].replace(
-            '<install-directory>', unzip_dir))
+   
         set_environment_variable(packet.set_env['name'], packet.set_env['value'].replace(
             '<install-directory>', unzip_dir).replace('\\\\', '\\'))
 
