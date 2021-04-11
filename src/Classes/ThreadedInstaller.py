@@ -538,8 +538,6 @@ class ThreadedInstaller:
 
                     download_url = packet.win64
 
-                    write('Initializing Rapid Download',
-                          'bright_green', metadata)
                     log_info('Initializing Rapid Download...',
                              metadata.logfile)
 
@@ -573,8 +571,6 @@ class ThreadedInstaller:
 
                         path = f'{tempfile.gettempdir()}\Setup{packet.win64_type}'
 
-                    write('Completed Rapid Download', 'bright_green', metadata)
-
                     log_info('Finished Rapid Download', metadata.logfile)
 
                     if metadata.virus_check:
@@ -583,7 +579,7 @@ class ThreadedInstaller:
                         utils.check_virus(path, metadata)
 
                     write(
-                        'Using Rapid Install, Accept Prompts Asking For Admin Permission...', 'cyan', metadata)
+                        f'Installing {packet.display_name}', 'cyan', metadata)
                     log_info(
                         'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
@@ -656,12 +652,14 @@ class ThreadedInstaller:
                         write('The PATH environment variable has changed. Run `refreshenv` to refresh your environment variables.',
                               'bright_green', metadata)
 
-                    write_verbose('Successfully Verified Installation Of Packages')
+                    write_verbose('Successfully Verified Installation Of Packages', metadata)
 
                     write(
-                        f'Successfully Installed {packet.display_name}!', 'bright_magenta', metadata)
+                        f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
+
                     log_info(
-                        f'Successfully Installed {packet.display_name}!', metadata.logfile)
+                        f'Successfully Installed {packet.display_name}', metadata.logfile)
+
                     utils.register_package_success(
                         packet, install_directory, metadata)
 

@@ -1135,7 +1135,7 @@ def uninstall(
         else:
             version = res['latest-version']
         pkg = res[version]
-
+        
         if 'uninstall-override-command' in list(pkg.keys()):
             for operation in pkg['uninstall-override-command']:
                 if 'admin' in list(operation.keys()):
