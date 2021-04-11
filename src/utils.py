@@ -1077,18 +1077,18 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
         else:
             click.echo(click.style(
                 '\nFatal Installer Error. Exit Code [1603]', fg='red'))
-            return get_error_message('1603', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
+            return get_error_message('1603', method, packet.display_name, packet.version, metadata, packet.json_name)
 
     if 'exit status 1639' in error:
         click.echo(click.style(
             f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
-        return get_error_message('0002', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
+        return get_error_message('0002', method, packet.display_name, packet.version, metadata, packet.json_name)
 
     if 'exit status 1' in error:
         click.echo(click.style(
             f'\nUnknown Error. Exited With Code [0000]', fg='red'))
         handle_unknown_error(error, packet.display_name, method)
-        return get_error_message('0000', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
+        return get_error_message('0000', method, packet.display_name, packet.version, metadata, packet.json_name)
 
     if '[WinError 740]' in error and 'elevation' in error:
         # Process Needs Elevation To Execute
@@ -1136,20 +1136,20 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
     if 'exit status 4' in error:
         # Fatal Error During Installation
         click.echo(click.style(f'\nFatal Error. Exit Code [1111]', fg='red'))
-        return get_error_message('1111', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
+        return get_error_message('1111', method, packet.display_name, packet.version, metadata, packet.json_name)
 
     if '[WinError 87]' in error and 'incorrect' in error:
         click.echo(click.style(
             f'\nElectric Installer Passed In Invalid Parameters For Installation. Exit Code [0002]', fg='red'))
-        return get_error_message('0002', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
+        return get_error_message('0002', method, packet.display_name, packet.version, metadata, packet.json_name)
 
     # Installer Requesting Reboot
     if 'returned non-zero exit status 3010' in error:
-        return get_error_message('1010', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
+        return get_error_message('1010', method, packet.display_name, packet.version, metadata, packet.json_name)
 
     else:
         handle_unknown_error(error, packet.display_name, method)
-        return get_error_message('0000', 'installation', packet.display_name, packet.version, metadata, packet.json_name)
+        return get_error_message('0000', method, packet.display_name, packet.version, metadata, packet.json_name)
 
 
 def get_file_type(command: str) -> str:
