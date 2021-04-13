@@ -8,7 +8,7 @@ class PortablePacket:
         self.latest_version = data['latest-version']
         self.url = data['url']
         self.file_type = data['file-type']
-        self.extract_dir = data['extract-dir']
+        self.extract_dir = self.json_name
 
         try:
             self.chdir = data['chdir']
@@ -46,6 +46,10 @@ class PortablePacket:
             self.set_env = data['set-env']
         except:
             self.set_env = None
+        try:
+            self.checksum = data['checksum']
+        except:
+            self.checksum = None
         try:
             self.dependencies = data['dependencies']
         except:

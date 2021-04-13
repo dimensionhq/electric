@@ -37,6 +37,7 @@ def update_portable(ctx, packet: PortablePacket, metadata: Metadata):
         except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
             click.echo(click.style(
                 f'Failed to request {packet.json_name}.json from raw.githubusercontent.com', 'red'))
+            sys.exit()
        
         try:
             res = json.loads(response.text)
@@ -65,6 +66,7 @@ def update_portable(ctx, packet: PortablePacket, metadata: Metadata):
             'uninstall-notes': pkg[current_version]['uninstall-notes'] if 'uninstall-notes' in keys else None,
             'set-env': pkg[current_version]['set-env'] if 'set-env' in keys else None,
             'persist': pkg[current_version]['persist'] if 'persist' in keys else None,
+            'checksum': pkg[current_version]['checksum'] if 'checksum' in keys else None,
             'dependencies': pkg[current_version]['dependencies'] if 'dependencies' in keys else None,
         }
 

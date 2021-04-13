@@ -9,7 +9,6 @@ from extension import write
 
 home = os.path.expanduser('~')
 
-
 def delete_start_menu_shortcut(shortcut_name):
     start_menu = os.environ['APPDATA'] + \
         R'\Microsoft\Windows\Start Menu\Programs\Electric'
@@ -298,6 +297,25 @@ def download(packet, url: str, download_extension: str, file_path: str, metadata
         sys.exit()
 
 
+def verify_checksum(path: str, checksum: str, metadata: Metadata, newline=False):
+    import hashlib
+
+    if hashlib.sha256(open(path, 'rb').read()).hexdigest().upper() == checksum:
+        if not newline:
+            write('Verified Installer Hash', 'bright_green', metadata)
+        else:
+            write('\nVerified Installer Hash', 'bright_green', metadata)
+    else:
+        write('Hashes Don\'t Match!', 'bright_green', metadata)
+        if not metadata.yes or not metadata.force:
+            continue_installation = confirm(
+                'Would you like to continue with installation?')
+            if continue_installation:
+                return
+            else:
+                os._exit(1)
+
+
 def create_start_menu_shortcut(unzip_dir, file_name, shortcut_name):
     import win32com.client
 
@@ -383,6 +401,9 @@ def set_environment_variable(name: str, value: str):
     Popen(rf'setx {name} "{value}"', stdin=PIPE,
           stdout=PIPE, stderr=PIPE, shell=True)
 
+def delete_environment_variable(name: str):
+    Popen(rf'reg delete "HKCU\Environment" /F /V "{name}"', stdin=PIPE,
+          stdout=PIPE, stderr=PIPE, shell=True)
 
 def confirm(prompt: str):
     value = input(f'{prompt} (Y/n): ')

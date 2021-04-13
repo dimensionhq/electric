@@ -519,6 +519,7 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
             'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
             'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
             'persist': pkg[pkg['latest-version']]['persist'] if 'persist' in keys else None,
+            'checksum': pkg[pkg['latest-version']]['checksum'] if 'checksum' in keys else None,
             'dependencies': pkg[pkg['latest-version']]['dependencies'] if 'dependencies' in keys else None,
         }
         portable_packet = PortablePacket(data)
@@ -543,6 +544,7 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
             'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
             'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
             'persist': pkg[pkg['latest-version']]['persist'] if 'persist' in keys else None,
+            'checksum': pkg[pkg['latest-version']]['checksum'] if 'checksum' in keys else None,
             'dependencies': pkg[pkg['latest-version']]['dependencies'] if 'dependencies' in keys else None,
         }
         portable_packet = PortablePacket(data)
@@ -595,6 +597,7 @@ def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadat
             'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else None,
             'post-install': pkg[pkg['latest-version']]['post-install'] if 'post-install' in keys else None,
             'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
+            'checksum': pkg[pkg['latest-version']]['checksum'] if 'checksum' in keys else None,
             'dependencies': pkg[pkg['latest-version']]['dependencies'] if 'dependencies' in keys else None,
             'persist': pkg[pkg['latest-version']]['persist'] if 'persist' in keys else None,
         }
@@ -622,6 +625,7 @@ def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadat
             'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
             'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
             'persist': pkg[pkg['latest-version']]['persist'] if 'persist' in keys else None,
+            'checksum': pkg[pkg['latest-version']]['checksum'] if 'checksum' in keys else None,
             'dependencies': pkg[pkg['latest-version']]['dependencies'] if 'dependencies' in keys else None,
         }
         portable_packet = PortablePacket(data)

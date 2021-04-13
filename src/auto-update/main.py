@@ -5,6 +5,9 @@ from colorama import Fore
 from bs4 import BeautifulSoup
 from pygments import highlight, lexers, formatters
 import re
+import os
+from tempfile import gettempdir
+from subprocess import Popen, PIPE
 
 from requests.models import parse_url
 
@@ -38,7 +41,7 @@ if show_html == 'y' or show_html == 'Y' or show_html == 'yes' or show_html == 'Y
 
 soup = BeautifulSoup(html, features="html.parser")
 
-if webpage.startswith('https://www.github.com'):
+if 'github.com' in webpage:
     version_list = {}
     
     for tag in soup.find_all('h4', class_='flex-auto min-width-0 pr-2 pb-1 commit-title'):
@@ -90,44 +93,125 @@ if webpage.startswith('https://www.github.com'):
             f.write(formatted_json)
 
 else:
-    result = re.findall(data['auto-update']['vercheck']['regex'], html)
-    web_version = result[0]
-    res_tup = []
+    if 'is-portable' not in list(data.keys()): 
+        result = re.findall(data['auto-update']['vercheck']['regex'], html)
+        web_version = result[0]
+        res_tup = []
 
-    idx = 1
-    for value in web_version:
-        res_tup.append({f'<{idx}>' : value})
-        idx += 1
+        idx = 1
+        for value in web_version:
+            res_tup.append({f'<{idx}>' : value})
+            idx += 1
 
-    replace = data['auto-update']['vercheck']['replace']
+        replace = data['auto-update']['vercheck']['replace']
 
-    for value in res_tup:
-        replace = replace.replace(list(value.keys())[0], list(value.values())[0])
+        for value in res_tup:
+            replace = replace.replace(list(value.keys())[0], list(value.values())[0])
 
-    url = data['auto-update']['url']
+        url = data['auto-update']['url']
 
-    url = url.replace('<version>', replace)
+        url = url.replace('<version>', replace)
 
-    for value in res_tup:
-        url = url.replace(list(value.keys())[0], list(value.values())[0])
+        for value in res_tup:
+            url = url.replace(list(value.keys())[0], list(value.values())[0])
 
-    version = data['latest-version']
+        version = data['latest-version']
 
-    if version != web_version:
-        print(
-            f'A Newer Version Of {package_name} Is Availiable! Updating Manifest')
+        if version != web_version:
+            print(
+                f'A Newer Version Of {package_name} Is Availiable! Updating Manifest')
 
-        old_latest = version
-        data['latest-version'] = replace
-        data[replace] = data[old_latest]
-        data[replace]['url'] = url
+            checksum = ''
 
-        from pygments import highlight, lexers, formatters
+            if 'checksum' in list(data[data['latest-version']].keys()):
+                os.system(rf'curl {url} -o {gettempdir()}\AutoUpdate{data[data["latest-version"]]["file-type"]}')
+                proc = Popen(rf'powershell.exe Get-FileHash {gettempdir()}\AutoUpdate{data[data["latest-version"]]["file-type"]}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                output, err = proc.communicate()
+                res = output.decode().splitlines()
+                checksum = res[3].split()[1]
+                
+            old_latest = version
+            data[replace] = data[old_latest]
+            data[replace]['url'] = url        
 
-        formatted_json = json.dumps(data, indent=4)
+            if 'checksum' in list(data[data['latest-version']].keys()):
+                data[replace]['checksum'] = checksum
 
-        colorful_json = highlight(formatted_json, lexers.JsonLexer(), formatters.TerminalFormatter())
-        print(colorful_json)
+            data['latest-version'] = replace
 
-        with open(fp, 'w+') as f:
-            f.write(formatted_json)
+            from pygments import highlight, lexers, formatters
+
+            formatted_json = json.dumps(data, indent=4)
+
+            colorful_json = highlight(formatted_json, lexers.JsonLexer(), formatters.TerminalFormatter())
+            print(colorful_json)
+
+            with open(fp, 'w+') as f:
+                f.write(formatted_json)
+        
+            if 'portable' in list(data.keys()):
+                # Update portable version
+                pass
+    else:
+        # Package is portable
+        data = data['portable']
+
+        result = re.findall(data['auto-update']['vercheck']['regex'], html)
+        web_version = result[0]
+        res_tup = []
+
+        idx = 1
+        for value in web_version:
+            res_tup.append({f'<{idx}>' : value})
+            idx += 1
+
+        if 'replace' in list(data['auto-update']['vercheck'].keys()):
+
+            replace = data['auto-update']['vercheck']['replace']
+
+            for value in res_tup:
+                replace = replace.replace(list(value.keys())[0], list(value.values())[0])
+        else:
+            replace = web_version
+
+        url = data['auto-update']['url']
+
+        url = url.replace('<version>', replace)
+
+        for value in res_tup:
+            url = url.replace(list(value.keys())[0], list(value.values())[0])
+
+        version = data['latest-version']
+
+        if version != web_version:
+            print(
+                f'A Newer Version Of {package_name} Is Availiable! Updating Manifest')
+
+            checksum = ''
+
+            if 'checksum' in list(data[data['latest-version']].keys()):
+                os.system(rf'curl {url} -o {gettempdir()}\AutoUpdate{data[data["latest-version"]]["file-type"]}')
+                proc = Popen(rf'powershell.exe Get-FileHash {gettempdir()}\AutoUpdate{data[data["latest-version"]]["file-type"]}', stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+                output, err = proc.communicate()
+                res = output.decode().splitlines()
+                checksum = res[3].split()[1]
+                
+            old_latest = version
+            data[replace] = data[old_latest]
+            data[replace]['url'] = url        
+
+            if 'checksum' in list(data[data['latest-version']].keys()):
+                data[replace]['checksum'] = checksum
+
+            data['latest-version'] = replace
+
+            from pygments import highlight, lexers, formatters
+
+            formatted_json = json.dumps(data, indent=4)
+
+            colorful_json = highlight(formatted_json, lexers.JsonLexer(), formatters.TerminalFormatter())
+            print(colorful_json)
+
+            with open(fp, 'w+') as f:
+                f.write(formatted_json)
+        

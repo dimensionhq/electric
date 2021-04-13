@@ -10,9 +10,9 @@ import sys
 
 home = os.path.expanduser('~')
 
-
 def install_portable(packet: PortablePacket, metadata: Metadata):
     if find_existing_installation(f'{packet.extract_dir}@{packet.latest_version}'):
+        log_info(f'Detected an existing installation of {packet.display_name}', metadata.logfile)
         write(
             f'Found Existing Installation Of {packet.display_name}', 'bright_yellow', metadata)
         continue_installation = confirm(
@@ -21,6 +21,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
             sys.exit()
 
     if packet.dependencies:
+        log_info(f'Installing dependencies for {packet.display_name}', metadata.logfile)
         install_dependencies(packet, metadata)
 
     changes_environment = False
@@ -29,15 +30,18 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
     write_debug(
         f'Downloading {packet.json_name}{packet.file_type} from {packet.url}', metadata)
     log_info(
-        f'Downloading {packet.json_name}{packet.file_type} from {packet.url}', metadata)
+        f'Downloading {packet.json_name}{packet.file_type} from {packet.url}', metadata.logfile)
     show_progress_bar = not metadata.silent and not metadata.no_progress
 
     if isinstance(packet.url, str):
-        download(packet, packet.url, '.zip', rf'{home}\electric\\' + f'{packet.extract_dir}@{packet.latest_version}',
+        download(packet, packet.url, packet.file_type, rf'{home}\electric\\' + f'{packet.extract_dir}@{packet.latest_version}',
                  metadata, show_progress_bar=show_progress_bar, is_zip=True)
+        
+        if packet.checksum:
+            verify_checksum(rf'{home}\electric\\' + f'{packet.extract_dir}@{packet.latest_version}{packet.file_type}', packet.checksum, metadata)
 
         unzip_dir = unzip_file(f'{packet.extract_dir}@{packet.latest_version}' +
-                               '.zip', extract_dir, packet.file_type, metadata)
+                              packet.file_type, extract_dir, packet.file_type, metadata)
 
     elif isinstance(packet.url, list):
         for idx, url in enumerate(packet.url):
@@ -54,6 +58,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                          rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}\\{url["file-name"]}', metadata, show_progress_bar=False, is_zip=False)
 
     if packet.pre_install:
+        log_info('Executing pre install code', metadata.logfile)
         if packet.pre_install['type'] == 'powershell':
             packet.pre_install['code'] = [l.replace('<dir>', unzip_dir.replace(
                 '\\\\', '\\')) for l in packet.pre_install['code']]
@@ -133,26 +138,42 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
         for shortcut in shortcuts:
             shortcut_name = shortcut['shortcut-name']
             file_name = shortcut['file-name']
+            log_info(f'Creating shortcuts for {packet.display_name}', metadata.logfile)
             create_start_menu_shortcut(unzip_dir, file_name, shortcut_name)
 
     if packet.set_env:
-        changes_environment = True
-        write(
-            f'Setting Environment Variable {packet.set_env["name"]}', 'bright_green', metadata)
-   
-        set_environment_variable(packet.set_env['name'], packet.set_env['value'].replace(
-            '<install-directory>', unzip_dir).replace('\\\\', '\\'))
+        if isinstance(packet.set_env, list):
+            changes_environment = True
+            for obj in packet.set_env:
+                log_info(f'Setting environment variables for {packet.display_name}', metadata.logfile)
+                write(
+                    f'Setting Environment Variable {obj["name"]}', 'bright_green', metadata)
+                set_environment_variable(obj['name'], obj['value'].replace(
+                    '<install-directory>', unzip_dir).replace('\\\\', '\\'))
+        else:
+            changes_environment = True
+            
+            log_info(f'Setting environment variables for {packet.display_name}', metadata.logfile)
+            write(
+                f'Setting Environment Variable {packet.set_env["name"]}', 'bright_green', metadata)
+    
+            set_environment_variable(packet.set_env['name'], packet.set_env['value'].replace(
+                '<install-directory>', unzip_dir).replace('\\\\', '\\'))
 
     if changes_environment:
+        log_info('Detected change in PATH variable. Requesting `refreshenv` to be run', metadata.logfile)
         write(
             f'{Fore.LIGHTGREEN_EX}The PATH environment variable has changed. Run `refreshenv` to refresh your environment variables.{Fore.RESET}', 'white', metadata)
 
     if packet.post_install:
+        log_info('Executing post installation code', metadata.logfile)
+
         for line in packet.post_install:
             exec(line.replace('<install-directory>', unzip_dir).replace('<extras>',
                  rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}'))
 
     if packet.install_notes:
+        log_info('Found Installation Notes, Writing To Console.', metadata.logfile)
         display_notes(packet, unzip_dir, metadata)
 
     write(f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)

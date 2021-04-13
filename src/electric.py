@@ -575,24 +575,46 @@ def install(
                 '<install-directory>', replace_install_dir))
 
         if packet.set_env:
-            name = packet.set_env['name']
-            replace_install_dir = ''
+            if isinstance(packet.set_env, list):
+                for obj in packet.set_env:
+                    name = obj['name']
+                    replace_install_dir = ''
 
-            if packet.directory:
-                replace_install_dir = packet.directory
+                    if packet.directory:
+                        replace_install_dir = packet.directory
 
-            elif packet.default_install_dir:
-                replace_install_dir = packet.default_install_dir
+                    elif packet.default_install_dir:
+                        replace_install_dir = packet.default_install_dir
 
-            write(
-                f'Setting Environment Variable {name}', 'bright_green', metadata)
-            write_verbose(
-                f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata)
-            log_info(
-                f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
+                    write(
+                        f'Setting Environment Variable {name}', 'bright_green', metadata)
+                    write_verbose(
+                        f'Setting Environment Variable {name} to {obj["value"].replace("<install-directory>", replace_install_dir)}', metadata)
+                    log_info(
+                        f'Setting Environment Variable {name} to {obj["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
 
-            set_environment_variable(
-                name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
+                    set_environment_variable(
+                        name, obj['value'].replace('<install-directory>', replace_install_dir))
+
+            else:
+                name = packet.set_env['name']
+                replace_install_dir = ''
+
+                if packet.directory:
+                    replace_install_dir = packet.directory
+
+                elif packet.default_install_dir:
+                    replace_install_dir = packet.default_install_dir
+
+                write(
+                    f'Setting Environment Variable {name}', 'bright_green', metadata)
+                write_verbose(
+                    f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata)
+                log_info(
+                    f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
+
+                set_environment_variable(
+                    name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
 
         if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length or changes_environment:
 
@@ -820,6 +842,7 @@ def up(
                 'uninstall-notes': pkg[pkg['latest-version']]['uninstall-notes'] if 'uninstall-notes' in keys else None,
                 'set-env': pkg[pkg['latest-version']]['set-env'] if 'set-env' in keys else None,
                 'persist': pkg[pkg['latest-version']]['persist'] if 'persist' in keys else None,
+                'checksum': pkg[pkg['latest-version']]['checksum'] if 'checksum' in keys else None,
                 'dependencies': pkg[pkg['latest-version']]['dependencies'] if 'dependencies' in keys else None,
             }
             packet = PortablePacket(data)
@@ -1192,6 +1215,7 @@ def uninstall(
                         rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                 except:
                     pass
+                
                 continue
 
         # Continue with normal installation because the package has not been installed yet
@@ -1399,7 +1423,12 @@ def uninstall(
                 packet.run_test = run_test
 
             if packet.set_env:
-                delete_environment_variable(packet.set_env['name'])
+                if isinstance(packet.set_env, list):
+                    for obj in packet.set_env:
+                        delete_environment_variable(obj['name'])
+                
+                else:
+                    delete_environment_variable(packet.set_env['name'])
 
             if packet.shim:
                 home = os.path.expanduser('~')
@@ -1467,7 +1496,12 @@ def uninstall(
             index += 1
 
             if packet.set_env:
-                delete_environment_variable(packet.set_env['name'])
+                if isinstance(packet.set_env, list):
+                    for obj in packet.set_env:
+                        delete_environment_variable(obj['name'])
+                
+                else:
+                    delete_environment_variable(packet.set_env['name'])
 
             if packet.shim:
                 home = os.path.expanduser('~')
