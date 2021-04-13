@@ -87,7 +87,7 @@ class Setting:
         try:
             show_support_message = settings['showSupportMessage']
         except KeyError:
-            show_support_message = False
+            show_support_message = True
 
         try:
             checksum = settings['checksumInstallers']

@@ -1203,8 +1203,8 @@ This message can be disabled by running `electric feature disable support-messag
     '''
         from datetime import date
 
-        if not os.path.isfile(f'{PathManager.get_appdata_directory()}\support.txt'):
-            with open(f'{PathManager.get_appdata_directory()}\support.txt', 'w+') as f:
+        if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\support.txt'):
+            with open(rf'{PathManager.get_appdata_directory()}\support.txt', 'w+') as f:
                 f.write(
                     f'{date.today().year} {date.today().month} {date.today().day}')
             write(message, 'white', metadata)
