@@ -2,19 +2,18 @@
 #                          DOWNLOAD LIMITER                          #
 ######################################################################
 
-import threading
-import time
-from progress.bar import Bar
+from time import sleep, time
 
 class TokenBucket:
     """
     Used to limit download speeds and store data for the download
     """    
     def __init__(self, tokens, fill_rate) -> None:
+        import threading
         self.capacity = float(tokens)
         self._tokens = float(tokens)
         self.fill_rate = float(fill_rate)
-        self.timestamp = time.time()
+        self.timestamp = time()
         self.lock = threading.RLock()
 
     def consume(self, tokens):
@@ -36,7 +35,7 @@ class TokenBucket:
         self.lock.acquire()
 
         if self._tokens < self.capacity:
-            now = time.time()
+            now = time()
 
             delta = self.fill_rate * (now - self.timestamp)
             self._tokens = min(self.capacity, self._tokens + delta)
@@ -53,8 +52,10 @@ class TokenBucket:
 class Limiter:
     """
     Download speed limiter
-    """    
+    """  
+
     def __init__(self, bucket, filename) -> None:
+        from progress.bar import Bar
         self.bucket = bucket
         self.last_update = 0
         self.last_downloaded_kb = 0
@@ -79,10 +80,10 @@ class Limiter:
         wait_time = self.bucket.consume(predicted_size)
 
         while wait_time > 0:
-            time.sleep(wait_time)
+            sleep(wait_time)
             wait_time = self.bucket.consume(predicted_size)
 
-        now = time.time()
+        now = time()
         delta = now - self.last_update
         
         if self.last_update != 0:

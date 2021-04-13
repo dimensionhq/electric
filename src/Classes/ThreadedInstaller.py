@@ -3,24 +3,19 @@
 ######################################################################
 
 
-from time import strftime
-from timeit import default_timer as timer
-from urllib.request import urlretrieve
 from logger import log_info, close_log
 from Classes.Download import Download
 from Classes.Install import Install
 from Classes.Packet import Packet
-from extension import *
-import multiprocessing
+from extension import write, write_debug, write_verbose
 from colorama import Fore
 import tempfile
-import requests
-import cursor
 import click
 import sys
 import os
 import utils
 from zip_utils import set_environment_variable, confirm
+
 
 paths = {}
 
@@ -31,6 +26,9 @@ class ThreadedInstaller:
         self.metadata = metadata
 
     def download(self, download: Download):
+        import cursor
+        import requests
+
         cursor.hide()
         if not os.path.isdir(Rf'{tempfile.gettempdir()}\electric'):
             os.mkdir(Rf'{tempfile.gettempdir()}\electric')
@@ -68,7 +66,7 @@ class ThreadedInstaller:
                 }
         })
         sys.stdout.write('')
-        # cursor.show()
+        
 
     def install_package(self, install: Install) -> str:
         path = install.path
@@ -76,6 +74,7 @@ class ThreadedInstaller:
         download_type = install.download_type
         custom_install_switch = install.custom_install_switch
         directory = install.directory
+        
 
         if download_type == '.exe':
             if '.exe' not in path:
@@ -115,6 +114,7 @@ class ThreadedInstaller:
         return 'processing'
 
     def handle_dependencies(self):
+        from urllib.request import urlretrieve
         for packet in self.packets:
             if packet.dependencies:
                 ThreadedInstaller.install_dependent_packages(
@@ -122,6 +122,7 @@ class ThreadedInstaller:
 
     def handle_multi_download(self) -> list:
         from threading import Thread
+        
 
         self.handle_dependencies()
         metadata = self.metadata
@@ -169,7 +170,8 @@ class ThreadedInstaller:
                 x.join()
 
         if method == 'processing':
-            processes = [multiprocessing.Process(
+            from multiprocessing import Process
+            processes = [Process(
                     target=self.download, args=(item,)) for item in download_items]
 
             for process in processes:
@@ -239,6 +241,8 @@ class ThreadedInstaller:
         return install_items
 
     def handle_multi_install(self, paths):
+        
+        from time import strftime
 
         write_debug('Initialising Rapid Install Procedure...', self.metadata)
 
@@ -255,13 +259,15 @@ class ThreadedInstaller:
                 continue
 
             else:
+                from multiprocessing import Process
+
                 string = ''
                 string = 'other' if 'other' in list(item.keys()) else 'exe'
                 for val in item[string]:
                     write_debug(
                         f'Running Installer For <{val.display_name}> On Thread {item[string].index(val)}', self.metadata)
                     processes.append(
-                        multiprocessing.Process(
+                        Process(
                             target=self.install_package, args=(val,))
                     )
 
@@ -303,24 +309,46 @@ class ThreadedInstaller:
                     '<install-directory>', replace_install_dir))
 
             if packet.set_env:
-                name = packet.set_env['name']
-                replace_install_dir = ''
+                if isinstance(packet.set_env, list):
+                    for obj in packet.set_env:
+                        name = obj['name']
+                        replace_install_dir = ''
 
-                if packet.directory:
-                    replace_install_dir = packet.directory
+                        if packet.directory:
+                            replace_install_dir = packet.directory
 
-                elif packet.default_install_dir:
-                    replace_install_dir = packet.default_install_dir
+                        elif packet.default_install_dir:
+                            replace_install_dir = packet.default_install_dir
 
-                write(
-                    f'Setting Environment Variable {name}', 'bright_green', metadata)
-                write_verbose(
-                    f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', 'bright_green', metadata)
-                log_info(
-                    f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
+                        write(
+                            f'Setting Environment Variable {name}', 'bright_green', metadata)
+                        write_verbose(
+                            f'Setting Environment Variable {name} to {obj["value"].replace("<install-directory>", replace_install_dir)}', metadata)
+                        log_info(
+                            f'Setting Environment Variable {name} to {obj["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
 
-                set_environment_variable(
-                    name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
+                        set_environment_variable(
+                            name, obj['value'].replace('<install-directory>', replace_install_dir))
+
+                else:
+                    name = packet.set_env['name']
+                    replace_install_dir = ''
+
+                    if packet.directory:
+                        replace_install_dir = packet.directory
+
+                    elif packet.default_install_dir:
+                        replace_install_dir = packet.default_install_dir
+
+                    write(
+                        f'Setting Environment Variable {name}', 'bright_green', metadata)
+                    write_verbose(
+                        f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata)
+                    log_info(
+                        f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
+
+                    set_environment_variable(
+                        name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
 
             if packet.shim:
                 
@@ -366,7 +394,8 @@ class ThreadedInstaller:
             close_log(self.metadata.logfile, 'Install')
 
     @staticmethod
-    def install_dependent_packages(packet: Packet, rate_limit: int, install_directory: str, metadata: Metadata):
+    def install_dependent_packages(packet: Packet, rate_limit: int, install_directory: str, metadata):
+        
         from limit import Limiter, TokenBucket
         from registry import get_environment_keys
 
@@ -563,6 +592,8 @@ class ThreadedInstaller:
                             filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
                         )
 
+                        from urllib.request import urlretrieve
+
                         urlretrieve(
                             url=download_url,
                             filename=f'{tempfile.gettempdir()}\Setup{packet.win64_type}',
@@ -631,20 +662,46 @@ class ThreadedInstaller:
                             '<install-directory>', replace_install_dir))
 
                     if packet.set_env:
-                        name = packet.set_env['name']
-                        replace_install_dir = ''
+                        if isinstance(packet.set_env, list):
+                            for obj in packet.set_env:
+                                name = obj['name']
+                                replace_install_dir = ''
 
-                        if packet.directory:
-                            replace_install_dir = packet.directory
+                                if packet.directory:
+                                    replace_install_dir = packet.directory
 
-                        elif packet.default_install_dir:
-                            replace_install_dir = packet.default_install_dir
+                                elif packet.default_install_dir:
+                                    replace_install_dir = packet.default_install_dir
 
-                        write(
-                            f'Setting Environment Variable {name}', 'bright_green', metadata)
+                                write(
+                                    f'Setting Environment Variable {name}', 'bright_green', metadata)
+                                write_verbose(
+                                    f'Setting Environment Variable {name} to {obj["value"].replace("<install-directory>", replace_install_dir)}', metadata)
+                                log_info(
+                                    f'Setting Environment Variable {name} to {obj["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
 
-                        set_environment_variable(
-                            name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
+                                set_environment_variable(
+                                    name, obj['value'].replace('<install-directory>', replace_install_dir))
+
+                        else:
+                            name = packet.set_env['name']
+                            replace_install_dir = ''
+
+                            if packet.directory:
+                                replace_install_dir = packet.directory
+
+                            elif packet.default_install_dir:
+                                replace_install_dir = packet.default_install_dir
+
+                            write(
+                                f'Setting Environment Variable {name}', 'bright_green', metadata)
+                            write_verbose(
+                                f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata)
+                            log_info(
+                                f'Setting Environment Variable {name} to {packet.set_env["value"].replace("<install-directory>", replace_install_dir)}', metadata.logfile)
+
+                            set_environment_variable(
+                                name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
 
                     write_verbose('Creating Final Snapshot Of Environment Keys', metadata)
                     final_snap = get_environment_keys()

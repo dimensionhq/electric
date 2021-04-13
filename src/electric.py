@@ -4,17 +4,13 @@
 ######################################################################
 
 # TODO: Add Conflict-With Field For Json To Differentiate Between Microsoft Visual Studio Code and Microsoft Visual Studio Code Insiders
-
-from subprocess import Popen, PIPE
-import difflib
-from logging import INFO
 from halo import Halo
 import os
 import sys
 import time as tm
 import click
 import halo
-import keyboard
+from keyboard import add_hotkey, remove_hotkey
 from colorama import Fore
 from multiprocessing import freeze_support
 from extension import write, write_debug, write_verbose
@@ -22,20 +18,12 @@ from Classes.Packet import Packet
 from Classes.Setting import Setting
 from Classes.ThreadedInstaller import ThreadedInstaller
 from cli import SuperChargeCLI
-from headers import *
 from info import __version__
 from logger import *
 from registry import get_environment_keys, get_uninstall_key, send_query
-from settings import initialize_settings, open_settings
-from utils import date, handle_external_uninstallation, update_package_list, update_electric, generate_metadata, handle_external_installation, get_autocorrections, get_correct_package_names, handle_existing_installation
-from utils import write_install_headers, handle_multithreaded_installation, send_req_package, json, JSONDecodeError, get_package_version, handle_portable_installation, is_admin, tempfile, register_package_success
-from utils import download_installer, handle_exit, verify_checksum, check_virus, get_pid, install_package, disp_error_msg, get_error_message, generate_shim, append_to_path, set_environment_variable, cursor
-from utils import find_existing_installation, display_support, PortablePacket, check_newer_version, confirm, index, write_uninstall_headers, handle_portable_uninstallation, handle_uninstall_dependencies
-from utils import find_msix_installation, uninstall_msix, kill_proc, kill_running_proc, run_cmd, delete_environment_variable, send_req_bundle, send_package_request, get_configuration_data, display_info, swc
-
+from utils import *
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
-
 
 @click.group(cls=SuperChargeCLI)
 @click.version_option(__version__)
@@ -51,6 +39,7 @@ def cli(_):
 
     # Check if superlog.txt exists in USERAPPDATA
     if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\superlog.txt'):
+        from datetime import date
         # Create the superlog.txt and write the current timestamp
         with open(rf'{PathManager.get_appdata_directory()}\superlog.txt', 'w+') as f:
             f.write(
@@ -60,6 +49,7 @@ def cli(_):
     if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\settings.json'):
         click.echo(click.style(
             f'Creating settings.json at {Fore.LIGHTCYAN_EX}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='bright_green'))
+        from settings import initialize_settings
         # Create the settings.json file and write default settings into it
         initialize_settings()
 
@@ -171,6 +161,7 @@ def install(
     if logfile:
         logfile = logfile.replace('=', '')
         logfile = logfile.replace('.txt', '.log')
+        from logging import INFO
         create_config(logfile, INFO, 'Install')
 
     log_info('Generating metadata...', logfile)
@@ -227,6 +218,7 @@ def install(
         log_info('Sending GET Request To /packages', metadata.logfile)
         log_info('Updating SuperCache', metadata.logfile)
         # request the json response of the package
+        from json.decoder import JSONDecodeError
 
         if not manifest:
             res = send_req_package(package)
@@ -454,7 +446,7 @@ def install(
 
         status = 'Installing'
 
-        keyboard.add_hotkey(
+        add_hotkey(
             'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
 
         if f'{packet.win64_type}{packet.win64_type}' in configs['path']:
@@ -492,7 +484,7 @@ def install(
 
         log_info('Deregistering ctrl+c abort shortcut', metadata.logfile)
         write_verbose('Deregistering ctrl+c abort shortcut', metadata)
-        keyboard.remove_hotkey('ctrl+c')
+        remove_hotkey('ctrl+c')
         write_verbose('Checking for post install code', metadata)
         log_info('Checking for post install code', metadata.logfile)
 
@@ -799,7 +791,7 @@ def up(
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
     status = 'Initializing'
     setup_name = ''
-    keyboard.add_hotkey(
+    add_hotkey(
         'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
 
     packages = package_name.strip(' ').split(',')
@@ -1087,6 +1079,7 @@ def uninstall(
 
     if logfile:
         logfile = logfile.replace('.txt', '.log')
+        from logging import INFO
         create_config(logfile, INFO, 'Install')
 
     handle_external_uninstallation(python, node, vscode, False, atom, package_name, metadata)
@@ -1094,7 +1087,7 @@ def uninstall(
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
     status = 'Initializing'
     setup_name = ''
-    keyboard.add_hotkey(
+    add_hotkey(
         'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
 
     packages = package_name.split(',')
@@ -1121,6 +1114,7 @@ def uninstall(
             f.split('@')[:1]) for f in os.listdir(os.path.expanduser('~') + r'\electric')]
         installed_packages += portable_installed_packages
 
+        from json.decoder import JSONDecodeError
         if not manifest:
             res = send_req_package(package)
         else:
@@ -1289,7 +1283,7 @@ def uninstall(
                         f'Successfully Uninstalled {packet.display_name}', 'bright_green', metadata)
                     sys.exit()
 
-        keyboard.add_hotkey(
+        add_hotkey(
             'ctrl+c', lambda: kill_proc(proc, metadata))
 
         log_info(
@@ -1699,12 +1693,13 @@ def bundle(
         if logfile:
             logfile = logfile.replace('=', '')
             logfile = logfile.replace('.txt', '.log')
+            from logging import INFO
             create_config(logfile, INFO, 'Install')
 
         log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
         status = 'Initializing'
         setup_name = ''
-        keyboard.add_hotkey(
+        add_hotkey(
             'ctrl+c', lambda: handle_exit(status, setup_name, metadata))
 
         log_info('Handling Network Request...', metadata.logfile)
@@ -1801,7 +1796,8 @@ def search(
             if name.startswith(approx_name):
                 matches.append(name)
     elif not exact and not starts_with:
-        matches = difflib.get_close_matches(
+        from difflib import get_close_matches
+        matches = get_close_matches(
             approx_name, correct_names, cutoff=0.7)
 
     if len(matches) > 0:
@@ -2025,6 +2021,7 @@ def sign(
 def generate(
     filepath: str
 ):
+    from subprocess import Popen, PIPE
     from prompt_toolkit.completion import WordCompleter
     from prompt_toolkit import prompt
     editor_completion = WordCompleter(
@@ -2152,14 +2149,17 @@ def show(package_name: str, nightly: bool):
 
 @cli.command(context_settings=CONTEXT_SETTINGS)
 def settings():
+    from settings import initialize_settings, open_settings
+    from cursor import hide, show
+   
     if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\settings.json'):
         click.echo(click.style(
             f'Creating settings.json at {Fore.LIGHTCYAN_EX}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='bright_green'))
         initialize_settings()
-    cursor.hide()
+    hide()
     with Halo('Opening Settings... ', text_color='cyan'):
         open_settings()
-    cursor.show()
+    show()
 
 
 @cli.command(context_settings=CONTEXT_SETTINGS)
@@ -2361,65 +2361,6 @@ Command: electric feature [enable|disable] electric-progress-bar
     else:
         print(f'{Fore.LIGHTRED_EX}Method Must Be Specified As `enable` or `disable`')
     pass
-
-@cli.command()
-@click.option('--word', required=True)
-@click.option('--commandline', required=True)
-@click.option('--position', required=True)
-def complete(
-    word: str,
-    commandline: str,
-    position: str,
-):
-
-    n = len(commandline.split(' '))
-    if word:
-        possibilities = []
-        if n == 2:
-            possibilities = electric_commands
-
-        if n > 2 and not word.startswith('--') and not (word[0] == '-' and word[1] != '-'):
-            with open(rf'{PathManager.get_appdata_directory()}\packages.json', 'r') as f:
-                packages = json.load(f)['packages']
-
-            possibilities = difflib.get_close_matches(word, packages)
-        elif word.startswith('--') or (word[0] == '-' and word[1] != '-'):
-            if word.startswith('--'):
-                command = commandline.split(' ')[1]
-                if command == 'install' or command == 'bundle' or command == 'i':
-                    possibilities = install_flags
-                if command == 'uninstall' or command == 'remove' or command == 'u':
-                    possibilities = uninstall_flags
-                if command == 'search' or command == 'find':
-                    possibilities = search_flags
-                if command == 'config':
-                    possibilities = config_flags
-            else:
-                pass
-
-        completion = ''
-
-        for command in possibilities:
-            if command.startswith(word):
-                completion = command
-        click.echo(completion)
-
-    else:
-
-        if n == 1:
-            for completion in electric_commands:
-                click.echo(completion)
-
-        if n >= 3:
-            command = commandline.split(' ')[1]
-
-            if command == 'install':
-                for completion in install_flags:
-                    click.echo(completion)
-
-            if command == 'uninstall':
-                for completion in uninstall_flags:
-                    click.echo(completion)
 
 
 if __name__ == '__main__':

@@ -1,43 +1,21 @@
-import difflib
+from difflib import get_close_matches
 import json
-from debugger import Debugger
 
-import external
-from json.decoder import JSONDecodeError
 import os
-import pickle
-from itertools import zip_longest
 import sys
 import tempfile
-import webbrowser
-from datetime import date
-from signal import SIGTERM
 from subprocess import PIPE, CalledProcessError, Popen, check_call
 
-
 import click
-import cursor
-import keyboard
 import requests
 from colorama import Fore, Style
-from googlesearch import search
 from halo import Halo
-from switch import Switch
 from Classes.PortablePacket import PortablePacket
-import headers
-
-import info
-import registry
 from Classes.Metadata import Metadata
 from Classes.Packet import Packet
 from Classes.PathManager import PathManager
-from headers import *
-from extension import *
-from limit import *
+from extension import write, write_debug, write_verbose, write_all
 from logger import *
-from viruscheck import virus_check
-from zip_install import install_portable
-from zip_uninstall import uninstall_portable
 
 index = 0
 final_value = None
@@ -75,12 +53,14 @@ def copy_to_clipboard(text: str):
 
 
 def write_install_headers(metadata: Metadata):
+    import headers
     write_debug(headers.install_debug_headers, metadata)
     for header in headers.install_debug_headers:
         log_info(header, metadata.logfile)
 
 
 def write_uninstall_headers(metadata: Metadata):
+    import headers
     write_debug(headers.install_debug_headers, metadata)
     for header in headers.install_debug_headers:
         log_info(header, metadata.logfile)
@@ -173,6 +153,7 @@ def generate_dict(path: str, package_name: str) -> dict:
 
 def download_installer(packet: Packet, download_url: str, metadata: Metadata):
     from urllib.request import urlretrieve
+    from limit import TokenBucket, Limiter
     
     if metadata.rate_limit == -1:
         return download(download_url, packet.json_name,
@@ -203,6 +184,8 @@ def dump_pickle(data: dict, filename: str):
         data (dict): Data to dump to the pickle file
         filename (str): Name of the file to dump the data to in the temp directory
     """
+    import pickle
+
     with open(Rf'{tempfile.gettempdir()}\electric\{filename}.pickle', 'wb') as f:
         pickle.dump(data, f)
 
@@ -215,6 +198,8 @@ def retrieve_data(filename: str) -> dict:
     Returns:
         dict: Data inside the pickle file in the form of a dictionary
     """
+    import pickle
+
     if os.path.isfile(Rf'{tempfile.gettempdir()}\electric\{filename}.pickle'):
         with open(Rf'{tempfile.gettempdir()}\electric\{filename}.pickle', 'rb') as f:
             return pickle.loads(f.read())
@@ -365,6 +350,7 @@ def download(url: str, package_name: str, metadata: Metadata, download_type: str
         f_and_f(package_name)
 
     # Hide the cursor on the terminal
+    import cursor
     cursor.hide()
 
     # path is the location to the previously downloaded installer
@@ -499,6 +485,8 @@ def install_msix_package(path: str):
 
 
 def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
+    from zip_install import install_portable
+ 
     if not portable:
         return
     if 'is-portable' not in list(res.keys()):
@@ -580,6 +568,7 @@ def generate_shim(shim_command: str, shim_name: str, shim_extension: str, overri
 
 
 def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadata: Metadata):
+    from zip_uninstall import uninstall_portable
     if portable and 'is-portable' not in list(res.keys()):
         keys = list(pkg[pkg['latest-version']].keys())
 
@@ -642,6 +631,8 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
 
     def grouper(iterable, n, fillvalue=None):
         "Collect data into fixed-length chunks or blocks"
+        from itertools import zip_longest
+        
         args = [iter(iterable)] * n
         return zip_longest(*args, fillvalue=fillvalue)
 
@@ -653,6 +644,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
 
         split_package_names = list(grouper(corrected_package_names, 3))
         # grouper(['sublime-text-3', 'atom', 'vscode', 'notepad++', 'anydesk'], 3) => [['sublime-text-3', 'atom', 'vscode']['notepad++', 'anydesk']]
+
 
         # if there is only 1 set of packages in the 2d array like [['sublime-text-3', 'atom', 'vscode']]
         if len(split_package_names) == 1:
@@ -728,6 +720,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
             manager = ti.ThreadedInstaller(packets, metadata)
             paths = manager.handle_multi_download()
 
+            import cursor
             cursor.show()
             log_info('Finished Rapid Download...', metadata.logfile)
             log_info(
@@ -841,6 +834,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
 
 
 def handle_external_installation(python: bool, node: bool, vscode: bool, sublime: bool, atom: bool, version: str, package_name: str, metadata: Metadata):
+    import external
     if python:
         if not version:
             version = 'latest'
@@ -881,6 +875,7 @@ def handle_external_installation(python: bool, node: bool, vscode: bool, sublime
 
 
 def handle_external_uninstallation(python: bool, node: bool, vscode: bool, sublime: bool, atom: bool, package_name: str, metadata: Metadata):
+    import external
     if python:
         package_names = package_name.split(',')
 
@@ -1201,11 +1196,12 @@ def display_support(metadata: Metadata):
         message = '''
 ---Developer's Note---
 Hey, I'm Tejas Ravishankar, 14 year old founder and developer of the electric package manager.
-I've dedicated the past 6 months to building the fastest package manager that you're currently using.
-If you like electric would like to support it, it would be absolutely incredible if you could star the official github repository at (https://www.github.com/electric-package-manager/electric).
+I've dedicated the past 6 months to building the fast package manager that you're currently using.
+If you like electric would like to support it, it would be absolutely incredible if you could star the official github repository (https://www.github.com/electric-package-manager/electric).
 Additionally, would be out of this world if you could rate this a 5 star project on G2Crowd! Thanks!
 This message can be disabled by running `electric feature disable support-message`.
     '''
+        from datetime import date
 
         if not os.path.isfile(f'{PathManager.get_appdata_directory()}\support.txt'):
             with open(f'{PathManager.get_appdata_directory()}\support.txt', 'w+') as f:
@@ -1228,6 +1224,8 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
         packet (Packet): Packet for installation
         metadata (`Metadata`): Metadata for installation
     """
+    import keyboard
+    
     download_type = packet.win64_type
     custom_install_switch = packet.custom_location
     directory = packet.directory
@@ -1344,6 +1342,8 @@ def get_hash_algorithm(checksum: str):
 
 
 def get_day_diff(path: str) -> int:
+    from datetime import date
+
     with open(path, 'r') as f:
         file_date = f.read()
 
@@ -1377,6 +1377,7 @@ def send_req_package(package_name: str) -> dict:
     Returns:
         dict: Decoded JSON from the github registry response
     """
+    from json.decoder import JSONDecodeError
 
     REQA = 'https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/packages/'
 
@@ -1388,26 +1389,29 @@ def send_req_package(package_name: str) -> dict:
         run_internet_test = confirm(
             'Would you like to run a network debugger?')
         if run_internet_test:
+            from time import sleep
             sys.stdout.write(
                 f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET}  |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
-            time.sleep(0.1)
+            sleep(0.1)
             sys.stdout.write(
                 f'\r| {Fore.LIGHTCYAN_EX}|{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
-            time.sleep(0.1)
+            sleep(0.1)
             sys.stdout.write(
                 f'\r| {Fore.LIGHTCYAN_EX}/{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
-            time.sleep(0.1)
+            sleep(0.1)
             sys.stdout.write(
                 f'\r| {Fore.LIGHTCYAN_EX}-{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
-            time.sleep(0.1)
+            sleep(0.1)
             sys.stdout.write(
                 f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
             sys.stdout.write(
                 f'\r| {Fore.LIGHTGREEN_EX}OK{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
+            from debugger import Debugger
             Debugger.test_internet()
         sys.exit()
+        
     try:
         res = json.loads(response.text)
     except JSONDecodeError as e:
@@ -1459,7 +1463,7 @@ def find_approx_pid(display_name) -> str:
         except IndexError:
             continue
 
-    matches = difflib.get_close_matches(
+    matches = get_close_matches(
         display_name.lower(), cleaned_up_names, n=1, cutoff=0.75)
 
     try:
@@ -1481,6 +1485,8 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
         metadata (`Metadata`): Metadata for the method
     """
     if status == 'Installing':
+        from signal import SIGTERM
+        
         write('\nTrying To Quit Installer',
               'cyan', metadata)
         exe_name = setup_name.split(
@@ -1521,6 +1527,7 @@ def kill_running_proc(package_name: str, display_name: str, metadata: Metadata):
     if pid == 1:
         return
     if pid:
+        from signal import SIGTERM
         if metadata.yes:
             write(f'Terminating {name}.', 'bright_green', metadata)
             os.kill(pid, SIGTERM)
@@ -1591,6 +1598,7 @@ def find_existing_installation(package_name: str, display_name: str, test=True):
     Returns:
         [type]: [description]
     """
+    import registry
     key = registry.get_uninstall_key(package_name, display_name)
 
     installed_packages = [''.join(f.replace('.json', '').split(
@@ -1646,6 +1654,7 @@ def check_virus(path: str, metadata: Metadata, h: Halo):
         path (str): Path to the executable / file
         metadata (`Metadata`): Metadata for the installation
     """
+    from viruscheck import virus_check
     detected = virus_check(path)
 
     if h:
@@ -1704,6 +1713,8 @@ def check_newer_version_local(new_version) -> bool:
     Returns:
         bool: If there is a newer version of electric availiable
     """
+    import info
+
     current_version = int(info.__version__.replace(
         '.', '').replace('a', '').replace('b', ''))
     new_version = int(new_version.replace('.', ''))
@@ -1782,6 +1793,8 @@ def send_install_metrics(package_name: str):
 
 
 def f_and_f(package_name: str):
+    import threading
+
     threading.Thread(target=send_install_metrics, args=(
         package_name,), daemon=True).start()
 
@@ -1854,6 +1867,8 @@ def disp_error_msg(messages: list, metadata: Metadata):
             website = confirm(
                 'Would You Like To Visit Any Of The Above Websites?')
             if website:
+                import webbrowser
+
                 try:
                     webpage = int(click.prompt(
                         'Which Webpage Would You Like To Visit? ')) - 1
@@ -1868,6 +1883,7 @@ def disp_error_msg(messages: list, metadata: Metadata):
 
 def get_error_message(code: str, method: str, display_name: str, version: str, metadata: Metadata, package_name: str):
     attr = method.replace('ation', '')
+    from switch import Switch
     with Switch(code) as code:
         if code('0001'):
             return [
@@ -2020,6 +2036,7 @@ def handle_unknown_error(err: str, package_name: str, method: str):
         print(err + '\n')
         query = f'{package_name} {method} failed {err}'
         with Halo('Troubleshooting ', text_color='yellow'):
+            from googlesearch import search
             results = search(query, num=3)
             results = [f'\n\t[{index + 1}] <=> {r}' for index,
                        r in enumerate(results)]
@@ -2072,6 +2089,8 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
 
 
 def update_package_list():
+    from datetime import date
+    
     with Halo('Updating Electric') as h:
         with open(rf'{PathManager.get_appdata_directory()}\superlog.txt', 'w+') as f:
             f.write(
@@ -2086,24 +2105,26 @@ def update_package_list():
             run_internet_test = confirm(
                 'Would you like to run a network debugger? ')
             if run_internet_test:
+                from time import sleep
                 sys.stdout.write(
                     f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET}  |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
-                time.sleep(0.1)
+                sleep(0.1)
                 sys.stdout.write(
                     f'\r| {Fore.LIGHTCYAN_EX}|{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
-                time.sleep(0.1)
+                sleep(0.1)
                 sys.stdout.write(
                     f'\r| {Fore.LIGHTCYAN_EX}/{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
-                time.sleep(0.1)
+                sleep(0.1)
                 sys.stdout.write(
                     f'\r| {Fore.LIGHTCYAN_EX}-{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
-                time.sleep(0.1)
+                sleep(0.1)
                 sys.stdout.write(
                     f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
                 sys.stdout.write(
                     f'\r| {Fore.LIGHTGREEN_EX}OK{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
 
+                from debugger import Debugger
                 Debugger.test_internet()
             sys.exit()
         data = res.json()
@@ -2156,7 +2177,7 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
         if name in corrected_package_names:
             corrected_names.append(name)
         else:
-            corrections = difflib.get_close_matches(
+            corrections = get_close_matches(
                 name, corrected_package_names)
             if corrections:
                 if metadata.silent and not metadata.yes:

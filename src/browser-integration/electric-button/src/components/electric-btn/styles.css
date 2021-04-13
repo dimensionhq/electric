@@ -1,0 +1,11 @@
+.electric-btn-dark {
+    background-color: #383838;
+    padding: 10px;
+    color: #57C3F0;
+    border-radius: 10px;
+}
+
+.electric-btn-light {
+    background-color: #dedede;
+    padding: 10px;
+}

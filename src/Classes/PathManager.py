@@ -2,7 +2,6 @@
 #                            PATH MANAGER                            #
 ######################################################################
 
-import os
 
 class PathManager:
     """
@@ -16,6 +15,7 @@ class PathManager:
         Returns:
             str: Parent directory
         """        
+        import os
         directory = os.path.dirname(os.path.abspath(__file__))
         return directory.replace('Classes', '').replace('src', '')[:-1].replace(R'\bin', '')
 
@@ -27,6 +27,7 @@ class PathManager:
         Returns:
             str: Current directory
         """        
+        import os
         directory = os.path.dirname(os.path.abspath(__file__))
         return os.path.split(directory)[0]
 
@@ -38,6 +39,7 @@ class PathManager:
         Returns:
             str: Appdata directory of the user
         """        
+        import os
         return os.environ['APPDATA'] + R'\electric'
 
     @staticmethod
@@ -48,4 +50,5 @@ class PathManager:
         Returns:
             str: The desktop directory of the user
         """        
+        import os
         return os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')

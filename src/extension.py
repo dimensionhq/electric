@@ -6,7 +6,6 @@
 from Classes.Metadata import Metadata
 import click
 
-
 def write(text: str, color: str, metadata: Metadata):
     """
     Prints to output and automatically handles metadata properties.

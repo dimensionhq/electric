@@ -5,8 +5,8 @@
 from Classes.PathManager import PathManager
 from os.path import isfile, isdir
 from time import strftime
+from os import mkdir
 import logging
-import os
 
 appdata_dir = PathManager.get_appdata_directory()
 
@@ -29,7 +29,7 @@ def create_config(logfile : str, level, process : str):
         process (str): The method (installation / uninstallation)
     """
     if not isdir(appdata_dir):
-        os.mkdir(appdata_dir)
+        mkdir(appdata_dir)
 
     mode = None
     mode = 'a+' if isfile(logfile) else 'w+'

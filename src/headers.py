@@ -26,7 +26,6 @@ def get_architecture():
         return 'x32'
     return None
 
-# processor = SystemManager.get_pc_config()['cpu-info']
 
 # Install Debug Headers
 install_debug_headers = [
