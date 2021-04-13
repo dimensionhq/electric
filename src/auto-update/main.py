@@ -91,11 +91,11 @@ if webpage.startswith('https://www.github.com'):
 
 else:
     result = re.findall(data['auto-update']['vercheck']['regex'], html)
-    version = result[0]
+    web_version = result[0]
     res_tup = []
 
     idx = 1
-    for value in version:
+    for value in web_version:
         res_tup.append({f'<{idx}>' : value})
         idx += 1
 
@@ -111,4 +111,23 @@ else:
     for value in res_tup:
         url = url.replace(list(value.keys())[0], list(value.values())[0])
 
-    print(url)
+    version = data['latest-version']
+
+    if version != web_version:
+        print(
+            f'A Newer Version Of {package_name} Is Availiable! Updating Manifest')
+
+        old_latest = version
+        data['latest-version'] = replace
+        data[replace] = data[old_latest]
+        data[replace]['url'] = url
+
+        from pygments import highlight, lexers, formatters
+
+        formatted_json = json.dumps(data, indent=4)
+
+        colorful_json = highlight(formatted_json, lexers.JsonLexer(), formatters.TerminalFormatter())
+        print(colorful_json)
+
+        with open(fp, 'w+') as f:
+            f.write(formatted_json)

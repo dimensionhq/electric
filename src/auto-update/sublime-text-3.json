@@ -1,8 +1,7 @@
 {
     "display-name": "Sublime Text 3",
     "package-name": "sublime-text-3",
-    "latest-version": "3211",
-    
+    "latest-version": "3.2.2-3211",
     "auto-update": {
         "url": "https://download.sublimetext.com/Sublime%20Text%20Build%20<2>%20x64.zip",
         "vercheck": {
@@ -12,72 +11,79 @@
         }
     },
     "portable": {
-      "package-name": "sublime-text-3",
-      "display-name": "Sublime Text 3",
-      "latest-version": "3211",
-      "3211": {
-        "url": [
-          {
-            "file-type": ".zip",
-            "url": "https://download.sublimetext.com/Sublime%20Text%20Build%203211%20x64.zip"
-          },
-          {
-            "file-type": ".reg",
-            "url": "https://raw.githubusercontent.com/lukesampson/scoop-extras/master/scripts/sublime-text/install-context.reg",
-            "file-name": "install-context"
-          },
-          {
-            "file-type": ".reg",
-            "url": "https://raw.githubusercontent.com/lukesampson/scoop-extras/master/scripts/sublime-text/uninstall-context.reg",
-            "file-name": "uninstall-context"
-          }
-        ],
-        "extract-dir": "sublime-text-3",
-        "bin": ["subl.exe"],
-        "pre-install": {
-          "type": "powershell",
-          "code": [
-            "$file = \"<extras>\\install-context.reg\"",
-            "if (Test-Path $file) {",
-            "    $sublimepath = \"<install-directory>\\sublime_text.exe\".Replace('\\', '\\\\')",
-            "    $content = (Get-Content $file).Replace('$sublime', $sublimepath)",
-            "    if ($global) { $content = $content.Replace('HKEY_CURRENT_USER', 'HKEY_LOCAL_MACHINE') }",
-            "    Set-Content $file $content -Encoding Ascii -Force",
-            "}",
-            "$file = \"<extras>\\uninstall-context.reg\"",
-            "if ((Test-Path $file) -and $global) {",
-            "    (Get-Content $file).Replace('HKEY_CURRENT_USER', 'HKEY_LOCAL_MACHINE') | Set-Content -Path $file -Encoding Ascii -Force",
-            "}"
-          ]
-        },
-        "install-notes": "Add Sublime Text as a context menu option by running: \"reg import '<extras>\\install-context.reg'\"",
-        "uninstall-notes": "Remove Sublime Text as a context menu option by running: \"reg import '<extras>\\uninstall-context.reg'\"",
-        "shortcuts": [
-          {
-            "shortcut-name": "Sublime Text 3",
-            "file-name": "sublime_text.exe"
-          }
-        ],
-        "persist": "Data"
-      }
+        "package-name": "sublime-text-3",
+        "display-name": "Sublime Text 3",
+        "latest-version": "3211",
+        "3211": {
+            "url": [
+                {
+                    "file-type": ".zip",
+                    "url": "https://download.sublimetext.com/Sublime%20Text%20Build%203211%20x64.zip"
+                },
+                {
+                    "file-type": ".reg",
+                    "url": "https://raw.githubusercontent.com/lukesampson/scoop-extras/master/scripts/sublime-text/install-context.reg",
+                    "file-name": "install-context"
+                },
+                {
+                    "file-type": ".reg",
+                    "url": "https://raw.githubusercontent.com/lukesampson/scoop-extras/master/scripts/sublime-text/uninstall-context.reg",
+                    "file-name": "uninstall-context"
+                }
+            ],
+            "extract-dir": "sublime-text-3",
+            "bin": [
+                "subl.exe"
+            ],
+            "pre-install": {
+                "type": "powershell",
+                "code": [
+                    "$file = \"<extras>\\install-context.reg\"",
+                    "if (Test-Path $file) {",
+                    "    $sublimepath = \"<install-directory>\\sublime_text.exe\".Replace('\\', '\\\\')",
+                    "    $content = (Get-Content $file).Replace('$sublime', $sublimepath)",
+                    "    if ($global) { $content = $content.Replace('HKEY_CURRENT_USER', 'HKEY_LOCAL_MACHINE') }",
+                    "    Set-Content $file $content -Encoding Ascii -Force",
+                    "}",
+                    "$file = \"<extras>\\uninstall-context.reg\"",
+                    "if ((Test-Path $file) -and $global) {",
+                    "    (Get-Content $file).Replace('HKEY_CURRENT_USER', 'HKEY_LOCAL_MACHINE') | Set-Content -Path $file -Encoding Ascii -Force",
+                    "}"
+                ]
+            },
+            "install-notes": "Add Sublime Text as a context menu option by running: \"reg import '<extras>\\install-context.reg'\"",
+            "uninstall-notes": "Remove Sublime Text as a context menu option by running: \"reg import '<extras>\\uninstall-context.reg'\"",
+            "shortcuts": [
+                {
+                    "shortcut-name": "Sublime Text 3",
+                    "file-name": "sublime_text.exe"
+                }
+            ],
+            "persist": "Data"
+        }
     },
-    "3211": {
-      "url": "https://download.sublimetext.com/Sublime%20Text%20Build%203211%20x64%20Setup.exe",
-      "file-type": ".exe",
-      "install-switches": [
-        "/SP-",
-        "/VERYSILENT",
-        "/SUPPRESSMSGBOXES",
-        "/NOCANCEL",
-        "/NORESTART",
-        "/FORCECLOSEAPPLICATIONS"
-      ],
-      "checksum": "17A659D3B09299481C7DF52DAF5FE3B8930A157B6139EBE5A1D8BDC0C2F3D7F4",
-      "default-install-dir": "C:\\Program Files\\Sublime Text 3",
-      "bin": ["<install-directory>\\subl.exe"],
-      "uninstall-switches": ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"],
-      "custom-location": "/DIR=",
-      "dependencies": []
+    "3.2.2-3211": {
+        "url": "https://download.sublimetext.com/Sublime%20Text%20Build%203211%20x64.zip",
+        "file-type": ".exe",
+        "install-switches": [
+            "/SP-",
+            "/VERYSILENT",
+            "/SUPPRESSMSGBOXES",
+            "/NOCANCEL",
+            "/NORESTART",
+            "/FORCECLOSEAPPLICATIONS"
+        ],
+        "checksum": "17A659D3B09299481C7DF52DAF5FE3B8930A157B6139EBE5A1D8BDC0C2F3D7F4",
+        "default-install-dir": "C:\\Program Files\\Sublime Text 3",
+        "bin": [
+            "<install-directory>\\subl.exe"
+        ],
+        "uninstall-switches": [
+            "/VERYSILENT",
+            "/SUPPRESSMSGBOXES",
+            "/NORESTART"
+        ],
+        "custom-location": "/DIR=",
+        "dependencies": []
     }
 }
-  
