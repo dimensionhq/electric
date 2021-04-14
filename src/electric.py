@@ -1272,8 +1272,6 @@ def uninstall(
         proc = None
         ftp = ['.msix', '.msixbundle', '.appxbundle', '.appx']
 
-
-
         if packet.dependencies:
             handle_uninstall_dependencies(packet, metadata)
 
