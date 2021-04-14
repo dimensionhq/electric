@@ -35,15 +35,13 @@ def create_config(logfile : str, level, process : str):
     mode = 'a+' if isfile(logfile) else 'w+'
     file = open(logfile, mode)
     try:
-        file.write('\n')
         file.write('-' * 75)
         file.write('\n')
     finally:
         file.close()
 
-    logging.basicConfig(filename=logfile, level=level)
+    logging.basicConfig(filename=logfile, level=logging.DEBUG, encoding='utf-8')
     logging.info(f'Initialising RapidLogger With {process} at {strftime("%H:%M:%S")}')
-
 
 def close_log(logfile : str, process : str):
     """
@@ -54,7 +52,6 @@ def close_log(logfile : str, process : str):
         process (str): The method (installation / uninstallation)
     """    
     with open(f'{appdata_dir}\\electric-log.log', 'a+') as f:
-        f.write('\n')
         f.write('-' * 75)
         f.write('\n')
 
@@ -62,7 +59,6 @@ def close_log(logfile : str, process : str):
         logging.info(f'Terminating RapidLogger On {process} at {strftime("%H:%M:%S")}')
         file = open(logfile, 'a+')
         try:
-            file.write('\n')
             file.write('-' * 75)
             file.write('\n')
         finally:

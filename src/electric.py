@@ -1068,8 +1068,13 @@ def uninstall(
         )
         sys.exit()
 
+    if logfile:
+        logfile = logfile.replace('.txt', '.log')
+        from logging import INFO
+        create_config(logfile, INFO, 'Install')
+    
     log_info('Generating metadata...', logfile)
-
+    
     metadata = generate_metadata(
         None, silent, verbose, debug, no_color, yes, logfile, None, None, None, Setting.new(), None)
 
@@ -1077,14 +1082,10 @@ def uninstall(
 
     log_info('Checking if supercache exists...', metadata.logfile)
 
-    if logfile:
-        logfile = logfile.replace('.txt', '.log')
-        from logging import INFO
-        create_config(logfile, INFO, 'Install')
-
     handle_external_uninstallation(python, node, vscode, False, atom, package_name, metadata)
 
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
+    
     status = 'Initializing'
     setup_name = ''
     add_hotkey(
@@ -1209,7 +1210,7 @@ def uninstall(
                         rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                 except:
                     pass
-                
+                close_log(metadata.logfile, 'Uninstall')
                 continue
 
         # Continue with normal installation because the package has not been installed yet
@@ -1281,6 +1282,7 @@ def uninstall(
                 if uninstall_msix(pkg['uninstall-bundle-identifier']) == 0:
                     write(
                         f'Successfully Uninstalled {packet.display_name}', 'bright_green', metadata)
+                    close_log(metadata.logfile, 'Uninstall')
                     sys.exit()
 
         add_hotkey(
@@ -1453,12 +1455,6 @@ def uninstall(
 
             index += 1
 
-            write_debug(
-                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
-            log_info(
-                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
-            close_log(metadata.logfile, 'Uninstall')
-
         # If Only UninstallString Exists (Not Preferable)
         elif 'UninstallString' in key:
             command = key['UninstallString']
@@ -1520,11 +1516,6 @@ def uninstall(
                     except:
                         pass
 
-            write_debug(
-                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
-            log_info(
-                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
-            close_log(metadata.logfile, 'Uninstall')
 
         if packet.uninstall:
             for pkg in packet.uninstall:
@@ -1580,9 +1571,15 @@ def uninstall(
                         f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                     log_info(
                         f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
+                    write_debug(
+                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
+                    log_info(
+                        f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
+                    close_log(metadata.logfile, 'Uninstall')
                 else:
                     write(
                         f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
+                    log_error(f'Failed To Uninstall {packet.display_name}', metadata.logfile)
         else:
             if nightly:
                 packet.version = 'nightly'
@@ -1604,7 +1601,13 @@ def uninstall(
             write(
                 f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
             log_info(
-                f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
+                f'Succesfully Uninstalled {packet.display_name}', metadata.logfile)
+            write_debug(
+                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
+            log_info(
+                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
+            close_log(metadata.logfile, 'Uninstall')
+
 
 
 @cli.command(aliases=['clean', 'clear'], context_settings=CONTEXT_SETTINGS)
