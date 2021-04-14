@@ -76,7 +76,7 @@ def update_portable(ctx, packet: PortablePacket, metadata: Metadata):
         # if a directory has to be saved before uninstallation and installation of the portable
         
 
-        if old_packet.persist:        
+        if old_packet.persist:
             install_directory = rf'{home}\electric\{old_packet.json_name}@{current_version}\\'
     
             if old_packet.chdir:
@@ -93,10 +93,11 @@ def update_portable(ctx, packet: PortablePacket, metadata: Metadata):
 
             else:
                 # only 1 directory to backup
-                try:
-                    shutil.copytree(install_directory + old_packet.persist, rf'{home}\electric\Persist\{old_packet.json_name}@{current_version}\{old_packet.persist}')
-                except FileExistsError:
-                    pass
+                if old_packet.persist:
+                    try:
+                        shutil.copytree(install_directory + old_packet.persist, rf'{home}\electric\Persist\{old_packet.json_name}@{current_version}\{old_packet.persist}')
+                    except FileExistsError:
+                        pass
 
         os.system(f'electric uninstall {packet.json_name} --portable')
         os.system(f'electric install {packet.json_name} --portable')

@@ -1275,7 +1275,7 @@ def uninstall(
 
 
         if packet.dependencies:
-            handle_uninstall_dependencies(packet.dependencies, metadata)
+            handle_uninstall_dependencies(packet, metadata)
 
         if packet.win64_type in ftp:
             if find_msix_installation(pkg['uninstall-bundle-identifier']):
