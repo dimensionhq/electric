@@ -547,7 +547,7 @@ def handle_plugin_installation(name: str, metadata: Metadata):
     home = os.path.expanduser('~')
     url = f'https://github.com/electric-package-manager/electric-packages/raw/master/extensions/{name}.zip'
     
-    with open(rf'{home}\electric\temp.zip', 'wb') as f:
+    with open(rf'{home}\electric\{name}.zip', 'wb') as f:
         # If there is an existing installer, request a download from the url with a specific byte range        
         response = requests.get(url, stream=True)
 
@@ -605,42 +605,33 @@ def handle_plugin_installation(name: str, metadata: Metadata):
 
                     if metadata.settings.electrify_progress_bar == True and not metadata.settings.use_custom_progress_bar:
                         sys.stdout.write(
-                            f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} Mb {Fore.RESET}⚡')
+                            f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} ⚡ {round(dl / 10000, 1)} / {round(full_length / 10000, 1)} Mb {Fore.RESET}⚡')
                     else:
                         sys.stdout.write(
                             f'\r{get_init_char(True, metadata)}{fill_c}{unfill_c}{get_init_char(False, metadata)} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
 
                     sys.stdout.flush()
-
+    sys.stdout.write('\n')
     import zipfile
-    if metadata.silent:
-        with zipfile.ZipFile(rf'{home}\electric\temp.zip', 'r') as zf:
-            try:
-                zf.extractall(rf'{home}\electric\{name}')
-            except:
-                pass
-
-    if not metadata.silent:
-        from tqdm import tqdm
-        with zipfile.ZipFile(rf'{home}\electric\temp.zip', 'r') as zf:
-            for member in tqdm(zf.infolist(), desc='Extracting ', bar_format='{l_bar}{bar:13}{r_bar}{bar:-13b}', smoothing=0.0, unit='files'):
-                try:
-                    zf.extractall(member, rf'{home}\electric\{name}')
-                except zipfile.error:
-                    pass
-
+    with zipfile.ZipFile(rf'{home}\electric\{name}.zip', 'r') as zf:
+        try:
+            zf.extractall(rf'{home}\electric')
+        except:
+            pass
+    
     os.chdir(rf'{home}\electric\{name}')
+
     data = ''
     with open('extension.yaml', 'r') as f:
-        data = yaml.load(f)
-
+        data = yaml.load(f, Loader=yaml.CLoader)
+    
     for dep in data['dependencies']:
         os.system(f'electric install {dep}')
 
     if 'shell' in list(data.keys()):
         os.system(data['shell'])
 
-    write(f'Successfully Installed {name} Plugin', 'bright_magenta', metadata)
+    write(f'Successfully Installed {data["name"]} Plugin', 'bright_magenta', metadata)
 
 
 def handle_uninstall_dependencies(packet: Packet, metadata):
