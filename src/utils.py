@@ -540,6 +540,19 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
         sys.exit()
 
 
+def handle_plugin_uninstallation(name: str, metadata: Metadata):
+    import yaml
+
+    res = requests.get(f'https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/extensions/{name}/extension.yaml')
+    if res.status_code != 200:
+        write(f'{name} is not a valid plugin name!', 'bright_red', metadata)        
+
+    data = yaml.load(res.text, Loader=yaml.CLoader)
+    if data['uninstall']:
+        os.system(data['uninstall'])
+
+    write(f'Successfully Uninstalled {name}', 'bright_green', metadata)
+
 def handle_plugin_installation(name: str, metadata: Metadata):
     import yaml
     import cursor
@@ -557,9 +570,6 @@ def handle_plugin_installation(name: str, metadata: Metadata):
         # get iteration chunk size for the download based on the file size
         chunk_size = get_chunk_size(total_length)
 
-        # get the type of progress bar to display in user defined settings
-        progress_type = metadata.settings.progress_bar_type
-
         if not total_length:
             f.write(response.content)
 
@@ -572,46 +582,9 @@ def handle_plugin_installation(name: str, metadata: Metadata):
             for data in response.iter_content(chunk_size=chunk_size):
                 dl += len(data)
                 f.write(data)
+    
+    write(f'Successfully Downloaded {name}', 'bright_green', metadata)
 
-                # if no_progress is True or show_progress_bar (user settings) is false
-                if metadata.no_progress == True or metadata.settings.show_progress_bar == False:
-                    sys.stdout.write(
-                        f'\r{round(dl / 1000000, 1)} Mb / {round(full_length / 1000000, 1)} Mb')
-                    sys.stdout.flush()
-
-                # print the progress bar
-                elif not metadata.no_progress and not metadata.silent:
-                    complete = int(30 * dl / full_length)
-                    fill_c = '-'  # Fallback Character
-                    unfill_c = ' '  # Fallback Character
-
-                    if progress_type == 'custom' or metadata.settings.use_custom_progress_bar:
-                        fill_c = eval(get_character_color(
-                            True, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['fill_character'] * complete
-                        unfill_c = eval(get_character_color(
-                            False, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['unfill_character'] * (30 - complete)
-
-                    elif progress_type == 'accented':
-                        fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
-                        unfill_c = Fore.BLACK + '█' * (30 - complete)
-
-                    elif progress_type == 'zippy':
-                        fill_c = Fore.LIGHTGREEN_EX + '=' * complete
-                        unfill_c = Fore.LIGHTBLACK_EX + '-' * (30 - complete)
-
-                    elif progress_type not in ['custom', 'accented', 'zippy'] and metadata.settings.use_custom_progress_bar == False or progress_type == 'default':
-                        fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
-                        unfill_c = Fore.BLACK + '█' * (30 - complete)
-
-                    if metadata.settings.electrify_progress_bar == True and not metadata.settings.use_custom_progress_bar:
-                        sys.stdout.write(
-                            f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} ⚡ {round(dl / 10000, 1)} / {round(full_length / 10000, 1)} Mb {Fore.RESET}⚡')
-                    else:
-                        sys.stdout.write(
-                            f'\r{get_init_char(True, metadata)}{fill_c}{unfill_c}{get_init_char(False, metadata)} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
-
-                    sys.stdout.flush()
-    sys.stdout.write('\n')
     import zipfile
     with zipfile.ZipFile(rf'{home}\electric\{name}.zip', 'r') as zf:
         try:

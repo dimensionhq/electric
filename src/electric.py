@@ -1012,6 +1012,7 @@ def up(
 @click.option('--nightly', '--pre-release', is_flag=True, help='Specify a Visual Studio Code extension to uninstall')
 @click.option('--node', '-npm', is_flag=True, help='Specify a Python package to uninstall')
 @click.option('--portable', '--non-admin', '-p', is_flag=True, help='Uninstall a portable version of a package')
+@click.option('--plugin', '-pg', is_flag=True, help='Uninstall a plugin of a package')
 @click.option('--configuration', '-cf', is_flag=True, help='Specify a config file to uninstall')
 @click.option('--ae', is_flag=True)
 @click.option('--skp', is_flag=True)
@@ -1029,6 +1030,7 @@ def uninstall(
     vscode: bool,
     node: bool,
     atom: bool,
+    plugin: bool,
     configuration: bool,
     portable: bool,
     ae: bool,
@@ -1075,6 +1077,9 @@ def uninstall(
     
     metadata = generate_metadata(
         None, silent, verbose, debug, no_color, yes, logfile, None, None, None, Setting.new(), None)
+
+    if plugin:
+        handle_plugin_uninstallation(package_name, metadata)
 
     log_info('Successfully generated metadata.', logfile)
 
