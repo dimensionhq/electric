@@ -1,4 +1,0 @@
-click
-colorama
-moviepy
-pydub

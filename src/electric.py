@@ -131,14 +131,7 @@ def install(
         print(f'{Fore.LIGHTRED_EX}A Package Name Must Be Supplied\nUsage: electric install <package-name>\n\nExamples:\nelectric install {Fore.LIGHTGREEN_EX}sublime-text-3{Fore.RESET}\n{Fore.LIGHTRED_EX}electric install {Fore.LIGHTGREEN_EX}sublime-text-3,notepad++{Fore.RESET}')
         sys.exit()
 
-    if plugin:
-        if package_name == 'eel':
-            os.chdir(PathManager.get_current_directory() + r'\eel')
-            os.system('pip install -e .')
-            click.echo(
-                f'{Fore.LIGHTGREEN_EX}Successfully Installed eel Plugin, {Fore.LIGHTCYAN_EX}Run `refreshenv` to refresh your environment variables.{Fore.RESET}')
-        sys.exit()
-
+    
     if configuration:
         ctx.invoke(
             config,
@@ -168,11 +161,16 @@ def install(
 
     metadata = generate_metadata(
         no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync)
-
+    
     if update:
         write('Updating Electric', 'bright_green', metadata)
         update_package_list()
 
+    if plugin:
+        handle_plugin_installation(package_name, metadata)
+        sys.exit()
+       
+    
     log_info('Successfully generated metadata.', metadata.logfile)
 
     handle_external_installation(

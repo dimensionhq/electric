@@ -540,6 +540,109 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
         sys.exit()
 
 
+def handle_plugin_installation(name: str, metadata: Metadata):
+    import yaml
+    import cursor
+    cursor.hide()
+    home = os.path.expanduser('~')
+    url = f'https://github.com/electric-package-manager/electric-packages/raw/master/extensions/{name}.zip'
+    
+    with open(rf'{home}\electric\temp.zip', 'wb') as f:
+        # If there is an existing installer, request a download from the url with a specific byte range        
+        response = requests.get(url, stream=True)
+
+        # Total download size
+        total_length = response.headers.get('content-length')
+
+        # get iteration chunk size for the download based on the file size
+        chunk_size = get_chunk_size(total_length)
+
+        # get the type of progress bar to display in user defined settings
+        progress_type = metadata.settings.progress_bar_type
+
+        if not total_length:
+            f.write(response.content)
+
+        else:
+
+            dl = 0
+            full_length = int(total_length)
+
+            # iterate over requests response and write to the filepath
+            for data in response.iter_content(chunk_size=chunk_size):
+                dl += len(data)
+                f.write(data)
+
+                # if no_progress is True or show_progress_bar (user settings) is false
+                if metadata.no_progress == True or metadata.settings.show_progress_bar == False:
+                    sys.stdout.write(
+                        f'\r{round(dl / 1000000, 1)} Mb / {round(full_length / 1000000, 1)} Mb')
+                    sys.stdout.flush()
+
+                # print the progress bar
+                elif not metadata.no_progress and not metadata.silent:
+                    complete = int(30 * dl / full_length)
+                    fill_c = '-'  # Fallback Character
+                    unfill_c = ' '  # Fallback Character
+
+                    if progress_type == 'custom' or metadata.settings.use_custom_progress_bar:
+                        fill_c = eval(get_character_color(
+                            True, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['fill_character'] * complete
+                        unfill_c = eval(get_character_color(
+                            False, metadata)) + metadata.settings.raw_dictionary['customProgressBar']['unfill_character'] * (30 - complete)
+
+                    elif progress_type == 'accented':
+                        fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
+                        unfill_c = Fore.BLACK + '█' * (30 - complete)
+
+                    elif progress_type == 'zippy':
+                        fill_c = Fore.LIGHTGREEN_EX + '=' * complete
+                        unfill_c = Fore.LIGHTBLACK_EX + '-' * (30 - complete)
+
+                    elif progress_type not in ['custom', 'accented', 'zippy'] and metadata.settings.use_custom_progress_bar == False or progress_type == 'default':
+                        fill_c = Fore.LIGHTBLACK_EX + Style.DIM + '█' * complete
+                        unfill_c = Fore.BLACK + '█' * (30 - complete)
+
+                    if metadata.settings.electrify_progress_bar == True and not metadata.settings.use_custom_progress_bar:
+                        sys.stdout.write(
+                            f'\r{fill_c}{unfill_c} {Fore.RESET + Style.DIM} ⚡ {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} Mb {Fore.RESET}⚡')
+                    else:
+                        sys.stdout.write(
+                            f'\r{get_init_char(True, metadata)}{fill_c}{unfill_c}{get_init_char(False, metadata)} {Fore.RESET + Style.DIM} {round(dl / 1000000, 1)} / {round(full_length / 1000000, 1)} MB {Fore.RESET}')
+
+                    sys.stdout.flush()
+
+    import zipfile
+    if metadata.silent:
+        with zipfile.ZipFile(rf'{home}\electric\temp.zip', 'r') as zf:
+            try:
+                zf.extractall(rf'{home}\electric\{name}')
+            except:
+                pass
+
+    if not metadata.silent:
+        from tqdm import tqdm
+        with zipfile.ZipFile(rf'{home}\electric\temp.zip', 'r') as zf:
+            for member in tqdm(zf.infolist(), desc='Extracting ', bar_format='{l_bar}{bar:13}{r_bar}{bar:-13b}', smoothing=0.0, unit='files'):
+                try:
+                    zf.extractall(member, rf'{home}\electric\{name}')
+                except zipfile.error:
+                    pass
+
+    os.chdir(rf'{home}\electric\{name}')
+    data = ''
+    with open('extension.yaml', 'r') as f:
+        data = yaml.load(f)
+
+    for dep in data['dependencies']:
+        os.system(f'electric install {dep}')
+
+    if 'shell' in list(data.keys()):
+        os.system(data['shell'])
+
+    write(f'Successfully Installed {name} Plugin', 'bright_magenta', metadata)
+
+
 def handle_uninstall_dependencies(packet: Packet, metadata):
     disp = str(packet.dependencies).replace(
         "[", "").replace("]", "").replace("\'", "")

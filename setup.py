@@ -47,7 +47,8 @@ setup(
         'pywin32',
         'patool',
         'tqdm',
-        'pygments'
+        'pygments',
+        'pyyaml'
     ],
     package_dir={'': 'src'},
     entry_points =
