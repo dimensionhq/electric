@@ -211,10 +211,8 @@ def check_existing_download(package_name: str, download_type) -> bool:
         try:
             filesize = os.stat(data['directory'] + download_type).st_size
         except FileNotFoundError:
-
             if download_type not in data['directory']:
-                os.rename(data['directory'],
-                          data['directory'] + download_type)
+                os.rename(data['directory'], f'{data["directory"]}{download_type}')
             try:
                 filesize = os.stat(data['directory']).st_size
             except FileNotFoundError:

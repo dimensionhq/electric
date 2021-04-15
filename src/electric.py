@@ -1545,11 +1545,17 @@ def uninstall(
                 f'Running Tests For {packet.display_name}', 'bright_white', metadata)
             if not find_existing_installation(packet.json_name, packet.display_name):
                 if nightly:
-                    os.remove(
-                        rf'{PathManager.get_appdata_directory()}\Current\{package}@nightly.json')
+                    try:
+                        os.remove(
+                            rf'{PathManager.get_appdata_directory()}\Current\{package}@nightly.json')
+                    except:
+                        pass
                 else:
-                    os.remove(
-                        rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                    try:
+                        os.remove(
+                            rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                    except:
+                        pass
                 if not metadata.no_color:
                     write(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check', 'bright_white', metadata)
                 else:
@@ -1566,8 +1572,11 @@ def uninstall(
                 if not find_existing_installation(packet.json_name, packet.display_name):
                     write(
                         f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ]  Registry Check', 'bright_white', metadata)
-                    os.remove(
-                        rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                    try:
+                        os.remove(
+                            rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
+                    except:
+                        pass
                     write(
                         f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
                     log_info(

@@ -8,22 +8,32 @@ use std::{process, time::Duration};
 fn main() {
     let args: Vec<String> = env::args().collect();
     // Handle Package Installation
-    // ["C:\\Users\\xtrem\\Desktop\\Electric\\electric\\src\\rust\\launcher\\target\\release\\launcher.exe", "electric:configuration=https://srv-store5.gofile.io/download/UfDNfJ/electric-configuration.electric,name=test"]
+    // ["C:\\Users\\xtrem\\Desktop\\Electric\\electric\\src\\rust\\launcher\\target\\release\\launcher.exe", "electric:configuration=https://srv-store5.gofile.io/download/UfDNfJ/electric-configuration.electric,name=test,flags=--verbose,--debug"]
     let mut parse: String = args[1].to_string();
 
     // Install Electric Packages
+    // electric:packages=notepad++,flags=--portable
     if parse.starts_with("electric:packages=") {
         println!("Installing Packages");
-        parse = parse.replace("electric:packages=", "");
+        
+        parse = parse.replace("electric:packages=", "").replace(",flags=", "");
+        let mut flags: Vec<String> = vec![];
+        let temp: Vec<&str> = parse.split("--").collect::<Vec<&str>>();
+
+        for item in temp.iter() {
+            flags.push(item.to_string());
+        }
 
         Command::new("powershell.exe")
             .arg("-c")
             .arg("electric")
             .arg("install")
             .arg(parse)
+            .args(flags)
             .spawn()
             .unwrap();
     }
+
     // Install Electric Configuration
     else if parse.starts_with("electric:configuration=") {
         println!("Installing Configuration");
