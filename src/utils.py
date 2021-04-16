@@ -550,6 +550,7 @@ def handle_plugin_uninstallation(name: str, metadata: Metadata):
         os.system(data['uninstall'])
 
     write(f'Successfully Uninstalled {name}', 'bright_green', metadata)
+    sys.exit()
 
 def handle_plugin_installation(name: str, metadata: Metadata):
     import yaml
