@@ -307,7 +307,7 @@ def verify_checksum(path: str, checksum: str, metadata: Metadata, newline=False)
             write('\nVerified Installer Hash', 'bright_green', metadata)
     else:
         write('Hashes Don\'t Match!', 'bright_green', metadata)
-        if not metadata.yes or not metadata.force:
+        if not metadata.yes:
             continue_installation = confirm(
                 'Would you like to continue with installation?')
             if continue_installation:

@@ -113,7 +113,9 @@ fn setup_configuration_file() {
 fn main() {
     Command::new("powershell.exe")
         .arg("-c")
-        .arg("Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force");
+        .args(vec!["Set-ExecutionPolicy", "RemoteSigned", "-Scope", "CurrentUser", "-Force"])
+        .spawn()
+        .unwrap();
 
     let userprofile = var("USERPROFILE").unwrap();
     let temp = format!(r"{}\Documents\WindowsPowerShell", userprofile);

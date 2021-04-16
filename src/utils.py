@@ -111,17 +111,18 @@ def is_admin() -> bool:
     return is_admin
 
 
-def verify_checksum(path: str, checksum: str, metadata: Metadata, newline=False):
+def verify_checksum(path: str, checksum: str, force: bool, metadata: Metadata, newline=False):
     import hashlib
 
-    if hashlib.sha256(open(path, 'rb').read()).hexdigest().upper() == checksum:
+    if not hashlib.sha256(open(path, 'rb').read()).hexdigest().upper() == checksum:
         if not newline:
             write('Verified Installer Hash', 'bright_green', metadata)
         else:
             write('\nVerified Installer Hash', 'bright_green', metadata)
     else:
         write('Hashes Don\'t Match!', 'bright_green', metadata)
-        if not metadata.yes or not metadata.force:
+
+        if not metadata.yes or not force:
             continue_installation = confirm(
                 'Would you like to continue with installation?')
             if continue_installation:
