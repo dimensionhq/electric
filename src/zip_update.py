@@ -56,7 +56,7 @@ def update_portable(ctx, packet: PortablePacket, metadata: Metadata):
             'latest-version': res['latest-version'],
             'url': pkg[current_version]['url'],
             'file-type': pkg[current_version]['file-type'] if 'file-type' in keys else None,
-            'extract-dir': pkg[current_version]['extract-dir'],
+            'extract-dir': res['package-name'],
             'chdir': pkg[current_version]['chdir'] if 'chdir' in keys else [],
             'bin': pkg[current_version]['bin'] if 'bin' in keys else [],
             'shortcuts': pkg[current_version]['shortcuts'] if 'shortcuts' in keys else [],

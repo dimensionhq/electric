@@ -822,7 +822,7 @@ def up(
                 'latest-version': res['latest-version'],
                 'url': pkg[pkg['latest-version']]['url'],
                 'file-type': pkg[pkg['latest-version']]['file-type'] if 'file-type' in keys else None,
-                'extract-dir': pkg[pkg['latest-version']]['extract-dir'],
+                'extract-dir': pkg['package-name'],
                 'chdir': pkg[pkg['latest-version']]['chdir'] if 'chdir' in keys else [],
                 'bin': pkg[pkg['latest-version']]['bin'] if 'bin' in keys else [],
                 'shortcuts': pkg[pkg['latest-version']]['shortcuts'] if 'shortcuts' in keys else [],
