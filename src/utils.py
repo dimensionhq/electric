@@ -238,13 +238,15 @@ def get_chunk_size(total_size: str) -> int:
     Returns:
         int: Chunk iter size for downloading the file
     """
-    size = int(total_size)
-    size /= 1000000
-    if size < 7:
-        return 4096
+    if total_size:
+        size = int(total_size)
+        size /= 1000000
+        if size < 7:
+            return 4096
+        else:
+            return 7096
     else:
-        return 7096
-
+        print('Incorrect Download URL Provided! Total File Size is: `None`')
 
 def check_resume_download(package_name: str, download_url: str, metadata: Metadata) -> tuple:
     """
@@ -576,7 +578,6 @@ def handle_plugin_installation(name: str, metadata: Metadata):
         else:
 
             dl = 0
-            full_length = int(total_length)
 
             # iterate over requests response and write to the filepath
             for data in response.iter_content(chunk_size=chunk_size):
