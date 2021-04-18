@@ -3,6 +3,7 @@
 #                 SPDX-License-Identifier: Apache-2.0                #
 ######################################################################
 
+# TODO: Add Support For VSIXInstaller.exe /q <pathToVSIXFile>
 # TODO: Add Conflict-With Field For Json To Differentiate Between Microsoft Visual Studio Code and Microsoft Visual Studio Code Insiders
 from halo import Halo
 import os
@@ -169,7 +170,7 @@ def install(
     if plugin:
         handle_plugin_installation(package_name, metadata)
         sys.exit()
-       
+
     
     log_info('Successfully generated metadata.', metadata.logfile)
 

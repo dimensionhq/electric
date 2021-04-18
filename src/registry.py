@@ -101,22 +101,27 @@ def get_uninstall_key(package_name : str, display_name: str):
                     old = val
 
             for string in strings:
-                matches = difflib.get_close_matches(
-                    package_name.lower(), temp_list, cutoff=0.65)
-
-                if matches:
-                        final_array.append(key)
-
+                if package_name.endswith('*'):
+                    for name in temp_list:
+                        if name.contains(package_name.replace('*', '')):
+                            final_array.append(key)
                 else:
-                        possibilities = []
+                    matches = difflib.get_close_matches(
+                        package_name.lower(), temp_list, cutoff=0.65)
 
-                        for element in refined_list:
-                            for string in strings:
-                                if string in element:
-                                    possibilities.append(key)
+                    if matches:
+                            final_array.append(key)
 
-                        if possibilities:
-                            total.append(possibilities)
+                    else:
+                            possibilities = []
+
+                            for element in refined_list:
+                                for string in strings:
+                                    if string in element:
+                                        possibilities.append(key)
+
+                            if possibilities:
+                                total.append(possibilities)
 
     strings = []
 
