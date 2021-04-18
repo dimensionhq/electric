@@ -21,11 +21,18 @@ def uninstall_portable(packet: PortablePacket, metadata: Metadata):
             log_info(rf'Deleting shims for {packet.display_name} from {loc}\shims', metadata.logfile)
             write(f'Deleting Shims For {packet.display_name}', 'cyan', metadata)
             for sh in packet.bin:
-                shim_name = sh.split('\\')[-1].replace('.exe', '').replace('.ps1', '').replace('.cmd', '').replace('.bat', '')
-                try:
-                    os.remove(loc + 'shims\\' + shim_name + '.bat')
-                except FileNotFoundError:
-                    pass
+                if isinstance(sh, str):
+                    shim_name = sh.split('\\')[-1].split('.')[0]
+                    try:
+                        os.remove(loc + 'shims\\' + shim_name + '.bat')
+                    except FileNotFoundError:
+                        pass
+                else:
+                    shim_name = sh['shim-name'].split('\\')[-1].split('.')[0]
+                    try:
+                        os.remove(loc + 'shims\\' + shim_name + '.bat')
+                    except FileNotFoundError:
+                        pass
 
         shortcuts = packet.shortcuts
 
