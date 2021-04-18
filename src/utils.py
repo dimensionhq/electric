@@ -518,8 +518,8 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
     elif 'is-portable' in list(res.keys()):
         keys = list(pkg[pkg['latest-version']].keys())
         data = {
-            'display-name': pkg['display-name'],
-            'package-name': pkg['package-name'],
+            'display-name': res['display-name'],
+            'package-name': res['package-name'],
             'latest-version': pkg['latest-version'],
             'url': pkg[pkg['latest-version']]['url'],
             'file-type': pkg[pkg['latest-version']]['file-type'],
@@ -641,8 +641,8 @@ def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadat
         keys = list(pkg[pkg['latest-version']].keys())
 
         data = {
-            'display-name': pkg['display-name'],
-            'package-name': pkg['package-name'],
+            'display-name': res['display-name'],
+            'package-name': res['package-name'],
             'latest-version': pkg['latest-version'],
             'url': pkg[pkg['latest-version']]['url'],
             'file-type': pkg[pkg['latest-version']]['file-type'] if 'file-type' in keys else None,
@@ -666,8 +666,8 @@ def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadat
     elif portable:
         keys = list(pkg[pkg['latest-version']].keys())
         data = {
-            'display-name': pkg['display-name'],
-            'package-name': pkg['package-name'],
+            'display-name': res['display-name'],
+            'package-name': res['package-name'],
             'latest-version': pkg['latest-version'],
             'url': pkg[pkg['latest-version']]['url'],
             'file-type': pkg[pkg['latest-version']]['file-type'],
