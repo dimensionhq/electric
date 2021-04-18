@@ -135,22 +135,22 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                 write(
                     f'{Fore.LIGHTCYAN_EX}Successfully Generated {shim} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)
             else:
-                bin = bin['file-name']
+                val = bin['file-name']
                 shim_dir = unzip_dir
-                shim = ''.join(bin.split('.')[:-1])
-                shim_ext = bin.split('.')[-1]
-                if '\\' in bin:
-                    shim = ''.join(bin.split('\\')[-1])
+                shim = ''.join(val.split('.')[:-1])
+                shim_ext = val.split('.')[-1]
+                if '\\' in val:
+                    shim = ''.join(val.split('\\')[-1])
                     shim = ''.join(shim.split('.')[:-1])
-                    shim_ext = bin.split('.')[-1]
-                    shim_dir += ' '.join(bin.split('\\')
+                    shim_ext = val.split('.')[-1]
+                    shim_dir += ' '.join(val.split('\\')
                                         [:-1]).replace(' ', '\\')
 
                 start = timer()
                 generate_shim(f'{shim_dir}', bin['shim-name'], shim_ext)
                 end = timer()
                 write(
-                    f'{Fore.LIGHTCYAN_EX}Successfully Generated {shim} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)
+                    f'{Fore.LIGHTCYAN_EX}Successfully Generated {bin["shim-name"]} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)
                 
 
     if shortcuts:
