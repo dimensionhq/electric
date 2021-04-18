@@ -103,7 +103,7 @@ def get_uninstall_key(package_name : str, display_name: str):
             for string in strings:
                 if package_name.endswith('*'):
                     for name in temp_list:
-                        if name.contains(package_name.replace('*', '')):
+                        if package_name.replace('*', '') in name:
                             final_array.append(key)
                 else:
                     matches = difflib.get_close_matches(
