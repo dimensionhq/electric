@@ -113,13 +113,13 @@ def is_admin() -> bool:
 
 def verify_checksum(path: str, checksum: str, force: bool, metadata: Metadata, newline=False):
     import hashlib
-
-    if not hashlib.sha256(open(path, 'rb').read()).hexdigest().upper() == checksum:
+    
+    if hashlib.sha256(open(path, 'rb').read()).hexdigest().upper().strip() == checksum.strip():
         if not newline:
             write('Verified Installer Hash', 'bright_green', metadata)
         else:
             write('\nVerified Installer Hash', 'bright_green', metadata)
-    else:
+    elif not hashlib.sha256(open(path, 'rb').read()).hexdigest().upper().strip() == checksum.strip():
         write('Hashes Don\'t Match!', 'bright_green', metadata)
 
         if not metadata.yes or not force:
