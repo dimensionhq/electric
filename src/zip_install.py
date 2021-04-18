@@ -117,16 +117,16 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
         unzip_dir += f'\\{dir}\\'
 
     if packet.bin and isinstance(packet.bin, list):
-        for bin in packet.bin:
-            if isinstance(bin, str):
+        for binary in packet.bin:
+            if isinstance(binary, str):
                 shim_dir = unzip_dir
-                shim = ''.join(bin.split('.')[:-1])
-                shim_ext = bin.split('.')[-1]
-                if '\\' in bin:
-                    shim = ''.join(bin.split('\\')[-1])
+                shim = ''.join(binary.split('.')[:-1])
+                shim_ext = binary.split('.')[-1]
+                if '\\' in binary:
+                    shim = ''.join(binary.split('\\')[-1])
                     shim = ''.join(shim.split('.')[:-1])
-                    shim_ext = bin.split('.')[-1]
-                    shim_dir += ' '.join(bin.split('\\')
+                    shim_ext = binary.split('.')[-1]
+                    shim_dir += ' '.join(binary.split('\\')
                                         [:-1]).replace(' ', '\\')
 
                 start = timer()
@@ -135,7 +135,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                 write(
                     f'{Fore.LIGHTCYAN_EX}Successfully Generated {shim} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)
             else:
-                val = bin['file-name']
+                val = binary['file-name']
                 shim_dir = unzip_dir
                 shim = ''.join(val.split('.')[:-1])
                 shim_ext = val.split('.')[-1]
@@ -147,10 +147,10 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                                         [:-1]).replace(' ', '\\')
 
                 start = timer()
-                generate_shim(f'{shim_dir}', bin['shim-name'], shim_ext)
+                generate_shim(f'{shim_dir}', binary['shim-name'], shim_ext)
                 end = timer()
                 write(
-                    f'{Fore.LIGHTCYAN_EX}Successfully Generated {bin["shim-name"]} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)
+                    f'{Fore.LIGHTCYAN_EX}Successfully Generated {binary["shim-name"]} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)
                 
 
     if shortcuts:

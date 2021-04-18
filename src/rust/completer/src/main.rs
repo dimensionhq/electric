@@ -36,6 +36,7 @@ fn main() {
         "--reduce",
         "--rate-limit",
         "--portable",
+        "--manifest"
     ];
 
     let uninstall_flags = vec![
@@ -50,6 +51,7 @@ fn main() {
         "--node",
         "--no-cache",
         "--portable",
+        "--manifest"
     ];
 
     let list_flags = vec!["--installed", "--versions"];
