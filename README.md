@@ -8,7 +8,7 @@
 <br>
 
 <p align="center">
-  <img src="https://img.shields.io/github/v/tag/electric-package-manager/electric?color=green&label=electric&sort=semver"> <img src="https://img.shields.io/github/license/electric-package-manager/electric?color=pink"> <img src="https://img.shields.io/tokei/lines/github/electric-package-manager/electric?color=white&label=lines%20of%20code"> <img src="https://img.shields.io/github/languages/top/electric-package-manager/electric?color=%230xfffff"> <img src="https://img.shields.io/github/repo-size/electric-package-manager/electric?color=orange">
+  <img src="https://img.shields.io/badge/version-1.0.0--beta-green"> <img src="https://img.shields.io/github/license/electric-package-manager/electric?color=pink"> <img src="https://img.shields.io/tokei/lines/github/electric-package-manager/electric?color=white&label=lines%20of%20code"> <img src="https://img.shields.io/github/languages/top/electric-package-manager/electric?color=%230xfffff"> <img src="https://img.shields.io/github/repo-size/electric-package-manager/electric?color=orange">
 </p>
 <br>
 
