@@ -109,6 +109,9 @@ end;
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; \
     ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};C:\Program Files (x86)\{#MyAppName}\bin"; \
     Check: NeedsAddPath('C:\Program Files (x86)\{#MyAppName}\bin')
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; \
+    ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{%USERPROFILE}\electric\shims"; \
+    Check: NeedsAddPath('{%USERPROFILE}\electric\shims')
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
