@@ -6,7 +6,8 @@
 	"repository": {
 		"url": "https://github.com/electric-package-manager/electric"
 	},
-	"version": "0.0.5",
+	"icon": "electric-icon.png",
+	"version": "0.0.6",
 	"engines": {
 		"vscode": "^1.51.0"
 	},
