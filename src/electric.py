@@ -724,16 +724,16 @@ def install(
 
 @cli.command(aliases=['upgrade', 'update'], context_settings=CONTEXT_SETTINGS)
 @click.argument('package_name', required=True)
-@click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for bundle installation')
-@click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for bundle installation')
-@click.option('--verbose', '-vb', is_flag=True, help='Enable verbose mode for installation')
+@click.option('--no-progress', '-np', is_flag=True, default=False, help='Disable progress bar for update')
+@click.option('--no-color', '-nc', is_flag=True, help='Disable colored output for update')
+@click.option('--verbose', '-vb', is_flag=True, help='Enable verbose mode for update')
 @click.option('--log-output', '-l', 'logfile', help='Log output to the specified file')
-@click.option('--debug', '-d', is_flag=True, help='Enable debug mode for installation')
-@click.option('--silent', '-s', is_flag=True, help='Completely silent uninstallation without any output to console')
-@click.option('--virus-check', '-vc', is_flag=True, help='Check for virus before bundle installation')
+@click.option('--debug', '-d', is_flag=True, help='Enable debug mode for update')
+@click.option('--silent', '-s', is_flag=True, help='Completely silent update without any output to console')
+@click.option('--virus-check', '-vc', is_flag=True, help='Check for virus before bundle update')
 @click.option('--rate-limit', '-rl', type=int, default=-1)
-@click.option('-y', '--yes', is_flag=True, help='Accept all prompts during uninstallation')
-@click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after bundle installation')
+@click.option('-y', '--yes', is_flag=True, help='Accept all prompts during update')
+@click.option('--reduce', '-rd', is_flag=True, help='Cleanup all traces of package after bundle update')
 @click.option('--local', '-ll', is_flag=True, help='')
 @click.option('--portable', '-p', is_flag=True, help='')
 @click.pass_context
@@ -1854,7 +1854,7 @@ def new(
         f.writelines(
             [
                 "[ Info ]\n",
-                "# Go To https://www.electric.sh/docs/configurations For More Information\n",
+                "# Go To https://www.electric.sh/docs/configurations/create-a-configuration For More Information\n",
                 "Publisher =>\n",
                 "Description =>\n\n",
                 "\n[ Editor-Configuration ]\n",

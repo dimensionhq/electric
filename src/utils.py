@@ -1374,7 +1374,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
 def get_configuration_data(username: str, description: str, uses_editor: bool, include_editor: bool, editor: str, include_python: bool, include_node: bool):
     base_configuration = [
         '[ Info ]\n',
-        '# Go To https://www.electric.sh/docs/configurations For More Information\n',
+        '# Go To https://www.electric.sh/docs/configurations/create-a-configuration For More Information\n',
         f'Publisher => \"{username}\"\n',
         f'Description => \"{description}\"\n'
     ]
@@ -1986,7 +1986,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 '\n[0011] => Node(npm) is not installed on your system.',
                 '\n\nHow To Fix:\n',
                 'Run `electric install nodejs` [ Copied To Clipboard ] To Install Node(npm)\n\nHelp:',
-                '\n[1] <=> https://electric.sh/errors/0011\n\n'
+                '\n[1] <=> https://electric.sh/docs/errors/0011\n\n'
             ]
 
         elif code('1603'):
@@ -2005,7 +2005,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 'Run `electric install python3` [ Copied To Clipboard ] To install Python(pip).\n\nHelp:',
 
                 '\n[1] <=> https://www.educative.io/edpresso/how-to-add-python-to-path-variable-in-windows',
-                '\n[2] <=> https://electric.sh/errors/0010',
+                '\n[2] <=> https://electric.sh/docs/errors/0010',
                 '\n[3] <=> https://stackoverflow.com/questions/23708898/pip-is-not-recognized-as-an-internal-or-external-command\n\n'
             ]
 
@@ -2020,7 +2020,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 '\n\nWe recommend you raise a support ticket with the data generated below:',
                 generate_report(display_name, version),
                 '\nHelp:\n',
-                '\n[1] <=> https://www.electric.sh/errors/1111',
+                '\n[1] <=> https://www.electric.sh/docs/errors/1111',
                 '\n[2] <=> https://www.electric.sh/support\n\n',
             ]
 
@@ -2030,7 +2030,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 '\n\nHow To Fix:\n',
                 'Make sure you accept prompt asking for administrator privileges or alternatively: \n',
                 f'Run Your Command Prompt Or Powershell As Administrator And Retry {method.capitalize()}.\n\n\nHelp:',
-                '\n[1] <=> https://www.electric.sh/errors/0101',
+                '\n[1] <=> https://www.electric.sh/docs/errors/0101',
                 '\n[2] <=> https://www.howtogeek.com/194041/how-to-open-the-command-prompt-as-administrator-in-windows-8.1/',
                 '\n[3] <=> https://www.top-password.com/blog/5-ways-to-run-powershell-as-administrator-in-windows-10/\n\n'
             ]
@@ -2041,7 +2041,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 '\n\nHow To Fix:\n',
                 'Contact the package maintainer at electric.sh. \n',
                 '\nHelp:',
-                '\n[1] <=> https://www.electric.sh/errors/1620',
+                '\n[1] <=> https://www.electric.sh/docs/errors/1620',
                 '\n[2] <=> http://msierrors.com/msi/msi-error-1620/',
                 '\n[3] <=> https://docs.microsoft.com/en-us/windows/win32/msi/error-codes/\n\n'
             ]
@@ -2052,7 +2052,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 '\n\nHow To Fix:\n',
                 'Wait for a few minutes until the current installation / uninstallation gets completed or quit the other instance of the software installer / uninstaller. \n',
                 'Help:',
-                '\n[1] <=> https://www.electric.sh/errors/1618',
+                '\n[1] <=> https://www.electric.sh/docs/errors/1618',
                 '\n[2] <=> http://msierrors.com/msi/msi-error-1618/',
                 '\n[3] <=> https://docs.microsoft.com/en-us/windows/win32/msi/error-codes/\n\n'
             ]
@@ -2063,7 +2063,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 '\n[0010] => Microsoft Visual Studio Code is not installed on your system.',
                 '\n\nHow To Fix:\n',
                 'Run `electric install visual-studio-code` [ Copied To Clipboard ] To install Visual Studio Code.\n\nHelp:',
-                '\n[1] <=> https://electric.sh/errors/0111',
+                '\n[1] <=> https://electric.sh/docs/errors/0111',
                 '\n[2] <=> https://stackoverflow.com/questions/46638944/code-is-not-recognized-as-an-internal-or-external-command\n\n',
             ]
 
@@ -2073,7 +2073,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 '\n[0010] => Sublime Text 3 is not installed on your system.',
                 '\n\nHow To Fix:\n',
                 'Run `electric install sublime-text-3` [ Copied To Clipboard ] To install Sublime Text 3.\n\nHelp:',
-                '\n[1] <=> https://electric.sh/errors/0112\n\n',
+                '\n[1] <=> https://electric.sh/docs/errors/0112\n\n',
             ]
 
         elif code('0113'):
@@ -2082,7 +2082,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 '\n[0013] => Atom is not installed on your system.',
                 '\n\nHow To Fix:\n',
                 'Run `electric install atom` [ Copied To Clipboard ] To install Atom.\n\nHelp:',
-                '\n[1] <=> https://electric.sh/errors/0113\n\n',
+                '\n[1] <=> https://electric.sh/docs/errors/0113\n\n',
             ]
 
         elif code('1638'):
@@ -2090,7 +2090,7 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
                 '\n[1638] => Another version of the software is already installed (not through electric) on your PC.',
                 '\n\nHow To Fix:\n',
                 '\nHelp:',
-                '\n[1] <=> https://www.electric.sh/errors/1638\n\n',
+                '\n[1] <=> https://www.electric.sh/docs/errors/1638\n\n',
             ]
 
 
