@@ -3,7 +3,7 @@
         "prefix": "[ Info ]",
         "body": [
             "[ Info ]",
-            "# Go To https://www.electric.sh/docs/configurations For More Information",
+            "# Go To https://www.electric.sh/docs/configurations/create-a-configuration For More Information",
             "Publisher => \"${1}\"",
             "Description => \"${2}\"",
             "\n[ Editor-Configuration ]",

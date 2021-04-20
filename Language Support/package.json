@@ -4,9 +4,9 @@
 	"displayName": "Electric Config Language Support",
 	"description": "Official syntax highlighting and autocompletion support for .electric configuration files.",
 	"repository": {
-		"url": "https://github.com/TheBossProSniper/Electric-Windows"
+		"url": "https://github.com/electric-package-manager/electric"
 	},
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"engines": {
 		"vscode": "^1.51.0"
 	},
