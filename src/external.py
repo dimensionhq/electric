@@ -247,14 +247,16 @@ def handle_vscode_extension(package_name: str, requested_version: str, mode: str
                 else:
                     write(
                         f'Code v{version} :: Installing {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
+   
             if 'is already installed' in line:
+                success = True
                 if metadata.no_color:
                     write(
                         f'Code v{version} :: {package_name} Is Already Installed!', 'white', metadata)
-
                 else:
                     write(
                         f'{Fore.LIGHTGREEN_EX}Code v{version} :: {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.LIGHTYELLOW_EX} Is Already Installed!', 'white', metadata)
+            
             if 'was successfully installed' in line:
                 if metadata.no_color:
                     write(
@@ -264,14 +266,14 @@ def handle_vscode_extension(package_name: str, requested_version: str, mode: str
                     write(
                         f'{Fore.LIGHTGREEN_EX}Code v{version} :: Successfully Installed {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
 
-            if not success:
-                write(
-            f'{Fore.LIGHTGREEN_EX}Code v{version} :: Successfully Installed {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
+        if not success:
+            write(
+        f'{Fore.LIGHTGREEN_EX}Code v{version} :: Successfully Installed {Fore.LIGHTMAGENTA_EX}{package_name}{Fore.RESET}', 'bright_green', metadata)
 
     if mode == 'uninstall':
         add_str = f"@{requested_version}" if requested_version else ""
         command = f'{base_c} --uninstall-extension {package_name}{add_str} --force'
-        print(command)
+
         proc = Popen(mslex.split(command), stdin=PIPE,
                      stdout=PIPE, stderr=PIPE, shell=True)
 

@@ -1,4 +1,4 @@
-from utils import confirm, find_existing_installation, copy_to_clipboard, time, is_admin, get_install_flags
+from utils import confirm, find_existing_installation, copy_to_clipboard, is_admin, get_install_flags
 from tempfile import gettempdir
 from sys import platform
 from subprocess import Popen, PIPE
@@ -11,6 +11,7 @@ import click
 import os
 import sys
 import json as js
+import time
 
 tags = [
     '<pip>',
@@ -753,14 +754,16 @@ class Config:
                     command += ' ' + flag
 
                 for pkg in command.split(','):
-                    os.system(f'electric install {pkg}')
+                    if pkg:
+                        os.system(f'electric install {pkg}')
             else:
                 
                 for package in packages:
-                    if list(package.values())[0] is None or list(package.values())[0] == 'latest':
-                        os.system(f'electric install {list(package.keys())[0]}')
-                    else:  
-                        os.system(f'electric install {list(package.keys())[0]} --version {list(package.values())[0]}')
+                    if package:
+                        if list(package.values())[0] is None or list(package.values())[0] == 'latest':
+                            os.system(f'electric install {list(package.keys())[0]}')
+                        else:  
+                            os.system(f'electric install {list(package.keys())[0]} --version {list(package.values())[0]}')
             
             if python_packages:
                 package_versions = []

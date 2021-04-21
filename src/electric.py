@@ -1,8 +1,3 @@
-######################################################################
-#                      Copyright 2021 XtremeDevX                     #
-#                 SPDX-License-Identifier: Apache-2.0                #
-######################################################################
-
 # TODO: Add Support For VSIXInstaller.exe /q <pathToVSIXFile>
 # TODO: Add Conflict-With Field For Json To Differentiate Between Microsoft Visual Studio Code and Microsoft Visual Studio Code Insiders
 from halo import Halo
@@ -137,7 +132,7 @@ def install(
         ctx.invoke(
             config,
             config_path=package_name,
-            remove=False,
+            uninstall=False,
             verbose=verbose,
             debug=debug,
             no_progress=no_progress,
