@@ -32,6 +32,7 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata:
     if not unzip_dir_name:
         unzip_dir_name = download_dir.replace('.zip', '')
 
+
     if not os.path.isdir(rf'{home}\electric'):
         os.mkdir(rf'{home}\electric')
 
@@ -60,6 +61,8 @@ def unzip_file(download_dir: str, unzip_dir_name: str, file_type: str, metadata:
 
     if file_type == '.tar.gz':
         tar = tarfile.open(download_dir, 'r:gz')
+        tar.extractall(unzip_dir_name)
+        tar.close()
 
     import py7zr
     if file_type == '.7z':

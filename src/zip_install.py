@@ -41,7 +41,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
             verify_checksum(rf'{home}\electric\\' + f'{packet.extract_dir}@{packet.latest_version}{packet.file_type}', packet.checksum, metadata)
 
         unzip_dir = unzip_file(f'{packet.extract_dir}@{packet.latest_version}' +
-                              packet.file_type, extract_dir, packet.file_type, metadata)
+                              packet.file_type, f'{extract_dir}@{packet.latest_version}', packet.file_type, metadata)
 
     elif isinstance(packet.url, list):
         for idx, url in enumerate(packet.url):
