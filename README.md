@@ -131,6 +131,9 @@ Then, restart your powershell and you've setup tab completion!
 
 See also the list of [contributors](https://github.com/electric-package-manager/electric/contributors) who participated in this project.
 
+Special thanks to:
+[@Cybernetic77](https://www.github.com/Cybernetic77) who built the terminal animation you saw above.
+
 ## Built With
 [Python 3](https://www.python.org/)
 
