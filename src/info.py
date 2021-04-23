@@ -7,8 +7,8 @@ __title__ = 'electric'
 __description__ = 'A package manager for Windows, MacOS And Linux!'
 __url__ = 'https://github.com/XtremeDevX/Electric-Windows'
 
-__version__ = '1.0.0a'
-__author__ = 'Electric Inc.'
+__version__ = '1.0.0'
+__author__ = 'XtremeDevX'
 __credits__ = ''
 
 __license__ = """Apache License 2.0
