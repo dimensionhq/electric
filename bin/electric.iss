@@ -3,9 +3,9 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Electric"
-#define MyAppVersion "1.0.0b"
+#define MyAppVersion "1.0.0"
 #define MyAppPublisher "Electric Inc."
-#define MyAppURL "https://www.electric.sh/"
+#define MyAppURL "https://electric.sh/"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
@@ -26,12 +26,12 @@ LicenseFile=C:\Users\xtrem\Desktop\Electric\electric\LICENSE
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 OutputDir=C:\Users\xtrem\Desktop\Electric\electric\bin
-OutputBaseFilename=Electric v1.0.0 Beta Setup
+OutputBaseFilename=Electric v1.0.0 Setup
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 ChangesEnvironment=yes
-UninstallDisplayName=Electric Beta
+UninstallDisplayName=Electric
 LZMAUseSeparateProcess=yes
 LZMANumBlockThreads=6
 ; Add SetupIconFile Property To Change Installer Icons
@@ -117,7 +117,7 @@ Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environmen
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Messages]
-SetupWindowTitle = Electric Beta Setup
+SetupWindowTitle = Electric Setup
 
 [UninstallDelete]
 Type: filesandordirs; Name: "C:\Program Files (x86)\Electric\bin"
