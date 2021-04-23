@@ -1,7 +1,7 @@
 Import-Module BitsTransfer
 
 $ErrorActionPreference = "Stop"
-Start-BitsTransfer 'https://github.com/electric-package-manager/electric/releases/download/1.0.0-beta/Electric.v1.0.0.Beta.Setup.exe' "${Env:\TEMP}\ElectricSetup.exe" -Description 'Downloading Electric Alpha v1.0.0 Setup from https://github.com/electric-package-manager/electric/releases' -DisplayName 'Downloading Electric' -TransferType Download
+Start-BitsTransfer 'https://github.com/electric-package-manager/electric/releases/download/1.0.0/Electric.v1.0.0.Setup.exe' "${Env:\TEMP}\ElectricSetup.exe" -Description 'Downloading Electric Alpha v1.0.0 Setup from https://github.com/electric-package-manager/electric/releases' -DisplayName 'Downloading Electric' -TransferType Download
 
 Write-Host 'Installing Electric' -ForegroundColor cyan
 & "${Env:\TEMP}\ElectricSetup.exe" /VERYSILENT | Out-Null
