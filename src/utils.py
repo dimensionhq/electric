@@ -2137,6 +2137,10 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
     pkg = res
 
     print(f'SuperCached [{Fore.LIGHTCYAN_EX} {res["display-name"]} {Fore.RESET}]')
+    if 'is-portable' in list(pkg.keys()):
+        if pkg['is-portable']:
+            pkg = pkg['portable'
+]
     version = pkg['latest-version']
     if nightly:
         version = 'nightly'
