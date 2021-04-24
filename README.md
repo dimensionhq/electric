@@ -45,7 +45,7 @@ Open your Command Prompt (cmd.exe) or alternatively Powershell (powershell.exe) 
 Run the following command on your powershell window:
 
 ```powershell
-iwr -useb https://xtreme-cdn.herokuapp.com/electric/electricInstall.ps1 | iex
+iwr -useb get.electric.sh | iex
 ```
 <br>
 
