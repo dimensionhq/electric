@@ -9,7 +9,6 @@ Write-Host 'Setting Up Tab Completion, Make Sure You Set Your Execution Policy T
 Write-Host 'You Can Do So Using "Set-ExecutionPolicy RemoteSigned" or "Set-ExecutionPolicy Unrestricted"' -ForegroundColor yellow
 if ([System.IO.File]::Exists('C:\Program Files (x86)\Electric\bin\electric.exe')) {
     Write-Host 'Successfully Installed Electric' -ForegroundColor green
-    exit
 } else {
     Write-Error 'Failed To Successfully Install Electric'
 }
