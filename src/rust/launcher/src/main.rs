@@ -15,10 +15,13 @@ fn main() {
     // electric:packages=notepad++,flags=--portable
     if parse.starts_with("electric:packages=") {
         println!("Installing Packages");
-        
-        parse = parse.replace("electric:packages=", "").replace(",flags=", "");
+
+        parse = parse
+            .replace("electric:packages=", "")
+            .replace(",flags=", "");
         let mut flags: Vec<String> = vec![];
-        let temp: Vec<&str> = parse.split("--").collect::<Vec<&str>>();
+        let mut temp: Vec<&str> = parse.split("--").collect::<Vec<&str>>();
+        temp.remove(0);
 
         for item in temp.iter() {
             flags.push(item.to_string());
@@ -33,7 +36,6 @@ fn main() {
             .spawn()
             .unwrap();
     }
-
     // Install Electric Configuration
     else if parse.starts_with("electric:configuration=") {
         println!("Installing Configuration");
