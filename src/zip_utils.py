@@ -344,7 +344,7 @@ def generate_shim(shim_command: str, shim_name: str, shim_extension: str, overri
 
     with open(rf'{home}\electric\shims\{shim_name if not overridefilename else overridefilename}.bat', 'w+') as f:
         shim_command = shim_command.replace('\\\\', '\\')
-        f.write(f'@echo off\n"{shim_command}.{shim_extension}"')
+        f.write(f'@echo off\n"{shim_command}.{shim_extension}" %*')
 
 
 def find_existing_installation(dir_name: str) -> bool:

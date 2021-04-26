@@ -628,11 +628,11 @@ def generate_shim(shim_command: str, shim_name: str, shim_extension: str, overri
     if shim_extension not in shim_command:
         with open(file_name, 'w+') as f:
             f.write(
-                f'@echo off\n"{shim_command}.{shim_extension}" && (\n    rem\n) || (\n    echo Shim Failed To Launch. This is most likely due to the target executable file being deleted.\n    echo To Remove This Shim Run `powershell.exe -noprofile \"Remove-Item \'{file_name}\'\"`')
+                f'@echo off\n"{shim_command}.{shim_extension}" %* && (\n    rem\n) || (\n    echo Shim Failed To Launch. This is most likely due to the target executable file being deleted.\n    echo To Remove This Shim Run `powershell.exe -noprofile \"Remove-Item \'{file_name}\'\"`')
     else:
         with open(file_name, 'w+') as f:
             f.write(
-                f'@echo off\n"{shim_command}" && (\n    rem\n) || (\n    echo Shim Failed To Launch. This is most likely due to the target executable file being deleted.\n    echo To Remove This Shim Run `powershell.exe -noprofile \"Remove-Item \'{file_name}\'\"`)')
+                f'@echo off\n"{shim_command}" %* && (\n    rem\n) || (\n    echo Shim Failed To Launch. This is most likely due to the target executable file being deleted.\n    echo To Remove This Shim Run `powershell.exe -noprofile \"Remove-Item \'{file_name}\'\"`)')
 
 
 def handle_portable_uninstallation(portable: bool, res: dict, pkg: dict, metadata: Metadata):
