@@ -127,7 +127,10 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                     shim = ''.join(shim.split('.')[:-1])
                     shim_ext = binary.split('.')[-1]
                     shim_dir += ' '.join(binary.split('\\')
-                                        [:-1]).replace(' ', '\\')
+                                      [:-1]).replace(' ', '\\')
+
+                shim = shim.replace('<version>', packet.latest_version)
+                shim_dir = shim_dir.replace('<version>', packet.latest_version)
 
                 start = timer()
                 generate_shim(f'{shim_dir}', shim, shim_ext)
@@ -146,6 +149,10 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                     shim_ext = val.split('.')[-1]
                     shim_dir += ' '.join(val.split('\\')
                                         [:-1]).replace(' ', '\\')
+
+                shim = shim.replace('<version>', packet.latest_version)
+                shim_dir = shim_dir.replace('<version>', packet.latest_version)
+                val = val.replace('<version>', packet.latest_version)
 
                 start = timer()
                 generate_shim(f'{shim_dir}', val.split('\\')[-1].split('.')[0], shim_ext, overridefilename=binary['shim-name'])
