@@ -139,6 +139,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                 shim_dir = unzip_dir
                 shim = ''.join(val.split('.')[:-1])
                 shim_ext = val.split('.')[-1]
+
                 if '\\' in val:
                     shim = ''.join(val.split('\\')[-1])
                     shim = ''.join(shim.split('.')[:-1])
@@ -147,7 +148,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                                         [:-1]).replace(' ', '\\')
 
                 start = timer()
-                generate_shim(f'{shim_dir}', binary['shim-name'], shim_ext)
+                generate_shim(f'{shim_dir}', val.split('\\')[-1].split('.')[0], shim_ext, overridefilename=binary['shim-name'])
                 end = timer()
                 write(
                     f'{Fore.LIGHTCYAN_EX}Successfully Generated {binary["shim-name"]} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)

@@ -534,11 +534,11 @@ def install(
                 elif packet.default_install_dir:
                     replace_install_dir = packet.default_install_dir
 
-                shim = shim.replace('<install-directory>', replace_install_dir)
+                shim = shim.replace('<install-directory>', replace_install_dir).replace('<version>', packet.version)
                 shim_name = shim.split("\\")[-1].split('.')[0]
                 write(f'Generating Shim For {shim_name}', 'cyan', metadata)
 
-            generate_shim(shim, shim_name, shim.split('.')[-1])
+            generate_shim(shim, shim_name.replace('<version>', packet.version), shim.split('.')[-1])
 
         final_snap = get_environment_keys()
 
@@ -1436,8 +1436,8 @@ def uninstall(
                         replace_install_dir = packet.default_install_dir
 
                     shim = shim.replace(
-                        '<install-directory>', replace_install_dir)
-                    shim_name = shim.split("\\")[-1].split('.')[0]
+                        '<install-directory>', replace_install_dir).replace('<version>', packet.version)
+                    shim_name = shim.split("\\")[-1].split('.')[0].replace('<version>', packet.version)
                     write(
                         f'Deleting Shims For {packet.display_name}', 'cyan', metadata)
                     try:
@@ -1503,8 +1503,8 @@ def uninstall(
                         replace_install_dir = packet.default_install_dir
 
                     shim = shim.replace(
-                        '<install-directory>', replace_install_dir)
-                    shim_name = shim.split("\\")[-1].split('.')[0]
+                        '<install-directory>', replace_install_dir).replace('<version>', packet.version)
+                    shim_name = shim.split("\\")[-1].split('.')[0].replace('<version>', packet.version)
                     write(
                         f'Deleting Shims For {packet.display_name}', 'cyan', metadata)
                     try:
