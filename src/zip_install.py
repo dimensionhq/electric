@@ -10,9 +10,11 @@ import sys
 
 home = os.path.expanduser('~')
 
+
 def install_portable(packet: PortablePacket, metadata: Metadata):
     if find_existing_installation(f'{packet.extract_dir}@{packet.latest_version}'):
-        log_info(f'Detected an existing installation of {packet.display_name}', metadata.logfile)
+        log_info(
+            f'Detected an existing installation of {packet.display_name}', metadata.logfile)
         write(
             f'Found Existing Installation Of {packet.display_name}', 'bright_yellow', metadata)
         continue_installation = confirm(
@@ -21,7 +23,8 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
             sys.exit()
 
     if packet.dependencies:
-        log_info(f'Installing dependencies for {packet.display_name}', metadata.logfile)
+        log_info(
+            f'Installing dependencies for {packet.display_name}', metadata.logfile)
         install_dependencies(packet, metadata)
 
     changes_environment = False
@@ -36,12 +39,13 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
     if isinstance(packet.url, str):
         download(packet, packet.url, packet.file_type, rf'{home}\electric\\' + f'{packet.extract_dir}@{packet.latest_version}',
                  metadata, show_progress_bar=show_progress_bar, is_zip=True)
-        
+
         if packet.checksum:
-            verify_checksum(rf'{home}\electric\\' + f'{packet.extract_dir}@{packet.latest_version}{packet.file_type}', packet.checksum, metadata)
+            verify_checksum(
+                rf'{home}\electric\\' + f'{packet.extract_dir}@{packet.latest_version}{packet.file_type}', packet.checksum, metadata)
 
         unzip_dir = unzip_file(f'{packet.extract_dir}@{packet.latest_version}' +
-                              packet.file_type, f'{extract_dir}@{packet.latest_version}', packet.file_type, metadata)
+                               packet.file_type, f'{extract_dir}@{packet.latest_version}', packet.file_type, metadata)
 
     elif isinstance(packet.url, list):
         for idx, url in enumerate(packet.url):
@@ -113,7 +117,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
             exec(code)
 
     if packet.chdir:
-        dir = packet.chdir
+        dir = packet.chdir.replace('<version>', packet.latest_version)
         unzip_dir += f'\\{dir}\\'
 
     if packet.bin and isinstance(packet.bin, list):
@@ -127,7 +131,7 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                     shim = ''.join(shim.split('.')[:-1])
                     shim_ext = binary.split('.')[-1]
                     shim_dir += ' '.join(binary.split('\\')
-                                      [:-1]).replace(' ', '\\')
+                                         [:-1]).replace(' ', '\\')
 
                 shim = shim.replace('<version>', packet.latest_version)
                 shim_dir = shim_dir.replace('<version>', packet.latest_version)
@@ -148,47 +152,51 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                     shim = ''.join(shim.split('.')[:-1])
                     shim_ext = val.split('.')[-1]
                     shim_dir += ' '.join(val.split('\\')
-                                        [:-1]).replace(' ', '\\')
+                                         [:-1]).replace(' ', '\\')
 
                 shim = shim.replace('<version>', packet.latest_version)
                 shim_dir = shim_dir.replace('<version>', packet.latest_version)
                 val = val.replace('<version>', packet.latest_version)
 
                 start = timer()
-                generate_shim(f'{shim_dir}', val.split('\\')[-1].split('.')[0], shim_ext, overridefilename=binary['shim-name'])
+                generate_shim(f'{shim_dir}', val.split(
+                    '\\')[-1].split('.')[0], shim_ext, overridefilename=binary['shim-name'])
                 end = timer()
                 write(
                     f'{Fore.LIGHTCYAN_EX}Successfully Generated {binary["shim-name"]} Shim In {round(end - start, 5)} seconds{Fore.RESET}', 'white', metadata)
-                
 
     if shortcuts:
         for shortcut in shortcuts:
             shortcut_name = shortcut['shortcut-name']
             file_name = shortcut['file-name']
-            log_info(f'Creating shortcuts for {packet.display_name}', metadata.logfile)
+            log_info(
+                f'Creating shortcuts for {packet.display_name}', metadata.logfile)
             create_start_menu_shortcut(unzip_dir, file_name, shortcut_name)
 
     if packet.set_env:
         if isinstance(packet.set_env, list):
             changes_environment = True
             for obj in packet.set_env:
-                log_info(f'Setting environment variables for {packet.display_name}', metadata.logfile)
+                log_info(
+                    f'Setting environment variables for {packet.display_name}', metadata.logfile)
                 write(
                     f'Setting Environment Variable {obj["name"]}', 'bright_green', metadata)
                 set_environment_variable(obj['name'], obj['value'].replace(
                     '<install-directory>', unzip_dir).replace('\\\\', '\\'))
         else:
             changes_environment = True
-            
-            log_info(f'Setting environment variables for {packet.display_name}', metadata.logfile)
+
+            log_info(
+                f'Setting environment variables for {packet.display_name}', metadata.logfile)
             write(
                 f'Setting Environment Variable {packet.set_env["name"]}', 'bright_green', metadata)
-    
+
             set_environment_variable(packet.set_env['name'], packet.set_env['value'].replace(
                 '<install-directory>', unzip_dir).replace('\\\\', '\\'))
 
     if changes_environment:
-        log_info('Detected change in PATH variable. Requesting `refreshenv` to be run', metadata.logfile)
+        log_info(
+            'Detected change in PATH variable. Requesting `refreshenv` to be run', metadata.logfile)
         write(
             f'{Fore.LIGHTGREEN_EX}The PATH environment variable has changed. Run `refreshenv` to refresh your environment variables.{Fore.RESET}', 'white', metadata)
 
@@ -200,7 +208,9 @@ def install_portable(packet: PortablePacket, metadata: Metadata):
                  rf'{home}\electric\extras\{packet.extract_dir}@{packet.latest_version}'))
 
     if packet.install_notes:
-        log_info('Found Installation Notes, Writing To Console.', metadata.logfile)
+        log_info('Found Installation Notes, Writing To Console.',
+                 metadata.logfile)
         display_notes(packet, unzip_dir, metadata)
 
-    write(f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)
+    write(
+        f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)

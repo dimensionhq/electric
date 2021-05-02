@@ -113,7 +113,7 @@ def is_admin() -> bool:
 
 def verify_checksum(path: str, checksum: str, force: bool, metadata: Metadata, newline=False):
     import hashlib
-    
+
     if hashlib.sha256(open(path, 'rb').read()).hexdigest().upper().strip() == checksum.strip():
         if not newline:
             write('Verified Installer Hash', 'bright_green', metadata)
@@ -155,7 +155,7 @@ def generate_dict(path: str, package_name: str) -> dict:
 def download_installer(packet: Packet, download_url: str, metadata: Metadata):
     from urllib.request import urlretrieve
     from limit import TokenBucket, Limiter
-    
+
     if metadata.rate_limit == -1:
         return download(download_url, packet.json_name,
                         metadata, packet.win64_type)
@@ -213,7 +213,8 @@ def check_existing_download(package_name: str, download_type) -> bool:
             filesize = os.stat(data['directory'] + download_type).st_size
         except FileNotFoundError:
             if download_type not in data['directory']:
-                os.rename(data['directory'], f'{data["directory"]}{download_type}')
+                os.rename(data['directory'],
+                          f'{data["directory"]}{download_type}')
             try:
                 filesize = os.stat(data['directory']).st_size
             except FileNotFoundError:
@@ -247,6 +248,7 @@ def get_chunk_size(total_size: str) -> int:
             return 7096
     else:
         print('Incorrect Download URL Provided! Total File Size is: `None`')
+
 
 def check_resume_download(package_name: str, download_url: str, metadata: Metadata) -> tuple:
     """
@@ -314,6 +316,7 @@ def get_init_char(start, metadata) -> str:
                 return ''
             return end_char or ''
     return ''
+
 
 def get_character_color(fill, metadata):
     if fill:
@@ -487,7 +490,7 @@ def install_msix_package(path: str):
 
 def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
     from zip_install import install_portable
- 
+
     if not portable:
         return
     if 'is-portable' not in list(res.keys()):
@@ -544,9 +547,10 @@ def handle_portable_installation(portable: bool, pkg, res, metadata: Metadata):
 def handle_plugin_uninstallation(name: str, metadata: Metadata):
     import yaml
 
-    res = requests.get(f'https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/extensions/{name}/extension.yaml')
+    res = requests.get(
+        f'https://raw.githubusercontent.com/electric-package-manager/electric-packages/master/extensions/{name}/extension.yaml')
     if res.status_code != 200:
-        write(f'{name} is not a valid plugin name!', 'bright_red', metadata)        
+        write(f'{name} is not a valid plugin name!', 'bright_red', metadata)
 
     data = yaml.load(res.text, Loader=yaml.CLoader)
     if data['uninstall']:
@@ -555,15 +559,16 @@ def handle_plugin_uninstallation(name: str, metadata: Metadata):
     write(f'Successfully Uninstalled {name}', 'bright_green', metadata)
     sys.exit()
 
+
 def handle_plugin_installation(name: str, metadata: Metadata):
     import yaml
     import cursor
     cursor.hide()
     home = os.path.expanduser('~')
     url = f'https://github.com/electric-package-manager/electric-packages/raw/master/extensions/{name}.zip'
-    
+
     with open(rf'{home}\electric\{name}.zip', 'wb') as f:
-        # If there is an existing installer, request a download from the url with a specific byte range        
+        # If there is an existing installer, request a download from the url with a specific byte range
         response = requests.get(url, stream=True)
 
         # Total download size
@@ -583,7 +588,7 @@ def handle_plugin_installation(name: str, metadata: Metadata):
             for data in response.iter_content(chunk_size=chunk_size):
                 dl += len(data)
                 f.write(data)
-    
+
     write(f'Successfully Downloaded {name}', 'bright_green', metadata)
 
     import zipfile
@@ -592,26 +597,26 @@ def handle_plugin_installation(name: str, metadata: Metadata):
             zf.extractall(rf'{home}\electric')
         except:
             pass
-    
+
     os.chdir(rf'{home}\electric\{name}')
 
     data = ''
     with open('extension.yaml', 'r') as f:
         data = yaml.load(f, Loader=yaml.CLoader)
-    
+
     for dep in data['dependencies']:
         os.system(f'electric install {dep}')
 
     if 'shell' in list(data.keys()):
         os.system(data['shell'])
 
-    write(f'Successfully Installed {data["name"]} Plugin', 'bright_magenta', metadata)
+    write(
+        f'Successfully Installed {data["name"]} Plugin', 'bright_magenta', metadata)
 
 
 def handle_uninstall_dependencies(packet: Packet, metadata):
     disp = str(packet.dependencies).replace(
         "[", "").replace("]", "").replace("\'", "")
-    disp = packet.dependencies.replace('[', '').replace(']', '')
     write(f'{packet.display_name} has the following dependencies: {disp}',
           'bright_yellow', metadata)
 
@@ -700,7 +705,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
     def grouper(iterable, n, fillvalue=None):
         "Collect data into fixed-length chunks or blocks"
         from itertools import zip_longest
-        
+
         args = [iter(iterable)] * n
         return zip_longest(*args, fillvalue=fillvalue)
 
@@ -712,7 +717,6 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
 
         split_package_names = list(grouper(corrected_package_names, 3))
         # grouper(['sublime-text-3', 'atom', 'vscode', 'notepad++', 'anydesk'], 3) => [['sublime-text-3', 'atom', 'vscode']['notepad++', 'anydesk']]
-
 
         # if there is only 1 set of packages in the 2d array like [['sublime-text-3', 'atom', 'vscode']]
         if len(split_package_names) == 1:
@@ -765,7 +769,8 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     pkg['checksum'] if 'checksum' in list(
                         pkg.keys()) else None,
                     pkg['bin'] if 'bin' in list(pkg.keys()) else None,
-                    pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
+                    pkg['pre-update'] if 'pre-update' in list(
+                        pkg.keys()) else None,
                 )
 
                 handle_existing_installation(
@@ -813,12 +818,14 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                     for package in package_batch:
                         spinner = Halo(color='grey')
                         spinner.start()
-                        log_info('Handling Network Request...', metadata.logfile)
+                        log_info('Handling Network Request...',
+                                 metadata.logfile)
                         write_verbose(
                             'Sending GET Request To /packages/', metadata)
-                        write_debug('Sending GET Request To /packages', metadata)
+                        write_debug(
+                            'Sending GET Request To /packages', metadata)
                         log_info('Sending GET Request To /packages',
-                                metadata.logfile)
+                                 metadata.logfile)
                         res = send_req_package(package)
                         spinner.stop()
 
@@ -834,7 +841,8 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         pkg = pkg[version]
 
                         if os.path.isdir(f'{PathManager.get_appdata_directory()}\Current\{package}@{version}.json'):
-                            write(f'{res["display-name"]} Is Already Installed!', 'yellow', metadata)
+                            write(
+                                f'{res["display-name"]} Is Already Installed!', 'yellow', metadata)
                             sys.exit()
 
                         install_exit_codes = None
@@ -868,7 +876,8 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                             pkg['checksum'] if 'checksum' in list(
                                 pkg.keys()) else None,
                             pkg['bin'] if 'bin' in list(pkg.keys()) else None,
-                            pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
+                            pkg['pre-update'] if 'pre-update' in list(
+                                pkg.keys()) else None,
                         )
 
                         handle_existing_installation(
@@ -888,7 +897,7 @@ def handle_multithreaded_installation(corrected_package_names: list, install_dir
                         write_verbose(
                             'Generating system download path...', metadata)
                         log_info('Generating system download path...',
-                                metadata.logfile)
+                                 metadata.logfile)
 
                     manager = ti.ThreadedInstaller(packets, metadata)
                     paths = manager.handle_multi_download()
@@ -910,7 +919,8 @@ def handle_external_installation(python: bool, node: bool, vscode: bool, sublime
 
         for name in package_names:
             if name:
-                external.handle_python_package(name, version, 'install', metadata)
+                external.handle_python_package(
+                    name, version, 'install', metadata)
 
         sys.exit()
 
@@ -924,7 +934,8 @@ def handle_external_installation(python: bool, node: bool, vscode: bool, sublime
     if vscode:
         package_names = package_name.split(',')
         for name in package_names:
-            external.handle_vscode_extension(name, version, 'install', metadata)
+            external.handle_vscode_extension(
+                name, version, 'install', metadata)
 
         sys.exit()
 
@@ -949,7 +960,8 @@ def handle_external_uninstallation(python: bool, node: bool, vscode: bool, subli
 
         for name in package_names:
             if name:
-                external.handle_python_package(name, None, 'uninstall', metadata)
+                external.handle_python_package(
+                    name, None, 'uninstall', metadata)
 
         sys.exit()
 
@@ -1187,13 +1199,11 @@ def get_error_cause(error: str, install_exit_codes: list, uninstall_exit_codes: 
 
     if 'returned non-zero exit status 1618' in error:
         return get_error_message(
-                '1618', method, packet.display_name, packet.version, metadata, packet.json_name)
-
+            '1618', method, packet.display_name, packet.version, metadata, packet.json_name)
 
     if 'returned non-zero exit status 1638' in error:
         return get_error_message(
-                '1638', method, packet.display_name, packet.version, metadata, packet.json_name)
-
+            '1638', method, packet.display_name, packet.version, metadata, packet.json_name)
 
     if 'exit status 2' in error or 'exit status 1' in error:
         click.echo(click.style(
@@ -1248,7 +1258,8 @@ def run_cmd(command: str, metadata: Metadata, method: str, packet: Packet) -> bo
     Returns:
         bool: Success (Exit Code == 0)
     """
-    command = command.replace('\"\"', '\"').replace('  ', ' ').replace('\\\\', '\\')
+    command = command.replace('\"\"', '\"').replace(
+        '  ', ' ').replace('\\\\', '\\')
     log_info(f'Running command: {command}', metadata.logfile)
     write_debug(f'{command}', metadata)
     try:
@@ -1293,7 +1304,7 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
         metadata (`Metadata`): Metadata for installation
     """
     import keyboard
-    
+
     download_type = packet.win64_type
     custom_install_switch = packet.custom_location
     directory = packet.directory
@@ -1353,7 +1364,6 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
 
         if custom_install_switch and directory != '' and directory != None:
             command = command + ' ' + custom_install_switch + rf'"{directory}"'
-
 
         if not is_admin():
             flags = ''.join(
@@ -1436,7 +1446,6 @@ def send_package_request(package_name: str):
         pass
 
 
-
 def send_req_package(package_name: str) -> dict:
     """
     Send a request for an electric package from the official package registry on github
@@ -1479,7 +1488,7 @@ def send_req_package(package_name: str) -> dict:
             from debugger import Debugger
             Debugger.test_internet()
         sys.exit()
-        
+
     try:
         res = json.loads(response.text)
     except JSONDecodeError as e:
@@ -1554,7 +1563,7 @@ def handle_exit(status: str, setup_name: str, metadata: Metadata):
     """
     if status == 'Installing':
         from signal import SIGTERM
-        
+
         write('\nTrying To Quit Installer',
               'cyan', metadata)
         exe_name = setup_name.split(
@@ -2094,7 +2103,6 @@ def get_error_message(code: str, method: str, display_name: str, version: str, m
             ]
 
 
-
 def handle_unknown_error(err: str, package_name: str, method: str):
     method = method.replace("ation", "")
     print(f"{Fore.RED}An Error Occured While {method.capitalize()}ing {package_name}\n")
@@ -2136,11 +2144,12 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
     from pygments import highlight, lexers, formatters
     pkg = res
 
-    print(f'SuperCached [{Fore.LIGHTCYAN_EX} {res["display-name"]} {Fore.RESET}]')
+    print(
+        f'SuperCached [{Fore.LIGHTCYAN_EX} {res["display-name"]} {Fore.RESET}]')
     if 'is-portable' in list(pkg.keys()):
         if pkg['is-portable']:
             pkg = pkg['portable'
-]
+                      ]
     version = pkg['latest-version']
     if nightly:
         version = 'nightly'
@@ -2154,7 +2163,8 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
 
     formatted_json = json.dumps(pkg, sort_keys=True, indent=4)
 
-    colorful_json = highlight(formatted_json, lexers.JsonLexer(), formatters.TerminalFormatter())
+    colorful_json = highlight(
+        formatted_json, lexers.JsonLexer(), formatters.TerminalFormatter())
     print(colorful_json)
 
     sys.exit()
@@ -2162,7 +2172,7 @@ def display_info(res: dict, nightly: bool = False, version: str = '') -> str:
 
 def update_package_list():
     from datetime import date
-    
+
     with Halo('Updating Electric') as h:
         with open(rf'{PathManager.get_appdata_directory()}\superlog.txt', 'w+') as f:
             f.write(
