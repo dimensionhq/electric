@@ -1489,12 +1489,42 @@ def send_req_package(package_name: str) -> dict:
             Debugger.test_internet()
         sys.exit()
 
-    try:
-        res = json.loads(response.text)
-    except JSONDecodeError as e:
-        print(e)
-        click.echo(click.style(f'{package_name} Not Found.', 'red'))
+    if response.status_code == 200:
+        try:
+            res = json.loads(response.text)
+        except JSONDecodeError as e:
+            print(e)
+            click.echo(click.style(f'{package_name} Not Found.', 'red'))
+            sys.exit()
+    else:
+        click.echo(click.style(
+            f'Failed to request {package_name}.json from raw.githubusercontent.com', 'red'))
+        run_internet_test = confirm(
+            'Would you like to run a network debugger?')
+        if run_internet_test:
+            from time import sleep
+            sys.stdout.write(
+                f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET}  |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+            sleep(0.1)
+            sys.stdout.write(
+                f'\r| {Fore.LIGHTCYAN_EX}|{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+            sleep(0.1)
+            sys.stdout.write(
+                f'\r| {Fore.LIGHTCYAN_EX}/{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+            sleep(0.1)
+            sys.stdout.write(
+                f'\r| {Fore.LIGHTCYAN_EX}-{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+            sleep(0.1)
+            sys.stdout.write(
+                f'\r| {Fore.LIGHTCYAN_EX}\{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+
+            sys.stdout.write(
+                f'\r| {Fore.LIGHTGREEN_EX}OK{Fore.RESET} |{Fore.LIGHTYELLOW_EX} Initializing Network Debugger{Fore.RESET}')
+
+            from debugger import Debugger
+            Debugger.test_internet()
         sys.exit()
+
     return res
 
 
