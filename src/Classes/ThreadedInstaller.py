@@ -50,7 +50,8 @@ class ThreadedInstaller:
 
                     if not self.metadata.no_progress and not self.metadata.silent:
                         complete = int(20 * dl / full_length)
-                        fill_c, unfill_c = '█' * complete, ' ' * (20 - complete)
+                        fill_c, unfill_c = '█' * \
+                            complete, ' ' * (20 - complete)
                         try:
                             sys.stdout.write(
                                 f"\r({fill_c}{unfill_c}) {round(dl / full_length * 100)} % ")
@@ -66,7 +67,6 @@ class ThreadedInstaller:
                 }
         })
         sys.stdout.write('')
-        
 
     def install_package(self, install: Install) -> str:
         path = install.path
@@ -74,7 +74,6 @@ class ThreadedInstaller:
         download_type = install.download_type
         custom_install_switch = install.custom_install_switch
         directory = install.directory
-        
 
         if download_type == '.exe':
             if '.exe' not in path:
@@ -95,18 +94,21 @@ class ThreadedInstaller:
             if custom_install_switch == 'None' and install.directory:
                 click.echo(click.style(
                     f'Installing {install.display_name} To Default Location, Custom Installation Directory Not Supported By This Installer!', fg='bright_yellow'))
-            
-            utils.run_cmd(command, self.metadata, 'installation', install)
+
+            utils.run_cmd(command.replace('<version>', install.version),
+                          self.metadata, 'installation', install)
 
         elif download_type == '.msi':
             command = 'msiexec.exe /i' + path + ' '
             for switch in switches:
                 command = command + ' ' + switch
-            
-            if custom_install_switch and directory != '' and directory != None:
-                command = command + ' ' + custom_install_switch + rf'"{directory}"'
 
-            utils.run_cmd(command, self.metadata, 'installation', install)
+            if custom_install_switch and directory != '' and directory != None:
+                command = command + ' ' + \
+                    custom_install_switch + rf'"{directory}"'
+
+            utils.run_cmd(command.replace('<version>', install.version),
+                          self.metadata, 'installation', install)
 
     def calculate_spwn(self, number: int) -> str:
         if number <= 3:
@@ -114,7 +116,6 @@ class ThreadedInstaller:
         return 'processing'
 
     def handle_dependencies(self):
-        from urllib.request import urlretrieve
         for packet in self.packets:
             if packet.dependencies:
                 ThreadedInstaller.install_dependent_packages(
@@ -122,7 +123,6 @@ class ThreadedInstaller:
 
     def handle_multi_download(self) -> list:
         from threading import Thread
-        
 
         self.handle_dependencies()
         metadata = self.metadata
@@ -162,7 +162,6 @@ class ThreadedInstaller:
                 for item in download_items
             ]
 
-
             for thread in threads:
                 thread.start()
 
@@ -172,7 +171,7 @@ class ThreadedInstaller:
         if method == 'processing':
             from multiprocessing import Process
             processes = [Process(
-                    target=self.download, args=(item,)) for item in download_items]
+                target=self.download, args=(item,)) for item in download_items]
 
             for process in processes:
                 process.start()
@@ -241,7 +240,7 @@ class ThreadedInstaller:
         return install_items
 
     def handle_multi_install(self, paths):
-        
+
         from time import strftime
 
         write_debug('Initialising Rapid Install Procedure...', self.metadata)
@@ -286,7 +285,7 @@ class ThreadedInstaller:
                 os.remove(path)
             write('Successfully Cleaned Up Installer From Temp Directory...',
                   'bright_green', self.metadata)
-        
+
         for packet in self.packets:
             metadata = self.metadata
 
@@ -351,7 +350,7 @@ class ThreadedInstaller:
                         name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
 
             if packet.shim:
-                
+
                 for shim in packet.shim:
                     replace_install_dir = ''
 
@@ -363,12 +362,13 @@ class ThreadedInstaller:
 
                     shim = shim.replace(
                         '<install-directory>', replace_install_dir).replace('<version>', packet.version)
-                    shim_name = shim.split("\\")[-1].split('.')[0].replace('<version>', packet.version)
+                    shim_name = shim.split(
+                        "\\")[-1].split('.')[0].replace('<version>', packet.version)
                     write(
                         f'Generating Shim For {shim_name}', 'cyan', metadata)
                     utils.generate_shim(
                         shim, shim_name, shim.split('.')[-1])
-                
+
             utils.register_package_success(
                 packet, packet.directory, self.metadata)
 
@@ -380,7 +380,7 @@ class ThreadedInstaller:
         write_debug(
             'Refreshing Env Variables, Calling Batch Script', self.metadata)
         write_verbose('Refreshing Environment Variables', self.metadata)
-        
+
         write_debug(
             f'Successfully Refreshed Environment Variables', self.metadata)
         write_verbose('Installation and setup completed.', self.metadata)
@@ -395,7 +395,7 @@ class ThreadedInstaller:
 
     @staticmethod
     def install_dependent_packages(packet: Packet, rate_limit: int, install_directory: str, metadata):
-        
+
         from limit import Limiter, TokenBucket
         from registry import get_environment_keys
 
@@ -457,7 +457,8 @@ class ThreadedInstaller:
                         pkg['checksum'] if 'checksum' in list(
                             pkg.keys()) else None,
                         pkg['bin'] if 'bin' in list(pkg.keys()) else None,
-                        pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
+                        pkg['pre-update'] if 'pre-update' in list(
+                            pkg.keys()) else None,
                     )
 
                     installation = utils.find_existing_installation(
@@ -534,7 +535,8 @@ class ThreadedInstaller:
                         pkg['checksum'] if 'checksum' in list(
                             pkg.keys()) else None,
                         pkg['bin'] if 'bin' in list(pkg.keys()) else None,
-                        pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
+                        pkg['pre-update'] if 'pre-update' in list(
+                            pkg.keys()) else None,
                     )
 
                     log_info(
@@ -615,9 +617,10 @@ class ThreadedInstaller:
                         'Using Rapid Install To Complete Setup, Accept Prompts Asking For Admin Permission...', metadata.logfile)
 
                     write_verbose('Creating registry start snapshot', metadata)
-                    log_info('Creating start snapshot of registry...', metadata.logfile)
+                    log_info('Creating start snapshot of registry...',
+                             metadata.logfile)
                     start_snap = get_environment_keys()
-            
+
                     write_debug(
                         f'Installing {packet.json_name} through Setup{packet.win64_type}', metadata)
                     log_info(
@@ -640,7 +643,8 @@ class ThreadedInstaller:
 
                             shim = shim.replace(
                                 '<install-directory>', replace_install_dir).replace('<version>', packet.version)
-                            shim_name = shim.split("\\")[-1].split('.')[0].replace('<version>', packet.version)
+                            shim_name = shim.split(
+                                "\\")[-1].split('.')[0].replace('<version>', packet.version)
                             write(
                                 f'Generating Shim For {shim_name}', 'cyan', metadata)
                             utils.generate_shim(
@@ -703,13 +707,15 @@ class ThreadedInstaller:
                             set_environment_variable(
                                 name, packet.set_env['value'].replace('<install-directory>', replace_install_dir))
 
-                    write_verbose('Creating Final Snapshot Of Environment Keys', metadata)
+                    write_verbose(
+                        'Creating Final Snapshot Of Environment Keys', metadata)
                     final_snap = get_environment_keys()
                     if final_snap.env_length > start_snap.env_length or final_snap.sys_length > start_snap.sys_length or changes_environment:
                         write('The PATH environment variable has changed. Run `refreshenv` to refresh your environment variables.',
                               'bright_green', metadata)
 
-                    write_verbose('Successfully Verified Installation Of Packages', metadata)
+                    write_verbose(
+                        'Successfully Verified Installation Of Packages', metadata)
 
                     write(
                         f'Successfully Installed {packet.display_name}', 'bright_magenta', metadata)

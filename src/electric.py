@@ -21,6 +21,7 @@ from utils import *
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', '-?'])
 
+
 @click.group(cls=SuperChargeCLI)
 @click.version_option(__version__)
 @click.pass_context
@@ -127,7 +128,6 @@ def install(
         print(f'{Fore.LIGHTRED_EX}A Package Name Must Be Supplied\nUsage: electric install <package-name>\n\nExamples:\nelectric install {Fore.LIGHTGREEN_EX}sublime-text-3{Fore.RESET}\n{Fore.LIGHTRED_EX}electric install {Fore.LIGHTGREEN_EX}sublime-text-3,notepad++{Fore.RESET}')
         sys.exit()
 
-    
     if configuration:
         ctx.invoke(
             config,
@@ -157,7 +157,7 @@ def install(
 
     metadata = generate_metadata(
         no_progress, silent, verbose, debug, no_color, yes, logfile, virus_check, reduce, rate_limit, Setting.new(), sync)
-    
+
     if update:
         write('Updating Electric', 'bright_green', metadata)
         update_package_list()
@@ -166,7 +166,6 @@ def install(
         handle_plugin_installation(package_name, metadata)
         sys.exit()
 
-    
     log_info('Successfully generated metadata.', metadata.logfile)
 
     handle_external_installation(
@@ -446,10 +445,10 @@ def install(
         if f'{packet.win64_type}{packet.win64_type}' in configs['path']:
             configs['path'] = configs['path'].replace(
                 f'{packet.win64_type}{packet.win64_type}', f'{packet.win64_type}')
-        
 
         if packet.checksum and metadata.settings.checksum:
-            verify_checksum(configs['path'], packet.checksum, force, metadata, newline = rate_limit != -1)
+            verify_checksum(configs['path'], packet.checksum,
+                            force, metadata, newline=rate_limit != -1)
 
         if virus_check or metadata.settings.virus_check:
             log_info('Running requested virus scanning', metadata.logfile)
@@ -524,7 +523,7 @@ def install(
 
         if packet.shim:
             changes_environment = True
-            
+
             for shim in packet.shim:
                 replace_install_dir = ''
 
@@ -534,11 +533,13 @@ def install(
                 elif packet.default_install_dir:
                     replace_install_dir = packet.default_install_dir
 
-                shim = shim.replace('<install-directory>', replace_install_dir).replace('<version>', packet.version)
+                shim = shim.replace(
+                    '<install-directory>', replace_install_dir).replace('<version>', packet.version)
                 shim_name = shim.split("\\")[-1].split('.')[0]
                 write(f'Generating Shim For {shim_name}', 'cyan', metadata)
 
-            generate_shim(shim, shim_name.replace('<version>', packet.version), shim.split('.')[-1])
+            generate_shim(shim, shim_name.replace(
+                '<version>', packet.version), shim.split('.')[-1])
 
         final_snap = get_environment_keys()
 
@@ -607,7 +608,6 @@ def install(
             write('The PATH environment variable has changed. Run `refreshenv` to refresh your environment variables.',
                   'bright_green', metadata)
 
-
         if metadata.reduce_package:
             write_verbose(
                 f'Deleting installer files at {tempfile.gettempdir()}', metadata)
@@ -628,7 +628,6 @@ def install(
                 'Successfully Cleaned Up Installer From Temporary Directory And DownloadCache', metadata.logfile)
             write('Successfully Cleaned Up Installer From Temp Directory',
                   'bright_green', metadata)
-
 
         if not packet.run_test:
             write_verbose(f'Running tests for {packet.display_name}', metadata)
@@ -703,7 +702,6 @@ def install(
                         f'Failed To Install {packet.display_name}', 'bright_red', metadata)
                 sys.exit()
 
-        
         version = ''
         display_support(metadata)
         write_verbose(
@@ -752,7 +750,7 @@ def up(
     Updates an existing package
     """
     from zip_update import update_portable
-    
+
     update_package_list()
     if package_name == 'electric' or package_name == 'self':
         sys.exit()
@@ -834,7 +832,6 @@ def up(
             packet = PortablePacket(data)
             update_portable(ctx, packet, metadata)
 
-
         pkg = res
         pkg = pkg[pkg['latest-version']]
 
@@ -863,12 +860,11 @@ def up(
             pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
         )
 
-        
         log_info('Generating Packet For Further Installation.', metadata.logfile)
         installed_packages_dict = [{f.split('@')[0]: f.split('@')[1]} for f in os.listdir(
             PathManager.get_appdata_directory() + r'\Current')]
         installed_packages = []
-        
+
         for f in os.listdir(PathManager.get_appdata_directory() + r'\Current'):
             installed_packages.append(f.split('@')[0])
 
@@ -900,7 +896,6 @@ def up(
                         sys.exit()
                 else:
                     continue_update = True
-
 
                 if packet.pre_update:
                     if isinstance(packet.pre_update, list):
@@ -950,7 +945,7 @@ def up(
                                     code += add
 
                                 exec(code)
-                
+
                 if continue_update:
                     ctx.invoke(
                         uninstall,
@@ -1037,7 +1032,7 @@ def uninstall(
     """
     Uninstall a package or a list of packages.
     """
-    
+
     from timeit import default_timer as timer
 
     if not manifest and package_name == 'test':
@@ -1068,9 +1063,9 @@ def uninstall(
         logfile = logfile.replace('.txt', '.log')
         from logging import INFO
         create_config(logfile, INFO, 'Install')
-    
+
     log_info('Generating metadata...', logfile)
-    
+
     metadata = generate_metadata(
         None, silent, verbose, debug, no_color, yes, logfile, None, None, None, Setting.new(), None)
 
@@ -1081,10 +1076,11 @@ def uninstall(
 
     log_info('Checking if supercache exists...', metadata.logfile)
 
-    handle_external_uninstallation(python, node, vscode, False, atom, package_name, metadata)
+    handle_external_uninstallation(
+        python, node, vscode, False, atom, package_name, metadata)
 
     log_info('Setting up custom `ctrl+c` shortcut.', metadata.logfile)
-    
+
     status = 'Initializing'
     setup_name = ''
     add_hotkey(
@@ -1141,7 +1137,8 @@ def uninstall(
             write(
                 f'SuperCached [ {Fore.LIGHTCYAN_EX}{res["display-name"]}{Fore.RESET} ]', 'bright_white', metadata)
         else:
-            write(f'SuperCached [ {res["display-name"]} ]', 'bright_white', metadata)
+            write(f'SuperCached [ {res["display-name"]} ]',
+                  'bright_white', metadata)
 
         if 'is-portable' in list(res.keys()):
             if res['is-portable'] == True:
@@ -1152,7 +1149,7 @@ def uninstall(
         else:
             version = res['latest-version']
         pkg = res[version]
-        
+
         if 'uninstall-override-command' in list(pkg.keys()):
             for operation in pkg['uninstall-override-command']:
                 if 'admin' in list(operation.keys()):
@@ -1267,7 +1264,6 @@ def uninstall(
             pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
         )
 
-
         proc = None
         ftp = ['.msix', '.msixbundle', '.appxbundle', '.appx']
 
@@ -1297,7 +1293,6 @@ def uninstall(
         start = timer()
         key = get_uninstall_key(packet.json_name, packet.display_name)
         end = timer()
-
 
         if not key:
             log_info(
@@ -1334,9 +1329,9 @@ def uninstall(
                 pkg['add-path'] if 'add-path' in list(pkg.keys()) else None,
                 pkg['checksum'] if 'checksum' in list(pkg.keys()) else None,
                 pkg['bin'] if 'bin' in list(pkg.keys()) else None,
-                pkg['pre-update'] if 'pre-update' in list(pkg.keys()) else None,
+                pkg['pre-update'] if 'pre-update' in list(
+                    pkg.keys()) else None,
             )
-
 
             write(
                 f'Could not find any existing installations of {packet.display_name}', 'bright_red', metadata)
@@ -1390,7 +1385,7 @@ def uninstall(
                     command = command.split('--')[0:1][0].strip()
                 if '/' in command:
                     command = command.split('/')[0:1][0].strip()
-            
+
             additional_switches = None
             if packet.uninstall_switches:
                 if packet.uninstall_switches != []:
@@ -1410,7 +1405,8 @@ def uninstall(
             log_info(
                 f'Executing the quiet uninstall command => {command}', metadata.logfile)
             write_debug('Running silent uninstallation command', metadata)
-            run_test = run_cmd(command, metadata, 'uninstallation', packet)
+            run_test = run_cmd(command.replace(
+                '<version>', packet.version), metadata, 'uninstallation', packet)
 
             if not packet.run_test:
                 packet.run_test = run_test
@@ -1419,7 +1415,7 @@ def uninstall(
                 if isinstance(packet.set_env, list):
                     for obj in packet.set_env:
                         delete_environment_variable(obj['name'])
-                
+
                 else:
                     delete_environment_variable(packet.set_env['name'])
 
@@ -1437,7 +1433,8 @@ def uninstall(
 
                     shim = shim.replace(
                         '<install-directory>', replace_install_dir).replace('<version>', packet.version)
-                    shim_name = shim.split("\\")[-1].split('.')[0].replace('<version>', packet.version)
+                    shim_name = shim.split(
+                        "\\")[-1].split('.')[0].replace('<version>', packet.version)
                     write(
                         f'Deleting Shims For {packet.display_name}', 'cyan', metadata)
                     try:
@@ -1445,7 +1442,6 @@ def uninstall(
                             f'{home}\\electric\\shims\\{shim_name.split(".")[0]}.bat')
                     except:
                         pass
-
 
             write_verbose('Uninstallation completed.', metadata)
             log_info('Uninstallation completed.', metadata.logfile)
@@ -1467,13 +1463,14 @@ def uninstall(
 
             if not 'msiexec.exe' in command.lower():
                 for switch in packet.uninstall_switches:
-                    command += f' {switch}'
+                    command += f' {switch.replace("<version>", packet.version)}'
 
             # Run The UninstallString
             write_verbose('Executing the Uninstall Command', metadata)
             log_info('Executing the silent Uninstall Command', metadata.logfile)
 
-            run_test = run_cmd(command, metadata, 'uninstallation', packet)
+            run_test = run_cmd(command.replace(
+                '<version>', packet.version), metadata, 'uninstallation', packet)
 
             if not packet.run_test:
                 packet.run_test = run_test
@@ -1486,7 +1483,7 @@ def uninstall(
                 if isinstance(packet.set_env, list):
                     for obj in packet.set_env:
                         delete_environment_variable(obj['name'])
-                
+
                 else:
                     delete_environment_variable(packet.set_env['name'])
 
@@ -1504,7 +1501,8 @@ def uninstall(
 
                     shim = shim.replace(
                         '<install-directory>', replace_install_dir).replace('<version>', packet.version)
-                    shim_name = shim.split("\\")[-1].split('.')[0].replace('<version>', packet.version)
+                    shim_name = shim.split(
+                        "\\")[-1].split('.')[0].replace('<version>', packet.version)
                     write(
                         f'Deleting Shims For {packet.display_name}', 'cyan', metadata)
                     try:
@@ -1512,7 +1510,6 @@ def uninstall(
                             f'{home}\\electric\\shims\\{shim_name.split(".")[0]}.bat')
                     except:
                         pass
-
 
         if packet.uninstall:
             for pkg in packet.uninstall:
@@ -1553,7 +1550,8 @@ def uninstall(
                     except:
                         pass
                 if not metadata.no_color:
-                    write(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check', 'bright_white', metadata)
+                    write(
+                        f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check', 'bright_white', metadata)
                 else:
                     write(f'[ OK ] Registry Check', 'bright_white', metadata)
 
@@ -1578,14 +1576,15 @@ def uninstall(
                     log_info(
                         f'Successfully Uninstalled {packet.display_name}', metadata.logfile)
                     write_debug(
-                f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
+                        f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata)
                     log_info(
                         f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
                     close_log(metadata.logfile, 'Uninstall')
                 else:
                     write(
                         f'Failed To Uninstall {packet.display_name}', 'bright_magenta', metadata)
-                    log_error(f'Failed To Uninstall {packet.display_name}', metadata.logfile)
+                    log_error(
+                        f'Failed To Uninstall {packet.display_name}', metadata.logfile)
         else:
             if nightly:
                 packet.version = 'nightly'
@@ -1597,12 +1596,12 @@ def uninstall(
                         rf'{PathManager.get_appdata_directory()}\Current\{package}@{packet.version}.json')
                 except FileNotFoundError:
                     pass
-            
+
             if not metadata.no_color:
                 write(f'[ {Fore.LIGHTGREEN_EX}OK{Fore.RESET} ] Registry Check',
-                    'bright_white', metadata)
+                      'bright_white', metadata)
             else:
-                write(f'[ OK ] Registry Check', 'bright_white', metadata)   
+                write(f'[ OK ] Registry Check', 'bright_white', metadata)
 
             write(
                 f'Successfully Uninstalled {packet.display_name}', 'bright_magenta', metadata)
@@ -1613,7 +1612,6 @@ def uninstall(
             log_info(
                 f'Terminated debugger at {strftime("%H:%M:%S")} on uninstall::completion', metadata.logfile)
             close_log(metadata.logfile, 'Uninstall')
-
 
 
 @cli.command(aliases=['clean', 'clear'], context_settings=CONTEXT_SETTINGS)
@@ -2049,11 +2047,11 @@ def generate(
         if include_editor:
             editor = prompt('Enter The Development Text Editor You Use => ',
                             completer=editor_completion, complete_while_typing=True)
-    
+
     if editor not in ['Visual Studio Code', 'Visual Studio Code Insiders', 'Sublime Text 3', 'Atom']:
         print(f'{editor} is not a valid editor')
         sys.exit()
-    
+
     include_python = None
     try:
         proc = Popen('pip --version', stdin=PIPE,
@@ -2123,7 +2121,7 @@ def ls(_, installed: bool, versions: bool):
     else:
         installed_software = send_query(winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY) + send_query(
             winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY) + send_query(winreg.HKEY_CURRENT_USER, 0)
-        
+
         max_length = 80
         names = [software['DisplayName'] for software in installed_software]
 
@@ -2160,7 +2158,7 @@ def show(package_name: str, nightly: bool):
 def settings():
     from settings import initialize_settings, open_settings
     from cursor import hide, show
-   
+
     if not os.path.isfile(rf'{PathManager.get_appdata_directory()}\\settings.json'):
         click.echo(click.style(
             f'Creating settings.json at {Fore.LIGHTCYAN_EX}{PathManager.get_appdata_directory()}{Fore.RESET}', fg='bright_green'))
@@ -2280,93 +2278,103 @@ Command: electric feature [enable|disable] electric-progress-bar
             print(message)
 
         if feature in ['support-message', 'checksum', 'virus-check', 'install-metrics', 'progress-bar', 'electric-progress-bar']:
-            
+
             if feature == 'support-message' and method == 'disable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['supportMessage'] = False
                 with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
-                print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Support Message{Fore.RESET}')
+                print(
+                    f'{Fore.LIGHTGREEN_EX}Successfully Disabled Support Message{Fore.RESET}')
 
             elif feature == 'support-message' and method == 'enable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['supportMessage'] = True
                 with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
-                print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Support Message{Fore.RESET}')
+                print(
+                    f'{Fore.LIGHTGREEN_EX}Successfully Enabled Support Message{Fore.RESET}')
 
             if feature == 'checksum' and method == 'enable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['checksumInstallers'] = True
                 with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
-                print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Installer Checksum Verification{Fore.RESET}')
-            
+                print(
+                    f'{Fore.LIGHTGREEN_EX}Successfully Enabled Installer Checksum Verification{Fore.RESET}')
+
             if feature == 'checksum' and method == 'disable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['checksumInstallers'] = False
                 with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
-                print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Installer Checksum Verification{Fore.RESET}')
-            
-            
+                print(
+                    f'{Fore.LIGHTGREEN_EX}Successfully Disabled Installer Checksum Verification{Fore.RESET}')
+
             if feature == 'virus-check' and method == 'enable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['virusCheck'] = True
                 with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
-                print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Runtime Malware Protection{Fore.RESET}')
-            
+                print(
+                    f'{Fore.LIGHTGREEN_EX}Successfully Enabled Runtime Malware Protection{Fore.RESET}')
+
             if feature == 'virus-check' and method == 'disable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['virusCheck'] = False
                 with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
-                print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Runtime Malware Protection{Fore.RESET}')
-            
+                print(
+                    f'{Fore.LIGHTGREEN_EX}Successfully Disabled Runtime Malware Protection{Fore.RESET}')
+
             if feature == 'install-metrics' and method == 'enable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['installMetrics'] = True
                 with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
-                print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Install Metrics{Fore.RESET}')
-            
+                print(
+                    f'{Fore.LIGHTGREEN_EX}Successfully Enabled Install Metrics{Fore.RESET}')
+
             if feature == 'install-metrics' and method == 'disable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['installMetrics'] = False
                 with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
-                print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Install Metrics{Fore.RESET}')
-            
+                print(
+                    f'{Fore.LIGHTGREEN_EX}Successfully Disabled Install Metrics{Fore.RESET}')
+
             if feature == 'progress-bar' and method == 'enable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['showProgressBar'] = True
                 with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
-                print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Progress Bar{Fore.RESET}')
-            
+                print(
+                    f'{Fore.LIGHTGREEN_EX}Successfully Enabled Progress Bar{Fore.RESET}')
+
             if feature == 'progress-bar' and method == 'disable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['showProgressBar'] = False
                 with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
-                print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Progress Bar{Fore.RESET}')
-           
+                print(
+                    f'{Fore.LIGHTGREEN_EX}Successfully Disabled Progress Bar{Fore.RESET}')
+
             if feature == 'electric-progress-bar' and method == 'enable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['electrifyProgressBar'] = True
                 with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
-                print(f'{Fore.LIGHTGREEN_EX}Successfully Enabled Electric Progress Bar{Fore.RESET}')
-            
+                print(
+                    f'{Fore.LIGHTGREEN_EX}Successfully Enabled Electric Progress Bar{Fore.RESET}')
+
             if feature == 'electric-progress-bar' and method == 'disable':
                 current_settings = Setting.new()
                 current_settings.raw_dictionary['electrifyProgressBar'] = False
                 with open(rf'{PathManager.get_appdata_directory()}\settings.json', 'w+') as f:
                     f.write(json.dumps(current_settings.raw_dictionary, indent=4))
-                print(f'{Fore.LIGHTGREEN_EX}Successfully Disabled Electric Progress Bar{Fore.RESET}')
-           
-            
+                print(
+                    f'{Fore.LIGHTGREEN_EX}Successfully Disabled Electric Progress Bar{Fore.RESET}')
+
     else:
         print(f'{Fore.LIGHTRED_EX}Method Must Be Specified As `enable` or `disable`')
     pass

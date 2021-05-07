@@ -1332,18 +1332,25 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
                 idx = 0
                 for switch in switches:
                     if idx == 0:
-                        command = command + switch
+                        command = command + \
+                            switch.replace('<version>', packet.version)
                         continue
-                    command = command + ' ' + switch
+                    command = command + ' ' + \
+                        switch.replace('<version>', packet.version)
                     idx += 1
 
-                command += ' ' + custom_install_switch + f'{directory}'
+                command += ' ' + \
+                    custom_install_switch.replace(
+                        '<version>', packet.version) + f'{directory}'
 
             else:
                 for switch in switches:
-                    command += ' ' + switch
+                    command += ' ' + \
+                        switch.replace('<version>', packet.version)
 
-                command += ' ' + custom_install_switch + f'"{directory}"'
+                command += ' ' + \
+                    custom_install_switch.replace(
+                        '<version>', packet.version) + f'"{directory}"'
 
             if custom_install_switch == 'None':
                 write(
@@ -1351,16 +1358,20 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
 
         if not directory:
             for switch in switches:
-                command = command + ' ' + switch
+                command = command + ' ' + \
+                    switch.replace('<version>', packet.version)
 
-        run_test = run_cmd(command, metadata, 'installation', packet)
+        run_test = run_cmd(command.replace(
+            '<version>', packet.version), metadata, 'installation', packet)
+
         if not packet.run_test:
             packet.run_test = run_test
 
     elif download_type == '.msi':
         command = 'msiexec.exe /i ' + path + ' '
         for switch in switches:
-            command = command + ' ' + switch
+            command = command + ' ' + \
+                switch.replace('<version>', packet.version)
 
         if custom_install_switch and directory != '' and directory != None:
             command = command + ' ' + custom_install_switch + rf'"{directory}"'
@@ -1376,7 +1387,8 @@ def install_package(path, packet: Packet, metadata: Metadata) -> str:
             os.system(
                 rf'"{PathManager.get_current_directory()}\scripts\elevate-installation.cmd" {packet.json_name} {flags}')
             sys.exit()
-        run_test = run_cmd(command, metadata, 'installation', packet)
+        run_test = run_cmd(command.replace(
+            '<version>', packet.version), metadata, 'installation', packet)
         if not packet.run_test:
             packet.run_test = run_test
 
