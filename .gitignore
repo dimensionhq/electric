@@ -29,3 +29,4 @@ src/rust/installer/target
 src/rust/uninstaller/target
 bin/Electric v1.0.0 Alpha Setup.exe
 bin/Electric v1.0.0 Beta Setup.exe
+src/rust/eget/target

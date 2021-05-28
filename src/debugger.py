@@ -10,7 +10,7 @@ class Debugger:
     def ping_github():
         try:
             res = requests.get(
-                'https://raw.githubusercontent.com/XtremeDevX/electric-packages/master/package-list.json')
+                'http://electric-env.eba-3rmfcidi.us-east-1.elasticbeanstalk.com/package/package-list')
         except:
             res = requests.Response()
             res.status_code = 404
