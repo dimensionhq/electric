@@ -289,7 +289,7 @@ def send_req_bundle(bundle_name: str) -> dict:
     Returns:
         dict: The json response from the network request
     """
-    REQA = 'http://electric-env.eba-9m7janw8.us-east-1.elasticbeanstalk.com/bundles/'
+    REQA = 'http://electric-package-manager.herokuapp.com/bundles/'
 
     response = requests.get(REQA + bundle_name + '.json', timeout=15)
     if response.status_code != 200:
@@ -1468,7 +1468,7 @@ def send_req_package(package_name: str) -> dict:
     """
     from json.decoder import JSONDecodeError
 
-    REQA = 'http://electric-env.eba-9m7janw8.us-east-1.elasticbeanstalk.com/package/'
+    REQA = 'http://electric-package-manager.herokuapp.com/package/'
 
     try:
         response = requests.get(REQA + package_name + '.json', timeout=5)
@@ -2221,7 +2221,7 @@ def update_package_list():
                 f'{date.today().year} {date.today().month} {date.today().day}')
         try:
             res = requests.get(
-                'http://electric-env.eba-9m7janw8.us-east-1.elasticbeanstalk.com/package/package-list', timeout=5)
+                'http://electric-package-manager.herokuapp.com/package/package-list', timeout=5)
         except requests.exceptions.ConnectionError:
             h.fail()
             click.echo(click.style(
@@ -2263,7 +2263,7 @@ def get_correct_package_names(all=False) -> list:
             packages = dictionary['packages']
     else:
         req = requests.get(
-            'http://electric-env.eba-9m7janw8.us-east-1.elasticbeanstalk.com/package/package-list')
+            'http://electric-package-manager.herokuapp.com/package/package-list')
         res = json.loads(req.text)
         packages = res['packages']
 

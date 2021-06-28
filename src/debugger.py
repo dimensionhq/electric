@@ -10,7 +10,7 @@ class Debugger:
     def ping_github():
         try:
             res = requests.get(
-                'http://electric-env.eba-9m7janw8.us-east-1.elasticbeanstalk.com/package/package-list')
+                'http://electric-package-manager.herokuapp.com/package/package-list')
         except:
             res = requests.Response()
             res.status_code = 404
