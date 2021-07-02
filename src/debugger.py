@@ -10,8 +10,8 @@ class Debugger:
     def ping_github():
         try:
             res = requests.get(
-                'http://electric-package-manager.herokuapp.com/package/package-list')
-        except:
+                'http://electric-package-manager-api.herokuapp.com/package-list')
+        except err:
             res = requests.Response()
             res.status_code = 404
         return res.status_code == 200
@@ -47,13 +47,12 @@ class Debugger:
 
             if res.status_code == 200:
                 status_arr.append(True)
-                if not Debugger.ping_github():
+                if Debugger.ping_github() == False:
                     run_test_2 = True
             else:
                 status_arr.append(False)
 
             sys.stdout.write('\n')
-
         if True in status_arr and False in status_arr:
             true_count = 0
             false_count = 0
@@ -68,7 +67,6 @@ class Debugger:
             print(f'Report:')
             print(f'Your internet connection is {Fore.LIGHTRED_EX}unstable{Fore.RESET}. {Fore.LIGHTGREEN_EX}{true_count}{Fore.RESET} of {Fore.LIGHTYELLOW_EX}5{Fore.RESET} the pings worked while others didn\'t. Try moving to an area with {Fore.LIGHTGREEN_EX}better internet{Fore.RESET} coverage.\nStill not working? Check the google server status: {Fore.LIGHTCYAN_EX}https://downdetector.in/status/google/{Fore.RESET}\n')
             sys.exit()
-
         elif run_test_2:
             print(
                 f' {Fore.LIGHTGREEN_EX}0{Fore.RESET}{Fore.LIGHTRED_EX} of {Fore.RESET}{Fore.LIGHTYELLOW_EX}5{Fore.RESET}{Fore.LIGHTRED_EX} pings successfully went through.{Fore.RESET} Failed to debug error. Your internet connection is unstable.')
@@ -100,6 +98,6 @@ class Debugger:
                     print(
                         f'You might not have {Fore.LIGHTCYAN_EX}plugged in{Fore.RESET} any ethernet cable to connect to. No external network connections have been {Fore.LIGHTYELLOW_EX}detected{Fore.RESET} as they are {Fore.LIGHTRED_EX}disconnected{Fore.RESET}.\nPlease make sure you {Fore.LIGHTGREEN_EX}connect{Fore.RESET} the ethernet cable {Fore.LIGHTMAGENTA_EX}try the command again.{Fore.RESET}')
 
-        elif True in status_arr:
+        elif status_arr == [True, True, True, True, True]:
             print(
                 f'{Fore.LIGHTGREEN_EX}No Internet Issues Found. Retry The Command!{Fore.RESET}')

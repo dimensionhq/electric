@@ -289,7 +289,7 @@ def send_req_bundle(bundle_name: str) -> dict:
     Returns:
         dict: The json response from the network request
     """
-    REQA = 'http://electric-package-manager.herokuapp.com/bundles/'
+    REQA = 'http://electric-package-manager-api.herokuapp.com/bundles/'
 
     response = requests.get(REQA + bundle_name + '.json', timeout=15)
     if response.status_code != 200:
@@ -1468,10 +1468,10 @@ def send_req_package(package_name: str) -> dict:
     """
     from json.decoder import JSONDecodeError
 
-    REQA = 'http://electric-package-manager.herokuapp.com/package/'
+    REQA = 'http://electric-package-manager-api.herokuapp.com/package/'
 
     try:
-        response = requests.get(REQA + package_name + '.json', timeout=5)
+        response = requests.get(REQA + package_name, timeout=5)
     except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout):
         click.echo(click.style(
             f'Failed to request {package_name}.json from server', 'red'))
@@ -1846,7 +1846,7 @@ def check_for_updates():
     """
     import ctypes
     res = requests.get(
-        'https://electric-package-manager.herokuapp.com/version/windows', timeout=10)
+        'https://electric-package-manager-api.herokuapp.com/version/windows', timeout=10)
     js = res.json()
     version_dict = json.loads(js)
 
@@ -1857,7 +1857,7 @@ def check_for_updates():
             if confirm('A new update for electric is available, would you like to proceed with the update?'):
                 click.echo(click.style(
                     'Updating Electric..', fg='bright_green'))
-                UPDATEA = 'https://electric-package-manager.herokuapp.com/update/windows'
+                UPDATEA = 'https://electric-package-manager-api.herokuapp.com/update/windows'
 
                 def is_admin():
                     try:
@@ -1962,7 +1962,7 @@ def disp_error_msg(messages: list, metadata: Metadata):
             if sending_ticket:
                 with Halo('', spinner='bounce') as h:
                     res = requests.post(
-                        'https://electric-package-manager.herokuapp.com/windows/support-ticket/', json={'Logs': get_recent_logs()})
+                        'https://electric-package-manager-api.herokuapp.com/windows/support-ticket/', json={'Logs': get_recent_logs()})
                     if res.status_code == 200:
                         h.stop()
                         click.echo(click.style(
@@ -2221,7 +2221,7 @@ def update_package_list():
                 f'{date.today().year} {date.today().month} {date.today().day}')
         try:
             res = requests.get(
-                'http://electric-package-manager.herokuapp.com/package/package-list', timeout=5)
+                'http://electric-package-manager-api.herokuapp.com/package-list', timeout=5)
         except requests.exceptions.ConnectionError:
             h.fail()
             click.echo(click.style(
@@ -2263,7 +2263,7 @@ def get_correct_package_names(all=False) -> list:
             packages = dictionary['packages']
     else:
         req = requests.get(
-            'http://electric-package-manager.herokuapp.com/package/package-list')
+            'http://electric-package-manager-api.herokuapp.com/package/package-list')
         res = json.loads(req.text)
         packages = res['packages']
 
@@ -2334,7 +2334,7 @@ def get_autocorrections(package_names: list, corrected_package_names: list, meta
                         handle_exit('ERROR', None, metadata)
             else:
                 req = requests.get(
-                    'https://electric-package-manager.herokuapp.com/setup/name-list')
+                    'https://electric-package-manager-api.herokuapp.com/setup/name-list')
                 res = json.loads(req.text)
                 if name not in res['packages']:
                     write_all(
