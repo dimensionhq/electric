@@ -32,7 +32,7 @@ def update_portable(ctx, packet: PortablePacket, metadata: Metadata):
             write(f'{packet.display_name} Will Be Updated From ({current_version}) => ({packet.latest_version})', 'green', metadata)
             write('Requesting Currently Installed Version', 'yellow', metadata)
 
-        REQA = 'http://electric-env.eba-9m7janw8.us-east-1.elasticbeanstalk.com/package/'
+        REQA = 'http://electric-package-manager-api.herokuapp.com/package/'
 
         try:
             response = requests.get(

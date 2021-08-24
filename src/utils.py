@@ -2263,7 +2263,7 @@ def get_correct_package_names(all=False) -> list:
             packages = dictionary['packages']
     else:
         req = requests.get(
-            'http://electric-package-manager-api.herokuapp.com/package/package-list')
+            'http://electric-package-manager-api.herokuapp.com/package-list')
         res = json.loads(req.text)
         packages = res['packages']
 
