@@ -7,11 +7,6 @@
 <h4 align="center">A futuristic, powerful and fast package manager for Windows.</h1>
 <br>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/version-1.0.0--beta-green"> <img src="https://img.shields.io/github/license/electric-package-manager/electric?color=pink"> <img src="https://img.shields.io/tokei/lines/github/electric-package-manager/electric?color=white&label=lines%20of%20code"> <img src="https://img.shields.io/github/languages/top/electric-package-manager/electric?color=%230xfffff"> <img src="https://img.shields.io/github/repo-size/electric-package-manager/electric?color=orange">
-</p>
-<br>
-
 ![Installing 7-Zip Through Electric](https://github.com/electric-package-manager/electric/blob/master/assets/install-animation.gif?raw=true)
 
 Highly optimized for **speed** and **usability**, Electric is anywhere from 200% to 1500% faster than other market competitors for downloading Applications and Packages, and has incredible speeds for concurrent / parallel downloading.
@@ -127,7 +122,7 @@ Register-ArgumentCompleter -Native -CommandName electric -ScriptBlock {
 Then, restart your powershell and you've setup tab completion!
 
 ## Authors
-[XtremeDevX](https://www.github.com/XtremeDevX) - Founder And Developer Of Electric
+[Tejas](https://www.github.com/suptejas) - Founder And Developer Of Electric
 
 See also the list of [contributors](https://github.com/electric-package-manager/electric/contributors) who participated in this project.
 
